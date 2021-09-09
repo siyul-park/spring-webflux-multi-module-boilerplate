@@ -8,20 +8,16 @@ plugins {
 }
 
 dependencies {
-    // Spring
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation(project(":dependency:spring"))
+    testImplementation(project(":dependency:spring-test"))
 
-    // Other
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation(project(":dependency:reactor"))
+    testImplementation(project(":dependency:reactor-test"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    testImplementation("io.projectreactor:reactor-test")
+    implementation(project(":dependency:kotlinx"))
 
-    api(project(":domain:jackson"))
-    api(project(":domain:swagger"))
+    implementation(project(":domain:jackson"))
+    implementation(project(":domain:swagger"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
