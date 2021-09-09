@@ -1,4 +1,4 @@
-package io.github.siyual_park.app_interface.controller
+package io.github.siyual_park.application.external.controller
 
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus

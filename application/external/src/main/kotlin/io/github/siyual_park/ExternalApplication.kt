@@ -8,8 +8,8 @@ import org.springframework.cache.annotation.EnableCaching
 @EnableCaching
 @SpringBootApplication
 @ConfigurationPropertiesScan
-class AppInterfaceApplication
+class ExternalApplication
 
 fun main(args: Array<String>) {
-    runApplication<AppInterfaceApplication>(*args)
+    runApplication<ExternalApplication>(*args)
 }
