@@ -11,8 +11,8 @@ dependencies {
     implementation(project(":dependency:spring"))
     testImplementation(project(":dependency:spring-test"))
 
-    implementation(project(":dependency:reactor"))
-    testImplementation(project(":dependency:reactor-test"))
+    implementation(project(":dependency:async"))
+    testImplementation(project(":dependency:async-test"))
 
     implementation(project(":dependency:kotlinx"))
 
