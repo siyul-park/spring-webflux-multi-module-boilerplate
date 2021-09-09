@@ -29,3 +29,5 @@ pluginManagement {
 includeModules("application")
 includeModules("domain")
 includeModules("common")
+includeModules("module")
+includeModules("dependency")

@@ -1,5 +1,3 @@
-val springfox_version: String by project
-
 plugins {
     application
 
@@ -7,26 +5,19 @@ plugins {
     id("io.spring.dependency-management")
 
     kotlin("plugin.spring")
-    kotlin("plugin.jpa")
 }
 
 dependencies {
-    // Spring
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation(project(":dependency:spring"))
+    testImplementation(project(":dependency:spring-test"))
 
-    // Other
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation(project(":dependency:async"))
+    testImplementation(project(":dependency:async-test"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    testImplementation("io.projectreactor:reactor-test")
+    implementation(project(":dependency:kotlinx"))
 
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-
-    implementation("io.springfox:springfox-boot-starter:$springfox_version")
-    implementation("io.springfox:springfox-swagger-ui:$springfox_version")
+    implementation(project(":domain:jackson"))
+    implementation(project(":domain:swagger"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

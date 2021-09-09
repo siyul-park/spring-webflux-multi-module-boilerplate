@@ -1,9 +1,9 @@
-package io.github.siyual_park.application.external.configuration
+package io.github.siyual_park.jackson.configuration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
-import io.github.siyual_park.application.external.converter.jackson.instant.InstantEpochTimeModule
+import io.github.siyual_park.jackson.converter.instant.InstantEpochTimeModule
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 

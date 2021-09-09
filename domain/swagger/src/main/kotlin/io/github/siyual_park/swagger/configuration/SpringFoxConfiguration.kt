@@ -1,7 +1,6 @@
-package io.github.siyual_park.application.external.configuration
+package io.github.siyual_park.swagger.configuration
 
 import io.swagger.annotations.Api
-import io.swagger.annotations.ApiOperation
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import springfox.documentation.builders.PathSelectors
@@ -16,13 +15,14 @@ import java.time.Instant
 class SpringFoxConfiguration {
     @Bean
     fun api(): Docket {
-        return Docket(DocumentationType.SWAGGER_2).apply {
-            directModelSubstitute(Instant::class.java, Long::class.java)
-        }
+        return Docket(DocumentationType.SWAGGER_2)
+            .apply {
+                directModelSubstitute(Instant::class.java, Long::class.java)
+            }
             .select()
             .apis(
                 RequestHandlerSelectors.withClassAnnotation(Api::class.java)
-                    .or(RequestHandlerSelectors.withMethodAnnotation(ApiOperation::class.java))
+                    .or(RequestHandlerSelectors.withMethodAnnotation(io.swagger.annotations.ApiOperation::class.java))
             )
             .paths(PathSelectors.any())
             .build()
