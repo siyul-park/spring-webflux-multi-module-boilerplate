@@ -14,8 +14,6 @@ dependencies {
     implementation(project(":dependency:async"))
     testImplementation(project(":dependency:async-test"))
 
-    implementation(project(":dependency:kotlinx"))
-
     implementation(project(":domain:jackson"))
     implementation(project(":domain:swagger"))
 }
