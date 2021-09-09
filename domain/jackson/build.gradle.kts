@@ -1,3 +1,5 @@
+val jackson_version: String by project
+
 plugins {
     application
 
@@ -8,20 +10,11 @@ plugins {
 }
 
 dependencies {
-    // Spring
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-    // Other
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    testImplementation("io.projectreactor:reactor-test")
-
-    api(project(":domain:jackson"))
-    api(project(":domain:swagger"))
+    api("com.fasterxml.jackson.core:jackson-core:$jackson_version")
+    api("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version")
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

@@ -1,4 +1,4 @@
-package io.github.siyual_park.application.external.converter.jackson.instant
+package io.github.siyual_park.jackson.converter.instant
 
 import com.fasterxml.jackson.databind.module.SimpleModule
 import java.time.Instant
