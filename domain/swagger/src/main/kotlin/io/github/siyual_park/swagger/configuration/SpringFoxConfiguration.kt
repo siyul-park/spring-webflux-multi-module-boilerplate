@@ -1,7 +1,6 @@
 package io.github.siyual_park.swagger.configuration
 
 import io.swagger.annotations.Api
-import io.swagger.annotations.ApiOperation
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import springfox.documentation.builders.PathSelectors
@@ -15,17 +14,17 @@ import java.time.Instant
 @EnableSwagger2
 class SpringFoxConfiguration {
     @Bean
-    fun api(): springfox.documentation.spring.web.plugins.Docket {
-        return springfox.documentation.spring.web.plugins.Docket(springfox.documentation.spi.DocumentationType.SWAGGER_2)
+    fun api(): Docket {
+        return Docket(DocumentationType.SWAGGER_2)
             .apply {
                 directModelSubstitute(Instant::class.java, Long::class.java)
             }
             .select()
             .apis(
-                springfox.documentation.builders.RequestHandlerSelectors.withClassAnnotation(io.swagger.annotations.Api::class.java)
-                    .or(springfox.documentation.builders.RequestHandlerSelectors.withMethodAnnotation(io.swagger.annotations.ApiOperation::class.java))
+                RequestHandlerSelectors.withClassAnnotation(Api::class.java)
+                    .or(RequestHandlerSelectors.withMethodAnnotation(io.swagger.annotations.ApiOperation::class.java))
             )
-            .paths(springfox.documentation.builders.PathSelectors.any())
+            .paths(PathSelectors.any())
             .build()
     }
 }
