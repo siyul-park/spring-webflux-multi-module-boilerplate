@@ -298,7 +298,6 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
 
         val generatedValueSqlIdentifier = mutableListOf<SqlIdentifier>()
         requiredEntity.forEach {
-            val name = it.name
             if (it.isAnnotationPresent(annotationType.java)) {
                 generatedValueSqlIdentifier.add(it.columnName)
             }
