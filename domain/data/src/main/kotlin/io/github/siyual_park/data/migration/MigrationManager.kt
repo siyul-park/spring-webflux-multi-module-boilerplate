@@ -5,7 +5,9 @@ import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.stereotype.Component
 
+@Component
 class MigrationManager(
     connectionFactory: ConnectionFactory,
     entityCallbacks: ReactiveEntityCallbacks? = null
