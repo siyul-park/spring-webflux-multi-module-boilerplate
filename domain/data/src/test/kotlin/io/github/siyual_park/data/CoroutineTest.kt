@@ -1,0 +1,37 @@
+package io.github.siyual_park.data
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+
+@OptIn(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
+open class CoroutineTest {
+    private val mainThreadSurrogate = newSingleThreadContext("Test thread")
+
+    @BeforeEach
+    open fun setUp() {
+        Dispatchers.setMain(mainThreadSurrogate)
+    }
+
+    @AfterEach
+    open fun tearDown() {
+        Dispatchers.resetMain()
+        mainThreadSurrogate.close()
+    }
+
+    fun async(func: suspend CoroutineScope.() -> Unit) {
+        runBlocking {
+            launch(Dispatchers.Main) {
+                func(this)
+            }
+        }
+    }
+}

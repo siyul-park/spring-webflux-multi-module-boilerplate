@@ -10,4 +10,5 @@ dependencies {
 
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$coroutines_version")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutines_version")
 }
