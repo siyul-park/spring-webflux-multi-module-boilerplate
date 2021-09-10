@@ -25,17 +25,16 @@ import org.springframework.data.relational.core.query.Query.empty
 import org.springframework.data.relational.core.query.Query.query
 import org.springframework.data.relational.core.query.Update
 import org.springframework.data.relational.core.sql.SqlIdentifier
-import org.springframework.data.util.ProxyUtils
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.Parameter
 import reactor.core.publisher.Flux
 import kotlin.reflect.KClass
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
-class SimpleRepository<T: Cloneable<T>, ID: Any>(
+class SimpleRepository<T : Cloneable<T>, ID : Any>(
     connectionFactory: ConnectionFactory,
     private val clazz: KClass<T>
-) {
+): Repository<T, ID> {
     private val entityTemplate = R2dbcEntityTemplate(connectionFactory)
 
     private val databaseClient: DatabaseClient
@@ -59,32 +58,33 @@ class SimpleRepository<T: Cloneable<T>, ID: Any>(
         idColumn = persistentEntity.requiredIdProperty.columnName
         idProperty = dataAccessStrategy.toSql(idColumn)
     }
-    suspend fun <S : T> create(entity: S): S {
+
+    override suspend fun <S : T> create(entity: S): S {
         return this.entityTemplate.insert(entity)
             .awaitSingle()
     }
 
-    fun <S : T> createAll(entities: Iterable<S>): Flow<S> {
+    override fun <S : T> createAll(entities: Iterable<S>): Flow<S> {
         return Flux.fromIterable(entities)
             .flatMap { this.entityTemplate.insert(it) }
             .asFlow()
     }
 
-    suspend fun findById(id: ID): T? {
+    override suspend fun findById(id: ID): T? {
         return this.entityTemplate.selectOne(
             query(where(idProperty).`is`(id)),
             clazz.java
         ).awaitSingleOrNull()
     }
 
-    suspend fun existsById(id: ID): Boolean {
+    override suspend fun existsById(id: ID): Boolean {
         return this.entityTemplate.exists(
             query(where(idProperty).`is`(id)),
             clazz.java
         ).awaitSingle()
     }
 
-    fun findAll(): Flow<T> {
+    override fun findAll(): Flow<T> {
         return this.entityTemplate.select(
             query(CriteriaDefinition.empty())
                 .sort(by(asc(idProperty))),
@@ -93,7 +93,7 @@ class SimpleRepository<T: Cloneable<T>, ID: Any>(
             .asFlow()
     }
 
-    fun findAllById(ids: Iterable<ID>): Flow<T> {
+    override fun findAllById(ids: Iterable<ID>): Flow<T> {
         return this.entityTemplate.select(
             query(where(idProperty).`in`(ids))
                 .sort(by(asc(idProperty))),
@@ -102,12 +102,12 @@ class SimpleRepository<T: Cloneable<T>, ID: Any>(
             .asFlow()
     }
 
-    suspend fun updateById(id: ID, patch: Patch<T>): T? {
+    override suspend fun updateById(id: ID, patch: Patch<T>): T? {
         return findById(id)
             ?.let { update(it, patch) }
     }
 
-    suspend fun update(entity: T, patch: Patch<T>): T? {
+    override suspend fun update(entity: T, patch: Patch<T>): T? {
         val origin = entity.clone()
         val patched = patch.apply(entity)
 
@@ -124,12 +124,12 @@ class SimpleRepository<T: Cloneable<T>, ID: Any>(
             }
         }
 
-        val update_count = this.entityTemplate.update(
+        val updateCount = this.entityTemplate.update(
             query(where(idProperty).`is`(originOutboundRow[idColumn])),
             Update.from(diff),
             clazz.java
         ).awaitSingle()
-        if (update_count == 0) {
+        if (updateCount == 0) {
             return null
         }
 
@@ -139,50 +139,50 @@ class SimpleRepository<T: Cloneable<T>, ID: Any>(
         ).awaitSingleOrNull()
     }
 
-    suspend fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
+    override fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
         return findAllById(ids)
             .map { update(it, patch) }
     }
 
-    suspend fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
+    override fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
         return entity.asFlow()
             .map { update(it, patch) }
     }
 
-    suspend fun count(): Long {
+    override suspend fun count(): Long {
         return this.entityTemplate.count(empty(), clazz.java)
             .awaitSingle()
     }
 
-    suspend fun deleteById(id: ID) {
+    override suspend fun deleteById(id: ID) {
         this.entityTemplate.delete(
             query(where(idProperty).`is`(id)),
             clazz.java
         ).awaitSingle()
     }
 
-    suspend fun delete(entity: T) {
+    override suspend fun delete(entity: T) {
         this.entityTemplate.delete(
             query(where(idProperty).`is`(getId(entity))),
             clazz.java
         ).awaitSingle()
     }
 
-    suspend fun deleteAllById(ids: Iterable<ID>) {
+    override suspend fun deleteAllById(ids: Iterable<ID>) {
         this.entityTemplate.delete(
             query(where(idProperty).`in`(ids)),
             clazz.java
         ).awaitSingle()
     }
 
-    suspend fun deleteAll(entities: Iterable<T>) {
+    override suspend fun deleteAll(entities: Iterable<T>) {
         this.entityTemplate.delete(
             query(where(idProperty).`in`(entities.map { getId(it) })),
             clazz.java
         ).awaitSingle()
     }
 
-    suspend fun deleteAll() {
+    override suspend fun deleteAll() {
         this.entityTemplate.delete(empty(), clazz.java)
             .awaitSingle()
     }
@@ -190,11 +190,6 @@ class SimpleRepository<T: Cloneable<T>, ID: Any>(
     private fun getId(entity: T): Parameter {
         val outboundRow = dataAccessStrategy.getOutboundRow(entity)
         return outboundRow[idColumn]
-    }
-
-    private fun <T> getRequiredEntity(entity: T): RelationalPersistentEntity<T> {
-        val entityType = ProxyUtils.getUserClass(entity as Any)
-        return getRequiredEntity(entityType) as RelationalPersistentEntity<T>
     }
 
     private fun getRequiredEntity(entityClass: Class<*>): RelationalPersistentEntity<*> {
