@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.repository
 
 import io.github.siyual_park.data.Cloneable
+import io.github.siyual_park.data.annoration.GeneratedValue
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
@@ -31,6 +32,7 @@ import org.springframework.data.relational.core.query.Query.empty
 import org.springframework.data.relational.core.query.Query.query
 import org.springframework.data.relational.core.query.Update
 import org.springframework.data.relational.core.sql.SqlIdentifier
+import org.springframework.data.util.ProxyUtils
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.Parameter
 import reactor.core.scheduler.Scheduler
@@ -54,6 +56,8 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     private val idColumn: SqlIdentifier
     private val idProperty: String
 
+    private val generatedValueColumn: Set<SqlIdentifier>
+
     init {
         if (entityCallbacks != null) {
             entityTemplate.setEntityCallbacks(entityCallbacks)
@@ -70,6 +74,8 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
 
         idColumn = persistentEntity.requiredIdProperty.columnName
         idProperty = dataAccessStrategy.toSql(idColumn)
+
+        generatedValueColumn = getAnnotatedSqlIdentifier(GeneratedValue::class)
     }
 
     override suspend fun create(entity: T): T {
@@ -146,52 +152,6 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
             ?.let { update(it, patch) }
     }
 
-    override suspend fun update(entity: T): T? {
-        return this.entityTemplate.update(entity)
-            .subscribeOn(scheduler)
-            .awaitSingleOrNull()
-    }
-
-    override suspend fun update(entity: T, patch: Patch<T>): T? {
-        return update(entity, patch.async())
-    }
-
-    override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
-        val origin = entity.clone()
-        val patched = patch.apply(entity)
-
-        val originOutboundRow = dataAccessStrategy.getOutboundRow(origin)
-        val patchedOutboundRow = dataAccessStrategy.getOutboundRow(patched)
-
-        val diff = mutableMapOf<SqlIdentifier, Any>()
-        originOutboundRow.keys.forEach {
-            val originValue = originOutboundRow[it]
-            val patchedValue = patchedOutboundRow[it]
-
-            if (originValue.value != patchedValue.value) {
-                diff[it] = patchedValue
-            }
-        }
-
-        val updateCount = this.entityTemplate.update(
-            query(where(idProperty).`is`(originOutboundRow[idColumn])),
-            Update.from(diff),
-            clazz.java
-        )
-            .subscribeOn(scheduler)
-            .awaitSingle()
-        if (updateCount == 0) {
-            return null
-        }
-
-        return this.entityTemplate.selectOne(
-            query(where(idProperty).`is`(patchedOutboundRow[idColumn])),
-            clazz.java
-        )
-            .subscribeOn(scheduler)
-            .awaitSingleOrNull()
-    }
-
     override fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
         return findAllById(ids)
             .map { update(it, patch) }
@@ -215,6 +175,65 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
         return entity.asFlow()
             .map { update(it, patch) }
+    }
+
+    override suspend fun update(entity: T, patch: Patch<T>): T? {
+        return update(entity, patch.async())
+    }
+
+    override suspend fun update(entity: T): T? {
+        val originOutboundRow = dataAccessStrategy.getOutboundRow(entity)
+
+        val patch = mutableMapOf<SqlIdentifier, Any>()
+        originOutboundRow.forEach { (key, value) ->
+            if (!generatedValueColumn.contains(key)) {
+                patch[key] = value
+            }
+        }
+
+        val updateCount = this.entityTemplate.update(
+            query(where(idProperty).`is`(originOutboundRow[idColumn])),
+            Update.from(patch),
+            clazz.java
+        )
+            .subscribeOn(scheduler)
+            .awaitSingle()
+        if (updateCount == 0) {
+            return null
+        }
+
+        return findById(originOutboundRow[idColumn].value as ID)
+    }
+
+    override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
+        val origin = entity.clone()
+        val patched = patch.apply(entity)
+
+        val originOutboundRow = dataAccessStrategy.getOutboundRow(origin)
+        val patchedOutboundRow = dataAccessStrategy.getOutboundRow(patched)
+
+        val diff = mutableMapOf<SqlIdentifier, Any>()
+        originOutboundRow.keys.forEach {
+            val originValue = originOutboundRow[it]
+            val patchedValue = patchedOutboundRow[it]
+
+            if (!generatedValueColumn.contains(it) && originValue.value != patchedValue.value) {
+                diff[it] = patchedValue
+            }
+        }
+
+        val updateCount = this.entityTemplate.update(
+            query(where(idProperty).`is`(originOutboundRow[idColumn])),
+            Update.from(diff),
+            clazz.java
+        )
+            .subscribeOn(scheduler)
+            .awaitSingle()
+        if (updateCount == 0) {
+            return null
+        }
+
+        return findById(patchedOutboundRow[idColumn].value as ID)
     }
 
     override suspend fun count(): Long {
@@ -272,6 +291,25 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     private fun getId(entity: T): Parameter {
         val outboundRow = dataAccessStrategy.getOutboundRow(entity)
         return outboundRow[idColumn]
+    }
+
+    private fun <S : Annotation> getAnnotatedSqlIdentifier(annotationType: KClass<S>): Set<SqlIdentifier> {
+        val requiredEntity = getRequiredEntity(clazz.java)
+
+        val generatedValueSqlIdentifier = mutableListOf<SqlIdentifier>()
+        requiredEntity.forEach {
+            val name = it.name
+            if (it.isAnnotationPresent(annotationType.java)) {
+                generatedValueSqlIdentifier.add(it.columnName)
+            }
+        }
+
+        return generatedValueSqlIdentifier.toSet()
+    }
+
+    private fun getRequiredEntity(entity: T): RelationalPersistentEntity<T> {
+        val entityType = ProxyUtils.getUserClass(entity)
+        return getRequiredEntity(entityType) as RelationalPersistentEntity<T>
     }
 
     private fun getRequiredEntity(entityClass: Class<*>): RelationalPersistentEntity<*> {

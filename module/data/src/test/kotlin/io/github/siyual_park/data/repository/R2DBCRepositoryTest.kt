@@ -1,13 +1,12 @@
 package io.github.siyual_park.data.repository
 
 import io.github.siyual_park.data.R2DBCTest
+import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.factory.PersonFactory
 import io.github.siyual_park.data.migration.CreatePersonCheckpoint
 import io.github.siyual_park.data.mock.Person
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
-import io.github.siyual_park.data.where
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -33,6 +32,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertNotNull(savedPerson.id)
         assertNotNull(savedPerson.createdAt)
+        assertNotNull(savedPerson.updatedAt)
+
         assertEquals(person.name, savedPerson.name)
         assertEquals(person.age, savedPerson.age)
     }
@@ -51,6 +52,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
             assertNotNull(savedPerson.id)
             assertNotNull(savedPerson.createdAt)
+            assertNotNull(savedPerson.updatedAt)
+
             assertEquals(person.name, savedPerson.name)
             assertEquals(person.age, savedPerson.age)
         }
@@ -72,6 +75,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertEquals(person.id, foundPerson.id)
         assertEquals(person.createdAt, foundPerson.createdAt)
+        assertEquals(person.updatedAt, foundPerson.updatedAt)
+
         assertEquals(person.name, foundPerson.name)
         assertEquals(person.age, foundPerson.age)
     }
@@ -85,6 +90,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
         assertEquals(person.createdAt, foundPersons[0].createdAt)
+        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
+
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
     }
@@ -98,6 +105,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
         assertEquals(person.createdAt, foundPersons[0].createdAt)
+        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
+
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
     }
@@ -120,6 +129,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
             assertNotNull(foundPerson.id)
             assertNotNull(foundPerson.createdAt)
+            assertNotNull(foundPerson.updatedAt)
+
             assertEquals(person.name, foundPerson.name)
             assertEquals(person.age, foundPerson.age)
         }
@@ -131,6 +142,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
             .let { personRepository.create(it) }
         val person2 = personFactory.create()
 
+        val originPerson = person.clone()
+
         person.name = person2.name
         person.age = person2.age
 
@@ -138,6 +151,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertEquals(person.id, updatedPerson.id)
         assertEquals(person.createdAt, updatedPerson.createdAt)
+        assertTrue(originPerson.updatedAt!! < updatedPerson.updatedAt!!)
+
         assertEquals(person.name, updatedPerson.name)
         assertEquals(person.age, updatedPerson.age)
     }
@@ -158,6 +173,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertEquals(person.id, updatedPerson.id)
         assertEquals(person.createdAt, updatedPerson.createdAt)
+        assertTrue(person.updatedAt!! < updatedPerson.updatedAt!!)
+
         assertEquals(person.name, updatedPerson.name)
         assertEquals(person.age, updatedPerson.age)
     }
@@ -178,6 +195,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertEquals(person.id, updatedPerson.id)
         assertEquals(person.createdAt, updatedPerson.createdAt)
+        assertTrue(person.updatedAt!! < updatedPerson.updatedAt!!)
+
         assertEquals(person.name, updatedPerson.name)
         assertEquals(person.age, updatedPerson.age)
     }
@@ -186,26 +205,32 @@ class R2DBCRepositoryTest : R2DBCTest() {
     fun updateAll() = blocking {
         val numOfPerson = 10
 
-        val person2 = personFactory.create()
-        val persons = (0 until numOfPerson)
+        var persons = (0 until numOfPerson)
             .map { personFactory.create() }
             .let { personRepository.createAll(it) }
-            .map {
-                it.name = person2.name
-                it.age = person2.age
-                it
-            }
             .toList()
+
+        val originPersons = persons.map { it.clone() }
+
+        val person2 = personFactory.create()
+        persons = persons.map {
+            it.name = person2.name
+            it.age = person2.age
+            it
+        }
 
         val updatedPersons = personRepository.updateAll(persons).toList()
 
         assertEquals(persons.size, updatedPersons.size)
         for (i in 0 until numOfPerson) {
             val person = persons[i]
+            val originPerson = originPersons[i]
             val updatedPerson = updatedPersons[i]!!
 
             assertNotNull(updatedPerson.id)
             assertNotNull(updatedPerson.createdAt)
+            assertTrue(originPerson.updatedAt!! < updatedPerson.updatedAt!!)
+
             assertEquals(person.name, updatedPerson.name)
             assertEquals(person.age, updatedPerson.age)
         }
@@ -236,6 +261,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
             assertNotNull(updatedPerson.id)
             assertNotNull(updatedPerson.createdAt)
+            assertTrue(person.updatedAt!! < updatedPerson.updatedAt!!)
+
             assertEquals(person.name, updatedPerson.name)
             assertEquals(person.age, updatedPerson.age)
         }
@@ -266,6 +293,8 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
             assertNotNull(updatedPerson.id)
             assertNotNull(updatedPerson.createdAt)
+            assertTrue(person.updatedAt!! < updatedPerson.updatedAt!!)
+
             assertEquals(person.name, updatedPerson.name)
             assertEquals(person.age, updatedPerson.age)
         }
