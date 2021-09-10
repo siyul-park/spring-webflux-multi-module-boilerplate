@@ -41,7 +41,7 @@ import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
-class R2DBCRepository<T : Cloneable<T>, ID : Any>(
+open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     connectionFactory: ConnectionFactory,
     private val clazz: KClass<T>,
     entityCallbacks: ReactiveEntityCallbacks? = null,

@@ -17,17 +17,17 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.memberProperties
 
-class InMemoryRepository<T : Cloneable<T>, ID : Any>(
+open class InMemoryRepository<T : Cloneable<T>, ID : Any>(
     clazz: KClass<T>,
     private val idGenerator: IdGenerator<ID>,
-    private val entityCallbacks: EntityCallbacks<T>? = null
+    protected var entityCallbacks: EntityCallbacks<T>? = null
 ) : Repository<T, ID> {
-    val idProperty = clazz.memberProperties
+    private val idProperty = clazz.memberProperties
         .filter { it is KMutableProperty<*> }
         .filter { it.annotations.any { it is Id } }
         .first() as KMutableProperty<ID?>
 
-    val datasource: ConcurrentHashMap<ID, T> = ConcurrentHashMap()
+    protected val datasource: ConcurrentHashMap<ID, T> = ConcurrentHashMap()
 
     override suspend fun create(entity: T): T {
         val id = idGenerator.generate()
