@@ -13,6 +13,7 @@ import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.domain.Sort.Order.asc
 import org.springframework.data.domain.Sort.by
+import org.springframework.data.mapping.callback.ReactiveEntityCallbacks
 import org.springframework.data.mapping.context.MappingContext
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory
 import org.springframework.data.r2dbc.core.DefaultReactiveDataAccessStrategy
@@ -35,7 +36,8 @@ import kotlin.reflect.KClass
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
 class SimpleRepository<T : Cloneable<T>, ID : Any>(
     connectionFactory: ConnectionFactory,
-    private val clazz: KClass<T>
+    private val clazz: KClass<T>,
+    entityCallbacks: ReactiveEntityCallbacks? = null
 ): Repository<T, ID> {
     private val entityTemplate = R2dbcEntityTemplate(connectionFactory)
 
@@ -48,6 +50,10 @@ class SimpleRepository<T : Cloneable<T>, ID : Any>(
     private val idProperty: String
 
     init {
+        if (entityCallbacks != null) {
+            entityTemplate.setEntityCallbacks(entityCallbacks)
+        }
+
         val dialect = DialectResolver.getDialect(connectionFactory)
 
         databaseClient = DatabaseClient.builder().connectionFactory(connectionFactory).bindMarkers(dialect.bindMarkersFactory).build()
@@ -112,6 +118,11 @@ class SimpleRepository<T : Cloneable<T>, ID : Any>(
     override suspend fun updateById(id: ID, patch: AsyncPatch<T>): T? {
         return findById(id)
             ?.let { update(it, patch) }
+    }
+
+    override suspend fun update(entity: T): T {
+        return this.entityTemplate.update(entity)
+            .awaitSingle()
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {

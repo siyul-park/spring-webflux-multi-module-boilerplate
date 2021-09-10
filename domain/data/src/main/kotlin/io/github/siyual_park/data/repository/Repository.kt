@@ -21,6 +21,8 @@ interface Repository<T : Any, ID : Any> {
 
     suspend fun updateById(id: ID, patch: AsyncPatch<T>): T?
 
+    suspend fun update(entity: T): T?
+
     suspend fun update(entity: T, patch: Patch<T>): T?
 
     suspend fun update(entity: T, patch: AsyncPatch<T>): T?
@@ -44,5 +46,4 @@ interface Repository<T : Any, ID : Any> {
     suspend fun deleteAll(entities: Iterable<T>)
 
     suspend fun deleteAll()
-
 }
