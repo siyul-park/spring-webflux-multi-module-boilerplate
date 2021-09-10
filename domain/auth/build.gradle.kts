@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":module:data"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

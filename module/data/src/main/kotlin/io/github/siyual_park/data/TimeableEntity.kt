@@ -1,15 +1,10 @@
 package io.github.siyual_park.data
 
 import io.github.siyual_park.data.annoration.GeneratedValue
-import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import java.time.Instant
 
-abstract class BaseEntity<T> : Cloneable<T> {
-    @Id
-    @GeneratedValue
-    var id: Long? = null
-
+abstract class TimeableEntity<T, ID> : IdEntity<T, ID>() {
     @Column("created_at")
     @GeneratedValue
     var createdAt: Instant? = null
@@ -19,7 +14,7 @@ abstract class BaseEntity<T> : Cloneable<T> {
     var updatedAt: Instant? = null
 }
 
-fun <T : BaseEntity<T>> BaseEntity<T>.copyDefaultColumn(entity: T): T {
+fun <T : TimeableEntity<T, ID>, ID> TimeableEntity<T, ID>.copyDefaultColumn(entity: T): T {
     entity.id = id
     entity.createdAt = createdAt
     entity.updatedAt = updatedAt

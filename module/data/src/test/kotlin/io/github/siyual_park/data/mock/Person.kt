@@ -1,6 +1,6 @@
 package io.github.siyual_park.data.mock
 
-import io.github.siyual_park.data.BaseEntity
+import io.github.siyual_park.data.TimeableEntity
 import io.github.siyual_park.data.copyDefaultColumn
 import org.springframework.data.relational.core.mapping.Table
 
@@ -8,7 +8,7 @@ import org.springframework.data.relational.core.mapping.Table
 data class Person(
     var name: String,
     var age: Int
-) : BaseEntity<Person>() {
+) : TimeableEntity<Person, Long>() {
     override fun clone(): Person {
         return copyDefaultColumn(this.copy())
     }

@@ -117,7 +117,11 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
             .awaitSingle()
     }
 
-    override fun findAll(criteria: CriteriaDefinition?, limit: Int?, sort: Sort?): Flow<T> {
+    override fun findAll(): Flow<T> {
+        return findAll(criteria = null)
+    }
+
+    fun findAll(criteria: CriteriaDefinition? = null, limit: Int? = null, sort: Sort? = null): Flow<T> {
         var query = query(criteria ?: CriteriaDefinition.empty())
         limit?.let {
             query = query.limit(it)

@@ -3,8 +3,6 @@ package io.github.siyual_park.data.repository
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import kotlinx.coroutines.flow.Flow
-import org.springframework.data.domain.Sort
-import org.springframework.data.relational.core.query.CriteriaDefinition
 
 interface Repository<T : Any, ID : Any> {
     suspend fun create(entity: T): T
@@ -15,7 +13,7 @@ interface Repository<T : Any, ID : Any> {
 
     suspend fun findById(id: ID): T?
 
-    fun findAll(criteria: CriteriaDefinition? = null, limit: Int? = null, sort: Sort? = null): Flow<T>
+    fun findAll(): Flow<T>
 
     fun findAllById(ids: Iterable<ID>): Flow<T>
 
