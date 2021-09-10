@@ -9,3 +9,7 @@ interface Patch<T> {
         }
     }
 }
+
+fun <T> Patch<T>.async(): AsyncPatch<T> {
+    return AsyncPatch.from { apply(it) }
+}

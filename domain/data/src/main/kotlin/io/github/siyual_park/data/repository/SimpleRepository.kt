@@ -1,7 +1,9 @@
 package io.github.siyual_park.data.repository
 
 import io.github.siyual_park.data.Cloneable
+import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.async
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -107,7 +109,16 @@ class SimpleRepository<T : Cloneable<T>, ID : Any>(
             ?.let { update(it, patch) }
     }
 
+    override suspend fun updateById(id: ID, patch: AsyncPatch<T>): T? {
+        return findById(id)
+            ?.let { update(it, patch) }
+    }
+
     override suspend fun update(entity: T, patch: Patch<T>): T? {
+        return update(entity, patch.async())
+    }
+
+    override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
         val origin = entity.clone()
         val patched = patch.apply(entity)
 
@@ -144,7 +155,17 @@ class SimpleRepository<T : Cloneable<T>, ID : Any>(
             .map { update(it, patch) }
     }
 
+    override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
+        return findAllById(ids)
+            .map { update(it, patch) }
+    }
+
     override fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
+        return entity.asFlow()
+            .map { update(it, patch) }
+    }
+
+    override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
         return entity.asFlow()
             .map { update(it, patch) }
     }
