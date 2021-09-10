@@ -33,13 +33,16 @@ import org.springframework.data.relational.core.query.Update
 import org.springframework.data.relational.core.sql.SqlIdentifier
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.Parameter
+import reactor.core.scheduler.Scheduler
+import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
 class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     connectionFactory: ConnectionFactory,
     private val clazz: KClass<T>,
-    entityCallbacks: ReactiveEntityCallbacks? = null
+    entityCallbacks: ReactiveEntityCallbacks? = null,
+    private val scheduler: Scheduler = Schedulers.boundedElastic()
 ) : Repository<T, ID> {
     private val entityTemplate = R2dbcEntityTemplate(connectionFactory)
 
@@ -71,12 +74,15 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
 
     override suspend fun create(entity: T): T {
         val saved = this.entityTemplate.insert(entity)
+            .subscribeOn(scheduler)
             .awaitSingle()
 
         return this.entityTemplate.select(
             query(where(idProperty).`is`(saved)),
             entity.javaClass
-        ).awaitSingle()
+        )
+            .subscribeOn(scheduler)
+            .awaitSingle()
     }
 
     override fun createAll(entities: Iterable<T>): Flow<T> {
@@ -91,14 +97,18 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         return this.entityTemplate.selectOne(
             query(where(idProperty).`is`(id)),
             clazz.java
-        ).awaitSingleOrNull()
+        )
+            .subscribeOn(scheduler)
+            .awaitSingleOrNull()
     }
 
     override suspend fun existsById(id: ID): Boolean {
         return this.entityTemplate.exists(
             query(where(idProperty).`is`(id)),
             clazz.java
-        ).awaitSingle()
+        )
+            .subscribeOn(scheduler)
+            .awaitSingle()
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, sort: Sort?): Flow<T> {
@@ -112,6 +122,7 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
             query,
             clazz.java
         )
+            .subscribeOn(scheduler)
             .asFlow()
     }
 
@@ -121,6 +132,7 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
                 .sort(by(asc(idProperty))),
             clazz.java
         )
+            .subscribeOn(scheduler)
             .asFlow()
     }
 
@@ -136,6 +148,7 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
 
     override suspend fun update(entity: T): T? {
         return this.entityTemplate.update(entity)
+            .subscribeOn(scheduler)
             .awaitSingleOrNull()
     }
 
@@ -164,7 +177,9 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
             query(where(idProperty).`is`(originOutboundRow[idColumn])),
             Update.from(diff),
             clazz.java
-        ).awaitSingle()
+        )
+            .subscribeOn(scheduler)
+            .awaitSingle()
         if (updateCount == 0) {
             return null
         }
@@ -172,7 +187,9 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         return this.entityTemplate.selectOne(
             query(where(idProperty).`is`(patchedOutboundRow[idColumn])),
             clazz.java
-        ).awaitSingleOrNull()
+        )
+            .subscribeOn(scheduler)
+            .awaitSingleOrNull()
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
@@ -202,6 +219,7 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
 
     override suspend fun count(): Long {
         return this.entityTemplate.count(empty(), clazz.java)
+            .subscribeOn(scheduler)
             .awaitSingle()
     }
 
@@ -209,7 +227,9 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         this.entityTemplate.delete(
             query(where(idProperty).`is`(id)),
             clazz.java
-        ).awaitSingle()
+        )
+            .subscribeOn(scheduler)
+            .awaitSingle()
     }
 
     override suspend fun delete(entity: T) {
@@ -218,14 +238,18 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         this.entityTemplate.delete(
             query(where(idProperty).`is`(id)),
             clazz.java
-        ).awaitSingle()
+        )
+            .subscribeOn(scheduler)
+            .awaitSingle()
     }
 
     override suspend fun deleteAllById(ids: Iterable<ID>) {
         this.entityTemplate.delete(
             query(where(idProperty).`in`(ids.toList())),
             clazz.java
-        ).awaitSingle()
+        )
+            .subscribeOn(scheduler)
+            .awaitSingle()
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
@@ -234,11 +258,14 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         this.entityTemplate.delete(
             query(where(idProperty).`in`(ids)),
             clazz.java
-        ).awaitSingle()
+        )
+            .subscribeOn(scheduler)
+            .awaitSingle()
     }
 
     override suspend fun deleteAll() {
         this.entityTemplate.delete(empty(), clazz.java)
+            .subscribeOn(scheduler)
             .awaitSingle()
     }
 
