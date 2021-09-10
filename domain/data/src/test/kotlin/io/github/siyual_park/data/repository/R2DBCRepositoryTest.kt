@@ -6,6 +6,7 @@ import io.github.siyual_park.data.migration.CreatePersonCheckpoint
 import io.github.siyual_park.data.mock.Person
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.where
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,7 +27,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun create() = async {
+    fun create() = blocking {
         val person = personFactory.create()
         val savedPerson = personRepository.create(person)
 
@@ -37,7 +38,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun createAll() = async {
+    fun createAll() = blocking {
         val numOfPerson = 10
 
         val persons = (0 until numOfPerson).map { personFactory.create() }
@@ -56,7 +57,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun existsById() = async {
+    fun existsById() = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }
 
@@ -64,7 +65,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun findById() = async {
+    fun findById() = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }
         val foundPerson = personRepository.findById(person.id!!)!!
@@ -76,7 +77,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun findAll() = async {
+    fun findAll() = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }
         val foundPersons = personRepository.findAll().toList()
@@ -89,7 +90,20 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun findAllById() = async {
+    fun findAllCustomQuery() = blocking {
+        val person = personFactory.create()
+            .let { personRepository.create(it) }
+        val foundPersons = personRepository.findAll(where(Person::id).`is`(person.id!!)).toList()
+
+        assertEquals(foundPersons.size, 1)
+        assertEquals(person.id, foundPersons[0].id)
+        assertEquals(person.createdAt, foundPersons[0].createdAt)
+        assertEquals(person.name, foundPersons[0].name)
+        assertEquals(person.age, foundPersons[0].age)
+    }
+
+    @Test
+    fun findAllById() = blocking {
         val numOfPerson = 10
 
         val persons = (0 until numOfPerson).map { personFactory.create() }
@@ -112,7 +126,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun update() = async {
+    fun update() = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }
         val person2 = personFactory.create()
@@ -129,7 +143,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun updateByPatch() = async {
+    fun updateByPatch() = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }
         val person2 = personFactory.create()
@@ -149,7 +163,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun updateByAsyncPatch() = async {
+    fun updateByAsyncPatch() = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }
         val person2 = personFactory.create()
@@ -169,11 +183,12 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun updateAll() = async {
+    fun updateAll() = blocking {
         val numOfPerson = 10
 
         val person2 = personFactory.create()
-        val persons = (0 until numOfPerson).map { personFactory.create() }
+        val persons = (0 until numOfPerson)
+            .map { personFactory.create() }
             .let { personRepository.createAll(it) }
             .map {
                 it.name = person2.name
@@ -197,11 +212,12 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun updateAllByPatch() = async {
+    fun updateAllByPatch() = blocking {
         val numOfPerson = 10
 
         val person2 = personFactory.create()
-        val persons = (0 until numOfPerson).map { personFactory.create() }
+        val persons = (0 until numOfPerson)
+            .map { personFactory.create() }
             .let { personRepository.createAll(it) }
             .toList()
 
@@ -226,11 +242,12 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun updateAllByAsyncPatch() = async {
+    fun updateAllByAsyncPatch() = blocking {
         val numOfPerson = 10
 
         val person2 = personFactory.create()
-        val persons = (0 until numOfPerson).map { personFactory.create() }
+        val persons = (0 until numOfPerson)
+            .map { personFactory.create() }
             .let { personRepository.createAll(it) }
             .toList()
 
@@ -255,11 +272,12 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun count() = async {
+    fun count() = blocking {
         assertEquals(personRepository.count(), 0L)
 
         val numOfPerson = 10
-        val persons = (0 until numOfPerson).map { personFactory.create() }
+        val persons = (0 until numOfPerson)
+            .map { personFactory.create() }
             .let { personRepository.createAll(it) }
             .toList()
 
@@ -267,7 +285,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun delete() = async {
+    fun delete() = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }
 
@@ -277,7 +295,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun deleteById() = async {
+    fun deleteById() = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }
 
@@ -287,7 +305,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun deleteAll() = async {
+    fun deleteAll() = blocking {
         personFactory.create()
             .let { personRepository.create(it) }
 
@@ -297,10 +315,11 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun deleteAllById() = async {
+    fun deleteAllById() = blocking {
         val numOfPerson = 10
 
-        val persons = (0 until numOfPerson).map { personFactory.create() }
+        val persons = (0 until numOfPerson)
+            .map { personFactory.create() }
             .let { personRepository.createAll(it) }
             .toList()
         val ids = persons.map { it.id!! }
@@ -311,10 +330,11 @@ class R2DBCRepositoryTest : R2DBCTest() {
     }
 
     @Test
-    fun deleteAllByEntity() = async {
+    fun deleteAllByEntity() = blocking {
         val numOfPerson = 10
 
-        val persons = (0 until numOfPerson).map { personFactory.create() }
+        val persons = (0 until numOfPerson)
+            .map { personFactory.create() }
             .let { personRepository.createAll(it) }
             .toList()
 

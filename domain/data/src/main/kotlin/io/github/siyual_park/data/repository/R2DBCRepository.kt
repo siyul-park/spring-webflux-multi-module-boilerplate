@@ -13,6 +13,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Sort.Order.asc
 import org.springframework.data.domain.Sort.by
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks
@@ -100,10 +101,15 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         ).awaitSingle()
     }
 
-    override fun findAll(): Flow<T> {
+    override fun findAll(criteria: CriteriaDefinition?, limit: Int?, sort: Sort?): Flow<T> {
+        var query = query(criteria ?: CriteriaDefinition.empty())
+        limit?.let {
+            query = query.limit(it)
+        }
+        query = query.sort(sort ?: by(asc(idProperty)))
+
         return this.entityTemplate.select(
-            query(CriteriaDefinition.empty())
-                .sort(by(asc(idProperty))),
+            query,
             clazz.java
         )
             .asFlow()

@@ -27,7 +27,7 @@ open class CoroutineTest {
         mainThreadSurrogate.close()
     }
 
-    fun async(func: suspend CoroutineScope.() -> Unit) {
+    fun blocking(func: suspend CoroutineScope.() -> Unit) {
         runBlocking {
             launch(Dispatchers.Main) {
                 func(this)

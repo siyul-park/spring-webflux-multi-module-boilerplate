@@ -16,14 +16,14 @@ open class R2DBCTest : CoroutineTest() {
     override fun setUp() {
         super.setUp()
 
-        async {
+        blocking {
             migrationManager.run()
         }
     }
 
     @AfterEach
     override fun tearDown() {
-        async {
+        blocking {
             migrationManager.revert()
         }
 
