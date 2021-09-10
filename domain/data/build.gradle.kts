@@ -5,7 +5,6 @@ plugins {
 dependencies {
     api(project(":dependency:async"))
     api(project(":dependency:r2dbc"))
-    implementation("junit:junit:4.13.1")
 
     testImplementation(project(":dependency:async-test"))
 }
