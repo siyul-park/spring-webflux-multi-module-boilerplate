@@ -34,11 +34,11 @@ import reactor.core.publisher.Flux
 import kotlin.reflect.KClass
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
-class SimpleRepository<T : Cloneable<T>, ID : Any>(
+class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     connectionFactory: ConnectionFactory,
     private val clazz: KClass<T>,
     entityCallbacks: ReactiveEntityCallbacks? = null
-): Repository<T, ID> {
+) : Repository<T, ID> {
     private val entityTemplate = R2dbcEntityTemplate(connectionFactory)
 
     private val databaseClient: DatabaseClient
