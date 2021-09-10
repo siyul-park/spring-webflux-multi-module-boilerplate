@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    api(project(":dependency:async"))
+    api(project(":dependency:r2dbc"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
