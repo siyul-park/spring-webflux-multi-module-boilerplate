@@ -16,7 +16,7 @@ dependencies {
 
     implementation(project(":dependency:r2dbc"))
 
-    implementation(project(":common:data"))
+    implementation(project(":module:data"))
 
     implementation(project(":domain:jackson"))
     implementation(project(":domain:swagger"))
