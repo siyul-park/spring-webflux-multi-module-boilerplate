@@ -1,8 +1,10 @@
 package io.github.siyual_park.data.migration
 
+import io.github.siyual_park.data.columnName
 import io.github.siyual_park.data.repository.R2DBCRepository
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
+import org.springframework.data.domain.Sort
 import org.springframework.data.mapping.callback.ReactiveEntityCallbacks
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.stereotype.Component
@@ -38,11 +40,13 @@ class MigrationManager(
             createMigrationCheckpoint.up(entityTemplate)
         }
 
-        val migrationCheckpoints = migrationCheckpointRepository.findAll()
+        val migrationCheckpoints = migrationCheckpointRepository.findAll(
+            sort = Sort.by(columnName(MigrationCheckpoint::version)).descending(),
+            limit = 1
+        )
             .toList()
-            .sortedBy { it.version }
 
-        val lastMigrationCheckpoint = migrationCheckpoints.lastOrNull()
+        val lastMigrationCheckpoint = migrationCheckpoints.firstOrNull()
         val lastVersion = lastMigrationCheckpoint?.version ?: -1
 
         for (i in (lastVersion + 1) until migrations.size) {
@@ -50,10 +54,8 @@ class MigrationManager(
 
             migration.up(entityTemplate)
 
-            val migrationCheckpoint = MigrationCheckpoint(
-                version = i
-            )
-            migrationCheckpointRepository.create(migrationCheckpoint)
+            MigrationCheckpoint(version = i)
+                .let { migrationCheckpointRepository.create(it) }
         }
     }
 

@@ -14,6 +14,10 @@ dependencies {
     implementation(project(":dependency:async"))
     testImplementation(project(":dependency:async-test"))
 
+    implementation(project(":dependency:r2dbc"))
+
+    implementation(project(":common:data"))
+
     implementation(project(":domain:jackson"))
     implementation(project(":domain:swagger"))
 }

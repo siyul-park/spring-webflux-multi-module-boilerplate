@@ -7,7 +7,7 @@ import org.springframework.test.web.reactive.server.expectBody
 
 @ControllerTest
 class PingControllerTest @Autowired constructor(
-    private val client: WebTestClient,
+    private val client: WebTestClient
 ) {
 
     @Test
