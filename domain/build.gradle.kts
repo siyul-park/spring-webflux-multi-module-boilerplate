@@ -23,6 +23,7 @@ subprojects {
 
     dependencies {
         implementation(project(":dependency:spring"))
+        testImplementation(project(":dependency:spring-test"))
     }
 
     tasks {
