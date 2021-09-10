@@ -6,17 +6,17 @@ import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 
-class CreateMigrationCheckpoint: Migration {
+class CreateMigrationCheckpoint : Migration {
     private val tableName = "migration_checkpoints"
 
     override suspend fun up(entityTemplate: R2dbcEntityTemplate) {
         entityTemplate.databaseClient.sql(
             "CREATE TABLE $tableName" +
-                    "(" +
-                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
-                    "version BIGINT," +
-                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                    ")"
+                "(" +
+                "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
+                "version BIGINT," +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                ")"
         )
             .fetch()
             .rowsUpdated()
@@ -34,8 +34,8 @@ class CreateMigrationCheckpoint: Migration {
     suspend fun isApplied(entityTemplate: R2dbcEntityTemplate): Boolean {
         val result = entityTemplate.databaseClient.sql(
             "SELECT * " +
-                    "FROM INFORMATION_SCHEMA.TABLES " +
-                    "WHERE UPPER(TABLE_NAME) = '${tableName.uppercase()}' "
+                "FROM INFORMATION_SCHEMA.TABLES " +
+                "WHERE UPPER(TABLE_NAME) = '${tableName.uppercase()}' "
         )
             .fetch()
             .all()

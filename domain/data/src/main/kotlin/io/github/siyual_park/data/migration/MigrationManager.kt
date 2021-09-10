@@ -24,7 +24,6 @@ class MigrationManager(
         if (entityCallbacks != null) {
             entityTemplate.setEntityCallbacks(entityCallbacks)
         }
-
     }
 
     fun register(migration: Migration): MigrationManager {

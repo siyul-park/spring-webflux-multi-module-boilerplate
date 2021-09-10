@@ -12,7 +12,7 @@ data class MigrationCheckpoint(
 
     @Id var id: Long? = null,
     @Column("created_at") var createdAt: Instant? = null
-): Cloneable<MigrationCheckpoint> {
+) : Cloneable<MigrationCheckpoint> {
     override fun clone(): MigrationCheckpoint {
         return this.copy()
     }

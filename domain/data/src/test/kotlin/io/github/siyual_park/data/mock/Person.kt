@@ -13,7 +13,7 @@ data class Person(
 
     @Id var id: Long? = null,
     @Column("created_at") var createdAt: Instant? = null
-): Cloneable<Person> {
+) : Cloneable<Person> {
     override fun clone(): Person {
         return this.copy()
     }
