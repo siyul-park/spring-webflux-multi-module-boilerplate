@@ -1,8 +1,12 @@
-package io.github.siyual_park.data.repository
+package io.github.siyual_park.data.repository.in_memory
 
+import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.data.repository.Repository
+import io.github.siyual_park.data.repository.in_memory.callback.EntityCallbacks
+import io.github.siyual_park.data.repository.in_memory.generator.IdGenerator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -13,9 +17,10 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.memberProperties
 
-class InMemoryRepository<T : Any, ID : Any>(
+class InMemoryRepository<T : Cloneable<T>, ID : Any>(
     clazz: KClass<T>,
-    private val idGenerator: IdGenerator<ID>
+    private val idGenerator: IdGenerator<ID>,
+    private val entityCallbacks: EntityCallbacks<T>? = null
 ) : Repository<T, ID> {
     val idProperty = clazz.memberProperties
         .filter { it is KMutableProperty<*> }
@@ -28,7 +33,9 @@ class InMemoryRepository<T : Any, ID : Any>(
         val id = idGenerator.generate()
         idProperty.setter.call(entity, id)
 
-        datasource[id] = entity
+        val newEntity = entity.clone()
+        entityCallbacks?.onCreate(newEntity)
+        datasource[id] = newEntity
 
         return entity
     }
@@ -43,7 +50,7 @@ class InMemoryRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findById(id: ID): T? {
-        return datasource[id]
+        return datasource[id]?.clone()
     }
 
     override fun findAll(): Flow<T> {
@@ -66,7 +73,13 @@ class InMemoryRepository<T : Any, ID : Any>(
 
     override suspend fun update(entity: T): T? {
         return idProperty.getter.call(entity)?.let {
-            datasource[it] = entity
+            val origin = datasource[it]
+            if (origin != null) {
+                val newEntity = entity.clone()
+                entityCallbacks?.onUpdate(origin, newEntity)
+                datasource[it] = newEntity
+            }
+
             entity
         }
     }
@@ -107,7 +120,11 @@ class InMemoryRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteById(id: ID) {
-        datasource.remove(id)
+        val origin = datasource[id]
+        if (origin != null) {
+            entityCallbacks?.onDelete(origin)
+            datasource.remove(id)
+        }
     }
 
     override suspend fun delete(entity: T) {

@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.migration
 
 import io.github.siyual_park.data.expansion.columnName
-import io.github.siyual_park.data.repository.R2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort

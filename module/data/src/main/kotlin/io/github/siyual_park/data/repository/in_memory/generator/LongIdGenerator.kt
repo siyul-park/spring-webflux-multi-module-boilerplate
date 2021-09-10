@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository
+package io.github.siyual_park.data.repository.in_memory.generator
 
 import java.util.concurrent.atomic.AtomicLong
 

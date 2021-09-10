@@ -7,6 +7,7 @@ import io.github.siyual_park.data.migration.CreatePersonCheckpoint
 import io.github.siyual_park.data.mock.Person
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

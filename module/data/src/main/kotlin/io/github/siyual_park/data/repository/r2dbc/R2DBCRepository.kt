@@ -1,10 +1,11 @@
-package io.github.siyual_park.data.repository
+package io.github.siyual_park.data.repository.r2dbc
 
 import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.annoration.GeneratedValue
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.data.repository.Repository
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
