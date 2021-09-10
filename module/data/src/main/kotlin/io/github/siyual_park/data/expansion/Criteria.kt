@@ -1,4 +1,4 @@
-package io.github.siyual_park.data
+package io.github.siyual_park.data.expansion
 
 import org.springframework.data.relational.core.query.Criteria
 import kotlin.reflect.KProperty

@@ -13,7 +13,8 @@ class CreatePersonCheckpoint : Migration {
                 "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
                 "name VARCHAR ," +
                 "age INT ," +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
                 ")"
         )
             .fetch()
