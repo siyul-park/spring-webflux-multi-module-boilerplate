@@ -7,6 +7,7 @@ import io.github.siyual_park.data.patch.async
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
@@ -31,7 +32,6 @@ import org.springframework.data.relational.core.query.Update
 import org.springframework.data.relational.core.sql.SqlIdentifier
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.Parameter
-import reactor.core.publisher.Flux
 import kotlin.reflect.KClass
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
@@ -79,9 +79,11 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     }
 
     override fun createAll(entities: Iterable<T>): Flow<T> {
-        return Flux.fromIterable(entities)
-            .flatMap { this.entityTemplate.insert(it) }
-            .asFlow()
+        return flow {
+            entities.forEach {
+                emit(create(it))
+            }
+        }
     }
 
     override suspend fun findById(id: ID): T? {
@@ -109,7 +111,7 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
 
     override fun findAllById(ids: Iterable<ID>): Flow<T> {
         return this.entityTemplate.select(
-            query(where(idProperty).`in`(ids))
+            query(where(idProperty).`in`(ids.toList()))
                 .sort(by(asc(idProperty))),
             clazz.java
         )
@@ -126,9 +128,9 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
             ?.let { update(it, patch) }
     }
 
-    override suspend fun update(entity: T): T {
+    override suspend fun update(entity: T): T? {
         return this.entityTemplate.update(entity)
-            .awaitSingle()
+            .awaitSingleOrNull()
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {
@@ -177,6 +179,11 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
             .map { update(it, patch) }
     }
 
+    override fun updateAll(entity: Iterable<T>): Flow<T?> {
+        return entity.asFlow()
+            .map { update(it) }
+    }
+
     override fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
         return entity.asFlow()
             .map { update(it, patch) }
@@ -200,22 +207,26 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     }
 
     override suspend fun delete(entity: T) {
+        val id = getId(entity).value ?: return
+
         this.entityTemplate.delete(
-            query(where(idProperty).`is`(getId(entity))),
+            query(where(idProperty).`is`(id)),
             clazz.java
         ).awaitSingle()
     }
 
     override suspend fun deleteAllById(ids: Iterable<ID>) {
         this.entityTemplate.delete(
-            query(where(idProperty).`in`(ids)),
+            query(where(idProperty).`in`(ids.toList())),
             clazz.java
         ).awaitSingle()
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
+        val ids = entities.map { getId(it).value }
+
         this.entityTemplate.delete(
-            query(where(idProperty).`in`(entities.map { getId(it) })),
+            query(where(idProperty).`in`(ids)),
             clazz.java
         ).awaitSingle()
     }

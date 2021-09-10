@@ -9,9 +9,9 @@ interface Repository<T : Any, ID : Any> {
 
     fun createAll(entities: Iterable<T>): Flow<T>
 
-    suspend fun findById(id: ID): T?
-
     suspend fun existsById(id: ID): Boolean
+
+    suspend fun findById(id: ID): T?
 
     fun findAll(): Flow<T>
 
@@ -30,6 +30,8 @@ interface Repository<T : Any, ID : Any> {
     fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?>
 
     fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?>
+
+    fun updateAll(entity: Iterable<T>): Flow<T?>
 
     fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?>
 
