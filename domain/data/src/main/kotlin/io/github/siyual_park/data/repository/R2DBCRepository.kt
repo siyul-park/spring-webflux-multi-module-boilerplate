@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.domain.Sort.Order.asc
@@ -67,12 +68,17 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         idProperty = dataAccessStrategy.toSql(idColumn)
     }
 
-    override suspend fun <S : T> create(entity: S): S {
-        return this.entityTemplate.insert(entity)
+    override suspend fun create(entity: T): T {
+        val saved = this.entityTemplate.insert(entity)
             .awaitSingle()
+
+        return this.entityTemplate.select(
+            query(where(idProperty).`is`(saved)),
+            entity.javaClass
+        ).awaitSingle()
     }
 
-    override fun <S : T> createAll(entities: Iterable<S>): Flow<S> {
+    override fun createAll(entities: Iterable<T>): Flow<T> {
         return Flux.fromIterable(entities)
             .flatMap { this.entityTemplate.insert(it) }
             .asFlow()

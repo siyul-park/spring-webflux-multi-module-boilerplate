@@ -5,9 +5,9 @@ import io.github.siyual_park.data.patch.Patch
 import kotlinx.coroutines.flow.Flow
 
 interface Repository<T : Any, ID : Any> {
-    suspend fun <S : T> create(entity: S): S
+    suspend fun create(entity: T): T
 
-    fun <S : T> createAll(entities: Iterable<S>): Flow<S>
+    fun createAll(entities: Iterable<T>): Flow<T>
 
     suspend fun findById(id: ID): T?
 

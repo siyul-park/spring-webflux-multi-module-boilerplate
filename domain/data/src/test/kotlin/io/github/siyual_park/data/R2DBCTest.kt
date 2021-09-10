@@ -17,19 +17,15 @@ open class R2DBCTest: CoroutineTest() {
     override fun setUp() {
         super.setUp()
 
-        runBlocking {
-            launch(Dispatchers.Main) {
-                migrationManager.run()
-            }
+        async {
+            migrationManager.run()
         }
     }
 
     @AfterEach
     override fun tearDown() {
-        runBlocking {
-            launch(Dispatchers.Main) {
-                migrationManager.revert()
-            }
+        async {
+            migrationManager.revert()
         }
 
         super.tearDown()
