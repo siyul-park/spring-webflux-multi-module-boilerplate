@@ -13,8 +13,10 @@ import java.security.MessageDigest
 class PasswordGranter(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
-    private val scopeFinder: ScopeFinder
+    private val scopeFinder: ScopeFinder,
 ) : Authenticator<PasswordGrantInfo, UserAuthentication, Long> {
+    override val infoClazz = PasswordGrantInfo::class
+
     override suspend fun authenticate(info: PasswordGrantInfo): UserAuthentication {
         val user = userRepository.findByNameOrFail(info.username)
         val userCredential = userCredentialRepository.findByUserOrFail(user)
