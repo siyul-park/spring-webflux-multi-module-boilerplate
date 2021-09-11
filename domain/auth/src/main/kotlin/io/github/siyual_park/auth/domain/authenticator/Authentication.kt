@@ -1,5 +1,6 @@
-package io.github.siyual_park.auth.domain
+package io.github.siyual_park.auth.domain.authenticator
 
+import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.entity.ScopeToken
 
 interface Authentication<ID> : Principal<ID> {

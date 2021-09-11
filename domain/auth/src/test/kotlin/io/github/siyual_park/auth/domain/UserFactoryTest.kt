@@ -4,7 +4,7 @@ import io.github.siyual_park.auth.AuthTest
 import io.github.siyual_park.auth.factory.CreateUserPayloadFactory
 import io.github.siyual_park.auth.factory.ScopeTokenFactory
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.auth.repository.UserAuthInfoRepository
+import io.github.siyual_park.auth.repository.UserCredentialRepository
 import io.github.siyual_park.auth.repository.UserRepository
 import io.github.siyual_park.auth.repository.UserScopeRepository
 import kotlinx.coroutines.flow.map
@@ -20,7 +20,7 @@ class UserFactoryTest : AuthTest() {
 
     private val userRepository = UserRepository(connectionFactory)
     private val scopeTokenRepository = ScopeTokenRepository(connectionFactory)
-    private val userAuthInfoRepository = UserAuthInfoRepository(connectionFactory)
+    private val userAuthInfoRepository = UserCredentialRepository(connectionFactory)
     private val userScopeRepository = UserScopeRepository(connectionFactory)
 
     private val scopeTokenGenerator = ScopeTokenGenerator(scopeTokenRepository)

@@ -1,10 +1,10 @@
 package io.github.siyual_park.auth.domain
 
 import io.github.siyual_park.auth.entity.User
-import io.github.siyual_park.auth.entity.UserAuthInfo
+import io.github.siyual_park.auth.entity.UserCredential
 import io.github.siyual_park.auth.entity.UserScope
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.auth.repository.UserAuthInfoRepository
+import io.github.siyual_park.auth.repository.UserCredentialRepository
 import io.github.siyual_park.auth.repository.UserRepository
 import io.github.siyual_park.auth.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow
@@ -19,14 +19,14 @@ import java.security.MessageDigest
 class UserFactory(
     private val userRepository: UserRepository,
     private val scopeTokenRepository: ScopeTokenRepository,
-    private val userAuthInfoRepository: UserAuthInfoRepository,
+    private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val operator: TransactionalOperator,
     private val hashAlgorithm: String = "SHA-256"
 ) {
     suspend fun create(payload: CreateUserPayload): User = operator.executeAndAwait {
         createUser(payload).also {
-            createUserAuthInfo(it, payload)
+            createUserCredential(it, payload)
             createDefaultUserScopes(it).collect()
         }
     }!!
@@ -35,12 +35,12 @@ class UserFactory(
         return userRepository.create(User(payload.username))
     }
 
-    private suspend fun createUserAuthInfo(user: User, payload: CreateUserPayload): UserAuthInfo {
+    private suspend fun createUserCredential(user: User, payload: CreateUserPayload): UserCredential {
         val messageDigest = MessageDigest.getInstance(hashAlgorithm)
         val password = messageDigest.hash(payload.password)
 
-        return userAuthInfoRepository.create(
-            UserAuthInfo(
+        return userCredentialRepository.create(
+            UserCredential(
                 userId = user.id!!,
                 password = password,
                 hashAlgorithm = hashAlgorithm

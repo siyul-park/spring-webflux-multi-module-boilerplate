@@ -6,8 +6,8 @@ import io.github.siyual_park.data.migration.dropTable
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 
-class CreateUserAuthInfo : Migration {
-    private val tableName = "user_auth_infos"
+class CreateUserCredential : Migration {
+    private val tableName = "user_credentials"
 
     override suspend fun up(entityTemplate: R2dbcEntityTemplate) {
         entityTemplate.databaseClient.sql(

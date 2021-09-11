@@ -2,7 +2,7 @@ package io.github.siyual_park.application.external.configuration
 
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.migration.CreateUser
-import io.github.siyual_park.auth.migration.CreateUserAuthInfo
+import io.github.siyual_park.auth.migration.CreateUserCredential
 import io.github.siyual_park.auth.migration.CreateUserScope
 import io.github.siyual_park.data.migration.MigrationManager
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +15,7 @@ class MigrationConfiguration {
         migrationManager
             .register(CreateScopeToken())
             .register(CreateUser())
-            .register(CreateUserAuthInfo())
+            .register(CreateUserCredential())
             .register(CreateUserScope())
     }
 }

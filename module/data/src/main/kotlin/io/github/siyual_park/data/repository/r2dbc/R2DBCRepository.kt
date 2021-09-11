@@ -15,6 +15,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Sort.Order.asc
 import org.springframework.data.domain.Sort.by
@@ -111,6 +112,10 @@ open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         )
             .subscribeOn(scheduler)
             .awaitSingle()
+    }
+
+    suspend fun findOneOrFail(criteria: CriteriaDefinition): T {
+        return findOne(criteria) ?: throw EmptyResultDataAccessException(1)
     }
 
     override suspend fun findById(id: ID): T? {

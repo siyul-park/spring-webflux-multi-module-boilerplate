@@ -3,6 +3,7 @@ package io.github.siyual_park.data.repository
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import kotlinx.coroutines.flow.Flow
+import org.springframework.dao.EmptyResultDataAccessException
 
 interface Repository<T : Any, ID : Any> {
     suspend fun create(entity: T): T
@@ -48,4 +49,28 @@ interface Repository<T : Any, ID : Any> {
     suspend fun deleteAll(entities: Iterable<T>)
 
     suspend fun deleteAll()
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.findByIdOrFail(id: ID): T {
+    return findById(id) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch: Patch<T>): T {
+    return updateById(id, patch) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch: AsyncPatch<T>): T {
+    return updateById(id, patch) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T): T {
+    return update(entity) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch: Patch<T>): T {
+    return update(entity, patch) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch: AsyncPatch<T>): T {
+    return update(entity, patch) ?: throw EmptyResultDataAccessException(1)
 }
