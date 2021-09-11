@@ -12,7 +12,7 @@ class PasswordGrantAuthenticator(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userAuthenticationExchanger: UserAuthenticationExchanger,
-) : Authenticator<PasswordGrantPayload, UserPrincipal, Long> {
+) : Authenticator<PasswordGrantPayload, UserPrincipal> {
     override val payloadClazz = PasswordGrantPayload::class
 
     override suspend fun authenticate(payload: PasswordGrantPayload): UserPrincipal {

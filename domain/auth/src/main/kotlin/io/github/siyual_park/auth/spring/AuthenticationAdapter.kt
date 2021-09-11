@@ -3,15 +3,15 @@ package io.github.siyual_park.auth.spring
 import io.github.siyual_park.auth.domain.authenticator.Principal
 import org.springframework.security.core.Authentication
 
-class AuthenticationAdapter<ID>(
-    private val principal: Principal<ID>,
+class AuthenticationAdapter(
+    private val principal: Principal,
     private val credentials: String
 ) : Authentication {
     private var authenticated = true
     private val authorities = principal.scope.map { GrantedAuthorityAdapter(it) }
 
     override fun getName(): String {
-        return principal.id.toString()
+        return principal.id
     }
 
     override fun getAuthorities(): List<GrantedAuthorityAdapter> {
@@ -26,7 +26,7 @@ class AuthenticationAdapter<ID>(
         return principal
     }
 
-    override fun getPrincipal(): Principal<ID> {
+    override fun getPrincipal(): Principal {
         return principal
     }
 

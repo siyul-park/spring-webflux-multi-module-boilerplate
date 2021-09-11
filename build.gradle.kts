@@ -41,7 +41,7 @@ allprojects {
     }
 
     tasks.withType<Jar> {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
         sourceCompatibility = JavaVersion.VERSION_11.toString()

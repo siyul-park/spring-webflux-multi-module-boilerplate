@@ -5,16 +5,16 @@ import org.springframework.stereotype.Component
 
 @Component
 class AuthenticatorManager {
-    private val authenticators = mutableMapOf<Class<*>, Authenticator<*, *, *>>()
+    private val authenticators = mutableMapOf<Class<*>, Authenticator<*, *>>()
 
-    fun register(authenticator: Authenticator<*, *, *>): AuthenticatorManager {
+    fun register(authenticator: Authenticator<*, *>): AuthenticatorManager {
         authenticators[authenticator.payloadClazz.java] = authenticator
         return this
     }
 
-    suspend fun <PAYLOAD : AuthenticationPayload> authenticate(payload: PAYLOAD): Principal<*> {
+    suspend fun <PAYLOAD : AuthenticationPayload> authenticate(payload: PAYLOAD): Principal {
         val authenticator = authenticators[payload.javaClass] ?: throw UnsupportedAuthorizationTypeException()
-        authenticator as Authenticator<PAYLOAD, *, *>
+        authenticator as Authenticator<PAYLOAD, *>
         return authenticator.authenticate(payload)
     }
 }

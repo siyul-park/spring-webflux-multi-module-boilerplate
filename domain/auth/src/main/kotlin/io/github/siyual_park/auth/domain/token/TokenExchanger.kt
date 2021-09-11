@@ -1,8 +1,10 @@
 package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.domain.authenticator.Principal
+import io.github.siyual_park.auth.domain.authenticator.UserPrincipal
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.entity.ids
+import io.github.siyual_park.auth.exception.PrincipalIdNotExistsException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -23,38 +25,43 @@ class TokenExchanger(
     private val secretKey: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
     fun encoding(
-        principal: Principal<*>,
+        principal: Principal,
         age: Duration,
         scope: Iterable<ScopeToken>? = null
     ): String {
         val now = Instant.now()
         val filteredScope = scope?.filter { principal.scope.contains(it) } ?: principal.scope
 
-        return Jwts.builder()
-            .claim("jti", UUID.randomUUID().toString())
-            .claim("sub", principal.id)
-            .claim("scope", filteredScope.ids().joinToString(" "))
-            .setIssuedAt(Date.from(now))
-            .setExpiration(Date.from(now.plus(age)))
-            .signWith(secretKey, SignatureAlgorithm.HS256)
+        return Jwts.builder().apply {
+            claim("jti", UUID.randomUUID().toString())
+            claim("scope", filteredScope.ids().joinToString(" "))
+            setIssuedAt(Date.from(now))
+            setExpiration(Date.from(now.plus(age)))
+            signWith(secretKey, SignatureAlgorithm.HS256)
+
+            if (principal is UserPrincipal) {
+                claim("uid", principal.id)
+            }
+        }
             .compact()
     }
 
     @Cacheable("TokenManager.decode(String)")
-    fun decode(token: String): Principal<String> {
+    fun decode(token: String): Principal {
         val jwt = Jwts.parserBuilder()
             .setSigningKey(secretKey)
             .build()
             .parse(token)
 
         val body = jwt.body as Claims
-        val scope = body["scope"] as String
+        val scope = body["scope"].toString()
+        val uid = body["uid"] ?: throw PrincipalIdNotExistsException()
 
         val scopeTokens = decodeScope(scope).toSet()
 
-        return object : Principal<String> {
+        return object : Principal {
             override val id: String
-                get() = body["jti"] as String
+                get() = uid.toString()
             override val scope: Set<ScopeToken>
                 get() = scopeTokens
         }

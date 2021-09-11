@@ -10,10 +10,10 @@ import java.util.Base64
 class AuthorizationAuthenticator(
     private val passwordGrantAuthenticator: PasswordGrantAuthenticator,
     private val tokenExchanger: TokenExchanger
-) : Authenticator<AuthorizationPayload, Principal<Long>, Long> {
+) : Authenticator<AuthorizationPayload, Principal> {
     override val payloadClazz = AuthorizationPayload::class
 
-    override suspend fun authenticate(payload: AuthorizationPayload): Principal<Long> {
+    override suspend fun authenticate(payload: AuthorizationPayload): Principal {
         return when (payload.type.lowercase()) {
             "basic" -> basicAuthenticate(payload.credentials)
             "bearer" -> bearerAuthenticate(payload.credentials)
@@ -37,11 +37,7 @@ class AuthorizationAuthenticator(
         return passwordGrantAuthenticator.authenticate(payload)
     }
 
-    private fun bearerAuthenticate(credentials: String): UserPrincipal {
-        val authentication = tokenExchanger.decode(credentials)
-        return UserPrincipal(
-            id = authentication.id.toLong(),
-            scope = authentication.scope
-        )
+    private fun bearerAuthenticate(credentials: String): Principal {
+        return tokenExchanger.decode(credentials)
     }
 }
