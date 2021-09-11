@@ -18,17 +18,22 @@ import javax.crypto.SecretKey
 
 @Component
 class TokenExchanger(
-    @Value("\${application.secret}") private val secret: String
+    @Value("\${application.auth.secret}") private val secret: String
 ) {
     private val secretKey: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
-    fun encoding(principal: Principal<*>, age: Duration): String {
+    fun encoding(
+        principal: Principal<*>,
+        age: Duration,
+        scope: Iterable<ScopeToken>? = null
+    ): String {
         val now = Instant.now()
+        val filteredScope = scope?.filter { principal.scope.contains(it) } ?: principal.scope
 
         return Jwts.builder()
             .claim("jti", UUID.randomUUID().toString())
             .claim("sub", principal.id)
-            .claim("scope", principal.scope.ids().joinToString(" "))
+            .claim("scope", filteredScope.ids().joinToString(" "))
             .setIssuedAt(Date.from(now))
             .setExpiration(Date.from(now.plus(age)))
             .signWith(secretKey, SignatureAlgorithm.HS256)

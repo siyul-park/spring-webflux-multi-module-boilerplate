@@ -5,12 +5,14 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
+import org.springframework.core.annotation.Order
 
 @Configuration
 class MigrationConfiguration(
     private val migrationManager: MigrationManager
 ) {
     @EventListener(ApplicationReadyEvent::class)
+    @Order(0)
     fun migration() {
         runBlocking {
             migrationManager.run()

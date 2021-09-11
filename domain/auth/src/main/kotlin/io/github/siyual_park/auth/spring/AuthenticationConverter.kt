@@ -14,7 +14,9 @@ import reactor.core.publisher.Mono
 class AuthenticationConverter : ServerAuthenticationConverter {
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> {
         return mono {
-            val authorization = exchange.request.headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return@mono null
+            val headers = exchange.request.headers
+            val authorization = headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return@mono null
+
             val token = authorization.split(" ")
             if (token.size != 2) {
                 throw InvalidAuthorizationFormatException()

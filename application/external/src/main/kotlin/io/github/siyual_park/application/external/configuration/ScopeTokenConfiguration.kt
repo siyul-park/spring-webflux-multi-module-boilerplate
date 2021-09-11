@@ -8,5 +8,7 @@ import org.springframework.context.annotation.Configuration
 class ScopeTokenConfiguration {
     @Autowired(required = true)
     fun configScopeToken(scopeTokenGenerator: ScopeTokenGenerator) {
+        scopeTokenGenerator
+            .register(PreDefinedScopeToken.createAccessToken)
     }
 }

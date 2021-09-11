@@ -12,7 +12,7 @@ class MockConfiguration(
     @Autowired(required = true)
     fun properties(properties: Properties) {
         properties.apply {
-            setProperty("application.secret", secretGenerator.generate(256))
+            setProperty("application.auth.secret", secretGenerator.generate(256))
         }
     }
 }

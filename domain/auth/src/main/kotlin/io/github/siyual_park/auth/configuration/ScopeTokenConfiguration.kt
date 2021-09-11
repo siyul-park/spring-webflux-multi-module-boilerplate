@@ -5,12 +5,14 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
+import org.springframework.core.annotation.Order
 
 @Configuration
 class ScopeTokenConfiguration(
     private val scopeTokenGenerator: ScopeTokenGenerator
 ) {
     @EventListener(ApplicationReadyEvent::class)
+    @Order(100)
     fun generate() {
         runBlocking {
             scopeTokenGenerator.generate()
