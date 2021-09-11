@@ -16,6 +16,10 @@ class ScopeTokenGenerator(
     }
 
     suspend fun generate() {
-        scopeTokenRepository.createAll(scopeTokens)
+        scopeTokens.forEach {
+            if (!scopeTokenRepository.existsByName(it.name)) {
+                scopeTokenRepository.create(it)
+            }
+        }
     }
 }

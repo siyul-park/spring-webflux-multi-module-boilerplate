@@ -32,4 +32,8 @@ class ScopeTokenRepository : InMemoryRepository<ScopeToken, Long>(
             .map { findById(it) }
             .filterNotNull()
     }
+
+    suspend fun existsByName(name: String): Boolean {
+        return index[name]?.let { existsById(it) } ?: false
+    }
 }
