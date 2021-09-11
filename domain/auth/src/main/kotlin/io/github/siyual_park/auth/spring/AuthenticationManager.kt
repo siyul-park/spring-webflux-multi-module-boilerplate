@@ -14,13 +14,17 @@ class AuthenticationManager(
 ) : ReactiveAuthenticationManager {
     override fun authenticate(authentication: Authentication): Mono<Authentication> {
         return mono {
-            val type = authentication.principal
-            val credentials = authentication.credentials
+            try {
+                val type = authentication.principal
+                val credentials = authentication.credentials
 
-            val payload = AuthorizationPayload(type as String, credentials as String)
-            val parsedAuthentication = authenticatorManager.authenticate(payload)
+                val payload = AuthorizationPayload(type as String, credentials as String)
+                val parsedAuthentication = authenticatorManager.authenticate(payload)
 
-            AuthenticationAdapter(parsedAuthentication, credentials)
+                AuthenticationAdapter(parsedAuthentication, credentials)
+            } catch (exception: Exception) {
+                return@mono null
+            }
         }
     }
 }

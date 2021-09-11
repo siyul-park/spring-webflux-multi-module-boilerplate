@@ -1,6 +1,5 @@
 package io.github.siyual_park.auth.spring
 
-import io.github.siyual_park.auth.exception.InvalidAuthorizationFormatException
 import kotlinx.coroutines.reactor.mono
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -19,7 +18,7 @@ class AuthenticationConverter : ServerAuthenticationConverter {
 
             val token = authorization.split(" ")
             if (token.size != 2) {
-                throw InvalidAuthorizationFormatException()
+                return@mono null
             }
 
             UsernamePasswordAuthenticationToken(token[0], token[1])

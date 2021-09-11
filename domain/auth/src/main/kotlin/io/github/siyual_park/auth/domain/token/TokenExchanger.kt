@@ -10,7 +10,6 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
@@ -46,7 +45,6 @@ class TokenExchanger(
             .compact()
     }
 
-    @Cacheable("TokenManager.decode(String)")
     fun decode(token: String): Principal {
         val jwt = Jwts.parserBuilder()
             .setSigningKey(secretKey)
@@ -57,14 +55,9 @@ class TokenExchanger(
         val scope = body["scope"].toString()
         val uid = body["uid"] ?: throw PrincipalIdNotExistsException()
 
-        val scopeTokens = decodeScope(scope).toSet()
+        val decodedScope = decodeScope(scope).toSet()
 
-        return object : Principal {
-            override val id: String
-                get() = uid.toString()
-            override val scope: Set<ScopeToken>
-                get() = scopeTokens
-        }
+        return UserPrincipal(uid.toString(), decodedScope)
     }
 
     fun decodeScope(scope: String): List<ScopeToken> {
