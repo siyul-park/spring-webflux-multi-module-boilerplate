@@ -4,8 +4,8 @@ import io.github.siyual_park.auth.AuthTest
 import io.github.siyual_park.auth.domain.ScopeFinder
 import io.github.siyual_park.auth.domain.ScopeTokenGenerator
 import io.github.siyual_park.auth.domain.UserFactory
+import io.github.siyual_park.auth.domain.authenticator.PasswordGrantAuthenticator
 import io.github.siyual_park.auth.domain.authenticator.PasswordGrantPayload
-import io.github.siyual_park.auth.domain.authenticator.PasswordGranter
 import io.github.siyual_park.auth.domain.authenticator.hasScope
 import io.github.siyual_park.auth.exception.PasswordIncorrectException
 import io.github.siyual_park.auth.factory.CreateUserPayloadFactory
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-class PasswordGranterTest : AuthTest() {
+class PasswordGrantAuthenticatorTest : AuthTest() {
     private val hashAlgorithm = "SHA-256"
 
     private val userRepository = UserRepository(connectionFactory)
@@ -43,7 +43,7 @@ class PasswordGranterTest : AuthTest() {
         userScopeRepository
     )
 
-    private val passwordGranter = PasswordGranter(
+    private val passwordGrantAuthenticator = PasswordGrantAuthenticator(
         userRepository,
         userCredentialRepository,
         scopeFinder
@@ -73,7 +73,7 @@ class PasswordGranterTest : AuthTest() {
             password = createUserPayload.password
         )
 
-        val authentication = passwordGranter.authenticate(passwordGrantPayload)
+        val authentication = passwordGrantAuthenticator.authenticate(passwordGrantPayload)
 
         assertEquals(user.id, authentication.id)
 
@@ -94,7 +94,7 @@ class PasswordGranterTest : AuthTest() {
         )
 
         assertThrows<PasswordIncorrectException> {
-            passwordGranter.authenticate(passwordGrantPayload)
+            passwordGrantAuthenticator.authenticate(passwordGrantPayload)
         }
     }
 }

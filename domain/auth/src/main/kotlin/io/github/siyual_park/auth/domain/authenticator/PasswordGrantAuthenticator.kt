@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 import java.security.MessageDigest
 
 @Component
-class PasswordGranter(
+class PasswordGrantAuthenticator(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val scopeFinder: ScopeFinder,
