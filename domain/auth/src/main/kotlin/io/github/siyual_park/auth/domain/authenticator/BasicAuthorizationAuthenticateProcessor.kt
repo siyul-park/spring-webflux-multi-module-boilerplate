@@ -2,6 +2,7 @@ package io.github.siyual_park.auth.domain.authenticator
 
 import io.github.siyual_park.auth.exception.InvalidAuthorizationFormatException
 import org.springframework.stereotype.Component
+import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 @Component
@@ -12,7 +13,7 @@ class BasicAuthorizationAuthenticateProcessor(
 
     override suspend fun authenticate(credentials: String): UserPrincipal {
         val decoder = Base64.getDecoder()
-        val decodedCredentials = decoder.decode(credentials).toString()
+        val decodedCredentials = String(decoder.decode(credentials), StandardCharsets.UTF_8)
         val token = decodedCredentials.split(":")
 
         if (token.size != 2) {
