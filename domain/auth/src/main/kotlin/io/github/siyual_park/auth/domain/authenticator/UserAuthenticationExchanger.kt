@@ -13,7 +13,7 @@ class UserAuthenticationExchanger(
     private val scopeFinder: ScopeFinder,
 ) {
     suspend fun exchange(user: User): UserAuthentication {
-        val scope = scopeFinder.find(user)
+        val scope = scopeFinder.findByUser(user)
         return UserAuthentication(
             id = user.id!!,
             scope = scope.toSet()

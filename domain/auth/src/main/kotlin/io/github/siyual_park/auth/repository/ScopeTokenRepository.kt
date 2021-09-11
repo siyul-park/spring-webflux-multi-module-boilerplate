@@ -25,4 +25,8 @@ class ScopeTokenRepository(
     fun findAllByDefault(default: Boolean): Flow<ScopeToken> {
         return findAll(where(ScopeToken::default).`is`(default))
     }
+
+    fun findAllByName(names: Iterable<String>): Flow<ScopeToken> {
+        return findAll(where(ScopeToken::name).`in`(names.toList()))
+    }
 }
