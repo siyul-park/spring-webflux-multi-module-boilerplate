@@ -1,43 +1,23 @@
 package io.github.siyual_park.auth.domain.authenticator
 
-import io.github.siyual_park.auth.domain.token.TokenExchanger
-import io.github.siyual_park.auth.exception.InvalidAuthorizationFormatException
 import io.github.siyual_park.auth.exception.UnsupportedAuthorizationTypeException
 import org.springframework.stereotype.Component
-import java.util.Base64
 
 @Component
-class AuthorizationAuthenticator(
-    private val passwordGrantAuthenticator: PasswordGrantAuthenticator,
-    private val tokenExchanger: TokenExchanger
-) : Authenticator<AuthorizationPayload, Principal> {
+class AuthorizationAuthenticator : Authenticator<AuthorizationPayload, Principal> {
     override val payloadClazz = AuthorizationPayload::class
 
+    private val processors = mutableMapOf<String, AuthorizationAuthenticateProcessor<*>>()
+
+    fun <PRINCIPAL : Principal> register(
+        processor: AuthorizationAuthenticateProcessor<PRINCIPAL>
+    ): AuthorizationAuthenticator {
+        processors[processor.type.lowercase()] = processor
+        return this
+    }
+
     override suspend fun authenticate(payload: AuthorizationPayload): Principal {
-        return when (payload.type.lowercase()) {
-            "basic" -> basicAuthenticate(payload.credentials)
-            "bearer" -> bearerAuthenticate(payload.credentials)
-            else -> throw UnsupportedAuthorizationTypeException()
-        }
-    }
-
-    private suspend fun basicAuthenticate(credentials: String): UserPrincipal {
-        val decoder = Base64.getDecoder()
-        val decodedCredentials = decoder.decode(credentials).toString()
-        val token = decodedCredentials.split(":")
-
-        if (token.size != 2) {
-            throw InvalidAuthorizationFormatException()
-        }
-
-        val payload = PasswordGrantPayload(
-            username = token[0],
-            password = token[1]
-        )
-        return passwordGrantAuthenticator.authenticate(payload)
-    }
-
-    private fun bearerAuthenticate(credentials: String): Principal {
-        return tokenExchanger.decode(credentials)
+        val processor = processors[payload.type.lowercase()] ?: throw UnsupportedAuthorizationTypeException()
+        return processor.authenticate(payload.credentials)
     }
 }
