@@ -55,12 +55,16 @@ class TokenExchanger(
         val scope = body["scope"].toString()
         val uid = body["uid"] ?: throw PrincipalIdNotExistsException()
 
-        val decodedScope = decodeScope(scope).toSet()
+        val decodedScope = decodeScope(scope.trim()).toSet()
 
         return UserPrincipal(uid.toString(), decodedScope)
     }
 
     private fun decodeScope(scope: String): List<ScopeToken> {
+        if (scope.isEmpty()) {
+            return emptyList()
+        }
+
         val scopeTokens = scope.split(" ")
         return scopeTokens.map {
             ScopeToken(
