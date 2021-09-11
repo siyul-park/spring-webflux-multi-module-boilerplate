@@ -14,4 +14,12 @@ data class ScopeToken(
     override fun clone(): ScopeToken {
         return copyDefaultColumn(this.copy())
     }
+
+    override fun hashCode(): Int {
+        return super.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return super.equals(other)
+    }
 }
