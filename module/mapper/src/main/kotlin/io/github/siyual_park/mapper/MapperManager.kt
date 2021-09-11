@@ -17,3 +17,5 @@ class MapperManager {
         return mapper.map(source)
     }
 }
+
+suspend inline fun <SOURCE : Any, reified TARGET : Any> MapperManager.map(source: SOURCE): TARGET = map(source, TARGET::class)
