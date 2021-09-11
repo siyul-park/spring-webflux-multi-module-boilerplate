@@ -23,7 +23,8 @@ class AuthenticationManager(
 
                 AuthenticationAdapter(parsedAuthentication, credentials)
             } catch (exception: Exception) {
-                return@mono null
+                authentication.isAuthenticated = false
+                authentication
             }
         }
     }

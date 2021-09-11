@@ -12,7 +12,7 @@ class ScopeTokenConfiguration(
     private val scopeTokenGenerator: ScopeTokenGenerator
 ) {
     @EventListener(ApplicationReadyEvent::class)
-    @Order(100)
+    @Order(10)
     fun generate() {
         runBlocking {
             scopeTokenGenerator.generate()

@@ -13,20 +13,18 @@ class ScopeEvaluator(
 ) : PermissionEvaluator {
     override fun hasPermission(authentication: Authentication, targetDomainObject: Any, permission: Any): Boolean {
         return runBlocking {
-            if (targetDomainObject !is String) {
+            if (targetDomainObject !is String || permission !is String || authentication !is AuthenticationAdapter) {
                 return@runBlocking false
             }
 
             try {
                 val authorities = authentication.authorities
-                val scope = scopeTokenRepository.findByNameOrFail(targetDomainObject)
+                val scope = scopeTokenRepository.findByNameOrFail("$targetDomainObject:$permission")
 
                 return@runBlocking authorities.any { it.authority == scope.id.toString() }
             } catch (e: Exception) {
                 return@runBlocking false
             }
-        }.also {
-            authentication.isAuthenticated = it
         }
     }
 
