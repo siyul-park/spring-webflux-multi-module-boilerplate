@@ -8,13 +8,13 @@ class AuthenticatorManager {
     private val authenticators = mutableMapOf<Class<*>, Authenticator<*, *, *>>()
 
     fun register(authenticator: Authenticator<*, *, *>): AuthenticatorManager {
-        authenticators[authenticator.infoClazz.java] = authenticator
+        authenticators[authenticator.payloadClazz.java] = authenticator
         return this
     }
 
-    suspend fun <INFO : AuthenticationInfo> authenticate(info: INFO): Authentication<*> {
-        val authenticator = authenticators[info.javaClass] ?: throw AuthenticatorNotExistsException()
-        authenticator as Authenticator<INFO, *, *>
-        return authenticator.authenticate(info)
+    suspend fun <PAYLOAD : AuthenticationPayload> authenticate(payload: PAYLOAD): Authentication<*> {
+        val authenticator = authenticators[payload.javaClass] ?: throw AuthenticatorNotExistsException()
+        authenticator as Authenticator<PAYLOAD, *, *>
+        return authenticator.authenticate(payload)
     }
 }

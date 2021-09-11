@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.springframework.dao.DataIntegrityViolationException
 import java.security.MessageDigest
 
 class UserFactoryTest : AuthTest() {
@@ -20,14 +22,14 @@ class UserFactoryTest : AuthTest() {
 
     private val userRepository = UserRepository(connectionFactory)
     private val scopeTokenRepository = ScopeTokenRepository(connectionFactory)
-    private val userAuthInfoRepository = UserCredentialRepository(connectionFactory)
+    private val userCredentialRepository = UserCredentialRepository(connectionFactory)
     private val userScopeRepository = UserScopeRepository(connectionFactory)
 
     private val scopeTokenGenerator = ScopeTokenGenerator(scopeTokenRepository)
     private val userFactory = UserFactory(
         userRepository,
         scopeTokenRepository,
-        userAuthInfoRepository,
+        userCredentialRepository,
         userScopeRepository,
         transactionalOperator,
         hashAlgorithm
@@ -49,14 +51,14 @@ class UserFactoryTest : AuthTest() {
     }
 
     @Test
-    fun create() = blocking {
+    fun testCreateSuccess() = blocking {
         val payload = createUserPayloadFactory.create()
         val user = userFactory.create(payload)
 
         assertNotNull(user.id)
         assertEquals(user.name, payload.username)
 
-        val userAuthInfo = userAuthInfoRepository.findByUser(user)
+        val userAuthInfo = userCredentialRepository.findByUser(user)
 
         assertNotNull(userAuthInfo?.id)
         assertEquals(userAuthInfo?.userId, user.id)
@@ -74,5 +76,14 @@ class UserFactoryTest : AuthTest() {
             .toList()
 
         assertEquals(defaultScopeTokens.size, userScopeTokens.size)
+    }
+
+    @Test
+    fun testCreateFail() = blocking {
+        val payload = createUserPayloadFactory.create()
+        userFactory.create(payload)
+        assertThrows<DataIntegrityViolationException> {
+            userFactory.create(payload)
+        }
     }
 }

@@ -14,15 +14,15 @@ class PasswordGranter(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val scopeFinder: ScopeFinder,
-) : Authenticator<PasswordGrantInfo, UserAuthentication, Long> {
-    override val infoClazz = PasswordGrantInfo::class
+) : Authenticator<PasswordGrantPayload, UserAuthentication, Long> {
+    override val payloadClazz = PasswordGrantPayload::class
 
-    override suspend fun authenticate(info: PasswordGrantInfo): UserAuthentication {
-        val user = userRepository.findByNameOrFail(info.username)
+    override suspend fun authenticate(payload: PasswordGrantPayload): UserAuthentication {
+        val user = userRepository.findByNameOrFail(payload.username)
         val userCredential = userCredentialRepository.findByUserOrFail(user)
 
         val messageDigest = MessageDigest.getInstance(userCredential.hashAlgorithm)
-        val encodedPassword = messageDigest.hash(info.password)
+        val encodedPassword = messageDigest.hash(payload.password)
 
         if (userCredential.password != encodedPassword) {
             throw PasswordIncorrectException()

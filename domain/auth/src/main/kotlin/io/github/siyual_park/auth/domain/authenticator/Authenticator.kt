@@ -2,8 +2,8 @@ package io.github.siyual_park.auth.domain.authenticator
 
 import kotlin.reflect.KClass
 
-interface Authenticator<INFO : AuthenticationInfo, AUTHENTICATION : Authentication<ID>, ID> {
-    val infoClazz: KClass<INFO>
+interface Authenticator<PAYLOAD : AuthenticationPayload, AUTHENTICATION : Authentication<ID>, ID> {
+    val payloadClazz: KClass<PAYLOAD>
 
-    suspend fun authenticate(info: INFO): AUTHENTICATION
+    suspend fun authenticate(payload: PAYLOAD): AUTHENTICATION
 }
