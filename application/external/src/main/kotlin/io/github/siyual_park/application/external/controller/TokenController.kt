@@ -30,7 +30,7 @@ class TokenController(
     private val refreshTokenAge: Long = Duration.ofDays(30).seconds
 ) {
 
-    @PostMapping("/tokens", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
+    @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun create(request: CreateTokenRequest): CreateTokenResponse {
         val payload = PasswordGrantPayload(request.username, request.password)
