@@ -1,7 +1,7 @@
 package io.github.siyual_park
 
+import io.github.siyual_park.application.external.annoration.SpringBootTest
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
 class ExternalApplicationTests {
