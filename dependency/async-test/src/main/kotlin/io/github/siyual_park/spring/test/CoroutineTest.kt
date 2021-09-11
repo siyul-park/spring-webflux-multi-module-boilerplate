@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.test
+package io.github.siyual_park.spring.test
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

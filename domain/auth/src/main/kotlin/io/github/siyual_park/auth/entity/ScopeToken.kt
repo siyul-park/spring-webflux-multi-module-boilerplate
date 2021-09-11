@@ -7,7 +7,7 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("scope_tokens")
 data class ScopeToken(
     var name: String,
-    var descridescriptionption: String? = null,
+    var description: String? = null,
     var system: Boolean,
     var default: Boolean = false
 ) : TimeableEntity<ScopeToken, Long>() {

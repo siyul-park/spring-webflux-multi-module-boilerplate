@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.test.mock
+package io.github.siyual_park.data.test.entity
 
 import io.github.siyual_park.data.TimeableEntity
 import io.github.siyual_park.data.copyDefaultColumn
