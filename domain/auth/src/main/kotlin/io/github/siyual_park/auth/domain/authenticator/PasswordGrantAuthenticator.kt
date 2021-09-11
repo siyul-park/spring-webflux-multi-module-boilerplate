@@ -1,11 +1,9 @@
 package io.github.siyual_park.auth.domain.authenticator
 
-import io.github.siyual_park.auth.domain.ScopeFinder
 import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.auth.exception.PasswordIncorrectException
 import io.github.siyual_park.auth.repository.UserCredentialRepository
 import io.github.siyual_park.auth.repository.UserRepository
-import kotlinx.coroutines.flow.toSet
 import org.springframework.stereotype.Component
 import java.security.MessageDigest
 
@@ -13,7 +11,7 @@ import java.security.MessageDigest
 class PasswordGrantAuthenticator(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
-    private val scopeFinder: ScopeFinder,
+    private val userAuthenticationExchanger: UserAuthenticationExchanger,
 ) : Authenticator<PasswordGrantPayload, UserAuthentication, Long> {
     override val payloadClazz = PasswordGrantPayload::class
 
@@ -28,11 +26,6 @@ class PasswordGrantAuthenticator(
             throw PasswordIncorrectException()
         }
 
-        val scope = scopeFinder.find(user)
-
-        return UserAuthentication(
-            id = user.id!!,
-            scope = scope.toSet()
-        )
+        return userAuthenticationExchanger.exchange(user)
     }
 }
