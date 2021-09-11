@@ -60,7 +60,7 @@ class TokenExchanger(
         return UserPrincipal(uid.toString(), decodedScope)
     }
 
-    fun decodeScope(scope: String): List<ScopeToken> {
+    private fun decodeScope(scope: String): List<ScopeToken> {
         val scopeTokens = scope.split(" ")
         return scopeTokens.map {
             ScopeToken(

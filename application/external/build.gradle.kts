@@ -15,6 +15,9 @@ dependencies {
     testImplementation(project(":dependency:async-test"))
 
     implementation(project(":dependency:r2dbc"))
+    implementation(project(":dependency:validation"))
+
+    implementation(project(":dependency:kotlinx"))
 
     implementation(project(":module:data"))
     implementation(project(":module:been"))

@@ -1,4 +1,4 @@
-package io.github.siyual_park.application.external.mapper
+package io.github.siyual_park.application.external.converter.mapper
 
 import io.github.siyual_park.application.external.dto.response.CreateUserResponse
 import io.github.siyual_park.auth.entity.User
