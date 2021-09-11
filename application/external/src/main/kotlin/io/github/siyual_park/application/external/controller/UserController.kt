@@ -3,7 +3,7 @@ package io.github.siyual_park.application.external.controller
 import io.github.siyual_park.application.external.dto.request.CreateUserRequest
 import io.github.siyual_park.application.external.dto.response.CreateUserResponse
 import io.github.siyual_park.auth.domain.CreateUserPayload
-import io.github.siyual_park.auth.domain.UserCreateExecutor
+import io.github.siyual_park.auth.domain.UserFactory
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.swagger.annotations.Api
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userCreateExecutor: UserCreateExecutor,
+    private val userFactory: UserFactory,
     private val mapperManager: MapperManager
 ) {
 
@@ -26,7 +26,7 @@ class UserController(
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun create(@RequestBody request: CreateUserRequest): CreateUserResponse {
         val payload: CreateUserPayload = mapperManager.map(request)
-        val user = userCreateExecutor.execute(payload)
+        val user = userFactory.create(payload)
         return mapperManager.map(user)
     }
 }

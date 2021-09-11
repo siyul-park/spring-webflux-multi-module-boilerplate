@@ -16,7 +16,7 @@ import org.springframework.transaction.reactive.executeAndAwait
 import java.security.MessageDigest
 
 @Component
-class UserCreateExecutor(
+class UserFactory(
     private val userRepository: UserRepository,
     private val scopeTokenRepository: ScopeTokenRepository,
     private val userAuthInfoRepository: UserAuthInfoRepository,
@@ -24,7 +24,7 @@ class UserCreateExecutor(
     private val operator: TransactionalOperator,
     private val hashAlgorithm: String = "SHA-256"
 ) {
-    suspend fun execute(payload: CreateUserPayload): User = operator.executeAndAwait {
+    suspend fun create(payload: CreateUserPayload): User = operator.executeAndAwait {
         createUser(payload).also {
             createUserAuthInfo(it, payload)
             createDefaultUserScopes(it).collect()
