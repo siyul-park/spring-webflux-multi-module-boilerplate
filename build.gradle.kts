@@ -40,7 +40,7 @@ allprojects {
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
     }
 
-    tasks.withType<Jar> {
+    tasks.withType<Copy> {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
