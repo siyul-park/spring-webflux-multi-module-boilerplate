@@ -8,8 +8,8 @@ import io.github.siyual_park.auth.repository.UserAuthInfoRepository
 import io.github.siyual_park.auth.repository.UserRepository
 import io.github.siyual_park.auth.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -27,7 +27,7 @@ class UserFactory(
     suspend fun create(payload: CreateUserPayload): User = operator.executeAndAwait {
         createUser(payload).also {
             createUserAuthInfo(it, payload)
-            createDefaultUserScopes(it).toList()
+            createDefaultUserScopes(it).collect()
         }
     }!!
 
