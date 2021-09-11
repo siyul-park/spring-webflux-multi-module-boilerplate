@@ -5,9 +5,9 @@ import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.Flow
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 
-@Component
+@Repository
 class ScopeTokenRepository(
     connectionFactory: ConnectionFactory
 ) : R2DBCRepository<ScopeToken, Long>(
@@ -22,7 +22,7 @@ class ScopeTokenRepository(
         return exists(where(ScopeToken::name).`is`(name))
     }
 
-    suspend fun findAllByName(names: Iterable<String>): Flow<ScopeToken> {
-        return findAll(where(ScopeToken::name).`in`(names.toList()))
+    fun findAllByDefault(default: Boolean): Flow<ScopeToken> {
+        return findAll(where(ScopeToken::default).`is`(default))
     }
 }

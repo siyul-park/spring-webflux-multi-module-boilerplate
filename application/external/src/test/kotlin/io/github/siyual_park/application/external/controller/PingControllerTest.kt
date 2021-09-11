@@ -1,6 +1,6 @@
 package io.github.siyual_park.application.external.controller
 
-import io.github.siyual_park.application.external.annoration.ControllerTest
+import io.github.siyual_park.spring.test.ControllerTest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.reactive.server.WebTestClient

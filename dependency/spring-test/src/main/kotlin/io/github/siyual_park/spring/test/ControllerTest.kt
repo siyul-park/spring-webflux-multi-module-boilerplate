@@ -1,4 +1,4 @@
-package io.github.siyual_park.application.external.annoration
+package io.github.siyual_park.spring.test
 
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 
