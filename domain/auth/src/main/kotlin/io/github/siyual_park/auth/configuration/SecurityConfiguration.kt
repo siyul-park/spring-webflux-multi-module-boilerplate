@@ -5,7 +5,6 @@ import io.github.siyual_park.auth.spring.AuthenticationManager
 import io.github.siyual_park.auth.spring.ScopeEvaluator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
@@ -37,7 +36,9 @@ class SecurityConfiguration(
             .csrf().disable()
             .formLogin().disable()
             .httpBasic().disable()
-            .authorizeExchange { it.pathMatchers(HttpMethod.OPTIONS).permitAll() }
+            .authorizeExchange {
+                it.anyExchange().permitAll()
+            }
             .addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .build()
     }
