@@ -12,7 +12,7 @@ class AuthenticatorManager {
         return this
     }
 
-    suspend fun <PAYLOAD : AuthenticationPayload> authenticate(payload: PAYLOAD): Authentication<*> {
+    suspend fun <PAYLOAD : AuthenticationPayload> authenticate(payload: PAYLOAD): Principal<*> {
         val authenticator = authenticators[payload.javaClass] ?: throw UnsupportedAuthorizationTypeException()
         authenticator as Authenticator<PAYLOAD, *, *>
         return authenticator.authenticate(payload)

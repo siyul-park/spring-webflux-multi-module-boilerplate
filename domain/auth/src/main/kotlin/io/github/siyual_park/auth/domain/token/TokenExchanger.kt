@@ -1,6 +1,6 @@
 package io.github.siyual_park.auth.domain.token
 
-import io.github.siyual_park.auth.domain.authenticator.Authentication
+import io.github.siyual_park.auth.domain.authenticator.Principal
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.entity.ids
 import io.jsonwebtoken.Claims
@@ -22,13 +22,13 @@ class TokenExchanger(
 ) {
     private val secretKey: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
-    fun encoding(authentication: Authentication<*>, age: Duration): String {
+    fun encoding(principal: Principal<*>, age: Duration): String {
         val now = Instant.now()
 
         return Jwts.builder()
             .claim("jti", UUID.randomUUID().toString())
-            .claim("sub", authentication.id)
-            .claim("scope", authentication.scope.ids().joinToString(" "))
+            .claim("sub", principal.id)
+            .claim("scope", principal.scope.ids().joinToString(" "))
             .setIssuedAt(Date.from(now))
             .setExpiration(Date.from(now.plus(age)))
             .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -36,7 +36,7 @@ class TokenExchanger(
     }
 
     @Cacheable("TokenManager.decode(String)")
-    fun decode(token: String): Authentication<String> {
+    fun decode(token: String): Principal<String> {
         val jwt = Jwts.parserBuilder()
             .setSigningKey(secretKey)
             .build()
@@ -47,7 +47,7 @@ class TokenExchanger(
 
         val scopeTokens = decodeScope(scope).toSet()
 
-        return object : Authentication<String> {
+        return object : Principal<String> {
             override val id: String
                 get() = body["jti"] as String
             override val scope: Set<ScopeToken>

@@ -5,6 +5,7 @@ import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.Flow
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -14,6 +15,10 @@ class ScopeTokenRepository(
     connectionFactory,
     ScopeToken::class,
 ) {
+    suspend fun findByNameOrFail(name: String): ScopeToken {
+        return findByName(name) ?: throw EmptyResultDataAccessException(1)
+    }
+
     suspend fun findByName(name: String): ScopeToken? {
         return findOne(where(ScopeToken::name).`is`(name))
     }

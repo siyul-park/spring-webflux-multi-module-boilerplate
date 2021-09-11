@@ -1,0 +1,40 @@
+package io.github.siyual_park.auth.spring
+
+import io.github.siyual_park.auth.domain.authenticator.Principal
+import org.springframework.security.core.Authentication
+
+class AuthenticationAdapter<ID>(
+    private val principal: Principal<ID>,
+    private val credentials: String
+) : Authentication {
+    private var authenticated = true
+    private val authorities = principal.scope.map { GrantedAuthorityAdapter(it) }
+
+    override fun getName(): String {
+        return principal.id.toString()
+    }
+
+    override fun getAuthorities(): List<GrantedAuthorityAdapter> {
+        return authorities
+    }
+
+    override fun getCredentials(): String {
+        return credentials
+    }
+
+    override fun getDetails(): Any {
+        return principal
+    }
+
+    override fun getPrincipal(): Principal<ID> {
+        return principal
+    }
+
+    override fun isAuthenticated(): Boolean {
+        return authenticated
+    }
+
+    override fun setAuthenticated(isAuthenticated: Boolean) {
+        authenticated = isAuthenticated
+    }
+}

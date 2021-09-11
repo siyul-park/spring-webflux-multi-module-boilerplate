@@ -15,7 +15,11 @@ class ScopeFinder(
     private val userScopeRepository: UserScopeRepository
 ) {
     fun findByUser(user: User): Flow<ScopeToken> {
-        return userScopeRepository.findAllByUser(user)
+        return findByUserId(user.id!!)
+    }
+
+    fun findByUserId(userId: Long): Flow<ScopeToken> {
+        return userScopeRepository.findAllByUserId(userId)
             .map { scopeTokenRepository.findByIdOrFail(it.scopeTokenId) }
     }
 

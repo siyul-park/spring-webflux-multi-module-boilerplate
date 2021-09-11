@@ -12,15 +12,15 @@ class UserAuthenticationExchanger(
     private val userRepository: UserRepository,
     private val scopeFinder: ScopeFinder,
 ) {
-    suspend fun exchange(user: User): UserAuthentication {
+    suspend fun exchange(user: User): UserPrincipal {
         val scope = scopeFinder.findByUser(user)
-        return UserAuthentication(
+        return UserPrincipal(
             id = user.id!!,
             scope = scope.toSet()
         )
     }
 
-    suspend fun exchange(userAuthentication: UserAuthentication): User {
+    suspend fun exchange(userAuthentication: UserPrincipal): User {
         return userRepository.findByIdOrFail(userAuthentication.id)
     }
 }

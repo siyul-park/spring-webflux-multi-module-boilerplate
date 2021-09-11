@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.authenticator
 
 import io.github.siyual_park.auth.domain.token.TokenExchanger
-import io.github.siyual_park.auth.exception.InvalidBasicAuthorizationFormatException
+import io.github.siyual_park.auth.exception.InvalidAuthorizationFormatException
 import io.github.siyual_park.auth.exception.UnsupportedAuthorizationTypeException
 import org.springframework.stereotype.Component
 import java.util.Base64
@@ -10,10 +10,10 @@ import java.util.Base64
 class AuthorizationAuthenticator(
     private val passwordGrantAuthenticator: PasswordGrantAuthenticator,
     private val tokenExchanger: TokenExchanger
-) : Authenticator<AuthorizationPayload, UserAuthentication, Long> {
+) : Authenticator<AuthorizationPayload, Principal<Long>, Long> {
     override val payloadClazz = AuthorizationPayload::class
 
-    override suspend fun authenticate(payload: AuthorizationPayload): UserAuthentication {
+    override suspend fun authenticate(payload: AuthorizationPayload): Principal<Long> {
         return when (payload.type.lowercase()) {
             "basic" -> basicAuthenticate(payload.credentials)
             "bearer" -> bearerAuthenticate(payload.credentials)
@@ -21,13 +21,13 @@ class AuthorizationAuthenticator(
         }
     }
 
-    suspend fun basicAuthenticate(credentials: String): UserAuthentication {
+    private suspend fun basicAuthenticate(credentials: String): UserPrincipal {
         val decoder = Base64.getDecoder()
         val decodedCredentials = decoder.decode(credentials).toString()
         val token = decodedCredentials.split(":")
 
         if (token.size != 2) {
-            throw InvalidBasicAuthorizationFormatException()
+            throw InvalidAuthorizationFormatException()
         }
 
         val payload = PasswordGrantPayload(
@@ -37,9 +37,9 @@ class AuthorizationAuthenticator(
         return passwordGrantAuthenticator.authenticate(payload)
     }
 
-    suspend fun bearerAuthenticate(credentials: String): UserAuthentication {
+    private fun bearerAuthenticate(credentials: String): UserPrincipal {
         val authentication = tokenExchanger.decode(credentials)
-        return UserAuthentication(
+        return UserPrincipal(
             id = authentication.id.toLong(),
             scope = authentication.scope
         )
