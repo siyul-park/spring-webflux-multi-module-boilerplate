@@ -23,3 +23,12 @@ data class ScopeToken(
         return super.equals(other)
     }
 }
+
+fun Collection<ScopeToken>.ids(): List<Long> {
+    return this.map { it.id }
+        .filterNotNull()
+}
+
+fun Collection<ScopeToken>.names(): List<String> {
+    return this.map { it.name }
+}

@@ -1,6 +1,6 @@
 package io.github.siyual_park.auth.domain.authenticator
 
-import io.github.siyual_park.auth.exception.AuthenticatorNotExistsException
+import io.github.siyual_park.auth.exception.UnsupportedAuthorizationTypeException
 import org.springframework.stereotype.Component
 
 @Component
@@ -13,7 +13,7 @@ class AuthenticatorManager {
     }
 
     suspend fun <PAYLOAD : AuthenticationPayload> authenticate(payload: PAYLOAD): Authentication<*> {
-        val authenticator = authenticators[payload.javaClass] ?: throw AuthenticatorNotExistsException()
+        val authenticator = authenticators[payload.javaClass] ?: throw UnsupportedAuthorizationTypeException()
         authenticator as Authenticator<PAYLOAD, *, *>
         return authenticator.authenticate(payload)
     }

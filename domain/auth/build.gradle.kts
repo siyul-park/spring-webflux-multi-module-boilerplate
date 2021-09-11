@@ -8,6 +8,7 @@ dependencies {
 
     implementation(project(":dependency:async"))
     implementation(project(":dependency:r2dbc"))
+    implementation(project(":dependency:jwt"))
 
     testImplementation(project(":dependency:async-test"))
 }
