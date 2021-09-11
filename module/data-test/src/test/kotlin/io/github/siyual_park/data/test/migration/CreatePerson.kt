@@ -1,5 +1,7 @@
-package io.github.siyual_park.data.migration
+package io.github.siyual_park.data.test.migration
 
+import io.github.siyual_park.data.migration.Migration
+import io.github.siyual_park.data.migration.dropTable
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 

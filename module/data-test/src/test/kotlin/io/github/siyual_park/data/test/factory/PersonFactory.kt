@@ -1,6 +1,6 @@
-package io.github.siyual_park.data.factory
+package io.github.siyual_park.data.test.factory
 
-import io.github.siyual_park.data.mock.Person
+import io.github.siyual_park.data.test.mock.Person
 import java.util.UUID
 import kotlin.random.Random.Default.nextInt
 

@@ -1,13 +1,13 @@
-package io.github.siyual_park.data.repository
+package io.github.siyual_park.data.test.repository
 
-import io.github.siyual_park.data.R2DBCTest
 import io.github.siyual_park.data.expansion.where
-import io.github.siyual_park.data.factory.PersonFactory
-import io.github.siyual_park.data.migration.CreatePerson
-import io.github.siyual_park.data.mock.Person
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.test.R2DBCTest
+import io.github.siyual_park.data.test.factory.PersonFactory
+import io.github.siyual_park.data.test.migration.CreatePerson
+import io.github.siyual_park.data.test.mock.Person
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

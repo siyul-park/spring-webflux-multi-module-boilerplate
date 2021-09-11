@@ -1,4 +1,4 @@
-package io.github.siyual_park.data
+package io.github.siyual_park.data.test
 
 import io.github.siyual_park.data.migration.MigrationManager
 import io.r2dbc.h2.H2ConnectionFactory

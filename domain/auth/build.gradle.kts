@@ -4,6 +4,12 @@ plugins {
 
 dependencies {
     api(project(":module:data"))
+    testImplementation(project(":module:data-test"))
+
+    implementation(project(":dependency:async"))
+    implementation(project(":dependency:r2dbc"))
+
+    testImplementation(project(":dependency:async-test"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
