@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.security.MessageDigest
 
-class UserFactoryTest : AuthTest() {
+class UserCreateExecutorTest : AuthTest() {
     private val hashAlgorithm = "SHA-256"
 
     private val userRepository = UserRepository(connectionFactory)
@@ -24,7 +24,7 @@ class UserFactoryTest : AuthTest() {
     private val userScopeRepository = UserScopeRepository(connectionFactory)
 
     private val scopeTokenGenerator = ScopeTokenGenerator(scopeTokenRepository)
-    private val userFactory = UserFactory(
+    private val userFactory = UserCreateExecutor(
         userRepository,
         scopeTokenRepository,
         userAuthInfoRepository,
@@ -51,7 +51,7 @@ class UserFactoryTest : AuthTest() {
     @Test
     fun create() = blocking {
         val payload = createUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userFactory.execute(payload)
 
         assertNotNull(user.id)
         assertEquals(user.name, payload.username)

@@ -2,7 +2,7 @@ package io.github.siyual_park.application.external.controller
 
 import io.github.siyual_park.application.external.dto.request.CreateUserRequest
 import io.github.siyual_park.auth.domain.CreateUserPayload
-import io.github.siyual_park.auth.domain.UserFactory
+import io.github.siyual_park.auth.domain.UserCreateExecutor
 import io.github.siyual_park.auth.entity.User
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userFactory: UserFactory
+    private val userCreateExecutor: UserCreateExecutor
 ) {
 
     @PostMapping("")
@@ -27,6 +27,6 @@ class UserController(
             password = request.password
         )
 
-        return userFactory.create(payload)
+        return userCreateExecutor.execute(payload)
     }
 }
