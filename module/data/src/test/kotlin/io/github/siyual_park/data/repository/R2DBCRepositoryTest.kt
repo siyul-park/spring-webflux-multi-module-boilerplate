@@ -3,7 +3,7 @@ package io.github.siyual_park.data.repository
 import io.github.siyual_park.data.R2DBCTest
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.factory.PersonFactory
-import io.github.siyual_park.data.migration.CreatePersonCheckpoint
+import io.github.siyual_park.data.migration.CreatePerson
 import io.github.siyual_park.data.mock.Person
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
@@ -23,7 +23,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     private val personFactory = PersonFactory()
 
     init {
-        migrationManager.register(CreatePersonCheckpoint())
+        migrationManager.register(CreatePerson())
     }
 
     @Test

@@ -100,22 +100,30 @@ open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         }
     }
 
-    override suspend fun findById(id: ID): T? {
-        return this.entityTemplate.selectOne(
-            query(where(idProperty).`is`(id)),
-            clazz.java
-        )
-            .subscribeOn(scheduler)
-            .awaitSingleOrNull()
+    override suspend fun existsById(id: ID): Boolean {
+        return exists(where(idProperty).`is`(id))
     }
 
-    override suspend fun existsById(id: ID): Boolean {
+    suspend fun exists(criteria: CriteriaDefinition): Boolean {
         return this.entityTemplate.exists(
-            query(where(idProperty).`is`(id)),
+            query(criteria),
             clazz.java
         )
             .subscribeOn(scheduler)
             .awaitSingle()
+    }
+
+    override suspend fun findById(id: ID): T? {
+        return findOne(where(idProperty).`is`(id))
+    }
+
+    suspend fun findOne(criteria: CriteriaDefinition): T? {
+        return this.entityTemplate.selectOne(
+            query(criteria),
+            clazz.java
+        )
+            .subscribeOn(scheduler)
+            .awaitSingleOrNull()
     }
 
     override fun findAll(): Flow<T> {
