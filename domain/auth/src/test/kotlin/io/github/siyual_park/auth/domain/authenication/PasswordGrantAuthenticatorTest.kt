@@ -79,7 +79,7 @@ class PasswordGrantAuthenticatorTest : AuthTest() {
 
         val authentication = passwordGrantAuthenticator.authenticate(passwordGrantPayload)
 
-        assertEquals(user.id, authentication.id)
+        assertEquals(user.id.toString(), authentication.id)
 
         val scope = scopeFinder.findByUser(user).toList()
         assertEquals(scope.size, authentication.scope.size)
