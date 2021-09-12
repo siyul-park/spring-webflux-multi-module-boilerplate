@@ -1,6 +1,9 @@
 package io.github.siyual_park.auth.spring
 
+import io.github.siyual_park.auth.domain.Principal
+import io.github.siyual_park.auth.domain.hasScope
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
+import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.runBlocking
 import org.springframework.security.access.PermissionEvaluator
 import org.springframework.security.core.Authentication
@@ -13,15 +16,25 @@ class ScopeEvaluator(
 ) : PermissionEvaluator {
     override fun hasPermission(authentication: Authentication, targetDomainObject: Any?, permission: Any): Boolean {
         return runBlocking {
-            if (authentication !is AuthenticationAdapter || permission !is String) {
+            val principal = targetDomainObject ?: authentication.principal
+            if (principal !is Principal) {
                 return@runBlocking false
             }
 
             try {
-                val authorities = authentication.authorities
-                val scope = scopeTokenRepository.findByNameOrFail(permission)
+                val scope = when (permission) {
+                    is String -> {
+                        setOf(scopeTokenRepository.findByNameOrFail(permission))
+                    }
+                    is Collection<*> -> {
+                        scopeTokenRepository.findAllByName(permission.map { it.toString() }).toSet()
+                    }
+                    else -> {
+                        return@runBlocking false
+                    }
+                }
 
-                return@runBlocking authorities.any { it.authority == scope.id.toString() }
+                return@runBlocking principal.hasScope(scope)
             } catch (e: Exception) {
                 return@runBlocking false
             }

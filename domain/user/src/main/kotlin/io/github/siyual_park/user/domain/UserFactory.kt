@@ -1,6 +1,7 @@
 package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.domain.hash
+import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserCredential
@@ -9,7 +10,9 @@ import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
 import io.github.siyual_park.user.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
@@ -25,10 +28,11 @@ class UserFactory(
     private val operator: TransactionalOperator,
     private val hashAlgorithm: String = "SHA-256"
 ) {
-    suspend fun create(payload: CreateUserPayload): User = operator.executeAndAwait {
+    suspend fun create(payload: CreateUserPayload, scope: Collection<ScopeToken> = emptySet()): User = operator.executeAndAwait {
         createUser(payload).also {
             createUserCredential(it, payload)
             createDefaultUserScopes(it).collect()
+            createAdditionalUserScopes(it, scope)
         }
     }!!
 
@@ -51,6 +55,19 @@ class UserFactory(
 
     private fun createDefaultUserScopes(user: User): Flow<UserScope> {
         return scopeTokenRepository.findAllByDefault(true)
+            .map {
+                userScopeRepository.create(
+                    UserScope(
+                        userId = user.id!!,
+                        scopeTokenId = it.id!!
+                    )
+                )
+            }
+    }
+
+    private fun createAdditionalUserScopes(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {
+        return scope.asFlow()
+            .filter { it.id != null }
             .map {
                 userScopeRepository.create(
                     UserScope(

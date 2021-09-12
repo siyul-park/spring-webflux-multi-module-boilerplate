@@ -14,7 +14,7 @@ class AuthControllerGateway(
     private val client: WebTestClient,
     private val formDataEncoder: FormDataEncoder
 ) {
-    fun create(request: CreateTokenRequest): FluxExchangeResult<CreateTokenResponse> {
+    fun createToken(request: CreateTokenRequest): FluxExchangeResult<CreateTokenResponse> {
         return client.post()
             .uri("/token")
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)

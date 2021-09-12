@@ -12,7 +12,7 @@ import java.security.MessageDigest
 class PasswordGrantAuthenticator(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
-    private val userAuthenticationExchanger: UserAuthenticationExchanger,
+    private val userPrincipalExchanger: UserPrincipalExchanger,
 ) : Authenticator<PasswordGrantPayload, UserPrincipal> {
     override val payloadClazz = PasswordGrantPayload::class
 
@@ -27,6 +27,6 @@ class PasswordGrantAuthenticator(
             throw PasswordIncorrectException()
         }
 
-        return userAuthenticationExchanger.exchange(user)
+        return userPrincipalExchanger.exchange(user)
     }
 }
