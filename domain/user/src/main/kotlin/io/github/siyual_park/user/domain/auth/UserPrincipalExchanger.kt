@@ -1,5 +1,7 @@
-package io.github.siyual_park.user.domain
+package io.github.siyual_park.user.domain.auth
 
+import io.github.siyual_park.user.domain.UserFinder
+import io.github.siyual_park.user.domain.UserScopeFinder
 import io.github.siyual_park.user.entity.User
 import kotlinx.coroutines.flow.toSet
 import org.springframework.stereotype.Component

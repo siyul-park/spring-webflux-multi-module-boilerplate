@@ -8,9 +8,9 @@ import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
-import io.github.siyual_park.user.domain.UserPrincipal
-import io.github.siyual_park.user.domain.UserPrincipalExchanger
 import io.github.siyual_park.user.domain.UserScopeFinder
+import io.github.siyual_park.user.domain.auth.UserPrincipal
+import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals

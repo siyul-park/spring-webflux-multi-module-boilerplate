@@ -8,9 +8,9 @@ import io.github.siyual_park.mapper.map
 import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserFinder
-import io.github.siyual_park.user.domain.UserPrincipal
-import io.github.siyual_park.user.domain.UserPrincipalExchanger
 import io.github.siyual_park.user.domain.UserRemover
+import io.github.siyual_park.user.domain.auth.UserPrincipal
+import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
