@@ -1,4 +1,4 @@
-package io.github.siyual_park.user.domain
+package io.github.siyual_park.user.domain.auth
 
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.entity.ScopeToken

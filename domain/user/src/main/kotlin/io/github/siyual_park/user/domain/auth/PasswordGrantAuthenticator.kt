@@ -1,7 +1,8 @@
-package io.github.siyual_park.user.domain
+package io.github.siyual_park.user.domain.auth
 
 import io.github.siyual_park.auth.domain.authenticator.Authenticator
 import io.github.siyual_park.auth.domain.hash
+import io.github.siyual_park.user.domain.UserFinder
 import io.github.siyual_park.user.exception.PasswordIncorrectException
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import org.springframework.stereotype.Component

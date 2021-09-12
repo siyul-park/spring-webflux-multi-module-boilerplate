@@ -10,7 +10,7 @@ import io.github.siyual_park.auth.domain.token.TokenIssuer
 import io.github.siyual_park.json.bind.RequestForm
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.user.domain.PasswordGrantPayload
+import io.github.siyual_park.user.domain.auth.PasswordGrantPayload
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType

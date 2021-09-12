@@ -1,4 +1,4 @@
-package io.github.siyual_park.user.domain
+package io.github.siyual_park.user.domain.auth
 
 import io.github.siyual_park.auth.domain.authenticator.AuthorizationProcessor
 import io.github.siyual_park.auth.domain.token.TokenDecoder
