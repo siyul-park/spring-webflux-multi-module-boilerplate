@@ -9,10 +9,12 @@ import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserPrincipal
 import io.github.siyual_park.user.domain.UserPrincipalExchanger
+import io.github.siyual_park.user.domain.UserRemover
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController
 class UserController(
     private val userFactory: UserFactory,
     private val userPrincipalExchanger: UserPrincipalExchanger,
+    private val userRemover: UserRemover,
     private val mapperManager: MapperManager
 ) {
 
@@ -43,5 +46,13 @@ class UserController(
     suspend fun readSelf(@AuthenticationPrincipal principal: UserPrincipal): ReadUserResponse {
         val user = userPrincipalExchanger.exchange(principal)
         return mapperManager.map(user)
+    }
+
+    @DeleteMapping("/self")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'user:remove.self')")
+    suspend fun removeSelf(@AuthenticationPrincipal principal: UserPrincipal) {
+        val user = userPrincipalExchanger.exchange(principal)
+        userRemover.remove(user)
     }
 }

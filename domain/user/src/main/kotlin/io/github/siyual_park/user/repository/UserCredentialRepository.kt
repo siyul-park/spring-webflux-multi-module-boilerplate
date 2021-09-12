@@ -4,6 +4,7 @@ import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserCredential
+import io.github.siyual_park.user.entity.UserScope
 import io.r2dbc.spi.ConnectionFactory
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.stereotype.Repository
@@ -37,5 +38,13 @@ class UserCredentialRepository(
 
     suspend fun existsByUserId(userId: Long): Boolean {
         return exists(where(UserCredential::userId).`is`(userId))
+    }
+
+    suspend fun deleteByUser(user: User) {
+        user.id?.let { deleteByUserId(it) }
+    }
+
+    suspend fun deleteByUserId(userId: Long) {
+        deleteAll(where(UserScope::userId).`is`(userId))
     }
 }

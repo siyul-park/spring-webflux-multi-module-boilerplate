@@ -11,5 +11,6 @@ class ScopeTokenConfiguration {
     fun configScopeToken(scopeTokenGenerator: ScopeTokenGenerator) {
         scopeTokenGenerator
             .register(ScopeToken(name = "user:read.self", system = true, default = true))
+            .register(ScopeToken(name = "user:remove.self", system = true, default = true))
     }
 }
