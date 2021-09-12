@@ -1,4 +1,4 @@
-package io.github.siyual_park.jackson.converter.instant
+package io.github.siyual_park.json.converter.instant
 
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.springframework.stereotype.Component

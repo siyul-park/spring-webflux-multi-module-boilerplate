@@ -19,12 +19,14 @@ dependencies {
 
     implementation(project(":dependency:kotlinx"))
 
+    implementation(project(":dependency:jwt"))
+
     implementation(project(":module:data"))
     implementation(project(":module:been"))
     implementation(project(":module:mapper"))
 
     implementation(project(":domain:auth"))
-    implementation(project(":domain:jackson"))
+    implementation(project(":domain:json"))
     implementation(project(":domain:swagger"))
 }
 

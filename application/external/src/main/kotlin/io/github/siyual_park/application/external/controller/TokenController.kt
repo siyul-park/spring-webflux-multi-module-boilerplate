@@ -7,6 +7,7 @@ import io.github.siyual_park.auth.domain.authenticator.AuthenticatorManager
 import io.github.siyual_park.auth.domain.authenticator.AuthorizationPayload
 import io.github.siyual_park.auth.domain.authenticator.PasswordGrantPayload
 import io.github.siyual_park.auth.domain.token.TokenIssuer
+import io.github.siyual_park.json.bind.RequestForm
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.swagger.annotations.Api
@@ -29,7 +30,7 @@ class TokenController(
 
     @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
-    suspend fun create(@Valid request: CreateTokenRequest): CreateTokenResponse {
+    suspend fun create(@Valid @RequestForm request: CreateTokenRequest): CreateTokenResponse {
         val payload = when (request.grantType) {
             GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!)
             GrantType.REFRESH_TOKEN -> AuthorizationPayload("bearer", request.refreshToken!!)

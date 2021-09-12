@@ -1,4 +1,4 @@
-package io.github.siyual_park.jackson.configuration
+package io.github.siyual_park.json.configuration
 
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
