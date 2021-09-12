@@ -4,4 +4,4 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 
 @SpringBootTest
 @AutoConfigureWebTestClient
-annotation class ControllerTest
+annotation class IntegrationTest
