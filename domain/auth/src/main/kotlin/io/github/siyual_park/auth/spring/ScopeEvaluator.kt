@@ -11,15 +11,15 @@ import java.io.Serializable
 class ScopeEvaluator(
     private val scopeTokenRepository: ScopeTokenRepository
 ) : PermissionEvaluator {
-    override fun hasPermission(authentication: Authentication, targetDomainObject: Any, permission: Any): Boolean {
+    override fun hasPermission(authentication: Authentication, targetDomainObject: Any?, permission: Any): Boolean {
         return runBlocking {
-            if (targetDomainObject !is String || permission !is String || authentication !is AuthenticationAdapter) {
+            if (authentication !is AuthenticationAdapter || permission !is String) {
                 return@runBlocking false
             }
 
             try {
                 val authorities = authentication.authorities
-                val scope = scopeTokenRepository.findByNameOrFail("$targetDomainObject:$permission")
+                val scope = scopeTokenRepository.findByNameOrFail(permission)
 
                 return@runBlocking authorities.any { it.authority == scope.id.toString() }
             } catch (e: Exception) {
