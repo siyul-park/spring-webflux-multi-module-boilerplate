@@ -3,9 +3,11 @@ package io.github.siyual_park.application.external.controller
 import io.github.siyual_park.application.external.factory.CreateUserPayloadFactory
 import io.github.siyual_park.application.external.factory.CreateUserRequestFactory
 import io.github.siyual_park.application.external.gateway.UserControllerGateway
+import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
+import io.github.siyual_park.user.domain.UserPrincipal
 import io.github.siyual_park.user.domain.UserPrincipalExchanger
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,7 +20,8 @@ import org.springframework.http.HttpStatus
 class UserControllerTest @Autowired constructor(
     private val userControllerGateway: UserControllerGateway,
     private val userFactory: UserFactory,
-    private val userPrincipalExchanger: UserPrincipalExchanger
+    private val userPrincipalExchanger: UserPrincipalExchanger,
+    private val scopeTokenRepository: ScopeTokenRepository
 ) : CoroutineTest() {
     private val createUserRequestFactory = CreateUserRequestFactory()
     private val createUserPayloadFactory = CreateUserPayloadFactory()
@@ -63,5 +66,23 @@ class UserControllerTest @Autowired constructor(
         assertEquals(user.name, responseUser.name)
         assertNotNull(responseUser.createdAt)
         assertNotNull(responseUser.updatedAt)
+    }
+
+    @Test
+    fun testReadSelfFail() = blocking {
+        val payload = createUserPayloadFactory.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val removeScope = scopeTokenRepository.findByNameOrFail("user:read.self")
+
+        val response = userControllerGateway.readSelf(
+            UserPrincipal(
+                id = principal.id,
+                scope = principal.scope.filter { it.id != removeScope.id }.toSet()
+            )
+        )
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 }
