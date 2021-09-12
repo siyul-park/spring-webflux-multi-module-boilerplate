@@ -32,4 +32,12 @@ class UserScopeRepository(
     fun findAllByScopeTokenId(scopeTokenId: Long): Flow<UserScope> {
         return findAll(where(UserScope::scopeTokenId).`is`(scopeTokenId))
     }
+
+    suspend fun deleteAllByUser(user: User) {
+        user.id?.let { deleteAllByUserId(it) }
+    }
+
+    suspend fun deleteAllByUserId(userId: Long) {
+        deleteAll(where(UserScope::userId).`is`(userId))
+    }
 }

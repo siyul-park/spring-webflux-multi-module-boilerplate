@@ -1,14 +1,12 @@
 package io.github.siyual_park.user.domain
 
-import io.github.siyual_park.data.repository.findByIdOrFail
 import io.github.siyual_park.user.entity.User
-import io.github.siyual_park.user.repository.UserRepository
 import kotlinx.coroutines.flow.toSet
 import org.springframework.stereotype.Component
 
 @Component
 class UserPrincipalExchanger(
-    private val userRepository: UserRepository,
+    private val userFinder: UserFinder,
     private val userScopeFinder: UserScopeFinder
 ) {
     suspend fun exchange(user: User): UserPrincipal {
@@ -20,6 +18,6 @@ class UserPrincipalExchanger(
     }
 
     suspend fun exchange(userAuthentication: UserPrincipal): User {
-        return userRepository.findByIdOrFail(userAuthentication.id.toLong())
+        return userFinder.findByIdOrFail(userAuthentication.id.toLong())
     }
 }

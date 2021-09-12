@@ -3,12 +3,15 @@ package io.github.siyual_park.application.external.controller
 import io.github.siyual_park.application.external.factory.CreateUserPayloadFactory
 import io.github.siyual_park.application.external.factory.CreateUserRequestFactory
 import io.github.siyual_park.application.external.gateway.UserControllerGateway
+import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserPrincipal
 import io.github.siyual_park.user.domain.UserPrincipalExchanger
+import io.github.siyual_park.user.domain.UserScopeFinder
+import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -21,6 +24,7 @@ class UserControllerTest @Autowired constructor(
     private val userControllerGateway: UserControllerGateway,
     private val userFactory: UserFactory,
     private val userPrincipalExchanger: UserPrincipalExchanger,
+    private val userScopeFinder: UserScopeFinder,
     private val scopeTokenRepository: ScopeTokenRepository
 ) : CoroutineTest() {
     private val createUserRequestFactory = CreateUserRequestFactory()
@@ -81,6 +85,81 @@ class UserControllerTest @Autowired constructor(
                 id = principal.id,
                 scope = principal.scope.filter { it.id != removeScope.id }.toSet()
             )
+        )
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun testDeleteSelfSuccess() = blocking {
+        val payload = createUserPayloadFactory.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val response = userControllerGateway.deleteSelf(principal)
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+
+        val scope = userScopeFinder.findAllByUser(user).toSet()
+        assertEquals(0, scope.size)
+    }
+
+    @Test
+    fun testDeleterSelfFail() = blocking {
+        val payload = createUserPayloadFactory.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val removeScope = scopeTokenRepository.findByNameOrFail("user:remove.self")
+
+        val response = userControllerGateway.deleteSelf(
+            UserPrincipal(
+                id = principal.id,
+                scope = principal.scope.filter { it.id != removeScope.id }.toSet()
+            )
+        )
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun testDeleterSuccess() = blocking {
+        val payload = createUserPayloadFactory.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val otherPayload = createUserPayloadFactory.create()
+        val otherUser = userFactory.create(otherPayload)
+
+        val removeScope = scopeTokenRepository.findByNameOrFail("user:remove")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(removeScope)
+        scope.addAll(principal.scope)
+
+        val response = userControllerGateway.delete(
+            otherUser.id!!,
+            UserPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+    }
+
+    @Test
+    fun testDeleterFail() = blocking {
+        val payload = createUserPayloadFactory.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val otherPayload = createUserPayloadFactory.create()
+        val otherUser = userFactory.create(otherPayload)
+
+        val response = userControllerGateway.delete(
+            otherUser.id!!,
+            principal
         )
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)

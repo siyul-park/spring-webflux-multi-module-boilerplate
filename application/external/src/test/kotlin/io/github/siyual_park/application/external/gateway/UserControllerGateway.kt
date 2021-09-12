@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.FluxExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.returnResult
 
 @Component
 class UserControllerGateway(
@@ -29,5 +30,21 @@ class UserControllerGateway(
             .header(HttpHeaders.AUTHORIZATION, authorizationHeaderGenerator.generate(principal))
             .exchange()
             .returnResult(ReadUserResponse::class.java)
+    }
+
+    suspend fun deleteSelf(principal: Principal): FluxExchangeResult<Unit> {
+        return client.delete()
+            .uri("/users/self")
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeaderGenerator.generate(principal))
+            .exchange()
+            .returnResult()
+    }
+
+    suspend fun delete(userId: Long, principal: Principal): FluxExchangeResult<Unit> {
+        return client.delete()
+            .uri("/users/$userId")
+            .header(HttpHeaders.AUTHORIZATION, authorizationHeaderGenerator.generate(principal))
+            .exchange()
+            .returnResult()
     }
 }

@@ -271,37 +271,24 @@ open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
 
     override suspend fun delete(entity: T) {
         val id = getId(entity).value ?: return
-
-        this.entityTemplate.delete(
-            query(where(idProperty).`is`(id)),
-            clazz.java
-        )
-            .subscribeOn(scheduler)
-            .awaitSingle()
+        deleteAll(where(idProperty).`is`(id))
     }
 
     override suspend fun deleteAllById(ids: Iterable<ID>) {
-        this.entityTemplate.delete(
-            query(where(idProperty).`in`(ids.toList())),
-            clazz.java
-        )
-            .subscribeOn(scheduler)
-            .awaitSingle()
+        deleteAll(where(idProperty).`in`(ids.toList()))
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
         val ids = entities.map { getId(it).value }
-
-        this.entityTemplate.delete(
-            query(where(idProperty).`in`(ids)),
-            clazz.java
-        )
-            .subscribeOn(scheduler)
-            .awaitSingle()
+        deleteAll(where(idProperty).`in`(ids))
     }
 
     override suspend fun deleteAll() {
-        this.entityTemplate.delete(empty(), clazz.java)
+        deleteAll(criteria = null)
+    }
+
+    suspend fun deleteAll(criteria: CriteriaDefinition? = null) {
+        this.entityTemplate.delete(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
             .subscribeOn(scheduler)
             .awaitSingle()
     }
