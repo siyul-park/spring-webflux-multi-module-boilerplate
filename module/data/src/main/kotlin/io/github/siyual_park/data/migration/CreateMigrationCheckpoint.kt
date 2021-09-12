@@ -13,7 +13,7 @@ class CreateMigrationCheckpoint : Migration {
             "CREATE TABLE $tableName" +
                 "(" +
                 "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
-                "version BIGINT," +
+                "version BIGINT NOT NULL," +
                 "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
                 "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
                 ")"
@@ -23,12 +23,7 @@ class CreateMigrationCheckpoint : Migration {
             .awaitSingle()
     }
     override suspend fun down(entityTemplate: R2dbcEntityTemplate) {
-        entityTemplate.databaseClient.sql(
-            "DROP TABLE $tableName"
-        )
-            .fetch()
-            .rowsUpdated()
-            .awaitSingle()
+        entityTemplate.dropTable(tableName)
     }
 
     suspend fun isApplied(entityTemplate: R2dbcEntityTemplate): Boolean {

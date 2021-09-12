@@ -40,7 +40,9 @@ allprojects {
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
     }
 
-    tasks.withType<Jar> { duplicatesStrategy = DuplicatesStrategy.INHERIT }
+    tasks.withType<Copy> {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
         sourceCompatibility = JavaVersion.VERSION_11.toString()
         targetCompatibility = JavaVersion.VERSION_11.toString()

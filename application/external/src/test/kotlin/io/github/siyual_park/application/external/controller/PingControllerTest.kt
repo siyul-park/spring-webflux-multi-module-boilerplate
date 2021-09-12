@@ -1,11 +1,12 @@
 package io.github.siyual_park.application.external.controller
 
+import io.github.siyual_park.spring.test.IntegrationTest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 
-@ControllerTest
+@IntegrationTest
 class PingControllerTest @Autowired constructor(
     private val client: WebTestClient
 ) {

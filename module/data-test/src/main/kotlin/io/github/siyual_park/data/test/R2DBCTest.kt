@@ -1,0 +1,42 @@
+package io.github.siyual_park.data.test
+
+import io.github.siyual_park.data.migration.MigrationManager
+import io.github.siyual_park.spring.test.CoroutineTest
+import io.r2dbc.h2.H2ConnectionFactory
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.springframework.r2dbc.connection.R2dbcTransactionManager
+import org.springframework.transaction.reactive.TransactionalOperator
+import java.util.UUID
+
+open class R2DBCTest : CoroutineTest() {
+    private val database: String = UUID.randomUUID().toString()
+    protected val connectionFactory = H2ConnectionFactory.inMemory(database)
+    protected val migrationManager = MigrationManager(connectionFactory)
+
+    protected var transactionManager = R2dbcTransactionManager(connectionFactory)
+    protected var transactionalOperator = TransactionalOperator.create(transactionManager)
+
+    @BeforeEach
+    override fun setUp() {
+        super.setUp()
+
+        blocking {
+            migrationManager.run()
+        }
+    }
+
+    @AfterEach
+    override fun tearDown() {
+        blocking {
+            migrationManager.revert()
+        }
+
+        super.tearDown()
+    }
+
+    @Test
+    fun contextLoads() {
+    }
+}
