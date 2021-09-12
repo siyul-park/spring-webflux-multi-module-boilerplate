@@ -1,8 +1,11 @@
 package io.github.siyual_park.swagger.configuration
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.annotations.Api
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import springfox.documentation.annotations.ApiIgnore
 import springfox.documentation.builders.PathSelectors
 import springfox.documentation.builders.RequestHandlerSelectors
 import springfox.documentation.service.ApiKey
@@ -30,6 +33,7 @@ class SpringFoxConfiguration {
             )
             .paths(PathSelectors.any())
             .build()
+            .ignoredParameterTypes(ApiIgnore::class.java, AuthenticationPrincipal::class.java, JsonIgnore::class.java)
             .securitySchemes(listOf(apiKey()))
             .securityContexts(listOf(securityContext()))
     }
