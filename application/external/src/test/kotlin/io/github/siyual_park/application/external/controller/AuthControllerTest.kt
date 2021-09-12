@@ -28,7 +28,7 @@ class AuthControllerTest @Autowired constructor(
         val createUserPayload = createUserPayloadFactory.create()
         userFactory.create(createUserPayload)
 
-        val tokenResponse = authControllerGateway.create(
+        val tokenResponse = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.username,
@@ -53,7 +53,7 @@ class AuthControllerTest @Autowired constructor(
 
         val otherUserRequest = createUserPayloadFactory.create()
 
-        val tokenResponse = authControllerGateway.create(
+        val tokenResponse = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.username,
@@ -69,24 +69,24 @@ class AuthControllerTest @Autowired constructor(
         val createUserPayload = createUserPayloadFactory.create()
         userFactory.create(createUserPayload)
 
-        val case1 = authControllerGateway.create(
+        val case1 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.username,
             )
         )
-        val case2 = authControllerGateway.create(
+        val case2 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 password = createUserPayload.password,
             )
         )
-        val case3 = authControllerGateway.create(
+        val case3 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
             )
         )
-        val case4 = authControllerGateway.create(
+        val case4 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 refreshToken = "dummy_token"
@@ -104,7 +104,7 @@ class AuthControllerTest @Autowired constructor(
         val createUserPayload = createUserPayloadFactory.create()
         userFactory.create(createUserPayload)
 
-        val tokensByPassword = authControllerGateway.create(
+        val tokensByPassword = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.username,
@@ -112,7 +112,7 @@ class AuthControllerTest @Autowired constructor(
             )
         ).responseBody.awaitSingle()
 
-        val response = authControllerGateway.create(
+        val response = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 refreshToken = tokensByPassword.refreshToken
@@ -134,7 +134,7 @@ class AuthControllerTest @Autowired constructor(
         val createUserPayload = createUserPayloadFactory.create()
         userFactory.create(createUserPayload)
 
-        val response = authControllerGateway.create(
+        val response = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 refreshToken = "invalid_token"
@@ -149,19 +149,19 @@ class AuthControllerTest @Autowired constructor(
         val createUserPayload = createUserPayloadFactory.create()
         userFactory.create(createUserPayload)
 
-        val case1 = authControllerGateway.create(
+        val case1 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 username = createUserPayload.username,
             )
         )
-        val case2 = authControllerGateway.create(
+        val case2 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 password = createUserPayload.password,
             )
         )
-        val case3 = authControllerGateway.create(
+        val case3 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
             )
