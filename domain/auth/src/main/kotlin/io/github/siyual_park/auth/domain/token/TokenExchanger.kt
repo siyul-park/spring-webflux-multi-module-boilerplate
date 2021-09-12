@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.domain.authenticator.Principal
-import io.github.siyual_park.auth.domain.authenticator.UserPrincipal
+import io.github.siyual_park.auth.domain.principal.UserPrincipal
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.entity.ids
 import io.github.siyual_park.auth.exception.PrincipalIdNotExistsException

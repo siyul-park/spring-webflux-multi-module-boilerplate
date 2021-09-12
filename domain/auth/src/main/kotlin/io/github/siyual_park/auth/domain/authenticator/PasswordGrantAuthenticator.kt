@@ -1,6 +1,8 @@
 package io.github.siyual_park.auth.domain.authenticator
 
+import io.github.siyual_park.auth.domain.authenticator.payload.PasswordGrantPayload
 import io.github.siyual_park.auth.domain.hash
+import io.github.siyual_park.auth.domain.principal.UserPrincipal
 import io.github.siyual_park.auth.exception.PasswordIncorrectException
 import io.github.siyual_park.auth.repository.UserCredentialRepository
 import io.github.siyual_park.auth.repository.UserRepository

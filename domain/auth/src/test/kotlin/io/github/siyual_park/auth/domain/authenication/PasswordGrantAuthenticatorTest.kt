@@ -5,9 +5,9 @@ import io.github.siyual_park.auth.domain.ScopeFinder
 import io.github.siyual_park.auth.domain.ScopeTokenGenerator
 import io.github.siyual_park.auth.domain.UserFactory
 import io.github.siyual_park.auth.domain.authenticator.PasswordGrantAuthenticator
-import io.github.siyual_park.auth.domain.authenticator.PasswordGrantPayload
 import io.github.siyual_park.auth.domain.authenticator.UserAuthenticationExchanger
 import io.github.siyual_park.auth.domain.authenticator.hasScope
+import io.github.siyual_park.auth.domain.authenticator.payload.PasswordGrantPayload
 import io.github.siyual_park.auth.exception.PasswordIncorrectException
 import io.github.siyual_park.auth.factory.CreateUserPayloadFactory
 import io.github.siyual_park.auth.factory.ScopeTokenFactory

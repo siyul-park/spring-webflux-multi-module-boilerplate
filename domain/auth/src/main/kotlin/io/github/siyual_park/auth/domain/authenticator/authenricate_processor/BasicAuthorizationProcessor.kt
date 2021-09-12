@@ -1,14 +1,17 @@
-package io.github.siyual_park.auth.domain.authenticator
+package io.github.siyual_park.auth.domain.authenticator.authenricate_processor
 
+import io.github.siyual_park.auth.domain.authenticator.PasswordGrantAuthenticator
+import io.github.siyual_park.auth.domain.authenticator.payload.PasswordGrantPayload
+import io.github.siyual_park.auth.domain.principal.UserPrincipal
 import io.github.siyual_park.auth.exception.InvalidAuthorizationFormatException
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 @Component
-class BasicAuthorizationAuthenticateProcessor(
+class BasicAuthorizationProcessor(
     private val passwordGrantAuthenticator: PasswordGrantAuthenticator,
-) : AuthorizationAuthenticateProcessor<UserPrincipal> {
+) : AuthorizationProcessor<UserPrincipal> {
     override val type = "basic"
 
     override suspend fun authenticate(credentials: String): UserPrincipal {

@@ -1,4 +1,4 @@
-package io.github.siyual_park.auth.domain.authenticator
+package io.github.siyual_park.auth.domain.authenticator.payload
 
 data class AuthorizationPayload(
     val type: String,

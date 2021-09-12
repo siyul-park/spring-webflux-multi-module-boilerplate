@@ -1,5 +1,8 @@
 package io.github.siyual_park.auth.domain.authenticator
 
+import io.github.siyual_park.auth.domain.authenticator.authenricate_processor.AuthorizationProcessor
+import io.github.siyual_park.auth.domain.authenticator.payload.AuthorizationPayload
+import io.github.siyual_park.auth.domain.principal.Principal
 import io.github.siyual_park.auth.exception.UnsupportedAuthorizationTypeException
 import org.springframework.stereotype.Component
 
@@ -7,10 +10,10 @@ import org.springframework.stereotype.Component
 class AuthorizationAuthenticator : Authenticator<AuthorizationPayload, Principal> {
     override val payloadClazz = AuthorizationPayload::class
 
-    private val processors = mutableMapOf<String, AuthorizationAuthenticateProcessor<*>>()
+    private val processors = mutableMapOf<String, AuthorizationProcessor<*>>()
 
     fun <PRINCIPAL : Principal> register(
-        processor: AuthorizationAuthenticateProcessor<PRINCIPAL>
+        processor: AuthorizationProcessor<PRINCIPAL>
     ): AuthorizationAuthenticator {
         processors[processor.type.lowercase()] = processor
         return this

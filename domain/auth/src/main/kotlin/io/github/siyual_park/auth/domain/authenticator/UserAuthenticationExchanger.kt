@@ -1,6 +1,7 @@
 package io.github.siyual_park.auth.domain.authenticator
 
 import io.github.siyual_park.auth.domain.ScopeFinder
+import io.github.siyual_park.auth.domain.principal.UserPrincipal
 import io.github.siyual_park.auth.entity.User
 import io.github.siyual_park.auth.repository.UserRepository
 import io.github.siyual_park.data.repository.findByIdOrFail
