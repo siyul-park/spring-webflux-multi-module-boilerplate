@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.toSet
 import org.springframework.stereotype.Component
 
 @Component
-class UserAuthenticationExchanger(
+class UserPrincipalExchanger(
     private val userRepository: UserRepository,
     private val userScopeFinder: UserScopeFinder
 ) {
