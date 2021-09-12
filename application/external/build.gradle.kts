@@ -23,6 +23,8 @@ dependencies {
     implementation(project(":module:mapper"))
 
     implementation(project(":domain:auth"))
+
+    implementation(project(":domain:user"))
     implementation(project(":domain:json"))
     implementation(project(":domain:swagger"))
 }

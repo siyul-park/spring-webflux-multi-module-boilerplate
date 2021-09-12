@@ -1,6 +1,6 @@
 package io.github.siyual_park.auth.spring
 
-import io.github.siyual_park.auth.domain.authenticator.Principal
+import io.github.siyual_park.auth.domain.Principal
 import org.springframework.security.core.Authentication
 
 class AuthenticationAdapter(

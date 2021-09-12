@@ -2,10 +2,10 @@ package io.github.siyual_park.application.external.controller
 
 import io.github.siyual_park.application.external.dto.request.CreateUserRequest
 import io.github.siyual_park.application.external.dto.response.CreateUserResponse
-import io.github.siyual_park.auth.domain.CreateUserPayload
-import io.github.siyual_park.auth.domain.UserFactory
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
+import io.github.siyual_park.user.domain.CreateUserPayload
+import io.github.siyual_park.user.domain.UserFactory
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping

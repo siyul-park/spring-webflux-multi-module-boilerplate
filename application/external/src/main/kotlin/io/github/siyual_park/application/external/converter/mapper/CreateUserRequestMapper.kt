@@ -1,8 +1,8 @@
 package io.github.siyual_park.application.external.converter.mapper
 
 import io.github.siyual_park.application.external.dto.request.CreateUserRequest
-import io.github.siyual_park.auth.domain.CreateUserPayload
 import io.github.siyual_park.mapper.Mapper
+import io.github.siyual_park.user.domain.CreateUserPayload
 import org.springframework.stereotype.Component
 
 @Component

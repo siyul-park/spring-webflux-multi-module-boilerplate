@@ -4,13 +4,13 @@ import io.github.siyual_park.application.external.dto.GrantType
 import io.github.siyual_park.application.external.dto.request.CreateTokenRequest
 import io.github.siyual_park.application.external.dto.response.CreateTokenResponse
 import io.github.siyual_park.auth.domain.authenticator.AuthenticatorManager
-import io.github.siyual_park.auth.domain.authenticator.payload.AuthorizationPayload
-import io.github.siyual_park.auth.domain.authenticator.payload.PasswordGrantPayload
-import io.github.siyual_park.auth.domain.principal.PrincipalRefresher
+import io.github.siyual_park.auth.domain.authenticator.AuthorizationPayload
+import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.token.TokenIssuer
 import io.github.siyual_park.json.bind.RequestForm
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
+import io.github.siyual_park.user.domain.PasswordGrantPayload
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
