@@ -3,6 +3,7 @@ package io.github.siyual_park.application.external.controller
 import io.github.siyual_park.application.external.factory.CreateUserPayloadFactory
 import io.github.siyual_park.application.external.factory.CreateUserRequestFactory
 import io.github.siyual_park.application.external.gateway.UserControllerGateway
+import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
@@ -116,6 +117,49 @@ class UserControllerTest @Autowired constructor(
                 id = principal.id,
                 scope = principal.scope.filter { it.id != removeScope.id }.toSet()
             )
+        )
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun testRemoverSuccess() = blocking {
+        val payload = createUserPayloadFactory.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val otherPayload = createUserPayloadFactory.create()
+        val otherUser = userFactory.create(otherPayload)
+
+        val removeScope = scopeTokenRepository.findByNameOrFail("user:remove")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(removeScope)
+        scope.addAll(principal.scope)
+
+        val response = userControllerGateway.remove(
+            otherUser.id!!,
+            UserPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+    }
+
+    @Test
+    fun testRemoverFail() = blocking {
+        val payload = createUserPayloadFactory.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val otherPayload = createUserPayloadFactory.create()
+        val otherUser = userFactory.create(otherPayload)
+
+        val response = userControllerGateway.remove(
+            otherUser.id!!,
+            principal
         )
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)

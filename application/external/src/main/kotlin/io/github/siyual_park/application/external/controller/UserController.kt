@@ -7,6 +7,7 @@ import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.UserFactory
+import io.github.siyual_park.user.domain.UserFinder
 import io.github.siyual_park.user.domain.UserPrincipal
 import io.github.siyual_park.user.domain.UserPrincipalExchanger
 import io.github.siyual_park.user.domain.UserRemover
@@ -16,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,6 +31,7 @@ class UserController(
     private val userFactory: UserFactory,
     private val userPrincipalExchanger: UserPrincipalExchanger,
     private val userRemover: UserRemover,
+    private val userFinder: UserFinder,
     private val mapperManager: MapperManager
 ) {
 
@@ -53,6 +56,14 @@ class UserController(
     @PreAuthorize("hasPermission(null, 'user:remove.self')")
     suspend fun removeSelf(@AuthenticationPrincipal principal: UserPrincipal) {
         val user = userPrincipalExchanger.exchange(principal)
+        userRemover.remove(user)
+    }
+
+    @DeleteMapping("/{user-id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'user:remove')")
+    suspend fun remove(@PathVariable("user-id") userId: Long) {
+        val user = userFinder.findByIdOrFail(userId)
         userRemover.remove(user)
     }
 }
