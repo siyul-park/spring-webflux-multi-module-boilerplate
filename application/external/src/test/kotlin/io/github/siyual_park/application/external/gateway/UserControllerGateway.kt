@@ -32,7 +32,7 @@ class UserControllerGateway(
             .returnResult(ReadUserResponse::class.java)
     }
 
-    suspend fun removeSelf(principal: Principal): FluxExchangeResult<Unit> {
+    suspend fun deleteSelf(principal: Principal): FluxExchangeResult<Unit> {
         return client.delete()
             .uri("/users/self")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeaderGenerator.generate(principal))
@@ -40,7 +40,7 @@ class UserControllerGateway(
             .returnResult()
     }
 
-    suspend fun remove(userId: Long, principal: Principal): FluxExchangeResult<Unit> {
+    suspend fun delete(userId: Long, principal: Principal): FluxExchangeResult<Unit> {
         return client.delete()
             .uri("/users/$userId")
             .header(HttpHeaders.AUTHORIZATION, authorizationHeaderGenerator.generate(principal))

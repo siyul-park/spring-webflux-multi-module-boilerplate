@@ -91,12 +91,12 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testRemoveSelfSuccess() = blocking {
+    fun testDeleteSelfSuccess() = blocking {
         val payload = createUserPayloadFactory.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val response = userControllerGateway.removeSelf(principal)
+        val response = userControllerGateway.deleteSelf(principal)
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
@@ -105,14 +105,14 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testRemoverSelfFail() = blocking {
+    fun testDeleterSelfFail() = blocking {
         val payload = createUserPayloadFactory.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
         val removeScope = scopeTokenRepository.findByNameOrFail("user:remove.self")
 
-        val response = userControllerGateway.removeSelf(
+        val response = userControllerGateway.deleteSelf(
             UserPrincipal(
                 id = principal.id,
                 scope = principal.scope.filter { it.id != removeScope.id }.toSet()
@@ -123,7 +123,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testRemoverSuccess() = blocking {
+    fun testDeleterSuccess() = blocking {
         val payload = createUserPayloadFactory.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
@@ -137,7 +137,7 @@ class UserControllerTest @Autowired constructor(
         scope.add(removeScope)
         scope.addAll(principal.scope)
 
-        val response = userControllerGateway.remove(
+        val response = userControllerGateway.delete(
             otherUser.id!!,
             UserPrincipal(
                 id = principal.id,
@@ -149,7 +149,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testRemoverFail() = blocking {
+    fun testDeleterFail() = blocking {
         val payload = createUserPayloadFactory.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
@@ -157,7 +157,7 @@ class UserControllerTest @Autowired constructor(
         val otherPayload = createUserPayloadFactory.create()
         val otherUser = userFactory.create(otherPayload)
 
-        val response = userControllerGateway.remove(
+        val response = userControllerGateway.delete(
             otherUser.id!!,
             principal
         )
