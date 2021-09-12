@@ -56,7 +56,7 @@ class UserController(
     @PreAuthorize("hasPermission(null, 'user:remove.self')")
     suspend fun deleteSelf(@AuthenticationPrincipal principal: UserPrincipal) {
         val user = userPrincipalExchanger.exchange(principal)
-        userRemover.remove(user)
+        userRemover.remove(user, soft = true)
     }
 
     @DeleteMapping("/{user-id}")
@@ -64,6 +64,6 @@ class UserController(
     @PreAuthorize("hasPermission(null, 'user:remove')")
     suspend fun delete(@PathVariable("user-id") userId: Long) {
         val user = userFinder.findByIdOrFail(userId)
-        userRemover.remove(user)
+        userRemover.remove(user, soft = true)
     }
 }
