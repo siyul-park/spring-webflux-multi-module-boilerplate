@@ -22,7 +22,7 @@ class AuthenticationAdapter(
         return credentials
     }
 
-    override fun getDetails(): Any {
+    override fun getDetails(): Principal {
         return principal
     }
 

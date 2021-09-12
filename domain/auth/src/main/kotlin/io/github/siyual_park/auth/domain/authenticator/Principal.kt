@@ -1,9 +1,9 @@
 package io.github.siyual_park.auth.domain.authenticator
 
 import io.github.siyual_park.auth.entity.ScopeToken
-import java.security.Principal as DefaultPrincipal
+import java.security.Principal as SpringPrincipal
 
-interface Principal : DefaultPrincipal {
+interface Principal : SpringPrincipal {
     val id: String
     val scope: Set<ScopeToken>
 

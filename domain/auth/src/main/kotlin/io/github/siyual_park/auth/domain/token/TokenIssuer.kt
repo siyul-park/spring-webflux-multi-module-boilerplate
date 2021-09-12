@@ -1,6 +1,7 @@
 package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.domain.authenticator.Principal
+import io.github.siyual_park.auth.domain.authenticator.hasScope
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import org.springframework.beans.factory.annotation.Value
@@ -20,7 +21,7 @@ class TokenIssuer(
         val accessTokenCreateScope = scopeTokenRepository.findByNameOrFail("access-token:create")
         val refreshTokenCreateScope = scopeTokenRepository.findByNameOrFail("refresh-token:create")
 
-        if (!principal.scope.contains(accessTokenCreateScope)) {
+        if (!principal.hasScope(accessTokenCreateScope)) {
             throw RequiredPermissionException()
         }
 
@@ -29,11 +30,11 @@ class TokenIssuer(
             accessTokenAge,
             scope = principal.scope.filter { it.id != accessTokenCreateScope.id && it.id != refreshTokenCreateScope.id }
         )
-        val refreshToken = if (principal.scope.contains(refreshTokenCreateScope)) {
+        val refreshToken = if (principal.hasScope(refreshTokenCreateScope)) {
             tokenExchanger.encoding(
                 principal,
                 refreshTokenAge,
-                scope = listOf(accessTokenCreateScope)
+                scope = principal.scope.filter { it.id != refreshTokenCreateScope.id }
             )
         } else null
 
