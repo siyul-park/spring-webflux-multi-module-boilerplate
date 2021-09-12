@@ -8,10 +8,10 @@ import javax.validation.constraints.AssertTrue
 data class CreateTokenRequest(
     @ApiModelProperty(name = "grant_type")
     val grantType: GrantType,
-    val username: String?,
-    val password: String?,
+    val username: String? = null,
+    val password: String? = null,
     @ApiModelProperty(name = "refresh_token")
-    val refreshToken: String?
+    val refreshToken: String? = null
 ) {
     @JsonIgnore
     @AssertTrue

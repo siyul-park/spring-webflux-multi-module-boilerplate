@@ -1,8 +1,9 @@
 package io.github.siyual_park.application.external.handler
 
 import io.github.siyual_park.application.external.exception.UnauthorizedException
+import io.github.siyual_park.auth.exception.AuthException
 import io.github.siyual_park.auth.exception.RequiredPermissionException
-import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.JwtException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
@@ -20,9 +21,15 @@ class AuthExceptionHandler {
         throw UnauthorizedException(exception.message)
     }
 
-    @ExceptionHandler(ExpiredJwtException::class)
+    @ExceptionHandler(JwtException::class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    fun handle(exception: ExpiredJwtException) {
+    fun handle(exception: JwtException) {
+        throw UnauthorizedException(exception.message)
+    }
+
+    @ExceptionHandler(AuthException::class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    fun handle(exception: AuthException) {
         throw UnauthorizedException(exception.message)
     }
 }

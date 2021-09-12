@@ -22,14 +22,14 @@ class UserControllerTest @Autowired constructor(
         val request = createUserRequestFactory.create()
         val response = userControllerGateway.create(request)
 
-        assertEquals(response.status, HttpStatus.CREATED)
+        assertEquals(HttpStatus.CREATED, response.status)
 
-        val body = response.responseBody.awaitSingle()
+        val user = response.responseBody.awaitSingle()
 
-        assertNotNull(body.id)
-        assertEquals(request.name, body.name)
-        assertNotNull(body.createdAt)
-        assertNotNull(body.updatedAt)
+        assertNotNull(user.id)
+        assertEquals(request.name, user.name)
+        assertNotNull(user.createdAt)
+        assertNotNull(user.updatedAt)
     }
 
     @Test
@@ -38,6 +38,6 @@ class UserControllerTest @Autowired constructor(
         userControllerGateway.create(request)
 
         val response = userControllerGateway.create(request)
-        assertEquals(response.status, HttpStatus.CONFLICT)
+        assertEquals(HttpStatus.CONFLICT, response.status)
     }
 }
