@@ -22,7 +22,7 @@ import javax.validation.Valid
 @Api("auth")
 @RestController
 @RequestMapping("")
-class TokenController(
+class AuthController(
     private val authenticatorManager: AuthenticatorManager,
     private val tokenIssuer: TokenIssuer,
     private val mapperManager: MapperManager
@@ -30,7 +30,7 @@ class TokenController(
 
     @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
-    suspend fun create(@Valid @RequestForm request: CreateTokenRequest): CreateTokenResponse {
+    suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): CreateTokenResponse {
         val payload = when (request.grantType) {
             GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!)
             GrantType.REFRESH_TOKEN -> AuthorizationPayload("bearer", request.refreshToken!!)
