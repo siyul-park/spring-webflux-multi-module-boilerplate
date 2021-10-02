@@ -84,10 +84,6 @@ class R2DBCRepository<T : Cloneable<T>, ID : Any>(
             .awaitSingle()
     }
 
-    override fun createAll(entities: Flow<T>): Flow<T> {
-        return entities.map { create(it) }
-    }
-
     override fun createAll(entities: Iterable<T>): Flow<T> {
         return flow {
             entities.forEach {
