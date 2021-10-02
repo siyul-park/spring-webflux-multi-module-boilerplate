@@ -5,16 +5,16 @@ import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserScope
-import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.stereotype.Repository
 
 @Repository
 class UserScopeRepository(
-    connectionFactory: ConnectionFactory
+    entityTemplate: R2dbcEntityTemplate
 ) : R2DBCRepository<UserScope, Long>(
-    connectionFactory,
+    entityTemplate,
     UserScope::class,
 ) {
     fun findAllByUser(user: User): Flow<UserScope> {

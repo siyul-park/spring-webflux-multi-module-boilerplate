@@ -2,6 +2,7 @@ val kotlin_version: String by project
 val junit_version: String by project
 
 buildscript {
+    val kotlin_version: String by project
     val klint_version: String by project
 
     repositories {
@@ -9,6 +10,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-allopen:$kotlin_version")
+        classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlin_version")
         classpath("org.jlleitschuh.gradle:ktlint-gradle:$klint_version")
     }
 }
@@ -18,7 +21,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint")
 }
 
-group = "io.github.siyual_park"
+group = "com.kakaoenterprise.kabal"
 version = "0.0.1-SNAPSHOT"
 
 allprojects {

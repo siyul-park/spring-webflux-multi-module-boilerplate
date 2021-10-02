@@ -3,6 +3,7 @@ plugins {
 
     id("org.springframework.boot")
     id("io.spring.dependency-management")
+    id("kotlin-spring")
 
     kotlin("plugin.spring")
 }
@@ -15,6 +16,8 @@ dependencies {
     testImplementation(project(":dependency:spring-test"))
 
     testImplementation(project(":dependency:async-test"))
+
+    implementation(project(":module:been"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
@@ -31,4 +34,9 @@ tasks {
     jar {
         enabled = true
     }
+}
+
+allOpen {
+    annotation("io.github.siyual_park.been.Open")
+    annotation("org.springframework.data.relational.core.mapping.Table")
 }

@@ -1,21 +1,30 @@
 package io.github.siyual_park.mapper
 
-import kotlin.reflect.KClass
+import org.springframework.stereotype.Component
 
+@Component
 class MapperManager {
-    private val mappers = mutableMapOf<MappingInfo<*, *>, Mapper<*, *>>()
+    private val mappers = mutableMapOf<MappingInfo, Mapper<*, *>>()
 
     fun <SOURCE : Any, TARGET : Any> register(mapper: Mapper<SOURCE, TARGET>): MapperManager {
-        mappers[MappingInfo(mapper.sourceClazz.java, mapper.targetClazz.java)] = mapper
+        mappers[MappingInfo(mapper.sourceType.type, mapper.targetType.type)] = mapper
         return this
     }
 
-    suspend fun <SOURCE : Any, TARGET : Any> map(source: SOURCE, target: KClass<TARGET>): TARGET {
-        val mapper = mappers[MappingInfo(source.javaClass, target.java)] ?: throw CantFoundMapperException()
+    suspend fun <SOURCE : Any, TARGET : Any> map(
+        source: SOURCE,
+        sourceType: TypeReference<SOURCE>,
+        targetType: TypeReference<TARGET>
+    ): TARGET {
+        val mapper = mappers[MappingInfo(sourceType.type, targetType.type)] ?: throw CantFoundMapperException()
         mapper as Mapper<SOURCE, TARGET>
 
         return mapper.map(source)
     }
 }
 
-suspend inline fun <SOURCE : Any, reified TARGET : Any> MapperManager.map(source: SOURCE): TARGET = map(source, TARGET::class)
+suspend inline fun <SOURCE : Any, TARGET : Any> MapperManager.map(source: SOURCE): TARGET = map(
+    source,
+    object : TypeReference<SOURCE>() {},
+    object : TypeReference<TARGET>() {}
+)

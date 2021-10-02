@@ -40,6 +40,10 @@ open class InMemoryRepository<T : Cloneable<T>, ID : Any>(
         return entity
     }
 
+    override fun createAll(entities: Flow<T>): Flow<T> {
+        return entities.map { create(it) }
+    }
+
     override fun createAll(entities: Iterable<T>): Flow<T> {
         return entities.asFlow()
             .map { create(it) }

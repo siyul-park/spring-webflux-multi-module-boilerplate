@@ -3,16 +3,16 @@ package io.github.siyual_park.auth.repository
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
-import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.stereotype.Repository
 
 @Repository
 class ScopeTokenRepository(
-    connectionFactory: ConnectionFactory
+    entityTemplate: R2dbcEntityTemplate,
 ) : R2DBCRepository<ScopeToken, Long>(
-    connectionFactory,
+    entityTemplate,
     ScopeToken::class,
 ) {
     suspend fun findByNameOrFail(name: String): ScopeToken {

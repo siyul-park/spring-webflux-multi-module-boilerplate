@@ -8,6 +8,7 @@ import org.springframework.dao.EmptyResultDataAccessException
 interface Repository<T : Any, ID : Any> {
     suspend fun create(entity: T): T
 
+    fun createAll(entities: Flow<T>): Flow<T>
     fun createAll(entities: Iterable<T>): Flow<T>
 
     suspend fun existsById(id: ID): Boolean

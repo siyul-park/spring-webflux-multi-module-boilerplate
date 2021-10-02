@@ -3,6 +3,7 @@ plugins {
 
     id("org.springframework.boot")
     id("io.spring.dependency-management")
+    id("kotlin-spring")
 
     kotlin("plugin.spring")
 }
@@ -26,4 +27,8 @@ tasks {
     jar {
         enabled = true
     }
+}
+
+allOpen {
+    annotation("io.github.siyual_park.been.Open")
 }

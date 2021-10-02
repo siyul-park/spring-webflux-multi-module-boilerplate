@@ -1,12 +1,12 @@
 package io.github.siyual_park.data.repository.r2dbc
 
+import io.github.siyual_park.been.Open
 import io.github.siyual_park.data.Cloneable
-import io.github.siyual_park.data.annoration.GeneratedValue
+import io.github.siyual_park.data.annotation.GeneratedValue
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.Repository
-import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
@@ -19,18 +19,14 @@ import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Sort.Order.asc
 import org.springframework.data.domain.Sort.by
-import org.springframework.data.mapping.callback.ReactiveEntityCallbacks
 import org.springframework.data.mapping.context.MappingContext
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory
-import org.springframework.data.r2dbc.core.DefaultReactiveDataAccessStrategy
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy
-import org.springframework.data.r2dbc.dialect.DialectResolver
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.CriteriaDefinition
-import org.springframework.data.relational.core.query.Query.empty
 import org.springframework.data.relational.core.query.Query.query
 import org.springframework.data.relational.core.query.Update
 import org.springframework.data.relational.core.sql.SqlIdentifier
@@ -41,14 +37,13 @@ import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 
+@Open
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
-open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
-    connectionFactory: ConnectionFactory,
+class R2DBCRepository<T : Cloneable<T>, ID : Any>(
+    private val entityTemplate: R2dbcEntityTemplate,
     private val clazz: KClass<T>,
-    entityCallbacks: ReactiveEntityCallbacks? = null,
     private val scheduler: Scheduler = Schedulers.boundedElastic()
 ) : Repository<T, ID> {
-    private val entityTemplate = R2dbcEntityTemplate(connectionFactory)
 
     private val databaseClient: DatabaseClient
     private val dataAccessStrategy: ReactiveDataAccessStrategy
@@ -61,14 +56,10 @@ open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     private val generatedValueColumn: Set<SqlIdentifier>
 
     init {
-        if (entityCallbacks != null) {
-            entityTemplate.setEntityCallbacks(entityCallbacks)
-        }
+        entityTemplate.databaseClient
 
-        val dialect = DialectResolver.getDialect(connectionFactory)
-
-        databaseClient = DatabaseClient.builder().connectionFactory(connectionFactory).bindMarkers(dialect.bindMarkersFactory).build()
-        this.dataAccessStrategy = DefaultReactiveDataAccessStrategy(dialect)
+        databaseClient = entityTemplate.databaseClient
+        this.dataAccessStrategy = entityTemplate.dataAccessStrategy
         mappingContext = dataAccessStrategy.converter.mappingContext
         projectionFactory = SpelAwareProxyProjectionFactory()
 
@@ -91,6 +82,10 @@ open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         )
             .subscribeOn(scheduler)
             .awaitSingle()
+    }
+
+    override fun createAll(entities: Flow<T>): Flow<T> {
+        return entities.map { create(it) }
     }
 
     override fun createAll(entities: Iterable<T>): Flow<T> {
@@ -135,10 +130,13 @@ open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
         return findAll(criteria = null)
     }
 
-    fun findAll(criteria: CriteriaDefinition? = null, limit: Int? = null, sort: Sort? = null): Flow<T> {
+    fun findAll(criteria: CriteriaDefinition? = null, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<T> {
         var query = query(criteria ?: CriteriaDefinition.empty())
         limit?.let {
             query = query.limit(it)
+        }
+        offset?.let {
+            query = query.offset(it)
         }
         query = query.sort(sort ?: by(asc(idProperty)))
 
@@ -240,6 +238,10 @@ open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
             }
         }
 
+        if (diff.isEmpty()) {
+            return findById(patchedOutboundRow[idColumn].value as ID)
+        }
+
         val updateCount = this.entityTemplate.update(
             query(where(idProperty).`is`(originOutboundRow[idColumn])),
             Update.from(diff),
@@ -255,7 +257,11 @@ open class R2DBCRepository<T : Cloneable<T>, ID : Any>(
     }
 
     override suspend fun count(): Long {
-        return this.entityTemplate.count(empty(), clazz.java)
+        return count(criteria = null)
+    }
+
+    suspend fun count(criteria: CriteriaDefinition? = null): Long {
+        return this.entityTemplate.count(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
             .subscribeOn(scheduler)
             .awaitSingle()
     }

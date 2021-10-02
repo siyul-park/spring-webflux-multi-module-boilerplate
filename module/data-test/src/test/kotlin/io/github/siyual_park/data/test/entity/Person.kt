@@ -8,8 +8,8 @@ import org.springframework.data.relational.core.mapping.Table
 data class Person(
     var name: String,
     var age: Int
-) : TimeableEntity<Person, Long>() {
-    override fun clone(): Person {
+) : TimeableEntity<io.github.siyual_park.data.test.entity.Person, Long>() {
+    override fun clone(): io.github.siyual_park.data.test.entity.Person {
         return copyDefaultColumn(this.copy())
     }
 }

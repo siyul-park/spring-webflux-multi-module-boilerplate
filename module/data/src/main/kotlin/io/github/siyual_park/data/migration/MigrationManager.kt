@@ -2,37 +2,31 @@ package io.github.siyual_park.data.migration
 
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
-import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
-import org.springframework.data.mapping.callback.ReactiveEntityCallbacks
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.stereotype.Component
 
 @Component
 class MigrationManager(
-    connectionFactory: ConnectionFactory,
-    entityCallbacks: ReactiveEntityCallbacks? = null
+    private val entityTemplate: R2dbcEntityTemplate,
 ) {
-    private val entityTemplate = R2dbcEntityTemplate(connectionFactory)
     private val migrationCheckpointRepository = R2DBCRepository<MigrationCheckpoint, Long>(
-        connectionFactory,
+        entityTemplate,
         MigrationCheckpoint::class,
-        entityCallbacks
     )
 
     private val migrations = mutableListOf<Migration>()
     private val createMigrationCheckpoint = CreateMigrationCheckpoint()
 
-    init {
-        if (entityCallbacks != null) {
-            entityTemplate.setEntityCallbacks(entityCallbacks)
-        }
-    }
-
     fun register(migration: Migration): MigrationManager {
         migrations.add(migration)
         return this
+    }
+
+    suspend fun sync() {
+        // TODO(특정 버전 동기화 지원)
+        run()
     }
 
     suspend fun run() {
@@ -60,10 +54,10 @@ class MigrationManager(
     }
 
     suspend fun revert() {
-        val migrationCheckpoints = migrationCheckpointRepository.findAll()
+        val migrationCheckpoints = migrationCheckpointRepository.findAll(
+            sort = Sort.by(columnName(MigrationCheckpoint::version)).descending()
+        )
             .toList()
-            .sortedBy { it.version }
-            .reversed()
 
         migrationCheckpoints.forEach {
             val migration = migrations[it.version]
