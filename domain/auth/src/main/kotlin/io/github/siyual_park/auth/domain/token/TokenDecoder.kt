@@ -45,7 +45,6 @@ class TokenDecoder(
                 name = "",
                 description = null,
                 system = true,
-                default = false
             ).apply {
                 id = it.toLong()
             }

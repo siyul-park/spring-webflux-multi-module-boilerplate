@@ -110,7 +110,7 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val removeScope = scopeTokenRepository.findByNameOrFail("user:remove.self")
+        val removeScope = scopeTokenRepository.findByNameOrFail("user:delete.self")
 
         val response = userControllerGateway.deleteSelf(
             UserPrincipal(
@@ -131,7 +131,7 @@ class UserControllerTest @Autowired constructor(
         val otherPayload = createUserPayloadFactory.create()
         val otherUser = userFactory.create(otherPayload)
 
-        val removeScope = scopeTokenRepository.findByNameOrFail("user:remove")
+        val removeScope = scopeTokenRepository.findByNameOrFail("user:delete")
 
         val scope = mutableSetOf<ScopeToken>()
         scope.add(removeScope)

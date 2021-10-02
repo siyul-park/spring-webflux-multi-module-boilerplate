@@ -9,9 +9,18 @@ import org.springframework.context.annotation.Configuration
 class ScopeTokenConfiguration {
     @Autowired(required = true)
     fun configScopeToken(scopeTokenGenerator: ScopeTokenGenerator) {
+        val useScope = ScopeToken(name = "user", system = true)
+        val systemScope = ScopeToken(name = "system", system = true)
+
         scopeTokenGenerator
-            .register(ScopeToken(name = "user:read.self", system = true, default = true))
-            .register(ScopeToken(name = "user:remove.self", system = true, default = true))
-            .register(ScopeToken(name = "user:remove", system = true, default = false))
+            .register(useScope)
+            .register(systemScope)
+
+            .register(ScopeToken(name = "access-token:create", system = true), listOf(useScope, systemScope))
+            .register(ScopeToken(name = "refresh-token:create", system = true), listOf(useScope, systemScope))
+
+            .register(ScopeToken(name = "user:read.self", system = true), listOf(useScope))
+            .register(ScopeToken(name = "user:delete.self", system = true), listOf(useScope))
+            .register(ScopeToken(name = "user:delete", system = true))
     }
 }

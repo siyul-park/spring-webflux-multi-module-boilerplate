@@ -9,7 +9,6 @@ data class ScopeToken(
     var name: String,
     var description: String? = null,
     var system: Boolean,
-    var default: Boolean = false
 ) : TimeableEntity<ScopeToken, Long>() {
     override fun clone(): ScopeToken {
         return copyDefaultColumn(this.copy())

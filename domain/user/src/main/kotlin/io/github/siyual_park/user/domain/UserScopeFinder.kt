@@ -5,9 +5,10 @@ import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 
 @Component
@@ -20,8 +21,9 @@ class UserScopeFinder(
     }
 
     fun findAllByUserId(userId: Long): Flow<ScopeToken> {
-        return userScopeRepository.findAllByUserId(userId)
-            .map { scopeTokenRepository.findById(it.scopeTokenId) }
-            .filterNotNull()
+        return flow {
+            val userScopes = userScopeRepository.findAllByUserId(userId).toList()
+            emitAll(scopeTokenRepository.findAllById(userScopes.map { it.scopeTokenId }))
+        }
     }
 }

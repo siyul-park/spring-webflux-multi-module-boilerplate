@@ -7,8 +7,11 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("users")
 data class User(
     var name: String,
-) : TimeableEntity<User, Long>() {
+) : TimeableEntity<User, Long>(), UserEntity {
     override fun clone(): User {
         return copyDefaultColumn(this.copy())
     }
+
+    override val userId: Long?
+        get() = id
 }

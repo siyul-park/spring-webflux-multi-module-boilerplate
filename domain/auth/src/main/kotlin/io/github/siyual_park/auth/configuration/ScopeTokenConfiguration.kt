@@ -14,8 +14,8 @@ class ScopeTokenConfiguration(
 ) {
     init {
         scopeTokenGenerator
-            .register(ScopeToken("access-token:create", system = true, default = true))
-            .register(ScopeToken("refresh-token:create", system = true, default = true))
+            .register(ScopeToken(name = "access-token:create", system = true))
+            .register(ScopeToken(name = "refresh-token:create", system = true))
     }
 
     @EventListener(ApplicationReadyEvent::class)

@@ -21,7 +21,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint")
 }
 
-group = "com.kakaoenterprise.kabal"
+group = "io.github.siyual_park"
 version = "0.0.1-SNAPSHOT"
 
 allprojects {

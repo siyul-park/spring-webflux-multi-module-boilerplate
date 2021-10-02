@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class ScopeTokenRepository(
-    entityTemplate: R2dbcEntityTemplate,
+    entityTemplate: R2dbcEntityTemplate
 ) : R2DBCRepository<ScopeToken, Long>(
     entityTemplate,
     ScopeToken::class,
@@ -25,10 +25,6 @@ class ScopeTokenRepository(
 
     suspend fun existsByName(name: String): Boolean {
         return exists(where(ScopeToken::name).`is`(name))
-    }
-
-    fun findAllByDefault(default: Boolean): Flow<ScopeToken> {
-        return findAll(where(ScopeToken::default).`is`(default))
     }
 
     fun findAllByName(names: Iterable<String>): Flow<ScopeToken> {
