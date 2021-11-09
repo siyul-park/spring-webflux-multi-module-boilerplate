@@ -1,12 +1,12 @@
 package io.github.siyual_park.auth.domain.authenticator
 
-import io.github.siyual_park.auth.annotation.AuthenticateFilter
+import io.github.siyual_park.auth.annotation.AuthenticateMapping
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.exception.UnsupportedAuthorizationTypeException
 import org.springframework.stereotype.Component
 
 @Component
-@AuthenticateFilter(type = AuthorizationPayload::class)
+@AuthenticateMapping(filterBy = AuthorizationPayload::class)
 class AuthorizationAuthenticator : Authenticator<AuthorizationPayload, Principal> {
     private val processors = mutableMapOf<String, MutableList<AuthorizationProcessor<*>>>()
 

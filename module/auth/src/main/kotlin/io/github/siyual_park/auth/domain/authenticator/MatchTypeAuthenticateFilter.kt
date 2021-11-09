@@ -1,11 +1,9 @@
 package io.github.siyual_park.auth.domain.authenticator
 
-import kotlin.reflect.KClass
-
-class MatchTypeAuthenticateFilter<T : Any>(
-    private val clazz: KClass<T>
+class MatchTypeAuthenticateFilter<T>(
+    private val clazz: Class<T>
 ) : AuthenticateFilter {
     override fun isSubscribe(payload: Any): Boolean {
-        return payload.javaClass == clazz.java
+        return payload.javaClass == clazz
     }
 }

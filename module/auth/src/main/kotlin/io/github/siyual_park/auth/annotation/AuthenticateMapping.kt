@@ -4,6 +4,6 @@ import kotlin.reflect.KClass
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-annotation class AuthenticateFilter(
-    val type: KClass<*>
+annotation class AuthenticateMapping(
+    val filterBy: KClass<*>
 )
