@@ -15,12 +15,12 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class R2DBCRepositoryTest : io.github.siyual_park.data.test.R2DBCTest() {
-    private val personRepository = R2DBCRepository<io.github.siyual_park.data.test.entity.Person, Long>(
-        entityTemplate,
-        io.github.siyual_park.data.test.entity.Person::class
+class R2DBCRepositoryTest : R2DBCTest() {
+    private val personRepository = R2DBCRepository<Person, Long>(
+        entityOperations,
+        Person::class
     )
-    private val personFactory = io.github.siyual_park.data.test.factory.PersonFactory()
+    private val personFactory = PersonFactory()
 
     init {
         migrationManager.register(CreatePerson())
@@ -101,7 +101,7 @@ class R2DBCRepositoryTest : io.github.siyual_park.data.test.R2DBCTest() {
     fun findAllCustomQuery() = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }
-        val foundPersons = personRepository.findAll(where(io.github.siyual_park.data.test.entity.Person::id).`is`(person.id!!)).toList()
+        val foundPersons = personRepository.findAll(where(Person::id).`is`(person.id!!)).toList()
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)

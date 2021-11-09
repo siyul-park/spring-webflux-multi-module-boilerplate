@@ -24,6 +24,11 @@ class BasicAuthorizationProcessor(
             username = token[0],
             password = token[1]
         )
-        return passwordGrantAuthenticator.authenticate(payload)
+
+        return try {
+            passwordGrantAuthenticator.authenticate(payload)
+        } catch (e: Exception) {
+            null
+        }
     }
 }

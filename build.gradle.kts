@@ -21,8 +21,8 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint")
 }
 
-group = "io.github.siyual_park"
-version = "0.0.1-SNAPSHOT"
+group = "io.github.siyual-park"
+version = "0.0.0-SNAPSHOT"
 
 allprojects {
     apply(plugin = "kotlin")

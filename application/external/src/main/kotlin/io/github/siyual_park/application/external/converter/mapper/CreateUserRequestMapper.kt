@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class CreateUserRequestMapper : Mapper<CreateUserRequest, CreateUserPayload> {
-    override val sourceType = object : TypeReference<CreateUserRequest> () {}
-    override val targetType = object : TypeReference<CreateUserPayload> () {}
+    override val sourceType = object : TypeReference<CreateUserRequest>() {}
+    override val targetType = object : TypeReference<CreateUserPayload>() {}
 
     override suspend fun map(source: CreateUserRequest) = CreateUserPayload(
         username = source.name,

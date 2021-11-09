@@ -4,14 +4,14 @@ import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.user.entity.User
 import org.springframework.dao.EmptyResultDataAccessException
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 
 @Repository
 class UserRepository(
-    entityTemplate: R2dbcEntityTemplate
+    entityOperations: R2dbcEntityOperations
 ) : R2DBCRepository<User, Long>(
-    entityTemplate,
+    entityOperations,
     User::class,
 ) {
     suspend fun findByNameOrFail(name: String): User {

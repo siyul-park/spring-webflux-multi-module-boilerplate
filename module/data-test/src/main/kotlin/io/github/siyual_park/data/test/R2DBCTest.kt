@@ -15,8 +15,8 @@ open class R2DBCTest : CoroutineTest() {
     private val database: String = UUID.randomUUID().toString()
 
     protected val connectionFactory = H2ConnectionFactory.inMemory(database)
-    protected val entityTemplate = R2dbcEntityTemplate(connectionFactory)
-    protected val migrationManager = MigrationManager(entityTemplate)
+    protected val entityOperations = R2dbcEntityTemplate(connectionFactory)
+    protected val migrationManager = MigrationManager(entityOperations)
 
     protected var transactionManager = R2dbcTransactionManager(connectionFactory)
     protected var transactionalOperator = TransactionalOperator.create(transactionManager)

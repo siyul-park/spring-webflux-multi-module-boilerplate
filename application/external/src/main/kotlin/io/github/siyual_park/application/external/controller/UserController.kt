@@ -1,8 +1,7 @@
 package io.github.siyual_park.application.external.controller
 
 import io.github.siyual_park.application.external.dto.request.CreateUserRequest
-import io.github.siyual_park.application.external.dto.response.CreateUserResponse
-import io.github.siyual_park.application.external.dto.response.ReadUserResponse
+import io.github.siyual_park.application.external.dto.response.UserInfo
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.user.domain.CreateUserPayload
@@ -23,8 +22,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import javax.validation.Valid
 
-@Api("user")
+@Api(tags = ["user"])
 @RestController
 @RequestMapping("/users")
 class UserController(
@@ -37,7 +37,7 @@ class UserController(
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    suspend fun create(@RequestBody request: CreateUserRequest): CreateUserResponse {
+    suspend fun create(@Valid @RequestBody request: CreateUserRequest): UserInfo {
         val payload: CreateUserPayload = mapperManager.map(request)
         val user = userFactory.create(payload)
         return mapperManager.map(user)
@@ -46,7 +46,7 @@ class UserController(
     @GetMapping("/self")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'user:read.self')")
-    suspend fun readSelf(@AuthenticationPrincipal principal: UserPrincipal): ReadUserResponse {
+    suspend fun readSelf(@AuthenticationPrincipal principal: UserPrincipal): UserInfo {
         val user = userPrincipalExchanger.exchange(principal)
         return mapperManager.map(user)
     }
@@ -57,6 +57,14 @@ class UserController(
     suspend fun deleteSelf(@AuthenticationPrincipal principal: UserPrincipal) {
         val user = userPrincipalExchanger.exchange(principal)
         userRemover.remove(user, soft = true)
+    }
+
+    @GetMapping("/{user-id}")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'user:read')")
+    suspend fun read(@PathVariable("user-id") userId: Long): UserInfo {
+        val user = userFinder.findByIdOrFail(userId)
+        return mapperManager.map(user)
     }
 
     @DeleteMapping("/{user-id}")

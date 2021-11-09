@@ -6,5 +6,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties(prefix = "migration")
 data class MigrationConfigurationProperty(
-    val sync: Boolean
+    val sync: Boolean,
+    val clear: Boolean
 )

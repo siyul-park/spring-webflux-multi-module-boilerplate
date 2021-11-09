@@ -5,7 +5,7 @@ import java.util.UUID
 import kotlin.random.Random.Default.nextInt
 
 class PersonFactory {
-    fun create() = io.github.siyual_park.data.test.entity.Person(
+    fun create() = Person(
         name = UUID.randomUUID().toString().slice(0..10),
         age = nextInt(0, 100)
     )

@@ -11,7 +11,7 @@ data class CreateTokenRequest(
     val username: String? = null,
     val password: String? = null,
     @ApiModelProperty(name = "refresh_token")
-    val refreshToken: String? = null
+    val refreshToken: String? = null,
 ) {
     @JsonIgnore
     @AssertTrue

@@ -5,14 +5,14 @@ import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserCredential
 import org.springframework.dao.EmptyResultDataAccessException
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 
 @Repository
 class UserCredentialRepository(
-    entityTemplate: R2dbcEntityTemplate
+    entityOperations: R2dbcEntityOperations
 ) : R2DBCRepository<UserCredential, Long>(
-    entityTemplate,
+    entityOperations,
     UserCredential::class,
 ) {
     suspend fun findByUserOrFail(user: User): UserCredential {

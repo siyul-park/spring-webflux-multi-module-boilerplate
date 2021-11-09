@@ -2,7 +2,9 @@ package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
+import io.github.siyual_park.search.finder.R2dbcFinder
 import io.github.siyual_park.user.entity.User
+import io.github.siyual_park.user.entity.UserScope
 import io.github.siyual_park.user.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Component
 class UserScopeFinder(
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenRepository: ScopeTokenRepository
-) {
+) : R2dbcFinder<UserScope, Long>(userScopeRepository) {
     fun findAllByUser(user: User): Flow<ScopeToken> {
         return user.id?.let { findAllByUserId(it) } ?: emptyFlow()
     }

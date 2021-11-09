@@ -15,6 +15,9 @@ class MigrationConfiguration(
     @EventListener(ApplicationReadyEvent::class)
     @Order(0)
     fun migration() = runBlocking {
+        if (migrationConfigurationProperty.clear) {
+            migrationManager.clear()
+        }
         if (migrationConfigurationProperty.sync) {
             migrationManager.sync()
         }

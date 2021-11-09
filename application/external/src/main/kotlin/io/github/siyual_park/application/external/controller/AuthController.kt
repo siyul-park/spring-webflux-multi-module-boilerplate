@@ -2,7 +2,7 @@ package io.github.siyual_park.application.external.controller
 
 import io.github.siyual_park.application.external.dto.GrantType
 import io.github.siyual_park.application.external.dto.request.CreateTokenRequest
-import io.github.siyual_park.application.external.dto.response.CreateTokenResponse
+import io.github.siyual_park.application.external.dto.response.TokenInfo
 import io.github.siyual_park.auth.domain.authenticator.AuthenticatorManager
 import io.github.siyual_park.auth.domain.authenticator.AuthorizationPayload
 import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
-@Api("auth")
+@Api(tags = ["auth"])
 @RestController
 @RequestMapping("")
 class AuthController(
@@ -32,7 +32,7 @@ class AuthController(
 
     @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
-    suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): CreateTokenResponse {
+    suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
         val payload = when (request.grantType) {
             GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!)
             GrantType.REFRESH_TOKEN -> AuthorizationPayload("bearer", request.refreshToken!!)

@@ -17,6 +17,7 @@ class PingControllerTest @Autowired constructor(
             .uri("/ping")
             .exchange()
             .expectStatus().isOk
-            .expectBody<String>().isEqualTo("pong")
+            .expectBody<String>()
+            .isEqualTo("pong")
     }
 }

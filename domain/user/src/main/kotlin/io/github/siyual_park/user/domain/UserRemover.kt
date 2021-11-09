@@ -1,5 +1,6 @@
 package io.github.siyual_park.user.domain
 
+import io.github.siyual_park.data.repository.updateById
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
@@ -7,6 +8,7 @@ import io.github.siyual_park.user.repository.UserScopeRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
+import java.time.Instant
 
 @Component
 class UserRemover(
@@ -24,6 +26,12 @@ class UserRemover(
         userCredentialRepository.deleteByUserId(userId)
         if (!soft) {
             userRepository.deleteById(userId)
+        } else {
+            userRepository.updateById(userId) {
+                if (it.deletedAt == null) {
+                    it.deletedAt = Instant.now()
+                }
+            }
         }
     }
 }

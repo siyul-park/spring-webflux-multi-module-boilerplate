@@ -7,14 +7,14 @@ import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 
 @Repository
 class UserScopeRepository(
-    entityTemplate: R2dbcEntityTemplate
+    entityOperations: R2dbcEntityOperations
 ) : R2DBCRepository<UserScope, Long>(
-    entityTemplate,
+    entityOperations,
     UserScope::class,
 ) {
     fun findAllByUser(user: User): Flow<UserScope> {

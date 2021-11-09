@@ -2,34 +2,50 @@ package io.github.siyual_park.user.migration
 
 import io.github.siyual_park.data.migration.Migration
 import io.github.siyual_park.data.migration.createIndex
+import io.github.siyual_park.data.migration.createUpdatedAtTrigger
 import io.github.siyual_park.data.migration.dropTable
-import kotlinx.coroutines.reactor.awaitSingle
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import io.github.siyual_park.data.migration.fetchSQL
+import io.github.siyual_park.data.migration.isDriver
+import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
 class CreateUserScope : Migration {
     private val tableName = "user_scopes"
 
-    override suspend fun up(entityTemplate: R2dbcEntityTemplate) {
-        entityTemplate.databaseClient.sql(
-            "CREATE TABLE $tableName" +
-                "(" +
-                "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
+    override suspend fun up(entityOperations: R2dbcEntityOperations) {
+        if (entityOperations.isDriver("PostgreSQL")) {
+            entityOperations.fetchSQL(
+                "CREATE TABLE $tableName" +
+                    "(" +
+                    "id SERIAL PRIMARY KEY, " +
 
-                "user_id BIGINT NOT NULL REFERENCES users (id)," +
-                "scope_token_id BIGINT NOT NULL REFERENCES scope_tokens (id)," +
+                    "user_id INTEGER NOT NULL REFERENCES users (id), " +
+                    "scope_token_id INTEGER NOT NULL REFERENCES scope_tokens (id), " +
 
-                "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
-                "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
-                ")"
-        )
-            .fetch()
-            .rowsUpdated()
-            .awaitSingle()
+                    "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
+                    ")"
+            )
+            entityOperations.createUpdatedAtTrigger(tableName)
+        } else {
+            entityOperations.fetchSQL(
+                "CREATE TABLE $tableName" +
+                    "(" +
+                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 
-        entityTemplate.createIndex(tableName, listOf("user_id"))
-        entityTemplate.createIndex(tableName, listOf("scope_token_id"))
+                    "user_id BIGINT NOT NULL REFERENCES users (id), " +
+                    "scope_token_id BIGINT NOT NULL REFERENCES scope_tokens (id), " +
+
+                    "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
+                    ")"
+            )
+        }
+
+        entityOperations.createIndex(tableName, listOf("user_id"))
+        entityOperations.createIndex(tableName, listOf("scope_token_id"))
     }
-    override suspend fun down(entityTemplate: R2dbcEntityTemplate) {
-        entityTemplate.dropTable(tableName)
+
+    override suspend fun down(entityOperations: R2dbcEntityOperations) {
+        entityOperations.dropTable(tableName)
     }
 }

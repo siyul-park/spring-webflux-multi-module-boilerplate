@@ -1,8 +1,9 @@
 package io.github.siyual_park.user.domain
 
-import io.github.siyual_park.auth.domain.ScopeTokenFinder
 import io.github.siyual_park.auth.domain.hash
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.data.callback.AfterSaveCallbacks
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserCredential
 import io.github.siyual_park.user.entity.UserScope
@@ -24,21 +25,25 @@ class UserFactory(
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenFinder: ScopeTokenFinder,
     private val operator: TransactionalOperator,
+    private val afterSaveCallbacks: AfterSaveCallbacks,
     private val hashAlgorithm: String = "SHA-256"
 ) {
-    suspend fun create(payload: io.github.siyual_park.user.domain.CreateUserPayload, scope: Collection<ScopeToken> = emptySet()): User = operator.executeAndAwait {
-        createUser(payload).also {
-            createUserCredential(it, payload)
-            createDefaultUserScopes(it).collect()
-            createAdditionalUserScopes(it, scope)
+    suspend fun create(payload: CreateUserPayload, scope: Collection<ScopeToken> = emptySet()): User =
+        operator.executeAndAwait {
+            createUser(payload).also {
+                createUserCredential(it, payload)
+                createDefaultUserScopes(it).collect()
+                createAdditionalUserScopes(it, scope)
+            }
+        }!!.also {
+            afterSaveCallbacks.onAfterSave(it)
         }
-    }!!
 
-    private suspend fun createUser(payload: io.github.siyual_park.user.domain.CreateUserPayload): User {
+    private suspend fun createUser(payload: CreateUserPayload): User {
         return userRepository.create(User(payload.username))
     }
 
-    private suspend fun createUserCredential(user: User, payload: io.github.siyual_park.user.domain.CreateUserPayload): UserCredential {
+    private suspend fun createUserCredential(user: User, payload: CreateUserPayload): UserCredential {
         val messageDigest = MessageDigest.getInstance(hashAlgorithm)
         val password = messageDigest.hash(payload.password)
 
@@ -52,7 +57,7 @@ class UserFactory(
     }
 
     private suspend fun createDefaultUserScopes(user: User): Flow<UserScope> {
-        val userScope = scopeTokenFinder.findAllByParent("user")
+        val userScope = scopeTokenFinder.findAllByParent("user", cache = true)
         return userScopeRepository.createAll(
             userScope.map {
                 UserScope(

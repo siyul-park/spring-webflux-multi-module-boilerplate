@@ -3,14 +3,12 @@ package io.github.siyual_park.data.repository
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.toList
 import org.springframework.dao.EmptyResultDataAccessException
 
 interface Repository<T : Any, ID : Any> {
     suspend fun create(entity: T): T
 
+    fun createAll(entities: Flow<T>): Flow<T>
     fun createAll(entities: Iterable<T>): Flow<T>
 
     suspend fun existsById(id: ID): Boolean
@@ -22,17 +20,23 @@ interface Repository<T : Any, ID : Any> {
     fun findAllById(ids: Iterable<ID>): Flow<T>
 
     suspend fun updateById(id: ID, patch: Patch<T>): T?
+
     suspend fun updateById(id: ID, patch: AsyncPatch<T>): T?
 
     suspend fun update(entity: T): T?
+
     suspend fun update(entity: T, patch: Patch<T>): T?
+
     suspend fun update(entity: T, patch: AsyncPatch<T>): T?
 
     fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?>
+
     fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?>
 
     fun updateAll(entity: Iterable<T>): Flow<T?>
+
     fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?>
+
     fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?>
 
     suspend fun count(): Long
@@ -44,6 +48,7 @@ interface Repository<T : Any, ID : Any> {
     suspend fun deleteAllById(ids: Iterable<ID>)
 
     suspend fun deleteAll(entities: Iterable<T>)
+
     suspend fun deleteAll()
 }
 
@@ -54,8 +59,13 @@ suspend fun <T : Any, ID : Any> Repository<T, ID>.findByIdOrFail(id: ID): T {
 suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch: Patch<T>): T {
     return updateById(id, patch) ?: throw EmptyResultDataAccessException(1)
 }
+
 suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch: AsyncPatch<T>): T {
     return updateById(id, patch) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch: (entity: T) -> Unit): T {
+    return updateByIdOrFail(id, Patch.with(patch))
 }
 
 suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T): T {
@@ -70,38 +80,14 @@ suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch:
     return update(entity, patch) ?: throw EmptyResultDataAccessException(1)
 }
 
-fun <T : Any, ID : Any> Repository<T, ID>.createAll(entities: Flow<T>): Flow<T> {
-    return flow { emitAll(createAll(entities.toList())) }
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch: (entity: T) -> Unit): T {
+    return updateOrFail(entity, Patch.with(patch))
 }
 
-fun <T : Any, ID : Any> Repository<T, ID>.findAllById(ids: Flow<ID>): Flow<T> {
-    return flow { emitAll(findAllById(ids.toList())) }
+suspend fun <T : Any, ID : Any> Repository<T, ID>.update(entity: T, patch: (entity: T) -> Unit): T? {
+    return update(entity, Patch.with(patch))
 }
 
-fun <T : Any, ID : Any> Repository<T, ID>.updateAllById(ids: Flow<ID>, patch: Patch<T>): Flow<T?> {
-    return flow { emitAll(updateAllById(ids.toList(), patch)) }
-}
-
-fun <T : Any, ID : Any> Repository<T, ID>.updateAllById(ids: Flow<ID>, patch: AsyncPatch<T>): Flow<T?> {
-    return flow { emitAll(updateAllById(ids.toList(), patch)) }
-}
-
-fun <T : Any, ID : Any> Repository<T, ID>.updateAll(entity: Flow<T>): Flow<T?> {
-    return flow { emitAll(updateAll(entity.toList())) }
-}
-
-fun <T : Any, ID : Any> Repository<T, ID>.updateAll(entity: Flow<T>, patch: Patch<T>): Flow<T?> {
-    return flow { emitAll(updateAll(entity.toList(), patch)) }
-}
-
-fun <T : Any, ID : Any> Repository<T, ID>.updateAll(entity: Flow<T>, patch: AsyncPatch<T>): Flow<T?> {
-    return flow { emitAll(updateAll(entity.toList(), patch)) }
-}
-
-suspend fun <T : Any, ID : Any> Repository<T, ID>.deleteAllById(ids: Flow<ID>) {
-    deleteAllById(ids.toList())
-}
-
-suspend fun <T : Any, ID : Any> Repository<T, ID>.deleteAll(entities: Flow<T>) {
-    deleteAll(entities.toList())
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateById(id: ID, patch: (entity: T) -> Unit): T? {
+    return updateById(id, Patch.with(patch))
 }

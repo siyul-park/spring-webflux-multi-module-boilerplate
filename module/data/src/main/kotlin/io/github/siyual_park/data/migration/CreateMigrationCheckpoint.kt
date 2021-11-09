@@ -2,35 +2,49 @@ package io.github.siyual_park.data.migration
 
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactor.awaitSingle
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
 class CreateMigrationCheckpoint : Migration {
     private val tableName = "migration_checkpoints"
 
-    override suspend fun up(entityTemplate: R2dbcEntityTemplate) {
-        entityTemplate.databaseClient.sql(
-            "CREATE TABLE $tableName" +
-                "(" +
-                "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY," +
-                "version BIGINT NOT NULL," +
-                "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
-                "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
-                ")"
-        )
-            .fetch()
-            .rowsUpdated()
-            .awaitSingle()
-    }
-    override suspend fun down(entityTemplate: R2dbcEntityTemplate) {
-        entityTemplate.dropTable(tableName)
+    override suspend fun up(entityOperations: R2dbcEntityOperations) {
+        if (entityOperations.isDriver("PostgreSQL")) {
+            entityOperations.fetchSQL(
+                "CREATE TABLE $tableName" +
+                    "(" +
+                    "id SERIAL PRIMARY KEY, " +
+
+                    "version BIGINT NOT NULL, " +
+
+                    "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
+                    ")"
+            )
+            entityOperations.createUpdatedAtTrigger(tableName)
+        } else {
+            entityOperations.fetchSQL(
+                "CREATE TABLE $tableName" +
+                    "(" +
+                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+
+                    "version BIGINT NOT NULL, " +
+
+                    "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
+                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
+                    ")"
+            )
+        }
     }
 
-    suspend fun isApplied(entityTemplate: R2dbcEntityTemplate): Boolean {
-        val result = entityTemplate.databaseClient.sql(
+    override suspend fun down(entityOperations: R2dbcEntityOperations) {
+        entityOperations.dropTable(tableName)
+    }
+
+    suspend fun isApplied(entityOperations: R2dbcEntityOperations): Boolean {
+        val result = entityOperations.databaseClient.sql(
             "SELECT * " +
                 "FROM INFORMATION_SCHEMA.TABLES " +
-                "WHERE UPPER(TABLE_NAME) = '${tableName.uppercase()}' "
+                "WHERE UPPER(TABLE_NAME) = '${tableName.uppercase()}'"
         )
             .fetch()
             .all()

@@ -1,48 +1,48 @@
 package io.github.siyual_park.data.migration
 
 import kotlinx.coroutines.reactor.awaitSingle
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
 interface Migration {
-    suspend fun up(entityTemplate: R2dbcEntityTemplate)
-    suspend fun down(entityTemplate: R2dbcEntityTemplate)
+    suspend fun up(entityOperations: R2dbcEntityOperations)
+    suspend fun down(entityOperations: R2dbcEntityOperations)
 }
 
-suspend fun R2dbcEntityTemplate.createIndex(tableName: String, columns: Iterable<String>) {
-    this.databaseClient.sql(
+suspend fun R2dbcEntityOperations.fetchSQL(/*language=SQL*/ sql: String) {
+    this.databaseClient.sql(sql)
+        .fetch()
+        .rowsUpdated()
+        .awaitSingle()
+}
+
+suspend fun R2dbcEntityOperations.createIndex(tableName: String, columns: Iterable<String>) {
+    this.fetchSQL(
         "CREATE INDEX index_${tableName}_${columns.joinToString("_")} " +
-            "ON $tableName (${columns.joinToString(",")})"
+            "ON $tableName (${columns.joinToString(", ") { it }})"
     )
-        .fetch()
-        .rowsUpdated()
-        .awaitSingle()
 }
 
-suspend fun R2dbcEntityTemplate.createUniqueIndex(tableName: String, columns: Iterable<String>) {
-    this.databaseClient.sql(
+suspend fun R2dbcEntityOperations.createUniqueIndex(tableName: String, columns: Iterable<String>) {
+    this.fetchSQL(
         "CREATE UNIQUE INDEX index_${tableName}_${columns.joinToString("_")} " +
-            "ON $tableName (${columns.joinToString(",")})"
+            "ON $tableName (${columns.joinToString(", ") { it }})"
     )
-        .fetch()
-        .rowsUpdated()
-        .awaitSingle()
 }
 
-suspend fun R2dbcEntityTemplate.dropIndex(tableName: String, columns: Iterable<String>) {
-    this.databaseClient.sql(
-        "DROP INDEX index_${tableName}_${columns.joinToString("_")} " +
+suspend fun R2dbcEntityOperations.dropIndex(tableName: String, columns: Iterable<String>) {
+    this.fetchSQL(
+        "DROP INDEX index_${tableName}_${columns.joinToString("_") { it }} " +
             "ON $tableName"
     )
-        .fetch()
-        .rowsUpdated()
-        .awaitSingle()
 }
 
-suspend fun R2dbcEntityTemplate.dropTable(tableName: String) {
-    this.databaseClient.sql(
-        "DROP TABLE $tableName"
+suspend fun R2dbcEntityOperations.dropTable(name: String) {
+    this.fetchSQL(
+        "DROP TABLE $name"
     )
-        .fetch()
-        .rowsUpdated()
-        .awaitSingle()
+}
+
+fun R2dbcEntityOperations.isDriver(name: String): Boolean {
+    val metadata = databaseClient.connectionFactory.metadata
+    return metadata.name == name
 }
