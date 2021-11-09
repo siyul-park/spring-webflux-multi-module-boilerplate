@@ -2,6 +2,7 @@ package io.github.siyual_park.mapper
 
 import org.springframework.stereotype.Component
 
+@Suppress("UNCHECKED_CAST")
 @Component
 class MapperManager {
     private val mappers = mutableMapOf<MappingInfo, Mapper<*, *>>()
