@@ -1,4 +1,4 @@
-package io.github.siyual_park.auth.annotation
+package io.github.siyual_park.auth.domain.authenticator
 
 import kotlin.reflect.KClass
 

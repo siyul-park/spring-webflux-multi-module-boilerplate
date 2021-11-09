@@ -1,6 +1,6 @@
 package io.github.siyual_park.user.domain.auth
 
-import io.github.siyual_park.auth.annotation.AuthenticateMapping
+import io.github.siyual_park.auth.domain.authenticator.AuthenticateMapping
 import io.github.siyual_park.auth.domain.authenticator.AuthenticateProcessor
 import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.user.domain.UserFinder

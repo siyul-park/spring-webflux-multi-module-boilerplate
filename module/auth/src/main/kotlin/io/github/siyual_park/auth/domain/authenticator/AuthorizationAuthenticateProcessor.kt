@@ -1,6 +1,5 @@
 package io.github.siyual_park.auth.domain.authenticator
 
-import io.github.siyual_park.auth.annotation.AuthenticateMapping
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.exception.UnsupportedAuthorizationTypeException
 import org.springframework.stereotype.Component
