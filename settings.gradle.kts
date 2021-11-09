@@ -1,4 +1,4 @@
-rootProject.name = "kabal"
+rootProject.name = "example"
 
 fun includeModules(pathname: String) {
     File(pathname).listFiles()?.forEach {
