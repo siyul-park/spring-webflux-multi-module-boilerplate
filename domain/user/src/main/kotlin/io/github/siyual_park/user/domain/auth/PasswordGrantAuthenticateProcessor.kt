@@ -16,7 +16,7 @@ class PasswordGrantAuthenticateProcessor(
     private val userCredentialRepository: UserCredentialRepository,
     private val userPrincipalExchanger: UserPrincipalExchanger,
 ) : AuthenticateProcessor<PasswordGrantPayload, UserPrincipal> {
-    override suspend fun authenticate(payload: PasswordGrantPayload): UserPrincipal {
+    override suspend fun authenticate(payload: PasswordGrantPayload): UserPrincipal? {
         val user = userFinder.findByNameOrFail(payload.username)
         val userCredential = userCredentialRepository.findByUserOrFail(user)
 

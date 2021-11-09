@@ -15,9 +15,23 @@ class Authenticator {
     }
 
     suspend fun <PAYLOAD : Any> authenticate(payload: PAYLOAD): Principal {
-        val authenticator = authenticators.find { (filter, _) -> filter.isSubscribe(payload) }?.second
-            ?: throw UnsupportedAuthorizationTypeException()
-        authenticator as AuthenticateProcessor<PAYLOAD, *>
-        return authenticator.authenticate(payload)
+        val processors = authenticators
+            .filter { (filter, _) -> filter.isSubscribe(payload) }
+            .map { (_, processor) -> processor }
+
+        var exception: RuntimeException? = null
+        for (processor in processors) {
+            processor as AuthenticateProcessor<PAYLOAD, *>
+            try {
+                val principal = processor.authenticate(payload)
+                if (principal != null) {
+                    return principal
+                }
+            } catch (e: RuntimeException) {
+                exception = e
+            }
+        }
+
+        throw UnsupportedAuthorizationTypeException(exception?.message)
     }
 }
