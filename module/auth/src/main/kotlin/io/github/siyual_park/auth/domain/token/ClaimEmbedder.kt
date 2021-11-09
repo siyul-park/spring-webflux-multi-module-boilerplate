@@ -4,6 +4,7 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.exception.UnsupportedPrincipalException
 import org.springframework.stereotype.Component
 
+@Suppress("UNCHECKED_CAST")
 @Component
 class ClaimEmbedder {
     private val processors = mutableMapOf<Class<*>, ClaimEmbeddingProcessor<*>>()

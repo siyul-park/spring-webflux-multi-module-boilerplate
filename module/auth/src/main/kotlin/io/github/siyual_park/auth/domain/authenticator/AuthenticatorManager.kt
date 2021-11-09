@@ -4,6 +4,7 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.exception.UnsupportedAuthorizationTypeException
 import org.springframework.stereotype.Component
 
+@Suppress("UNCHECKED_CAST")
 @Component
 class AuthenticatorManager {
     private val authenticators = mutableMapOf<Class<*>, Authenticator<*, *>>()
