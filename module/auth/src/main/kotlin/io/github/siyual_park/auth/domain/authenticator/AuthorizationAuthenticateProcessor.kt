@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component
 
 @Component
 @AuthenticateMapping(filterBy = AuthorizationPayload::class)
-class AuthorizationAuthenticator : Authenticator<AuthorizationPayload, Principal> {
+class AuthorizationAuthenticateProcessor : AuthenticateProcessor<AuthorizationPayload, Principal> {
     private val processors = mutableMapOf<String, MutableList<AuthorizationProcessor<*>>>()
 
     fun <PRINCIPAL : Principal> register(
         processor: AuthorizationProcessor<PRINCIPAL>
-    ): AuthorizationAuthenticator {
+    ): AuthorizationAuthenticateProcessor {
         val processors = processors.getOrPut(processor.type.lowercase()) { mutableListOf() }
         processors.add(processor)
         return this

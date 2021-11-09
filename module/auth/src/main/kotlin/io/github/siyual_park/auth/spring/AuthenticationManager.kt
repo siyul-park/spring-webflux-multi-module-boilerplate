@@ -1,6 +1,6 @@
 package io.github.siyual_park.auth.spring
 
-import io.github.siyual_park.auth.domain.authenticator.AuthenticatorManager
+import io.github.siyual_park.auth.domain.authenticator.Authenticator
 import io.github.siyual_park.auth.domain.authenticator.AuthorizationPayload
 import kotlinx.coroutines.reactor.mono
 import org.springframework.security.authentication.ReactiveAuthenticationManager
@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono
 
 @Component
 class AuthenticationManager(
-    private val authenticatorManager: AuthenticatorManager
+    private val authenticator: Authenticator
 ) : ReactiveAuthenticationManager {
     override fun authenticate(authentication: Authentication): Mono<Authentication> {
         return mono {
@@ -19,7 +19,7 @@ class AuthenticationManager(
                 val credentials = authentication.credentials
 
                 val payload = AuthorizationPayload(type as String, credentials as String)
-                val parsedAuthentication = authenticatorManager.authenticate(payload)
+                val parsedAuthentication = authenticator.authenticate(payload)
 
                 AuthenticationAdapter(parsedAuthentication, credentials)
             } catch (exception: Exception) {

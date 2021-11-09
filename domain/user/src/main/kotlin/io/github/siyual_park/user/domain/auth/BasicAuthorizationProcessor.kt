@@ -7,7 +7,7 @@ import java.util.Base64
 
 @Component
 class BasicAuthorizationProcessor(
-    private val passwordGrantAuthenticator: PasswordGrantAuthenticator,
+    private val passwordGrantAuthenticator: PasswordGrantAuthenticateProcessor,
 ) : AuthorizationProcessor<UserPrincipal> {
     override val type = "basic"
 
