@@ -3,6 +3,7 @@ plugins {
 
     id("org.springframework.boot")
     id("io.spring.dependency-management")
+    id("kotlin-spring")
 
     kotlin("plugin.spring")
 }
@@ -10,23 +11,23 @@ plugins {
 dependencies {
     implementation(project(":dependency:spring"))
     testImplementation(project(":dependency:spring-test"))
-
     implementation(project(":dependency:async"))
     testImplementation(project(":dependency:async-test"))
-
     implementation(project(":dependency:r2dbc"))
     implementation(project(":dependency:kotlinx"))
     implementation(project(":dependency:jwt"))
+    implementation(project(":dependency:jackson"))
 
     implementation(project(":module:data"))
     implementation(project(":module:been"))
     implementation(project(":module:mapper"))
-
-    implementation(project(":domain:auth"))
+    implementation(project(":module:json"))
+    implementation(project(":module:error"))
+    implementation(project(":module:swagger"))
+    implementation(project(":module:auth"))
+    implementation(project(":module:search"))
 
     implementation(project(":domain:user"))
-    implementation(project(":domain:json"))
-    implementation(project(":domain:swagger"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

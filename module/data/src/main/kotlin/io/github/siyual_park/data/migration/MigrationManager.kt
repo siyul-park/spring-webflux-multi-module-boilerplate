@@ -2,42 +2,46 @@ package io.github.siyual_park.data.migration
 
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
-import io.r2dbc.spi.ConnectionFactory
 import kotlinx.coroutines.flow.toList
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
-import org.springframework.data.mapping.callback.ReactiveEntityCallbacks
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Component
 
 @Component
 class MigrationManager(
-    connectionFactory: ConnectionFactory,
-    entityCallbacks: ReactiveEntityCallbacks? = null
+    private val entityOperations: R2dbcEntityOperations,
 ) {
-    private val entityTemplate = R2dbcEntityTemplate(connectionFactory)
+    private val logger = LoggerFactory.getLogger(MigrationManager::class.java)
+
     private val migrationCheckpointRepository = R2DBCRepository<MigrationCheckpoint, Long>(
-        connectionFactory,
+        entityOperations,
         MigrationCheckpoint::class,
-        entityCallbacks
     )
 
     private val migrations = mutableListOf<Migration>()
-    private val createMigrationCheckpoint = CreateMigrationCheckpoint()
 
-    init {
-        if (entityCallbacks != null) {
-            entityTemplate.setEntityCallbacks(entityCallbacks)
-        }
-    }
+    private val createUpdatedAtFunction = CreateUpdatedAtFunction()
+    private val createMigrationCheckpoint = CreateMigrationCheckpoint()
 
     fun register(migration: Migration): MigrationManager {
         migrations.add(migration)
         return this
     }
 
+    suspend fun sync() {
+        try {
+            run()
+        } catch (e: RuntimeException) {
+            logger.error(e.message, e)
+            throw e
+        }
+    }
+
     suspend fun run() {
-        if (!createMigrationCheckpoint.isApplied(entityTemplate)) {
-            createMigrationCheckpoint.up(entityTemplate)
+        if (!createMigrationCheckpoint.isApplied(entityOperations)) {
+            createUpdatedAtFunction.up(entityOperations)
+            createMigrationCheckpoint.up(entityOperations)
         }
 
         val migrationCheckpoints = migrationCheckpointRepository.findAll(
@@ -52,27 +56,48 @@ class MigrationManager(
         for (i in (lastVersion + 1) until migrations.size) {
             val migration = migrations[i]
 
-            migration.up(entityTemplate)
+            migration.up(entityOperations)
 
             MigrationCheckpoint(version = i)
                 .let { migrationCheckpointRepository.create(it) }
         }
     }
 
+    suspend fun clear() {
+        migrations.asReversed()
+            .forEach {
+                try {
+                    it.down(entityOperations)
+                } catch (e: RuntimeException) {
+                    logger.error(e.message, e)
+                }
+            }
+
+        try {
+            if (createMigrationCheckpoint.isApplied(entityOperations)) {
+                createMigrationCheckpoint.down(entityOperations)
+                createUpdatedAtFunction.down(entityOperations)
+            }
+        } catch (e: RuntimeException) {
+            logger.error(e.message, e)
+        }
+    }
+
     suspend fun revert() {
-        val migrationCheckpoints = migrationCheckpointRepository.findAll()
+        val migrationCheckpoints = migrationCheckpointRepository.findAll(
+            sort = Sort.by(columnName(MigrationCheckpoint::version)).descending()
+        )
             .toList()
-            .sortedBy { it.version }
-            .reversed()
 
         migrationCheckpoints.forEach {
             val migration = migrations[it.version]
-            migration.down(entityTemplate)
+            migration.down(entityOperations)
             migrationCheckpointRepository.delete(it)
         }
 
-        if (createMigrationCheckpoint.isApplied(entityTemplate)) {
-            createMigrationCheckpoint.down(entityTemplate)
+        if (createMigrationCheckpoint.isApplied(entityOperations)) {
+            createMigrationCheckpoint.down(entityOperations)
+            createUpdatedAtFunction.down(entityOperations)
         }
     }
 }

@@ -1,7 +1,3 @@
-plugins {
-    application
-}
-
 dependencies {
 }
 

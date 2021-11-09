@@ -1,5 +1,6 @@
 package io.github.siyual_park.application.external.configuration
 
+import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.data.migration.MigrationManager
 import io.github.siyual_park.user.migration.CreateUser
@@ -14,6 +15,7 @@ class MigrationConfiguration {
     fun configMigrationManager(migrationManager: MigrationManager) {
         migrationManager
             .register(CreateScopeToken())
+            .register(CreateScopeRelation())
             .register(CreateUser())
             .register(CreateUserCredential())
             .register(CreateUserScope())

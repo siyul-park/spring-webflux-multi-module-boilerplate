@@ -2,6 +2,7 @@ val kotlin_version: String by project
 val junit_version: String by project
 
 buildscript {
+    val kotlin_version: String by project
     val klint_version: String by project
 
     repositories {
@@ -9,6 +10,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-allopen:$kotlin_version")
+        classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlin_version")
         classpath("org.jlleitschuh.gradle:ktlint-gradle:$klint_version")
     }
 }
@@ -18,8 +21,8 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint")
 }
 
-group = "io.github.siyual_park"
-version = "0.0.1-SNAPSHOT"
+group = "io.github.siyual-park"
+version = "0.0.0-SNAPSHOT"
 
 allprojects {
     apply(plugin = "kotlin")
@@ -49,7 +52,7 @@ allprojects {
 
         kotlinOptions {
             freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = "11"
+            jvmTarget = JavaVersion.VERSION_11.toString()
         }
     }
     tasks.withType<Test> {

@@ -1,6 +1,6 @@
 package io.github.siyual_park.data
 
-import io.github.siyual_park.data.annoration.GeneratedValue
+import io.github.siyual_park.data.annotation.GeneratedValue
 import org.springframework.data.annotation.Id
 
 abstract class IdEntity<T, ID> : Cloneable<T> {

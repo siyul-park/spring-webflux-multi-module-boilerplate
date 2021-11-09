@@ -1,3 +1,5 @@
+val jasync_mysql_version: String by project
+
 plugins {
     application
 
@@ -9,7 +11,10 @@ plugins {
 
 dependencies {
     api("org.springframework.boot:spring-boot-starter-data-r2dbc")
+
     api("io.r2dbc:r2dbc-h2")
+    api("io.r2dbc:r2dbc-pool")
+    api("io.r2dbc:r2dbc-postgresql")
 
     runtimeOnly("com.h2database:h2")
 }

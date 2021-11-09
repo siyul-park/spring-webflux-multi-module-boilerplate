@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 
 class R2DBCRepositoryTest : R2DBCTest() {
     private val personRepository = R2DBCRepository<Person, Long>(
-        connectionFactory,
+        entityOperations,
         Person::class
     )
     private val personFactory = PersonFactory()

@@ -19,7 +19,7 @@ class UserPrincipalExchanger(
         )
     }
 
-    suspend fun exchange(userAuthentication: UserPrincipal): User {
-        return userFinder.findByIdOrFail(userAuthentication.id.toLong())
+    suspend fun exchange(userPrincipal: UserPrincipal): User {
+        return userFinder.findByIdOrFail(userPrincipal.userId)
     }
 }

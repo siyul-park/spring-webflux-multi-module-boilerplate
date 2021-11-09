@@ -9,13 +9,17 @@ import org.springframework.core.annotation.Order
 
 @Configuration
 class MigrationConfiguration(
-    private val migrationManager: MigrationManager
+    private val migrationManager: MigrationManager,
+    private val migrationConfigurationProperty: MigrationConfigurationProperty
 ) {
     @EventListener(ApplicationReadyEvent::class)
     @Order(0)
-    fun migration() {
-        runBlocking {
-            migrationManager.run()
+    fun migration() = runBlocking {
+        if (migrationConfigurationProperty.clear) {
+            migrationManager.clear()
+        }
+        if (migrationConfigurationProperty.sync) {
+            migrationManager.sync()
         }
     }
 }

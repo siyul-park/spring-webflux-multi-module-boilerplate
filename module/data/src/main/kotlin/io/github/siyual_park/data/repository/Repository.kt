@@ -8,6 +8,7 @@ import org.springframework.dao.EmptyResultDataAccessException
 interface Repository<T : Any, ID : Any> {
     suspend fun create(entity: T): T
 
+    fun createAll(entities: Flow<T>): Flow<T>
     fun createAll(entities: Iterable<T>): Flow<T>
 
     suspend fun existsById(id: ID): Boolean
@@ -63,6 +64,10 @@ suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch
     return updateById(id, patch) ?: throw EmptyResultDataAccessException(1)
 }
 
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch: (entity: T) -> Unit): T {
+    return updateByIdOrFail(id, Patch.with(patch))
+}
+
 suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T): T {
     return update(entity) ?: throw EmptyResultDataAccessException(1)
 }
@@ -73,4 +78,16 @@ suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch:
 
 suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch: AsyncPatch<T>): T {
     return update(entity, patch) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch: (entity: T) -> Unit): T {
+    return updateOrFail(entity, Patch.with(patch))
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.update(entity: T, patch: (entity: T) -> Unit): T? {
+    return update(entity, Patch.with(patch))
+}
+
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateById(id: ID, patch: (entity: T) -> Unit): T? {
+    return updateById(id, Patch.with(patch))
 }

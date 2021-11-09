@@ -100,7 +100,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testCreateGrantTypeRefreshTokenSuccess() = blocking {
+    fun testCreateGrantTypeRefreshTokenSuccessByUser() = blocking {
         val createUserPayload = createUserPayloadFactory.create()
         userFactory.create(createUserPayload)
 

@@ -1,6 +1,6 @@
 package io.github.siyual_park.data
 
-import io.github.siyual_park.data.annoration.GeneratedValue
+import io.github.siyual_park.data.annotation.GeneratedValue
 import org.springframework.data.relational.core.mapping.Column
 import java.time.Instant
 
