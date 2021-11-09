@@ -7,15 +7,16 @@ import org.springframework.stereotype.Component
 @Suppress("UNCHECKED_CAST")
 @Component
 class AuthenticatorManager {
-    private val authenticators = mutableMapOf<Class<*>, Authenticator<*, *>>()
+    private val authenticators = mutableListOf<Pair<AuthenticateFilter, Authenticator<*, *>>>()
 
-    fun register(authenticator: Authenticator<*, *>): AuthenticatorManager {
-        authenticators[authenticator.payloadClazz.java] = authenticator
+    fun register(filter: AuthenticateFilter, authenticator: Authenticator<*, *>): AuthenticatorManager {
+        authenticators.add(filter to authenticator)
         return this
     }
 
     suspend fun <PAYLOAD : AuthenticationPayload> authenticate(payload: PAYLOAD): Principal {
-        val authenticator = authenticators[payload.javaClass] ?: throw UnsupportedAuthorizationTypeException()
+        val authenticator = authenticators.find { (filter, _) -> filter.isSubscribe(payload) }?.second
+            ?: throw UnsupportedAuthorizationTypeException()
         authenticator as Authenticator<PAYLOAD, *>
         return authenticator.authenticate(payload)
     }
