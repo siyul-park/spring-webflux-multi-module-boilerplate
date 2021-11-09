@@ -14,7 +14,7 @@ class AuthenticatorManager {
         return this
     }
 
-    suspend fun <PAYLOAD : AuthenticationPayload> authenticate(payload: PAYLOAD): Principal {
+    suspend fun <PAYLOAD : Any> authenticate(payload: PAYLOAD): Principal {
         val authenticator = authenticators.find { (filter, _) -> filter.isSubscribe(payload) }?.second
             ?: throw UnsupportedAuthorizationTypeException()
         authenticator as Authenticator<PAYLOAD, *>
