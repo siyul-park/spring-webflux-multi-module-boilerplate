@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":dependency:r2dbc"))
     implementation(project(":dependency:kotlinx"))
     implementation(project(":dependency:jwt"))
+    implementation(project(":dependency:jackson"))
 
     implementation(project(":module:data"))
     implementation(project(":module:been"))

@@ -1,4 +1,4 @@
-rootProject.name = "spring-boilerplate"
+rootProject.name = "kabal"
 
 fun includeModules(pathname: String) {
     File(pathname).listFiles()?.forEach {
@@ -17,6 +17,8 @@ pluginManagement {
     plugins {
         id("org.springframework.boot") version spring_boot_version
         id("io.spring.dependency-management") version spring_dependency_management_version
+
+        id("org.jetbrains.kotlin.plugin.allopen") version kotlin_version
 
         kotlin("jvm") version kotlin_version
         kotlin("plugin.spring") version kotlin_version
