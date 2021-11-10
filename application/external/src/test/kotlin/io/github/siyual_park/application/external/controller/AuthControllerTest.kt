@@ -26,7 +26,7 @@ class AuthControllerTest @Autowired constructor(
     @Test
     fun testCreateGrantTypePasswordSuccess() = blocking {
         val createUserPayload = createUserPayloadFactory.create()
-        userFactory.create(createUserPayload)
+            .also { userFactory.create(it) }
 
         val tokenResponse = authControllerGateway.createToken(
             CreateTokenRequest(
@@ -49,7 +49,7 @@ class AuthControllerTest @Autowired constructor(
     @Test
     fun testCreateGrantTypePasswordFailByIncorrectPassword() = blocking {
         val createUserPayload = createUserPayloadFactory.create()
-        userFactory.create(createUserPayload)
+            .also { userFactory.create(it) }
 
         val otherUserRequest = createUserPayloadFactory.create()
 
@@ -67,7 +67,7 @@ class AuthControllerTest @Autowired constructor(
     @Test
     fun testCreateGrantTypePasswordFailByInvalidRequest() = blocking {
         val createUserPayload = createUserPayloadFactory.create()
-        userFactory.create(createUserPayload)
+            .also { userFactory.create(it) }
 
         val case1 = authControllerGateway.createToken(
             CreateTokenRequest(
@@ -102,7 +102,7 @@ class AuthControllerTest @Autowired constructor(
     @Test
     fun testCreateGrantTypeRefreshTokenSuccessByUser() = blocking {
         val createUserPayload = createUserPayloadFactory.create()
-        userFactory.create(createUserPayload)
+            .also { userFactory.create(it) }
 
         val tokensByPassword = authControllerGateway.createToken(
             CreateTokenRequest(
@@ -132,7 +132,7 @@ class AuthControllerTest @Autowired constructor(
     @Test
     fun testCreateGrantTypeRefreshTokenFailInvalidToken() = blocking {
         val createUserPayload = createUserPayloadFactory.create()
-        userFactory.create(createUserPayload)
+            .also { userFactory.create(it) }
 
         val response = authControllerGateway.createToken(
             CreateTokenRequest(
@@ -147,7 +147,7 @@ class AuthControllerTest @Autowired constructor(
     @Test
     fun testCreateGrantTypeRefreshTokenFailInvalidRequest() = blocking {
         val createUserPayload = createUserPayloadFactory.create()
-        userFactory.create(createUserPayload)
+            .also { userFactory.create(it) }
 
         val case1 = authControllerGateway.createToken(
             CreateTokenRequest(
