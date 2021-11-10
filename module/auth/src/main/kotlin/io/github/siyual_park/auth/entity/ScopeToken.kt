@@ -1,11 +1,13 @@
 package io.github.siyual_park.auth.entity
 
 import io.github.siyual_park.data.TimeableEntity
+import io.github.siyual_park.data.annotation.Unique
 import io.github.siyual_park.data.copyDefaultColumn
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("scope_tokens")
 data class ScopeToken(
+    @Unique
     var name: String,
     var description: String? = null,
 ) : TimeableEntity<ScopeToken, Long>() {
