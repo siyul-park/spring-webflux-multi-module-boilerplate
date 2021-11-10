@@ -55,7 +55,9 @@ class Storage<T : Any, ID : Any>(
             if (entity == null) {
                 null
             } else {
-                idExtractor.getKey(entity)?.let { getIfPresent(it) { entity } }
+                idExtractor.getKey(entity)?.let {
+                    getIfPresent(it) { entity }
+                }
             }
         } else {
             getIfPresentAsync(id, loader)
@@ -71,7 +73,9 @@ class Storage<T : Any, ID : Any>(
             if (entity == null) {
                 null
             } else {
-                idExtractor.getKey(entity)?.let { getIfPresent(it) { entity } }
+                idExtractor.getKey(entity)?.let {
+                    getIfPresent(it) { entity }
+                }
             }
         } else {
             getIfPresent(id, loader)
@@ -123,7 +127,7 @@ class Storage<T : Any, ID : Any>(
     }
 
     fun clear() {
-        cache.cleanUp()
+        cache.invalidateAll()
         indexes.forEach { (_, index) -> index.clear() }
     }
 }
