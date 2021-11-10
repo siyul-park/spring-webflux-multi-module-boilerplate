@@ -84,17 +84,12 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
                 ?.also { storage.put(it) }
         }
 
-        val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria)
-        if (columnsAndValues != null) {
-            val (indexName, value) = getIndexNameAndValue(columnsAndValues)
-            if (!storage.indexNames.contains(indexName)) {
-                return fallback()
-            }
-
-            return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+        val (indexName, value) = getEqIndexNameAndValue(criteria) ?: return fallback()
+        if (!storage.indexNames.contains(indexName)) {
+            return fallback()
         }
 
-        return fallback()
+        return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -104,10 +99,10 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         }
 
         if (criteria != null && limit == null && offset == null && sort == null) {
-            val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria)
+            val eqIndexNameAndValue = getEqIndexNameAndValue(criteria)
             when {
-                columnsAndValues != null -> {
-                    val (indexName, value) = getIndexNameAndValue(columnsAndValues)
+                eqIndexNameAndValue != null -> {
+                    val (indexName, value) = eqIndexNameAndValue
                     return if (!storage.indexNames.contains(indexName)) {
                         fallback()
                     } else {
@@ -160,7 +155,22 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         return fallback()
     }
 
-    private fun getSimpleJoinedColumnsAndValues(criteria: CriteriaDefinition): Pair<MutableList<String>, MutableList<Any?>>? {
+    private fun getEqIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+        if (criteria == null) return null
+
+        val columnsAndValues = getEqColumnsAndValues(criteria) ?: return null
+        val (columns, values) = columnsAndValues
+        val sorted = columns.mapIndexed { index, column -> column to values[index] }
+            .sortedBy { (column, _) -> column }
+
+        val indexName = sorted.joinToString(" ") { (column, _) -> column }
+        val value = ArrayList<Any?>()
+        sorted.forEach { (_, it) -> value.add(it) }
+
+        return indexName to value
+    }
+
+    private fun getEqColumnsAndValues(criteria: CriteriaDefinition): Pair<MutableList<String>, MutableList<Any?>>? {
         val columns = mutableListOf<String>()
         val values = mutableListOf<Any?>()
 
@@ -171,7 +181,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
                 }
 
                 criteria.group.forEach {
-                    val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(it) ?: return null
+                    val (childColumns, childValues) = getEqColumnsAndValues(it) ?: return null
                     columns.addAll(childColumns)
                     values.addAll(childValues)
                 }
@@ -189,24 +199,12 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
 
         val previous = criteria.previous
         if (previous != null) {
-            val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(previous) ?: return null
+            val (childColumns, childValues) = getEqColumnsAndValues(previous) ?: return null
             columns.addAll(childColumns)
             values.addAll(childValues)
         }
 
         return columns to values
-    }
-
-    private fun getIndexNameAndValue(columnsAndValues: Pair<List<String>, List<Any?>>): Pair<String, Any> {
-        val (columns, values) = columnsAndValues
-        val sorted = columns.mapIndexed { index, column -> column to values[index] }
-            .sortedBy { (column, _) -> column }
-
-        val indexName = sorted.joinToString(" ") { (column, _) -> column }
-        val value = ArrayList<Any?>()
-        sorted.forEach { (_, it) -> value.add(it) }
-
-        return indexName to value
     }
 
     private fun isSingleCriteria(criteria: CriteriaDefinition?): Boolean {
