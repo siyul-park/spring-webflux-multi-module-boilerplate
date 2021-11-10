@@ -18,7 +18,7 @@ class TokenIssuer(
     @Value("#{T(java.time.Duration).ofSeconds(\${application.auth.refresh-token.age})}")
     private val refreshTokenAge: Duration = Duration.ofDays(30)
 ) {
-    suspend fun issue(principal: Principal): Tokens {
+    suspend fun issue(principal: Principal): TokenContainer {
         val accessTokenCreateScope = scopeTokenFinder.findByNameOrFail("access-token:create", cache = true)
         val refreshTokenCreateScope = scopeTokenFinder.findByNameOrFail("refresh-token:create", cache = true)
 
@@ -45,11 +45,19 @@ class TokenIssuer(
             )
         } else null
 
-        return Tokens(
-            accessToken = accessToken,
-            tokenType = "bearer",
-            expiresIn = accessTokenAge,
-            refreshToken = refreshToken
+        return TokenContainer(
+            accessToken = Token(
+                value = accessToken,
+                type = "bearer",
+                expiresIn = accessTokenAge,
+            ),
+            refreshToken = refreshToken?.let {
+                Token(
+                    value = it,
+                    type = "bearer",
+                    expiresIn = refreshTokenAge,
+                )
+            }
         )
     }
 }
