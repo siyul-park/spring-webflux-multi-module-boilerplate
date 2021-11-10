@@ -7,6 +7,7 @@ import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.test.R2DBCTest
 import io.github.siyual_park.data.test.entity.Person
 import io.github.siyual_park.data.test.factory.PersonFactory
@@ -137,6 +138,21 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
+    }
+
+    @ParameterizedTest
+    @MethodSource("personRepositories")
+    fun findOneByName(personRepository: R2DBCRepository<Person, Long>) = blocking {
+        val person = personFactory.create()
+            .let { personRepository.create(it) }
+        val foundPerson = personRepository.findOneOrFail(where(Person::name).`is`(person.name))
+
+        assertEquals(person.id, foundPerson.id)
+        assertEquals(person.createdAt, foundPerson.createdAt)
+        assertEquals(person.updatedAt, foundPerson.updatedAt)
+
+        assertEquals(person.name, foundPerson.name)
+        assertEquals(person.age, foundPerson.age)
     }
 
     @ParameterizedTest

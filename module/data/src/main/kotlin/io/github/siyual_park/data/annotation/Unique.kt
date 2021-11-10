@@ -1,5 +1,5 @@
 package io.github.siyual_park.data.annotation
 
-@Target(AnnotationTarget.FIELD)
+@Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Unique
