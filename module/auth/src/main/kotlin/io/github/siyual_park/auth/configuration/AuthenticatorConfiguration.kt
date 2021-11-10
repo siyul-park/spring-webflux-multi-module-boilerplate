@@ -4,8 +4,6 @@ import io.github.siyual_park.auth.domain.authenticator.AuthenticateFilterFactory
 import io.github.siyual_park.auth.domain.authenticator.AuthenticateMapping
 import io.github.siyual_park.auth.domain.authenticator.AuthenticateProcessor
 import io.github.siyual_park.auth.domain.authenticator.Authenticator
-import io.github.siyual_park.auth.domain.authenticator.AuthorizationAuthenticateProcessor
-import io.github.siyual_park.auth.domain.authenticator.AuthorizationProcessor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Configuration
@@ -23,13 +21,6 @@ class AuthenticatorConfiguration(
                     val filter = filterFactory.create(annotation) ?: return@forEach
                     authenticator.register(filter, it)
                 }
-        }
-    }
-
-    @Autowired(required = true)
-    fun configAuthorizationAuthenticator(authorizationAuthenticator: AuthorizationAuthenticateProcessor) {
-        applicationContext.getBeansOfType(AuthorizationProcessor::class.java).values.forEach {
-            authorizationAuthenticator.register(it)
         }
     }
 }

@@ -14,16 +14,10 @@ class AuthenticateFilterFactory(
         } catch (e: BeansException) {
             null
         }
-        return when (filterBeen) {
-            null -> {
-                MatchTypeAuthenticateFilter(mapping.filterBy.java)
-            }
-            is AuthenticateFilter -> {
-                filterBeen
-            }
-            else -> {
-                MatchTypeAuthenticateFilter(mapping.filterBy.java)
-            }
+        return if (filterBeen is AuthenticateFilter) {
+            filterBeen
+        } else {
+            MatchTypeAuthenticateFilter(mapping.filterBy.java)
         }
     }
 }
