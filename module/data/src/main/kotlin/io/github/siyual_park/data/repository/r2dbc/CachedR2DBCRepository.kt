@@ -172,10 +172,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
     companion object {
         fun <T : Cloneable<T>, ID : Any> of(
             repository: R2DBCRepository<T, ID>,
-            cacheBuilder: CacheBuilder<Any, Any> = CacheBuilder.newBuilder()
-                .softValues()
-                .expireAfterAccess(Duration.ofMinutes(30))
-                .maximumSize(10_000)
+            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder()
         ): CachedR2DBCRepository<T, ID> {
             return CachedR2DBCRepository(repository, cacheBuilder as CacheBuilder<ID, T>)
         }
@@ -183,10 +180,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
         fun <T : Cloneable<T>, ID : Any> of(
             entityOperations: R2dbcEntityOperations,
             clazz: KClass<T>,
-            cacheBuilder: CacheBuilder<Any, Any> = CacheBuilder.newBuilder()
-                .softValues()
-                .expireAfterAccess(Duration.ofMinutes(30))
-                .maximumSize(10_000),
+            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
             scheduler: Scheduler = Schedulers.boundedElastic()
         ): CachedR2DBCRepository<T, ID> {
             return CachedR2DBCRepository(
@@ -194,5 +188,10 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
                 cacheBuilder as CacheBuilder<ID, T>
             )
         }
+
+        private fun defaultCacheBuilder() = CacheBuilder.newBuilder()
+            .softValues()
+            .expireAfterWrite(Duration.ofMinutes(5))
+            .maximumSize(1_000)
     }
 }
