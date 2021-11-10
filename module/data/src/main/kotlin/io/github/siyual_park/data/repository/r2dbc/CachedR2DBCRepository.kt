@@ -119,30 +119,27 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
                 }
                 isSingleCriteria(criteria) -> {
                     val column = criteria.column
-                    val value = criteria.value
-                    val indexName = column?.reference
-                    if (value == null || indexName == null || !storage.indexNames.contains(indexName)) {
+                    val value = criteria.value ?: return fallback()
+                    val indexName = column?.reference ?: return fallback()
+                    if (!storage.indexNames.contains(indexName)) {
                         return fallback()
                     }
 
-                    return when (criteria.comparator) {
-                        CriteriaDefinition.Comparator.IN -> {
-                            if (value !is Collection<*>) {
-                                repository.findAll(criteria)
-                                    .onEach { storage.put(it) }
-                            } else flow {
-                                val result = TreeMap<Int, T>()
+                    return if (criteria.comparator == CriteriaDefinition.Comparator.IN && value is Collection<*>) {
+                        flow {
+                            val result = TreeMap<Int, T>()
 
-                                val notCachedKey = mutableListOf<Pair<Int, *>>()
-                                value.forEachIndexed { index, key ->
-                                    val cached = key?.let { storage.getIfPresent(it, indexName) }
-                                    if (cached == null) {
-                                        notCachedKey.add(index to key)
-                                    } else {
-                                        result[index] = cached
-                                    }
+                            val notCachedKey = mutableListOf<Pair<Int, *>>()
+                            value.forEachIndexed { index, key ->
+                                val cached = key?.let { storage.getIfPresent(it, indexName) }
+                                if (cached == null) {
+                                    notCachedKey.add(index to key)
+                                } else {
+                                    result[index] = cached
                                 }
+                            }
 
+                            if (notCachedKey.isNotEmpty()) {
                                 repository.findAll(Criteria.where(indexName).`in`(notCachedKey.map { it.second }))
                                     .toList()
                                     .forEachIndexed { index, entity ->
@@ -150,16 +147,13 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
                                         storage.put(entity)
                                         result[originIndex] = entity
                                     }
-
-                                emitAll(result.values.asFlow())
                             }
+
+                            emitAll(result.values.asFlow())
                         }
-                        else -> fallback()
-                    }
+                    } else fallback()
                 }
-                else -> {
-                    return fallback()
-                }
+                else -> return fallback()
             }
         }
 
