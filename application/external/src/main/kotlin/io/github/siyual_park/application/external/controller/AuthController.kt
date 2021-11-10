@@ -3,8 +3,8 @@ package io.github.siyual_park.application.external.controller
 import io.github.siyual_park.application.external.dto.GrantType
 import io.github.siyual_park.application.external.dto.request.CreateTokenRequest
 import io.github.siyual_park.application.external.dto.response.TokenInfo
-import io.github.siyual_park.auth.domain.authenticator.AuthenticatorManager
-import io.github.siyual_park.auth.domain.authenticator.AuthorizationPayload
+import io.github.siyual_park.auth.domain.authentication.Authenticator
+import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.token.TokenIssuer
 import io.github.siyual_park.json.bind.RequestForm
@@ -24,7 +24,7 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("")
 class AuthController(
-    private val authenticatorManager: AuthenticatorManager,
+    private val authenticator: Authenticator,
     private val tokenIssuer: TokenIssuer,
     private val principalRefresher: PrincipalRefresher,
     private val mapperManager: MapperManager
@@ -38,7 +38,7 @@ class AuthController(
             GrantType.REFRESH_TOKEN -> AuthorizationPayload("bearer", request.refreshToken!!)
         }
 
-        var principal = authenticatorManager.authenticate(payload)
+        var principal = authenticator.authenticate(payload)
         if (request.grantType == GrantType.REFRESH_TOKEN) {
             principal = principalRefresher.refresh(principal)
         }

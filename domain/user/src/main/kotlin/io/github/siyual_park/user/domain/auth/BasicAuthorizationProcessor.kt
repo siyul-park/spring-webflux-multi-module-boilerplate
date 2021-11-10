@@ -1,16 +1,17 @@
 package io.github.siyual_park.user.domain.auth
 
-import io.github.siyual_park.auth.domain.authenticator.AuthorizationProcessor
+import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
+import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
+import io.github.siyual_park.auth.domain.authentication.AuthorizationProcessor
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 @Component
+@AuthenticateMapping(filterBy = AuthorizationPayload::class)
 class BasicAuthorizationProcessor(
-    private val passwordGrantAuthenticator: PasswordGrantAuthenticator,
-) : AuthorizationProcessor<UserPrincipal> {
-    override val type = "basic"
-
+    private val passwordGrantAuthenticator: PasswordGrantAuthenticateProcessor,
+) : AuthorizationProcessor<UserPrincipal>("basic") {
     override suspend fun authenticate(credentials: String): UserPrincipal? {
         val decoder = Base64.getDecoder()
         val decodedCredentials = String(decoder.decode(credentials), StandardCharsets.UTF_8)
