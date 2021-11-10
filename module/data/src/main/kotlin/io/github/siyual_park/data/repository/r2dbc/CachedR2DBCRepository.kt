@@ -26,6 +26,7 @@ import reactor.core.scheduler.Schedulers
 import java.time.Duration
 import java.util.TreeMap
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
 @Suppress("UNCHECKED_CAST")
@@ -51,17 +52,25 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
     init {
         val clazz = entityManager.clazz
 
+        val indexes = mutableMapOf<String, MutableList<KProperty1<T, *>>>()
+
         clazz.memberProperties.forEach {
-            if (it.annotations.any { it is Key }) {
-                storage.createIndex(
-                    columnName(it),
-                    object : Extractor<T, Any> {
-                        override fun getKey(entity: T): Any? {
-                            return it.get(entity)
-                        }
+            val index = it.annotations.find { it is Key } as? Key ?: return@forEach
+            indexes.getOrPut(index.name.ifEmpty { columnName(it) }) { mutableListOf() }
+                .add(it)
+        }
+
+        indexes.forEach { (name, properties) ->
+            storage.createIndex(
+                name,
+                object : Extractor<T, Any> {
+                    override fun getKey(entity: T): Any {
+                        val key = ArrayList<Any?>()
+                        properties.forEach { key.add(it.get(entity)) }
+                        return key
                     }
-                )
-            }
+                }
+            )
         }
     }
 
