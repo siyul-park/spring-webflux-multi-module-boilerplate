@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.pagination
+package io.github.siyual_park.view
 
 import kotlinx.coroutines.reactor.mono
 import org.springframework.http.codec.HttpMessageWriter

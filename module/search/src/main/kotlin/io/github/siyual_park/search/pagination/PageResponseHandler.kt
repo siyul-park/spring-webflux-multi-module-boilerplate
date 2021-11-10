@@ -1,8 +1,6 @@
-package io.github.siyual_park.application.external.handler
+package io.github.siyual_park.search.pagination
 
-import io.github.siyual_park.search.pagination.OffsetPage
-import io.github.siyual_park.search.pagination.OffsetPagePresenter
-import io.github.siyual_park.search.pagination.ResponseBodyResultHandlerAdapter
+import io.github.siyual_park.view.ResponseBodyResultHandlerAdapter
 import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver
@@ -12,4 +10,8 @@ class PageResponseHandler(
     serverCodecConfigurer: ServerCodecConfigurer,
     resolver: RequestedContentTypeResolver,
     presenter: OffsetPagePresenter
-) : ResponseBodyResultHandlerAdapter<OffsetPage<*>>(serverCodecConfigurer.writers, resolver, presenter)
+) : ResponseBodyResultHandlerAdapter<OffsetPage<*>>(
+    serverCodecConfigurer.writers,
+    resolver,
+    presenter
+)

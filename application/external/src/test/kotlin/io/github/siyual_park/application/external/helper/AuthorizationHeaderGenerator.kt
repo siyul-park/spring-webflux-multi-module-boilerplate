@@ -10,6 +10,6 @@ class AuthorizationHeaderGenerator(
 ) {
     suspend fun generate(principal: Principal): String {
         val tokens = tokenIssuer.issue(principal)
-        return "${tokens.tokenType} ${tokens.accessToken}"
+        return "${tokens.accessToken.type} ${tokens.accessToken.value}"
     }
 }

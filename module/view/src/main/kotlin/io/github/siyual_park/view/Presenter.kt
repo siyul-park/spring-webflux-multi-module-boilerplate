@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.pagination
+package io.github.siyual_park.view
 
 import org.springframework.web.reactive.HandlerResult
 import org.springframework.web.server.ServerWebExchange

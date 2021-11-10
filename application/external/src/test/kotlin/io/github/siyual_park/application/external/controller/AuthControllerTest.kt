@@ -42,7 +42,7 @@ class AuthControllerTest @Autowired constructor(
 
         assertTrue(tokens.accessToken.isNotEmpty())
         assertEquals("bearer", tokens.tokenType)
-        assertTrue(tokens.expiresIn > 0L)
+        assertTrue(tokens.expiresIn.seconds > 0L)
         assertNotNull(tokens.refreshToken)
     }
 
@@ -125,7 +125,7 @@ class AuthControllerTest @Autowired constructor(
 
         assertTrue(tokens.accessToken.isNotEmpty())
         assertEquals("bearer", tokens.tokenType)
-        assertTrue(tokens.expiresIn > 0L)
+        assertTrue(tokens.expiresIn.seconds > 0L)
         assertNull(tokens.refreshToken)
     }
 
