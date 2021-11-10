@@ -12,6 +12,7 @@ dependencies {
 
     testImplementation(project(":dependency:async-test"))
 
+    implementation(project(":module:event"))
     implementation(project(":module:search"))
 }
 

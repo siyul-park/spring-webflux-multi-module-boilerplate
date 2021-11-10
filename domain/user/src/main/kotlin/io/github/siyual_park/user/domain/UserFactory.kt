@@ -3,7 +3,8 @@ package io.github.siyual_park.user.domain
 import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
-import io.github.siyual_park.data.callback.AfterSaveCallbacks
+import io.github.siyual_park.data.event.AfterSaveEvent
+import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserCredential
 import io.github.siyual_park.user.entity.UserScope
@@ -25,7 +26,7 @@ class UserFactory(
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenFinder: ScopeTokenFinder,
     private val operator: TransactionalOperator,
-    private val afterSaveCallbacks: AfterSaveCallbacks,
+    private val eventPublisher: EventPublisher,
     private val hashAlgorithm: String = "SHA-256"
 ) {
     suspend fun create(payload: CreateUserPayload, scope: Collection<ScopeToken> = emptySet()): User =
@@ -36,7 +37,7 @@ class UserFactory(
                 createAdditionalUserScopes(it, scope)
             }
         }!!.also {
-            afterSaveCallbacks.onAfterSave(it)
+            eventPublisher.publish(AfterSaveEvent(it))
         }
 
     private suspend fun createUser(payload: CreateUserPayload): User {

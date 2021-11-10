@@ -4,7 +4,8 @@ import io.github.siyual_park.auth.entity.ScopeRelation
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.data.callback.AfterSaveCallbacks
+import io.github.siyual_park.data.event.AfterSaveEvent
+import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component
 class ScopeTokenGenerator(
     private val scopeTokenRepository: ScopeTokenRepository,
     private val scopeRelationRepository: ScopeRelationRepository,
-    private val afterSaveCallbacks: AfterSaveCallbacks
+    private val eventPublisher: EventPublisher,
 ) {
     private val scopeTokens = mutableListOf<Pair<ScopeToken, Collection<ScopeToken>>>()
 
@@ -40,12 +41,12 @@ class ScopeTokenGenerator(
     private suspend fun upsert(scopeToken: ScopeToken): ScopeToken {
         return scopeTokenRepository.findByName(scopeToken.name)
             ?: scopeTokenRepository.create(scopeToken)
-                .also { afterSaveCallbacks.onAfterSave(it) }
+                .also { eventPublisher.publish(AfterSaveEvent(it)) }
     }
 
     private suspend fun upsert(scopeRelation: ScopeRelation): ScopeRelation {
         return scopeRelationRepository.findBy(scopeRelation.parentId, scopeRelation.childId)
             ?: scopeRelationRepository.create(scopeRelation)
-                .also { afterSaveCallbacks.onAfterSave(it) }
+                .also { eventPublisher.publish(AfterSaveEvent(it)) }
     }
 }

@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":module:data"))
     testImplementation(project(":module:data-test"))
     implementation(project(":module:auth"))
+    implementation(project(":module:event"))
     implementation(project(":module:search"))
 }
 

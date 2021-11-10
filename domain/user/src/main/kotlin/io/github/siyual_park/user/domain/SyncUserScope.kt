@@ -2,8 +2,10 @@ package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeRelation
-import io.github.siyual_park.data.callback.AfterSaveCallback
+import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.event.EventConsumer
+import io.github.siyual_park.event.Subscribe
 import io.github.siyual_park.search.finder.findByIdOrFail
 import io.github.siyual_park.search.pagination.OffsetPaginatorAdapter
 import io.github.siyual_park.search.pagination.forEach
@@ -14,19 +16,19 @@ import io.github.siyual_park.user.repository.UserScopeRepository
 import org.springframework.stereotype.Component
 
 @Component
+@Subscribe(filterBy = AfterSaveEvent::class)
 class SyncUserScope(
     userRepository: UserRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenFinder: ScopeTokenFinder,
-) : AfterSaveCallback<ScopeRelation> {
-    override val clazz = ScopeRelation::class
-
+) : EventConsumer<AfterSaveEvent<*>> {
     private val userPaginator = OffsetPaginatorAdapter(
         userRepository,
         criteria = where(User::deletedAt).isNull
     )
 
-    override suspend fun onAfterSave(entity: ScopeRelation) {
+    override suspend fun consume(event: AfterSaveEvent<*>) {
+        val entity = event.entity as? ScopeRelation ?: return
         val parent = scopeTokenFinder.findByIdOrFail(entity.parentId)
         if (parent.name != "user") {
             return
