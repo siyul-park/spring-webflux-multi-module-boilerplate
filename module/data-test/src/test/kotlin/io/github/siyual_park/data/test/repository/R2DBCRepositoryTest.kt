@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.test.repository
 
-import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
-import java.time.Duration
 
 @TestInstance(PER_CLASS)
 class R2DBCRepositoryTest : R2DBCTest() {
@@ -29,13 +27,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         entityOperations,
         Person::class
     )
-    private val cachedPersonRepository = CachedR2DBCRepository.of(
-        personRepository,
-        CacheBuilder.newBuilder()
-            .softValues()
-            .expireAfterAccess(Duration.ofMinutes(30))
-            .maximumSize(10_000)
-    )
+    private val cachedPersonRepository = CachedR2DBCRepository.of(personRepository)
 
     private val personFactory = PersonFactory()
 

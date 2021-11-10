@@ -18,6 +18,7 @@ import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.CriteriaDefinition
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
+import java.time.Duration
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
@@ -113,7 +114,10 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
     companion object {
         fun <T : Cloneable<T>, ID : Any> of(
             repository: R2DBCRepository<T, ID>,
-            cacheBuilder: CacheBuilder<Any, Any>
+            cacheBuilder: CacheBuilder<Any, Any> = CacheBuilder.newBuilder()
+                .softValues()
+                .expireAfterAccess(Duration.ofMinutes(30))
+                .maximumSize(10_000)
         ): CachedR2DBCRepository<T, ID> {
             return CachedR2DBCRepository(repository, cacheBuilder as CacheBuilder<ID, T>)
         }
@@ -121,7 +125,10 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
         fun <T : Cloneable<T>, ID : Any> of(
             entityOperations: R2dbcEntityOperations,
             clazz: KClass<T>,
-            cacheBuilder: CacheBuilder<Any, Any>,
+            cacheBuilder: CacheBuilder<Any, Any> = CacheBuilder.newBuilder()
+                .softValues()
+                .expireAfterAccess(Duration.ofMinutes(30))
+                .maximumSize(10_000),
             scheduler: Scheduler = Schedulers.boundedElastic()
         ): CachedR2DBCRepository<T, ID> {
             return CachedR2DBCRepository(
