@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 open class Finder<T : Cloneable<T>, ID : Any>(
     private val repository: Repository<T, ID>,
-    private val cachedRepository: Repository<T, ID> = CachedRepository(repository)
+    private val cachedRepository: Repository<T, ID>
 ) {
     suspend fun findById(id: ID, cache: Boolean = false): T? {
         if (cache) {

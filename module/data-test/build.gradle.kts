@@ -4,9 +4,6 @@ dependencies {
     implementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
     runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 
-    implementation(project(":dependency:async"))
-    implementation(project(":dependency:r2dbc"))
-
     api(project(":dependency:async-test"))
 
     implementation(project(":module:data"))

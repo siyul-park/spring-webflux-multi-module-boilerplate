@@ -1,5 +1,5 @@
 dependencies {
-    implementation(project(":dependency:jackson"))
+    api(project(":dependency:jackson"))
 
     implementation(project(":dependency:async"))
     testImplementation(project(":dependency:async-test"))
