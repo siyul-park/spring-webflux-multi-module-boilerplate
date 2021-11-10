@@ -2,13 +2,12 @@ package io.github.siyual_park.search.finder
 
 import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.repository.Repository
-import io.github.siyual_park.data.repository.cache.CachedRepository
 import io.github.siyual_park.data.repository.findByIdOrFail
 import kotlinx.coroutines.flow.Flow
 
 open class Finder<T : Cloneable<T>, ID : Any>(
     private val repository: Repository<T, ID>,
-    private val cachedRepository: Repository<T, ID> = CachedRepository(repository)
+    private val cachedRepository: Repository<T, ID>
 ) {
     suspend fun findById(id: ID, cache: Boolean = false): T? {
         if (cache) {

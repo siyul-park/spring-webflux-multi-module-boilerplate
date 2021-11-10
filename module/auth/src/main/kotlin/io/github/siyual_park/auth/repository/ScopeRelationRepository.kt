@@ -3,6 +3,7 @@ package io.github.siyual_park.auth.repository
 import io.github.siyual_park.auth.entity.ScopeRelation
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -13,9 +14,8 @@ import org.springframework.stereotype.Repository
 @Repository
 class ScopeRelationRepository(
     entityOperations: R2dbcEntityOperations
-) : R2DBCRepository<ScopeRelation, Long>(
-    entityOperations,
-    ScopeRelation::class,
+) : R2DBCRepository<ScopeRelation, Long> by CachedR2DBCRepository.of(
+    entityOperations, ScopeRelation::class
 ) {
     suspend fun findByOrFail(parent: ScopeToken, child: ScopeToken): ScopeRelation {
         return findBy(parent, child) ?: throw EmptyResultDataAccessException(1)

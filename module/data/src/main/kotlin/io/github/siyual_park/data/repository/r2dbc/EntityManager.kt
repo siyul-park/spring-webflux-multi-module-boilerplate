@@ -10,7 +10,7 @@ import kotlin.reflect.KClass
 
 class EntityManager<T : Cloneable<T>, ID : Any>(
     entityOperations: R2dbcEntityOperations,
-    clazz: KClass<T>,
+    val clazz: KClass<T>,
 ) {
     private val databaseClient = entityOperations.databaseClient
     private val dataAccessStrategy = entityOperations.dataAccessStrategy

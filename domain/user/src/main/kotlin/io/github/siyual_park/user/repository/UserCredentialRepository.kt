@@ -2,6 +2,7 @@ package io.github.siyual_park.user.repository
 
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserCredential
 import org.springframework.dao.EmptyResultDataAccessException
@@ -11,9 +12,9 @@ import org.springframework.stereotype.Repository
 @Repository
 class UserCredentialRepository(
     entityOperations: R2dbcEntityOperations
-) : R2DBCRepository<UserCredential, Long>(
+) : R2DBCRepository<UserCredential, Long> by SimpleR2DBCRepository(
     entityOperations,
-    UserCredential::class,
+    UserCredential::class
 ) {
     suspend fun findByUserOrFail(user: User): UserCredential {
         return findByUser(user) ?: throw EmptyResultDataAccessException(1)

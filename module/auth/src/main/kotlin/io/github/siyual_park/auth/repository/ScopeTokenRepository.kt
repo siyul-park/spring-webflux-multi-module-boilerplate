@@ -2,6 +2,7 @@ package io.github.siyual_park.auth.repository
 
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Repository
 @Repository
 class ScopeTokenRepository(
     entityOperations: R2dbcEntityOperations
-) : R2DBCRepository<ScopeToken, Long>(
+) : R2DBCRepository<ScopeToken, Long> by CachedR2DBCRepository.of(
     entityOperations,
     ScopeToken::class,
 ) {

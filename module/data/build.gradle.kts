@@ -1,7 +1,9 @@
 dependencies {
-    api(project(":dependency:async"))
     api(project(":dependency:r2dbc"))
-    api(project(":dependency:commons"))
+    api(project(":dependency:guava"))
+    api(project(":dependency:async"))
+    implementation(project(":dependency:commons"))
+
     testImplementation(project(":dependency:async-test"))
 
     implementation(project(":module:been"))

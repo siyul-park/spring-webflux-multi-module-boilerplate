@@ -7,6 +7,7 @@ dependencies {
     api(project(":dependency:async-test"))
 
     implementation(project(":module:data"))
+    testImplementation(project(":dependency:guava"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

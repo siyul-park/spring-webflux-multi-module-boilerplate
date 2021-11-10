@@ -3,6 +3,7 @@ package io.github.siyual_park.user.repository
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserScope
 import kotlinx.coroutines.flow.Flow
@@ -13,9 +14,9 @@ import org.springframework.stereotype.Repository
 @Repository
 class UserScopeRepository(
     entityOperations: R2dbcEntityOperations
-) : R2DBCRepository<UserScope, Long>(
+) : R2DBCRepository<UserScope, Long> by SimpleR2DBCRepository(
     entityOperations,
-    UserScope::class,
+    UserScope::class
 ) {
     fun findAllByUser(user: User): Flow<UserScope> {
         return user.id?.let { findAllByUserId(it) } ?: emptyFlow()

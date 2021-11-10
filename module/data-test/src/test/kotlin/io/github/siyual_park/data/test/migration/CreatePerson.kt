@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.test.migration
 
 import io.github.siyual_park.data.migration.Migration
+import io.github.siyual_park.data.migration.createUniqueIndex
 import io.github.siyual_park.data.migration.dropTable
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
@@ -22,6 +23,8 @@ class CreatePerson : Migration {
             .fetch()
             .rowsUpdated()
             .awaitSingle()
+
+        entityOperations.createUniqueIndex(tableName, listOf("name"))
     }
 
     override suspend fun down(entityOperations: R2dbcEntityOperations) {
