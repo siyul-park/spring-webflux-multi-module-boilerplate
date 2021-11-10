@@ -84,7 +84,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
                 ?.also { storage.put(it) }
         }
 
-        val (indexName, value) = getEqIndexNameAndValue(criteria) ?: return fallback()
+        val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
         if (!storage.indexNames.contains(indexName)) {
             return fallback()
         }
@@ -99,10 +99,10 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         }
 
         if (criteria != null && limit == null && offset == null && sort == null) {
-            val eqIndexNameAndValue = getEqIndexNameAndValue(criteria)
+            val indexNameAndValue = getIndexNameAndValue(criteria)
             when {
-                eqIndexNameAndValue != null -> {
-                    val (indexName, value) = eqIndexNameAndValue
+                indexNameAndValue != null -> {
+                    val (indexName, value) = indexNameAndValue
                     return if (!storage.indexNames.contains(indexName)) {
                         fallback()
                     } else {
@@ -155,10 +155,10 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         return fallback()
     }
 
-    private fun getEqIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+    private fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
         if (criteria == null) return null
 
-        val columnsAndValues = getEqColumnsAndValues(criteria) ?: return null
+        val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
         val (columns, values) = columnsAndValues
         val sorted = columns.mapIndexed { index, column -> column to values[index] }
             .sortedBy { (column, _) -> column }
@@ -170,7 +170,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         return indexName to value
     }
 
-    private fun getEqColumnsAndValues(criteria: CriteriaDefinition): Pair<MutableList<String>, MutableList<Any?>>? {
+    private fun getSimpleJoinedColumnsAndValues(criteria: CriteriaDefinition): Pair<MutableList<String>, MutableList<Any?>>? {
         val columns = mutableListOf<String>()
         val values = mutableListOf<Any?>()
 
@@ -181,7 +181,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
                 }
 
                 criteria.group.forEach {
-                    val (childColumns, childValues) = getEqColumnsAndValues(it) ?: return null
+                    val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(it) ?: return null
                     columns.addAll(childColumns)
                     values.addAll(childValues)
                 }
@@ -199,7 +199,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
 
         val previous = criteria.previous
         if (previous != null) {
-            val (childColumns, childValues) = getEqColumnsAndValues(previous) ?: return null
+            val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(previous) ?: return null
             columns.addAll(childColumns)
             values.addAll(childValues)
         }
