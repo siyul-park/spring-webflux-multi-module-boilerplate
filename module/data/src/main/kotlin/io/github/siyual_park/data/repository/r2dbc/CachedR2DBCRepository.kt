@@ -2,7 +2,7 @@ package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.Cloneable
-import io.github.siyual_park.data.annotation.Unique
+import io.github.siyual_park.data.annotation.Key
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
@@ -52,7 +52,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         val clazz = entityManager.clazz
 
         clazz.memberProperties.forEach {
-            if (it.annotations.any { it is Unique }) {
+            if (it.annotations.any { it is Key }) {
                 storage.createIndex(
                     columnName(it),
                     object : Extractor<T, Any> {
