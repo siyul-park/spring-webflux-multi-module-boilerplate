@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver
 
 @ControllerAdvice
-class PageResponseHandler(
+class OffsetPageResponseHandler(
     serverCodecConfigurer: ServerCodecConfigurer,
     resolver: RequestedContentTypeResolver,
     presenter: OffsetPagePresenter
