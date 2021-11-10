@@ -1,8 +1,8 @@
 package io.github.siyual_park.user.domain.auth
 
-import io.github.siyual_park.auth.domain.authenticator.AuthenticateMapping
-import io.github.siyual_park.auth.domain.authenticator.AuthorizationPayload
-import io.github.siyual_park.auth.domain.authenticator.AuthorizationProcessor
+import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
+import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
+import io.github.siyual_park.auth.domain.authentication.AuthorizationProcessor
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.util.Base64

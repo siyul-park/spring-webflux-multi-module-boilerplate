@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.spring
 
-import io.github.siyual_park.auth.domain.authenticator.Authenticator
-import io.github.siyual_park.auth.domain.authenticator.AuthorizationPayload
+import io.github.siyual_park.auth.domain.authentication.Authenticator
+import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import kotlinx.coroutines.reactor.mono
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.core.Authentication

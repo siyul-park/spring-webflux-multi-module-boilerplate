@@ -1,7 +1,7 @@
 package io.github.siyual_park.user.domain.auth
 
-import io.github.siyual_park.auth.domain.authenticator.AuthenticateMapping
-import io.github.siyual_park.auth.domain.authenticator.AuthenticateProcessor
+import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
+import io.github.siyual_park.auth.domain.authentication.AuthenticateProcessor
 import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.user.domain.UserFinder
 import io.github.siyual_park.user.exception.PasswordIncorrectException

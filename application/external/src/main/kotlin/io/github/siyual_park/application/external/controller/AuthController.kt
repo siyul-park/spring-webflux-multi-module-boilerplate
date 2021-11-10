@@ -3,8 +3,8 @@ package io.github.siyual_park.application.external.controller
 import io.github.siyual_park.application.external.dto.GrantType
 import io.github.siyual_park.application.external.dto.request.CreateTokenRequest
 import io.github.siyual_park.application.external.dto.response.TokenInfo
-import io.github.siyual_park.auth.domain.authenticator.Authenticator
-import io.github.siyual_park.auth.domain.authenticator.AuthorizationPayload
+import io.github.siyual_park.auth.domain.authentication.Authenticator
+import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.token.TokenIssuer
 import io.github.siyual_park.json.bind.RequestForm

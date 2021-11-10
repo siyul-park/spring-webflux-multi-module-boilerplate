@@ -1,9 +1,9 @@
 package io.github.siyual_park.auth.configuration
 
-import io.github.siyual_park.auth.domain.authenticator.AuthenticateFilterFactory
-import io.github.siyual_park.auth.domain.authenticator.AuthenticateMapping
-import io.github.siyual_park.auth.domain.authenticator.AuthenticateProcessor
-import io.github.siyual_park.auth.domain.authenticator.Authenticator
+import io.github.siyual_park.auth.domain.authentication.AuthenticateFilterFactory
+import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
+import io.github.siyual_park.auth.domain.authentication.AuthenticateProcessor
+import io.github.siyual_park.auth.domain.authentication.Authenticator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Configuration

@@ -1,4 +1,4 @@
-package io.github.siyual_park.auth.domain.authenticator
+package io.github.siyual_park.auth.domain.authentication
 
 class MatchTypeAuthenticateFilter<T>(
     private val clazz: Class<T>

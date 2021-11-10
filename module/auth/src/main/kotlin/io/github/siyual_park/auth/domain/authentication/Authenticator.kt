@@ -1,4 +1,4 @@
-package io.github.siyual_park.auth.domain.authenticator
+package io.github.siyual_park.auth.domain.authentication
 
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.exception.UnsupportedAuthorizationTypeException
