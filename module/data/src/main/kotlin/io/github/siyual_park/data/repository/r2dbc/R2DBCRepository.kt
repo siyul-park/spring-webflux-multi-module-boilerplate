@@ -1,5 +1,6 @@
 package io.github.siyual_park.data.repository.r2dbc
 
+import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.Repository
@@ -8,7 +9,9 @@ import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.CriteriaDefinition
 
-interface R2DBCRepository<T : Any, ID : Any> : Repository<T, ID> {
+interface R2DBCRepository<T : Cloneable<T>, ID : Any> : Repository<T, ID> {
+    val entityManager: EntityManager<T, ID>
+
     suspend fun exists(criteria: CriteriaDefinition): Boolean
 
     suspend fun findOne(criteria: CriteriaDefinition): T?
@@ -20,15 +23,15 @@ interface R2DBCRepository<T : Any, ID : Any> : Repository<T, ID> {
         sort: Sort? = null
     ): Flow<T>
 
-    fun updateAllById(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T>
+    fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T>
 
-    fun updateAllById(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T>
+    fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T>
 
     suspend fun count(criteria: CriteriaDefinition? = null): Long
 
     suspend fun deleteAll(criteria: CriteriaDefinition? = null)
 }
 
-suspend fun <T : Any, ID : Any> R2DBCRepository<T, ID>.findOneOrFail(criteria: CriteriaDefinition): T {
+suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.findOneOrFail(criteria: CriteriaDefinition): T {
     return findOne(criteria) ?: throw EmptyResultDataAccessException(1)
 }

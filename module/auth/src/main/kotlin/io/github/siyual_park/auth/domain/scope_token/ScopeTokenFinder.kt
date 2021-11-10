@@ -3,8 +3,6 @@ package io.github.siyual_park.auth.domain.scope_token
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.data.repository.cache.CacheIndex
-import io.github.siyual_park.data.repository.cache.CacheLoader
 import io.github.siyual_park.search.finder.R2dbcFinder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow

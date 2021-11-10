@@ -1,7 +1,6 @@
 package io.github.siyual_park.search.finder
 
 import io.github.siyual_park.data.Cloneable
-import io.github.siyual_park.data.repository.cache.CachedRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.domain.Sort

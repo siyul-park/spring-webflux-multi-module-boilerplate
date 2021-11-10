@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.migration
 
 import io.github.siyual_park.data.expansion.columnName
-import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
@@ -14,7 +14,7 @@ class MigrationManager(
 ) {
     private val logger = LoggerFactory.getLogger(MigrationManager::class.java)
 
-    private val migrationCheckpointRepository = R2DBCRepository<MigrationCheckpoint, Long>(
+    private val migrationCheckpointRepository = SimpleR2DBCRepository<MigrationCheckpoint, Long>(
         entityOperations,
         MigrationCheckpoint::class,
     )

@@ -1,5 +1,5 @@
 dependencies {
-    api(project(":dependency:swagger"))
+    implementation(project(":dependency:swagger"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

@@ -2,7 +2,6 @@ package io.github.siyual_park.search.finder
 
 import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.repository.Repository
-import io.github.siyual_park.data.repository.cache.CachedRepository
 import io.github.siyual_park.data.repository.findByIdOrFail
 import kotlinx.coroutines.flow.Flow
 

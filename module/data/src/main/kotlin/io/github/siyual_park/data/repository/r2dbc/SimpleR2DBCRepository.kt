@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.repository.r2dbc
 
-import io.github.siyual_park.been.Open
 import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.annotation.GeneratedValue
 import io.github.siyual_park.data.patch.AsyncPatch
@@ -31,7 +30,6 @@ import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 
-@Open
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
 class SimpleR2DBCRepository<T : Cloneable<T>, ID : Any>(
     private val entityOperations: R2dbcEntityOperations,
@@ -40,7 +38,7 @@ class SimpleR2DBCRepository<T : Cloneable<T>, ID : Any>(
 ) : R2DBCRepository<T, ID> {
     private val generatedValueColumn: Set<SqlIdentifier>
 
-    val entityManager = EntityManager<T, ID>(entityOperations, clazz)
+    override val entityManager = EntityManager<T, ID>(entityOperations, clazz)
 
     init {
         generatedValueColumn = getAnnotatedSqlIdentifier(GeneratedValue::class)
@@ -208,11 +206,11 @@ class SimpleR2DBCRepository<T : Cloneable<T>, ID : Any>(
         return findById(entityManager.getId(originOutboundRow))
     }
 
-    override fun updateAllById(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return updateAllById(criteria, patch.async())
+    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
+        return updateAll(criteria, patch.async())
     }
 
-    override fun updateAllById(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
+    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
         return findAll(criteria)
             .map { update(it, patch) }
             .filterNotNull()
@@ -230,7 +228,7 @@ class SimpleR2DBCRepository<T : Cloneable<T>, ID : Any>(
             val originValue = originOutboundRow[it]
             val patchedValue = patchedOutboundRow[it]
 
-            if (!generatedValueColumn.contains(it) && originValue?.value != patchedValue?.value) {
+            if (!generatedValueColumn.contains(it) && originValue.value != patchedValue.value) {
                 diff[it] = patchedValue
             }
         }
