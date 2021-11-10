@@ -1,43 +1,16 @@
 package io.github.siyual_park.search.finder
 
-import io.github.siyual_park.data.Cloneable
-import io.github.siyual_park.data.repository.Repository
-import io.github.siyual_park.data.repository.findByIdOrFail
 import kotlinx.coroutines.flow.Flow
+import org.springframework.dao.EmptyResultDataAccessException
 
-open class Finder<T : Cloneable<T>, ID : Any>(
-    private val repository: Repository<T, ID>,
-    private val cachedRepository: Repository<T, ID>
-) {
-    suspend fun findById(id: ID, cache: Boolean = false): T? {
-        if (cache) {
-            return cachedRepository.findById(id)
-        }
+interface Finder<T : Any, ID : Any> {
+    suspend fun findById(id: ID): T?
 
-        return repository.findById(id)
-    }
+    fun findAll(): Flow<T>
 
-    suspend fun findByIdOrFail(id: ID, cache: Boolean = false): T {
-        if (cache) {
-            return cachedRepository.findByIdOrFail(id)
-        }
+    fun findAllById(ids: Iterable<ID>): Flow<T>
+}
 
-        return repository.findByIdOrFail(id)
-    }
-
-    fun findAll(cache: Boolean = false): Flow<T> {
-        if (cache) {
-            return cachedRepository.findAll()
-        }
-
-        return repository.findAll()
-    }
-
-    fun findAllById(ids: Iterable<ID>, cache: Boolean = false): Flow<T> {
-        if (cache) {
-            return cachedRepository.findAllById(ids)
-        }
-
-        return repository.findAllById(ids)
-    }
+suspend fun <T : Any, ID : Any> Finder<T, ID>.findByIdOrFail(id: ID): T {
+    return findById(id) ?: throw EmptyResultDataAccessException(1)
 }

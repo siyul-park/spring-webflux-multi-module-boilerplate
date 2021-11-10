@@ -19,8 +19,8 @@ class TokenIssuer(
     private val refreshTokenAge: Duration = Duration.ofDays(30)
 ) {
     suspend fun issue(principal: Principal): TokenContainer {
-        val accessTokenCreateScope = scopeTokenFinder.findByNameOrFail("access-token:create", cache = true)
-        val refreshTokenCreateScope = scopeTokenFinder.findByNameOrFail("refresh-token:create", cache = true)
+        val accessTokenCreateScope = scopeTokenFinder.findByNameOrFail("access-token:create")
+        val refreshTokenCreateScope = scopeTokenFinder.findByNameOrFail("refresh-token:create")
 
         if (!principal.hasScope(accessTokenCreateScope)) {
             throw RequiredPermissionException()

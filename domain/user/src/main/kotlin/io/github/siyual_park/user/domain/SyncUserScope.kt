@@ -4,6 +4,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeRelation
 import io.github.siyual_park.data.callback.AfterSaveCallback
 import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.search.finder.findByIdOrFail
 import io.github.siyual_park.search.pagination.OffsetPaginatorAdapter
 import io.github.siyual_park.search.pagination.forEach
 import io.github.siyual_park.user.entity.User
@@ -26,7 +27,7 @@ class SyncUserScope(
     )
 
     override suspend fun onAfterSave(entity: ScopeRelation) {
-        val parent = scopeTokenFinder.findByIdOrFail(entity.parentId, cache = true)
+        val parent = scopeTokenFinder.findByIdOrFail(entity.parentId)
         if (parent.name != "user") {
             return
         }
