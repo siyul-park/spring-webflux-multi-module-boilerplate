@@ -10,28 +10,28 @@ class Storage<T : Any, ID : Any>(
     cacheBuilder: CacheBuilder<ID, T>,
     private val idExtractor: Extractor<T, ID>
 ) {
-    private val indeies = mutableMapOf<String, MutableMap<*, ID>>()
+    private val indexes = mutableMapOf<String, MutableMap<*, ID>>()
     private val extractors = mutableMapOf<String, Extractor<T, *>>()
 
     val indexNames: Set<String>
-        get() = indeies.keys
+        get() = indexes.keys
 
     private val cache: Cache<ID, T> = cacheBuilder
         .removalListener<ID, T> {
             val entity: T = it.value
-            indeies.forEach { (name, index) ->
+            indexes.forEach { (name, index) ->
                 val extractor = extractors[name] ?: return@forEach
                 index.remove(extractor.getKey(entity))
             }
         }.build()
 
     fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
-        indeies[name] = ConcurrentHashMap<KEY, ID>()
+        indexes[name] = ConcurrentHashMap<KEY, ID>()
         extractors[name] = extractor
     }
 
     fun <KEY : Any> removeIndex(name: String) {
-        indeies.remove(name)
+        indexes.remove(name)
         extractors.remove(name)
     }
 
@@ -40,14 +40,14 @@ class Storage<T : Any, ID : Any>(
     }
 
     fun <KEY : Any> getIfPresent(key: KEY, index: String): T? {
-        val indexMap = indeies[index] ?: return null
+        val indexMap = indexes[index] ?: return null
         val id = indexMap[key] ?: return null
 
         return getIfPresent(id)
     }
 
     suspend fun <KEY : Any> getIfPresentAsync(key: KEY, index: String, loader: suspend () -> T?): T? {
-        val indexMap = indeies[index] ?: throw RuntimeException("Can't find index.")
+        val indexMap = indexes[index] ?: throw RuntimeException("Can't find index.")
         val id = indexMap[key]
 
         return if (id == null) {
@@ -63,7 +63,7 @@ class Storage<T : Any, ID : Any>(
     }
 
     fun <KEY : Any> getIfPresent(key: KEY, index: String, loader: () -> T?): T? {
-        val indexMap = indeies[index] ?: throw RuntimeException("Can't find index.")
+        val indexMap = indexes[index] ?: throw RuntimeException("Can't find index.")
         val id = indexMap[key]
 
         return if (id == null) {
@@ -97,7 +97,7 @@ class Storage<T : Any, ID : Any>(
     }
 
     fun <KEY : Any> removeBy(key: KEY, index: String) {
-        val indexMap = indeies[index] ?: return
+        val indexMap = indexes[index] ?: return
         val id = indexMap[key] ?: return
 
         removeBy(id)
@@ -111,7 +111,7 @@ class Storage<T : Any, ID : Any>(
         val id = idExtractor.getKey(entity) ?: return
         cache.put(id, entity)
 
-        indeies.forEach { (name, index) ->
+        indexes.forEach { (name, index) ->
             val extractor = extractors[name] ?: return@forEach
             val key = extractor.getKey(entity) ?: return@forEach
 
@@ -124,6 +124,6 @@ class Storage<T : Any, ID : Any>(
 
     fun clear() {
         cache.cleanUp()
-        indeies.forEach { (_, index) -> index.clear() }
+        indexes.forEach { (_, index) -> index.clear() }
     }
 }
