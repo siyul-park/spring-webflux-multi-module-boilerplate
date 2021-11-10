@@ -60,9 +60,9 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
                 .add(it)
         }
 
-        indexes.forEach { (name, properties) ->
+        indexes.forEach { (_, properties) ->
             storage.createIndex(
-                name,
+                properties.map { columnName(it) }.joinToString(" "),
                 object : Extractor<T, Any> {
                     override fun getKey(entity: T): Any {
                         val key = ArrayList<Any?>()
