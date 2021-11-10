@@ -70,7 +70,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        if (isCriteriaCanCached(criteria) && criteria.comparator == CriteriaDefinition.Comparator.EQ) {
+        if (isSingleCriteria(criteria) && criteria.comparator == CriteriaDefinition.Comparator.EQ) {
             val column = criteria.column
             val value = criteria.value
 
@@ -88,7 +88,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
-        if (isCriteriaCanCached(criteria) && limit == null && offset == null && sort == null) {
+        if (isSingleCriteria(criteria) && limit == null && offset == null && sort == null) {
             val column = criteria?.column
             val value = criteria?.value
 
@@ -140,7 +140,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
             .onEach { storage.put(it) }
     }
 
-    private fun isCriteriaCanCached(criteria: CriteriaDefinition?): Boolean {
+    private fun isSingleCriteria(criteria: CriteriaDefinition?): Boolean {
         return criteria != null && !criteria.hasPrevious() && !criteria.isGroup
     }
 
