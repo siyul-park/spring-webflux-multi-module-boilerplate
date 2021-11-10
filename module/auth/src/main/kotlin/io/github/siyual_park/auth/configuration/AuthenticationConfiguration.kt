@@ -9,11 +9,11 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class AuthenticatorConfiguration(
+class AuthenticationConfiguration(
     private val applicationContext: ApplicationContext
 ) {
     @Autowired(required = true)
-    fun configAuthenticatorManager(authenticator: Authenticator, filterFactory: AuthenticateFilterFactory) {
+    fun configAuthenticator(authenticator: Authenticator, filterFactory: AuthenticateFilterFactory) {
         applicationContext.getBeansOfType(AuthenticateProcessor::class.java).values.forEach {
             it.javaClass.annotations.filter { it is AuthenticateMapping }
                 .forEach { annotation ->

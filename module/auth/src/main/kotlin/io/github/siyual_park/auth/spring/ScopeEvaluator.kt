@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.spring
 
 import io.github.siyual_park.auth.domain.Principal
-import io.github.siyual_park.auth.domain.scope_token.ScopeEvaluator
+import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
 import kotlinx.coroutines.flow.toSet
@@ -14,7 +14,7 @@ import java.io.Serializable
 @Component
 class ScopeEvaluator(
     private val scopeTokenFinder: ScopeTokenFinder,
-    private val scopeEvaluator: ScopeEvaluator,
+    private val authorizator: Authorizator,
 ) : PermissionEvaluator {
     override fun hasPermission(authentication: Authentication, targetDomainObject: Any?, permission: Any): Boolean {
         return runBlocking {
@@ -27,7 +27,7 @@ class ScopeEvaluator(
                 val scope = getScope(permission) ?: return@runBlocking false
                 val adjustedTargetDomainObject = adjustTargetDomainObject(targetDomainObject)
 
-                return@runBlocking scopeEvaluator.evaluate(principal, adjustedTargetDomainObject, scope)
+                return@runBlocking authorizator.authorize(principal, scope, adjustedTargetDomainObject)
             } catch (e: Exception) {
                 return@runBlocking false
             }

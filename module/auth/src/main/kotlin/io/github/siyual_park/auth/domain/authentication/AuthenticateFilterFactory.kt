@@ -17,7 +17,7 @@ class AuthenticateFilterFactory(
         return if (filterBeen is AuthenticateFilter) {
             filterBeen
         } else {
-            MatchTypeAuthenticateFilter(mapping.filterBy.java)
+            TypeMatchAuthenticateFilter(mapping.filterBy.java)
         }
     }
 }
