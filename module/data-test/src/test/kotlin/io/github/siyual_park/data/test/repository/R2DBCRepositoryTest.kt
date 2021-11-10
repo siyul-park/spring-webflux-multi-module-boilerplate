@@ -128,6 +128,38 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
     @ParameterizedTest
     @MethodSource("personRepositories")
+    fun findAllByNameIs(personRepository: R2DBCRepository<Person, Long>) = blocking {
+        val person = personFactory.create()
+            .let { personRepository.create(it) }
+        val foundPersons = personRepository.findAll(where(Person::name).`is`(person.name)).toList()
+
+        assertEquals(foundPersons.size, 1)
+        assertEquals(person.id, foundPersons[0].id)
+        assertEquals(person.createdAt, foundPersons[0].createdAt)
+        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
+
+        assertEquals(person.name, foundPersons[0].name)
+        assertEquals(person.age, foundPersons[0].age)
+    }
+
+    @ParameterizedTest
+    @MethodSource("personRepositories")
+    fun findAllByNameIn(personRepository: R2DBCRepository<Person, Long>) = blocking {
+        val person = personFactory.create()
+            .let { personRepository.create(it) }
+        val foundPersons = personRepository.findAll(where(Person::name).`in`(person.name)).toList()
+
+        assertEquals(foundPersons.size, 1)
+        assertEquals(person.id, foundPersons[0].id)
+        assertEquals(person.createdAt, foundPersons[0].createdAt)
+        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
+
+        assertEquals(person.name, foundPersons[0].name)
+        assertEquals(person.age, foundPersons[0].age)
+    }
+
+    @ParameterizedTest
+    @MethodSource("personRepositories")
     fun findOneByName(personRepository: R2DBCRepository<Person, Long>) = blocking {
         val person = personFactory.create()
             .let { personRepository.create(it) }

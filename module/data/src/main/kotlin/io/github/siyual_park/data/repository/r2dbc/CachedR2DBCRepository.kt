@@ -11,14 +11,20 @@ import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import io.github.siyual_park.data.repository.cache.Storage
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
+import org.springframework.data.relational.core.query.Criteria
 import org.springframework.data.relational.core.query.CriteriaDefinition
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import java.time.Duration
+import java.util.TreeMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
@@ -64,17 +70,17 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        if (!criteria.hasPrevious() && !criteria.isGroup && criteria.comparator == CriteriaDefinition.Comparator.EQ) {
+        if (isCriteriaCanCached(criteria) && criteria.comparator == CriteriaDefinition.Comparator.EQ) {
             val column = criteria.column
             val value = criteria.value
 
-            val index = column?.reference
-            if (value == null || index == null) {
+            val indexName = column?.reference
+            if (value == null || indexName == null || !storage.indexNames.contains(indexName)) {
                 return repository.findOne(criteria)
                     ?.also { storage.put(it) }
             }
 
-            return storage.getIfPresentAsync(value, index) { repository.findOne(criteria) }
+            return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
         }
 
         return repository.findOne(criteria)
@@ -82,8 +88,60 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
-        return repository.findAll(criteria)
+        if (isCriteriaCanCached(criteria) && limit == null && offset == null && sort == null) {
+            val column = criteria?.column
+            val value = criteria?.value
+
+            val indexName = column?.reference
+            if (value == null || indexName == null || !storage.indexNames.contains(indexName)) {
+                return repository.findAll(criteria, limit, offset, sort)
+                    .onEach { storage.put(it) }
+            }
+
+            return when (criteria.comparator) {
+                CriteriaDefinition.Comparator.EQ -> flow {
+                    storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+                        ?.let { emit(it) }
+                }
+
+                CriteriaDefinition.Comparator.IN -> {
+                    if (value !is Collection<*>) {
+                        repository.findAll(criteria)
+                            .onEach { storage.put(it) }
+                    } else flow {
+                        val result = TreeMap<Int, T>()
+
+                        val notCachedKey = mutableListOf<Pair<Int, *>>()
+                        value.forEachIndexed { index, key ->
+                            val cached = key?.let { storage.getIfPresent(it, indexName) }
+                            if (cached == null) {
+                                notCachedKey.add(index to key)
+                            } else {
+                                result[index] = cached
+                            }
+                        }
+
+                        repository.findAll(Criteria.where(indexName).`in`(notCachedKey.map { it.second })).toList()
+                            .forEachIndexed { index, entity ->
+                                val (originIndex, _) = notCachedKey[index]
+                                storage.put(entity)
+                                result[originIndex] = entity
+                            }
+
+                        emitAll(result.values.asFlow())
+                    }
+                }
+                else -> repository.findAll(criteria, limit, offset, sort)
+                    .onEach { storage.put(it) }
+            }
+        }
+
+        return repository.findAll(criteria, limit, offset, sort)
             .onEach { storage.put(it) }
+    }
+
+    private fun isCriteriaCanCached(criteria: CriteriaDefinition?): Boolean {
+        return criteria != null && !criteria.hasPrevious() && !criteria.isGroup
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {

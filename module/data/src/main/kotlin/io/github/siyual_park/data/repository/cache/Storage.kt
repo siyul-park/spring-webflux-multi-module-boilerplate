@@ -13,7 +13,7 @@ class Storage<T : Any, ID : Any>(
     private val indeies = mutableMapOf<String, MutableMap<*, ID>>()
     private val extractors = mutableMapOf<String, Extractor<T, *>>()
 
-    val indexNames: Collection<String>
+    val indexNames: Set<String>
         get() = indeies.keys
 
     private val cache: Cache<ID, T> = cacheBuilder
