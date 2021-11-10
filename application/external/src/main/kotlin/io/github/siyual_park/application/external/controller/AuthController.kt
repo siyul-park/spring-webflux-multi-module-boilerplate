@@ -33,12 +33,12 @@ class AuthController(
     @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
-        val payload = when (request.grantType) {
-            GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!)
-            GrantType.REFRESH_TOKEN -> AuthorizationPayload("bearer", request.refreshToken!!)
-        }
-
-        var principal = authenticator.authenticate(payload)
+        var principal = authenticator.authenticate(
+            when (request.grantType) {
+                GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!)
+                GrantType.REFRESH_TOKEN -> AuthorizationPayload("bearer", request.refreshToken!!)
+            }
+        )
         if (request.grantType == GrantType.REFRESH_TOKEN) {
             principal = principalRefresher.refresh(principal)
         }
