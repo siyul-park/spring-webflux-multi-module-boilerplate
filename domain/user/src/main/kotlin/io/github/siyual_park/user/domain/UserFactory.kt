@@ -57,7 +57,7 @@ class UserFactory(
     }
 
     private suspend fun createDefaultUserScopes(user: User): Flow<UserScope> {
-        val userScope = scopeTokenFinder.findAllByParent("user", cache = true)
+        val userScope = scopeTokenFinder.findAllByParent("user")
         return userScopeRepository.createAll(
             userScope.map {
                 UserScope(

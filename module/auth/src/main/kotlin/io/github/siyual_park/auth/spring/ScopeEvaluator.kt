@@ -46,10 +46,10 @@ class ScopeEvaluator(
     private suspend fun getScope(permission: Any): Set<ScopeToken>? {
         return when (permission) {
             is String -> {
-                setOf(scopeTokenFinder.findByNameOrFail(permission, cache = true))
+                setOf(scopeTokenFinder.findByNameOrFail(permission))
             }
             is Collection<*> -> {
-                scopeTokenFinder.findAllByName(permission.map { it.toString() }, cache = true).toSet()
+                scopeTokenFinder.findAllByName(permission.map { it.toString() }).toSet()
             }
             else -> {
                 null

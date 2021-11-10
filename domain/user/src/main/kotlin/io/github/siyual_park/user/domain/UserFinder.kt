@@ -1,6 +1,7 @@
 package io.github.siyual_park.user.domain
 
-import io.github.siyual_park.search.finder.R2dbcFinder
+import io.github.siyual_park.search.finder.Finder
+import io.github.siyual_park.search.finder.FinderAdapter
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.repository.UserRepository
 import org.springframework.stereotype.Component
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class UserFinder(
     private val userRepository: UserRepository
-) : R2dbcFinder<User, Long>(userRepository) {
+) : Finder<User, Long> by FinderAdapter(userRepository) {
     suspend fun findByNameOrFail(name: String): User {
         return userRepository.findByNameOrFail(name)
     }

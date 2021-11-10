@@ -41,7 +41,6 @@ class TokenDecoder(
     private fun decodeScope(scope: String): Flow<ScopeToken> {
         return scopeTokenFinder.findAllById(
             scope.split(" ").mapNotNull { it.toLongOrNull() },
-            cache = true
         )
     }
 }

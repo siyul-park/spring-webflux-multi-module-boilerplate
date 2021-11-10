@@ -29,7 +29,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
 @Suppress("UNCHECKED_CAST")
-class CachedR2DBCRepository<T : Cloneable<T>, ID : Any> private constructor(
+class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
     private val repository: R2DBCRepository<T, ID>,
     cacheBuilder: CacheBuilder<ID, T>,
 ) : R2DBCRepository<T, ID>,
