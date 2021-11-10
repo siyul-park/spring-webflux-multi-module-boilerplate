@@ -23,21 +23,15 @@ import org.junit.jupiter.params.provider.MethodSource
 
 @TestInstance(PER_CLASS)
 class R2DBCRepositoryTest : R2DBCTest() {
-    private val personRepository = SimpleR2DBCRepository<Person, Long>(
-        entityOperations,
-        Person::class
-    )
-    private val cachedPersonRepository = CachedR2DBCRepository.of(personRepository)
-
     private val personFactory = PersonFactory()
 
     init {
         migrationManager.register(CreatePerson())
     }
 
-    fun personRepositories() = listOf(
-        personRepository,
-        cachedPersonRepository
+    fun personRepositories(): List<R2DBCRepository<Person, Long>> = listOf(
+        SimpleR2DBCRepository(entityOperations, Person::class),
+        CachedR2DBCRepository.of(entityOperations, Person::class)
     )
 
     @ParameterizedTest
