@@ -1,20 +1,17 @@
 package io.github.siyual_park.event
 
 import org.springframework.stereotype.Component
-import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 @Component
-class EventEmitter {
-    private val listeners = mutableMapOf<KClass<out Event>, MutableList<EventListener<out Event>>>()
+class EventEmitter : EventPublisher {
+    private val eventMultiplexer = EventMultiplexer<Any>()
 
-    suspend fun <E : Event> emit(event: E) {
-        listeners[event::class]
-            ?.filterIsInstance<EventListener<E>>()
-            ?.forEach { it.onEvent(event) }
+    fun on(filter: EventFilter, consumer: EventConsumer<*>) {
+        eventMultiplexer.on(filter, consumer as EventConsumer<Any>)
     }
 
-    fun on(type: KClass<out Event>, listener: EventListener<*>) {
-        val eventListeners = listeners.getOrPut(type) { mutableListOf() }
-        eventListeners.add(listener)
+    override suspend fun <E : Any> publish(event: E) {
+        eventMultiplexer.consume(event)
     }
 }

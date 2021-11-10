@@ -6,15 +6,17 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class EventConfiguration(
-    private val applicationContext: ApplicationContext
+    private val applicationContext: ApplicationContext,
+    private val eventFilterFactory: EventFilterFactory
 ) {
     @Autowired(required = true)
     fun configEventEmitter(eventEmitter: EventEmitter) {
-        applicationContext.getBeansOfType(EventListener::class.java).values.forEach {
+        applicationContext.getBeansOfType(EventConsumer::class.java).values.forEach {
             it.javaClass.annotations.filter { it is Subscribe }
                 .forEach { annotation ->
                     if (annotation !is Subscribe) return@forEach
-                    eventEmitter.on(annotation.type, it)
+                    val filter = eventFilterFactory.create(annotation)
+                    eventEmitter.on(filter, it)
                 }
         }
     }
