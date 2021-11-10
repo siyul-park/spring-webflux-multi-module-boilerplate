@@ -19,9 +19,9 @@ class AuthenticationManager(
                 val credentials = authentication.credentials
 
                 val payload = AuthorizationPayload(type as String, credentials as String)
-                val parsedAuthentication = authenticator.authenticate(payload)
+                val principal = authenticator.authenticate(payload)
 
-                AuthenticationAdapter(parsedAuthentication, credentials)
+                AuthenticationAdapter(principal, credentials)
             } catch (exception: Exception) {
                 authentication.isAuthenticated = false
                 authentication
