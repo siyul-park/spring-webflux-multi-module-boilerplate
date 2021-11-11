@@ -27,12 +27,15 @@ class ClientFactory(
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
 ) {
-    suspend fun create(payload: CreateClientPayload, scope: Collection<ScopeToken> = emptySet()): Client =
+    suspend fun create(payload: CreateClientPayload, scope: Collection<ScopeToken>? = null): Client =
         operator.executeAndAwait {
             createClient(payload).also {
                 createCredential(it)
-                createDefaultScopes(it).collect()
-                createAdditionalScopes(it, scope)
+                if (scope == null) {
+                    createDefaultScope(it).collect()
+                } else {
+                    createScope(it, scope)
+                }
             }
         }!!.also {
             eventPublisher.publish(AfterSaveEvent(it))
@@ -55,7 +58,7 @@ class ClientFactory(
         )
     }
 
-    private suspend fun createDefaultScopes(client: Client): Flow<ClientScope> {
+    private suspend fun createDefaultScope(client: Client): Flow<ClientScope> {
         val clientScope = scopeTokenFinder.findAllByParent("client")
         return clientScopeRepository.createAll(
             clientScope.map {
@@ -67,7 +70,7 @@ class ClientFactory(
         )
     }
 
-    private fun createAdditionalScopes(client: Client, scope: Collection<ScopeToken>): Flow<ClientScope> {
+    private fun createScope(client: Client, scope: Collection<ScopeToken>): Flow<ClientScope> {
         return clientScopeRepository.createAll(
             scope.filter { it.id != null }
                 .map {

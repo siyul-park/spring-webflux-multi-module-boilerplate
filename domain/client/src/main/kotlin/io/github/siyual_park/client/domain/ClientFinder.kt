@@ -13,4 +13,8 @@ class ClientFinder(
     suspend fun findByNameOrFail(name: String): Client {
         return clientRepository.findByNameOrFail(name)
     }
+
+    suspend fun findByName(name: String): Client? {
+        return clientRepository.findByName(name)
+    }
 }

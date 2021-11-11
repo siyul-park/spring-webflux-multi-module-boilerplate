@@ -29,12 +29,15 @@ class UserFactory(
     private val eventPublisher: EventPublisher,
     private val hashAlgorithm: String = "SHA-256"
 ) {
-    suspend fun create(payload: CreateUserPayload, scope: Collection<ScopeToken> = emptySet()): User =
+    suspend fun create(payload: CreateUserPayload, scope: Collection<ScopeToken>? = null): User =
         operator.executeAndAwait {
             createUser(payload).also {
                 createCredential(it, payload)
-                createDefaultScopes(it).collect()
-                createAdditionalScopes(it, scope)
+                if (scope == null) {
+                    createDefaultScope(it).collect()
+                } else {
+                    createScope(it, scope)
+                }
             }
         }!!.also {
             eventPublisher.publish(AfterSaveEvent(it))
@@ -57,7 +60,7 @@ class UserFactory(
         )
     }
 
-    private suspend fun createDefaultScopes(user: User): Flow<UserScope> {
+    private suspend fun createDefaultScope(user: User): Flow<UserScope> {
         val userScope = scopeTokenFinder.findAllByParent("user")
         return userScopeRepository.createAll(
             userScope.map {
@@ -69,7 +72,7 @@ class UserFactory(
         )
     }
 
-    private fun createAdditionalScopes(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {
+    private fun createScope(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {
         return userScopeRepository.createAll(
             scope.filter { it.id != null }
                 .map {
