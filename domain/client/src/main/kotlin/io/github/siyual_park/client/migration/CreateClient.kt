@@ -1,6 +1,7 @@
 package io.github.siyual_park.client.migration
 
 import io.github.siyual_park.data.migration.Migration
+import io.github.siyual_park.data.migration.createUniqueIndex
 import io.github.siyual_park.data.migration.createUpdatedAtTrigger
 import io.github.siyual_park.data.migration.dropTable
 import io.github.siyual_park.data.migration.fetchSQL
@@ -41,6 +42,8 @@ class CreateClient : Migration {
                     ")"
             )
         }
+
+        entityOperations.createUniqueIndex(tableName, listOf("name"))
     }
 
     override suspend fun down(entityOperations: R2dbcEntityOperations) {
