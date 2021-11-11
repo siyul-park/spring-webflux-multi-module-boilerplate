@@ -3,6 +3,9 @@ dependencies {
 
     implementation(project(":dependency:async"))
     testImplementation(project(":dependency:async-test"))
+
+    implementation(project(":module:data"))
+    testImplementation(project(":module:data-test"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
