@@ -7,7 +7,7 @@ import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.property.RootClientProperty
 import io.github.siyual_park.client.repository.ClientCredentialRepository
-import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.repository.update
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -45,12 +45,9 @@ class RootClientConfiguration(
                     return@executeAndAwait
                 }
 
-                clientCredentialRepository.update(
-                    credential,
-                    Patch.with {
-                        it.secret = property.secret
-                    }
-                )
+                clientCredentialRepository.update(credential) {
+                    it.secret = property.secret
+                }
             }
         }
     }
