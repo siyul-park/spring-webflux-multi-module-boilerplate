@@ -58,12 +58,14 @@ class SimpleCachedRepository<T : Any, ID : Any>(
                 }
             }
 
-            repository.findAllById(notCachedKey.map { it.second }).toList()
-                .forEachIndexed { index, entity ->
-                    val (originIndex, _) = notCachedKey[index]
-                    storage.put(entity)
-                    result[originIndex] = entity
-                }
+            if (notCachedKey.isNotEmpty()) {
+                repository.findAllById(notCachedKey.map { it.second }).toList()
+                    .forEachIndexed { index, entity ->
+                        val (originIndex, _) = notCachedKey[index]
+                        storage.put(entity)
+                        result[originIndex] = entity
+                    }
+            }
 
             emitAll(result.values.asFlow())
         }

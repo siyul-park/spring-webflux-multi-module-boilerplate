@@ -26,6 +26,7 @@ import reactor.core.scheduler.Schedulers
 import java.time.Duration
 import java.util.TreeMap
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
 @Suppress("UNCHECKED_CAST")
@@ -51,17 +52,25 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
     init {
         val clazz = entityManager.clazz
 
+        val indexes = mutableMapOf<String, MutableList<KProperty1<T, *>>>()
+
         clazz.memberProperties.forEach {
-            if (it.annotations.any { it is Key }) {
-                storage.createIndex(
-                    columnName(it),
-                    object : Extractor<T, Any> {
-                        override fun getKey(entity: T): Any? {
-                            return it.get(entity)
-                        }
+            val index = it.annotations.find { it is Key } as? Key ?: return@forEach
+            indexes.getOrPut(index.name.ifEmpty { columnName(it) }) { mutableListOf() }
+                .add(it)
+        }
+
+        indexes.forEach { (_, properties) ->
+            storage.createIndex(
+                properties.map { columnName(it) }.sorted().joinToString(" "),
+                object : Extractor<T, Any> {
+                    override fun getKey(entity: T): Any {
+                        val key = ArrayList<Any?>()
+                        properties.forEach { key.add(it.get(entity)) }
+                        return key
                     }
-                )
-            }
+                }
+            )
         }
     }
 
@@ -70,45 +79,48 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        if (isSingleCriteria(criteria) && criteria.comparator == CriteriaDefinition.Comparator.EQ) {
-            val column = criteria.column
-            val value = criteria.value
+        val fallback = suspend {
+            repository.findOne(criteria)
+                ?.also { storage.put(it) }
+        }
 
-            val indexName = column?.reference
-            if (value == null || indexName == null || !storage.indexNames.contains(indexName)) {
-                return repository.findOne(criteria)
-                    ?.also { storage.put(it) }
-            }
-
+        val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
+        if (storage.indexNames.contains(indexName)) {
             return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
         }
 
-        return repository.findOne(criteria)
-            ?.also { storage.put(it) }
+        return fallback()
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
-        if (isSingleCriteria(criteria) && limit == null && offset == null && sort == null) {
-            val column = criteria?.column
-            val value = criteria?.value
+        val fallback = {
+            repository.findAll(criteria, limit, offset, sort)
+                .onEach { storage.put(it) }
+        }
 
-            val indexName = column?.reference
-            if (value == null || indexName == null || !storage.indexNames.contains(indexName)) {
-                return repository.findAll(criteria, limit, offset, sort)
-                    .onEach { storage.put(it) }
+        if (criteria != null && limit == null && offset == null && sort == null) {
+            val indexNameAndValue = getIndexNameAndValue(criteria)
+            if (indexNameAndValue != null) {
+                val (indexName, value) = indexNameAndValue
+                if (storage.indexNames.contains(indexName)) {
+                    return flow {
+                        storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+                            ?.let { emit(it) }
+                    }
+                }
             }
 
-            return when (criteria.comparator) {
-                CriteriaDefinition.Comparator.EQ -> flow {
-                    storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
-                        ?.let { emit(it) }
-                }
+            if (isSingleCriteria(criteria)) {
+                val column = criteria.column
+                val value = criteria.value ?: return fallback()
+                val indexName = column?.reference ?: return fallback()
 
-                CriteriaDefinition.Comparator.IN -> {
-                    if (value !is Collection<*>) {
-                        repository.findAll(criteria)
-                            .onEach { storage.put(it) }
-                    } else flow {
+                if (
+                    storage.indexNames.contains(indexName) &&
+                    criteria.comparator == CriteriaDefinition.Comparator.IN &&
+                    value is Collection<*>
+                ) {
+                    return flow {
                         val result = TreeMap<Int, T>()
 
                         val notCachedKey = mutableListOf<Pair<Int, *>>()
@@ -121,23 +133,75 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
                             }
                         }
 
-                        repository.findAll(Criteria.where(indexName).`in`(notCachedKey.map { it.second })).toList()
-                            .forEachIndexed { index, entity ->
-                                val (originIndex, _) = notCachedKey[index]
-                                storage.put(entity)
-                                result[originIndex] = entity
-                            }
+                        if (notCachedKey.isNotEmpty()) {
+                            repository.findAll(Criteria.where(indexName).`in`(notCachedKey.map { it.second }))
+                                .toList()
+                                .forEachIndexed { index, entity ->
+                                    val (originIndex, _) = notCachedKey[index]
+                                    storage.put(entity)
+                                    result[originIndex] = entity
+                                }
+                        }
 
                         emitAll(result.values.asFlow())
                     }
                 }
-                else -> repository.findAll(criteria, limit, offset, sort)
-                    .onEach { storage.put(it) }
             }
         }
 
-        return repository.findAll(criteria, limit, offset, sort)
-            .onEach { storage.put(it) }
+        return fallback()
+    }
+
+    private fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+        if (criteria == null) return null
+
+        val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
+        val (columns, values) = columnsAndValues
+        val sorted = columns.mapIndexed { index, column -> column to values[index] }
+            .sortedBy { (column, _) -> column }
+
+        val indexName = sorted.joinToString(" ") { (column, _) -> column }
+        val value = ArrayList<Any?>()
+        sorted.forEach { (_, it) -> value.add(it) }
+
+        return indexName to value
+    }
+
+    private fun getSimpleJoinedColumnsAndValues(criteria: CriteriaDefinition): Pair<MutableList<String>, MutableList<Any?>>? {
+        val columns = mutableListOf<String>()
+        val values = mutableListOf<Any?>()
+
+        when {
+            criteria.isGroup -> {
+                if (criteria.combinator != CriteriaDefinition.Combinator.AND) {
+                    return null
+                }
+
+                criteria.group.forEach {
+                    val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(it) ?: return null
+                    columns.addAll(childColumns)
+                    values.addAll(childValues)
+                }
+            }
+            criteria.comparator === CriteriaDefinition.Comparator.EQ -> {
+                val column = criteria.column
+                val value = criteria.value
+                val indexName = column?.reference ?: return null
+
+                columns.add(indexName)
+                values.add(value)
+            }
+            else -> return null
+        }
+
+        val previous = criteria.previous
+        if (previous != null) {
+            val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(previous) ?: return null
+            columns.addAll(childColumns)
+            values.addAll(childValues)
+        }
+
+        return columns to values
     }
 
     private fun isSingleCriteria(criteria: CriteriaDefinition?): Boolean {
