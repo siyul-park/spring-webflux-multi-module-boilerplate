@@ -21,7 +21,7 @@ class PasswordGrantAuthenticateProcessor(
 ) : AuthenticateProcessor<PasswordGrantPayload, UserPrincipal> {
     override suspend fun authenticate(payload: PasswordGrantPayload): UserPrincipal? {
         val user = userFinder.findByNameOrFail(payload.username)
-        val client = clientFinder.findByIdOrFail(payload.clientId)
+        val client = payload.clientId?.let { clientFinder.findByIdOrFail(it) }
         val userCredential = userCredentialRepository.findByUserOrFail(user)
 
         val messageDigest = MessageDigest.getInstance(userCredential.hashAlgorithm)
