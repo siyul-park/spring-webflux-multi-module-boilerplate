@@ -18,7 +18,7 @@ class CreateClient : Migration {
                     "id SERIAL PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
-                    "token_endpoint_auth_method VARCHAR(64) NOT NULL, " +
+                    "type VARCHAR(64) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
@@ -33,7 +33,7 @@ class CreateClient : Migration {
                     "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
-                    "token_endpoint_auth_method VARCHAR(64) NOT NULL, " +
+                    "type VARCHAR(64) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +
