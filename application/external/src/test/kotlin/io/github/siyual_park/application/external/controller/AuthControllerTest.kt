@@ -2,8 +2,10 @@ package io.github.siyual_park.application.external.controller
 
 import io.github.siyual_park.application.external.dto.GrantType
 import io.github.siyual_park.application.external.dto.request.CreateTokenRequest
+import io.github.siyual_park.application.external.factory.CreateClientPayloadFactory
 import io.github.siyual_park.application.external.factory.CreateUserPayloadFactory
 import io.github.siyual_park.application.external.gateway.AuthControllerGateway
+import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
@@ -19,12 +21,16 @@ import org.springframework.http.HttpStatus
 @IntegrationTest
 class AuthControllerTest @Autowired constructor(
     private val authControllerGateway: AuthControllerGateway,
-    private val userFactory: UserFactory
+    private val userFactory: UserFactory,
+    private val clientFactory: ClientFactory,
 ) : CoroutineTest() {
     private val createUserPayloadFactory = CreateUserPayloadFactory()
+    private val createClientPayloadFactory = CreateClientPayloadFactory()
 
     @Test
     fun testCreateGrantTypePasswordSuccess() = blocking {
+        val client = createClientPayloadFactory.create()
+            .let { clientFactory.create(it) }
         val createUserPayload = createUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
@@ -32,7 +38,8 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.username,
-                password = createUserPayload.password
+                password = createUserPayload.password,
+                clientId = client.id!!
             )
         )
 
@@ -48,6 +55,8 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun testCreateGrantTypePasswordFailByIncorrectPassword() = blocking {
+        val client = createClientPayloadFactory.create()
+            .let { clientFactory.create(it) }
         val createUserPayload = createUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
@@ -57,7 +66,8 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.username,
-                password = otherUserRequest.password
+                password = otherUserRequest.password,
+                clientId = client.id!!
             )
         )
 
@@ -66,6 +76,8 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun testCreateGrantTypePasswordFailByInvalidRequest() = blocking {
+        val client = createClientPayloadFactory.create()
+            .let { clientFactory.create(it) }
         val createUserPayload = createUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
@@ -73,23 +85,27 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.username,
+                clientId = client.id!!
             )
         )
         val case2 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 password = createUserPayload.password,
+                clientId = client.id!!
             )
         )
         val case3 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
+                clientId = client.id!!
             )
         )
         val case4 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
-                refreshToken = "dummy_token"
+                refreshToken = "dummy_token",
+                clientId = client.id!!
             )
         )
 
@@ -101,6 +117,8 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun testCreateGrantTypeRefreshTokenSuccessByUser() = blocking {
+        val client = createClientPayloadFactory.create()
+            .let { clientFactory.create(it) }
         val createUserPayload = createUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
@@ -108,14 +126,16 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.username,
-                password = createUserPayload.password
+                password = createUserPayload.password,
+                clientId = client.id!!
             )
         ).responseBody.awaitSingle()
 
         val response = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
-                refreshToken = tokensByPassword.refreshToken
+                refreshToken = tokensByPassword.refreshToken,
+                clientId = client.id!!
             )
         )
 
@@ -131,13 +151,16 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun testCreateGrantTypeRefreshTokenFailInvalidToken() = blocking {
+        val client = createClientPayloadFactory.create()
+            .let { clientFactory.create(it) }
         val createUserPayload = createUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
         val response = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
-                refreshToken = "invalid_token"
+                refreshToken = "invalid_token",
+                clientId = client.id!!
             )
         )
 
@@ -146,6 +169,8 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun testCreateGrantTypeRefreshTokenFailInvalidRequest() = blocking {
+        val client = createClientPayloadFactory.create()
+            .let { clientFactory.create(it) }
         val createUserPayload = createUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
@@ -153,17 +178,20 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 username = createUserPayload.username,
+                clientId = client.id!!
             )
         )
         val case2 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 password = createUserPayload.password,
+                clientId = client.id!!
             )
         )
         val case3 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
+                clientId = client.id!!
             )
         )
 

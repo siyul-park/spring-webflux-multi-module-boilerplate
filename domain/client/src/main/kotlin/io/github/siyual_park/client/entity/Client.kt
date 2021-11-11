@@ -8,7 +8,7 @@ import java.time.Instant
 
 @Table("clients")
 data class Client(
-    val name: String?,
+    val name: String,
     val type: ClientType,
     @GeneratedValue
     var deletedAt: Instant? = null
