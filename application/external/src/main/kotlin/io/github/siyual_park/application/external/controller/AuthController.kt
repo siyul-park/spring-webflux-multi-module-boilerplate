@@ -5,8 +5,10 @@ import io.github.siyual_park.application.external.dto.request.CreateTokenRequest
 import io.github.siyual_park.application.external.dto.response.TokenInfo
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
+import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.token.TokenIssuer
+import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
 import io.github.siyual_park.json.bind.RequestForm
 import io.github.siyual_park.mapper.MapperManager
@@ -26,6 +28,7 @@ import javax.validation.Valid
 @RequestMapping("")
 class AuthController(
     private val authenticator: Authenticator,
+    private val authorizator: Authorizator,
     private val tokenIssuer: TokenIssuer,
     private val principalRefresher: PrincipalRefresher,
     private val mapperManager: MapperManager
@@ -35,6 +38,11 @@ class AuthController(
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
         authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
+            .also {
+                if (!authorizator.authorize(it, "token:create")) {
+                    throw RequiredPermissionException()
+                }
+            }
 
         var principal = authenticator.authenticate(
             when (request.grantType) {
