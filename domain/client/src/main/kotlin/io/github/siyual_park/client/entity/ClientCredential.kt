@@ -8,7 +8,7 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("client_credentials")
 data class ClientCredential(
     @Key
-    var clientId: Long,
+    val clientId: Long,
     var secret: String,
 ) : TimeableEntity<ClientCredential, Long>() {
     override fun clone(): ClientCredential {

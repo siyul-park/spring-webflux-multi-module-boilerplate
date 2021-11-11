@@ -8,9 +8,9 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("user_scopes")
 data class UserScope(
     @Key("business_keys")
-    var userId: Long,
+    val userId: Long,
     @Key("business_keys")
-    var scopeTokenId: Long,
+    val scopeTokenId: Long,
 ) : TimeableEntity<UserScope, Long>() {
     override fun clone(): UserScope {
         return copyDefaultColumn(this.copy())

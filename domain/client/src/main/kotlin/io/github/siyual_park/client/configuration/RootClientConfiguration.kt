@@ -4,9 +4,9 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientFinder
 import io.github.siyual_park.client.domain.CreateClientPayload
-import io.github.siyual_park.client.entity.ClientCredential
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.repository.ClientCredentialRepository
+import io.github.siyual_park.data.patch.Patch
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -44,12 +44,11 @@ class RootClientConfiguration(
                     return@executeAndAwait
                 }
 
-                clientCredentialRepository.delete(credential)
-                clientCredentialRepository.create(
-                    ClientCredential(
-                        clientId = client.id!!,
-                        secret = property.secret
-                    )
+                clientCredentialRepository.update(
+                    credential,
+                    Patch.with {
+                        it.secret = property.secret
+                    }
                 )
             }
         }
