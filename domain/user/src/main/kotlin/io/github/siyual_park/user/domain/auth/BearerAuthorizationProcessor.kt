@@ -19,6 +19,7 @@ class BearerAuthorizationProcessor(
 
         return UserPrincipal(
             id = claims["uid"].toString(),
+            clientId = claims["cid"]?.toString()?.toLongOrNull(),
             scope = claims.scope.toSet()
         )
     }

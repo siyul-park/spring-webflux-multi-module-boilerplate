@@ -14,10 +14,10 @@ data class User(
     @GeneratedValue
     var deletedAt: Instant? = null
 ) : TimeableEntity<User, Long>(), UserEntity {
+    override val userId: Long?
+        get() = id
+
     override fun clone(): User {
         return copyDefaultColumn(this.copy())
     }
-
-    override val userId: Long?
-        get() = id
 }

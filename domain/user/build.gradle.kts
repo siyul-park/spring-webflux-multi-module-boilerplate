@@ -14,6 +14,8 @@ dependencies {
     implementation(project(":module:auth"))
     implementation(project(":module:event"))
     implementation(project(":module:search"))
+
+    implementation(project(":domain:client"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

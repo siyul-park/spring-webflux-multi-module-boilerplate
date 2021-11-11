@@ -8,7 +8,7 @@ import org.springframework.data.relational.core.mapping.Table
 @Table("user_credentials")
 data class UserCredential(
     @Key
-    var userId: Long,
+    val userId: Long,
     var password: String,
     var hashAlgorithm: String,
 ) : TimeableEntity<UserCredential, Long>() {

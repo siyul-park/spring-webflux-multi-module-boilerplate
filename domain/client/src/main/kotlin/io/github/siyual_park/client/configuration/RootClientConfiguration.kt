@@ -1,0 +1,54 @@
+package io.github.siyual_park.client.configuration
+
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
+import io.github.siyual_park.client.domain.ClientFactory
+import io.github.siyual_park.client.domain.ClientFinder
+import io.github.siyual_park.client.domain.CreateClientPayload
+import io.github.siyual_park.client.entity.ClientType
+import io.github.siyual_park.client.property.RootClientProperty
+import io.github.siyual_park.client.repository.ClientCredentialRepository
+import io.github.siyual_park.data.repository.update
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.event.EventListener
+import org.springframework.core.annotation.Order
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
+
+@Configuration
+class RootClientConfiguration(
+    private val property: RootClientProperty,
+    private val clientFactory: ClientFactory,
+    private val clientFinder: ClientFinder,
+    private val clientCredentialRepository: ClientCredentialRepository,
+    private val scopeTokenFinder: ScopeTokenFinder,
+    private val operator: TransactionalOperator,
+) {
+    @EventListener(ApplicationReadyEvent::class)
+    @Order(100)
+    fun createRootClient() = runBlocking {
+        operator.executeAndAwait {
+            var client = clientFinder.findByName(property.name)
+            if (client == null) {
+                val allScope = scopeTokenFinder.findAll().toList()
+                client = clientFactory.create(
+                    CreateClientPayload(property.name, ClientType.CONFIDENTIAL),
+                    allScope
+                )
+            }
+
+            if (property.secret.isNotEmpty()) {
+                val credential = clientCredentialRepository.findByClientOrFail(client)
+                if (credential.secret == property.secret) {
+                    return@executeAndAwait
+                }
+
+                clientCredentialRepository.update(credential) {
+                    it.secret = property.secret
+                }
+            }
+        }
+    }
+}

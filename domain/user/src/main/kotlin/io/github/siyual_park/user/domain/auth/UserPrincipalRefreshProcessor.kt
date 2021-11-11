@@ -16,6 +16,7 @@ class UserPrincipalRefreshProcessor(
         val exitedScope = userScopeFinder.findAllByUserId(principal.userId).toSet()
         return UserPrincipal(
             id = principal.id,
+            clientId = principal.clientId,
             scope = principal.scope.filter { exitedScope.contains(it) }.toSet()
         )
     }

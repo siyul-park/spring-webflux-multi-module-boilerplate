@@ -29,22 +29,25 @@ class UserFactory(
     private val eventPublisher: EventPublisher,
     private val hashAlgorithm: String = "SHA-256"
 ) {
-    suspend fun create(payload: CreateUserPayload, scope: Collection<ScopeToken> = emptySet()): User =
+    suspend fun create(payload: CreateUserPayload, scope: Collection<ScopeToken>? = null): User =
         operator.executeAndAwait {
             createUser(payload).also {
-                createUserCredential(it, payload)
-                createDefaultUserScopes(it).collect()
-                createAdditionalUserScopes(it, scope)
+                createCredential(it, payload)
+                if (scope == null) {
+                    createDefaultScope(it).collect()
+                } else {
+                    createScope(it, scope)
+                }
             }
         }!!.also {
             eventPublisher.publish(AfterSaveEvent(it))
         }
 
     private suspend fun createUser(payload: CreateUserPayload): User {
-        return userRepository.create(User(payload.username))
+        return userRepository.create(User(payload.name))
     }
 
-    private suspend fun createUserCredential(user: User, payload: CreateUserPayload): UserCredential {
+    private suspend fun createCredential(user: User, payload: CreateUserPayload): UserCredential {
         val messageDigest = MessageDigest.getInstance(hashAlgorithm)
         val password = messageDigest.hash(payload.password)
 
@@ -57,7 +60,7 @@ class UserFactory(
         )
     }
 
-    private suspend fun createDefaultUserScopes(user: User): Flow<UserScope> {
+    private suspend fun createDefaultScope(user: User): Flow<UserScope> {
         val userScope = scopeTokenFinder.findAllByParent("user")
         return userScopeRepository.createAll(
             userScope.map {
@@ -69,7 +72,7 @@ class UserFactory(
         )
     }
 
-    private fun createAdditionalUserScopes(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {
+    private fun createScope(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {
         return userScopeRepository.createAll(
             scope.filter { it.id != null }
                 .map {

@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.configuration
 
 import io.github.siyual_park.data.migration.MigrationManager
+import io.github.siyual_park.data.property.MigrationProperty
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Configuration
@@ -10,15 +11,15 @@ import org.springframework.core.annotation.Order
 @Configuration
 class MigrationConfiguration(
     private val migrationManager: MigrationManager,
-    private val migrationConfigurationProperty: MigrationConfigurationProperty
+    private val property: MigrationProperty
 ) {
     @EventListener(ApplicationReadyEvent::class)
     @Order(0)
     fun migration() = runBlocking {
-        if (migrationConfigurationProperty.clear) {
+        if (property.clear) {
             migrationManager.clear()
         }
-        if (migrationConfigurationProperty.sync) {
+        if (property.sync) {
             migrationManager.sync()
         }
     }
