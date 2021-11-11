@@ -12,7 +12,7 @@ data class Client(
     val redirectUris: Collection<URI>,
     val tokenEndpointAuthMethod: TokenEndpointAuthMethod,
 ) : TimeableEntity<Client, Long>(), ClientEntity {
-    override val clinetId: Long
+    override val clientId: Long
         get() = id!!
 
     override fun clone(): Client {
