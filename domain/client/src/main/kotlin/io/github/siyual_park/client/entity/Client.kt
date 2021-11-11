@@ -8,9 +8,13 @@ import java.net.URI
 @Table("clients")
 data class Client(
     val name: String?,
+    val grantTypes: Collection<String>,
+    val redirectUris: Collection<URI>,
     val tokenEndpointAuthMethod: TokenEndpointAuthMethod,
-    val redirectUris: Collection<URI>
-) : TimeableEntity<Client, Long>() {
+) : TimeableEntity<Client, Long>(), ClientEntity {
+    override val clinetId: Long
+        get() = id!!
+
     override fun clone(): Client {
         return copyDefaultColumn(this.copy())
     }
@@ -21,5 +25,9 @@ data class Client(
 
     fun isPublic(): Boolean {
         return tokenEndpointAuthMethod == TokenEndpointAuthMethod.NONE
+    }
+
+    fun isCanUseGrantType(grantType: String): Boolean {
+        return grantTypes.contains(grantType)
     }
 }
