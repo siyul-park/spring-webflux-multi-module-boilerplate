@@ -56,7 +56,7 @@ class Storage<T : Any, ID : Any>(
                 null
             } else {
                 idExtractor.getKey(entity)?.let {
-                    getIfPresent(it) { entity }
+                    getIfPresentAsync(it) { entity }
                 }
             }
         } else {
