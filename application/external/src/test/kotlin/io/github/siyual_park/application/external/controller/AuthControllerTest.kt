@@ -116,6 +116,28 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
+    fun testCreateGrantTypeClientCredentialsSuccess() = blocking {
+        val client = createClientPayloadFactory.create()
+            .let { clientFactory.create(it) }
+
+        val tokenResponse = authControllerGateway.createToken(
+            CreateTokenRequest(
+                grantType = GrantType.CLIENT_CREDENTIALS,
+                clientId = client.id!!
+            )
+        )
+
+        assertEquals(HttpStatus.CREATED, tokenResponse.status)
+
+        val tokens = tokenResponse.responseBody.awaitSingle()
+
+        assertTrue(tokens.accessToken.isNotEmpty())
+        assertEquals("bearer", tokens.tokenType)
+        assertTrue(tokens.expiresIn.seconds > 0L)
+        assertNull(tokens.refreshToken)
+    }
+
+    @Test
     fun testCreateGrantTypeRefreshTokenSuccessByUser() = blocking {
         val client = createClientPayloadFactory.create()
             .let { clientFactory.create(it) }
@@ -153,8 +175,6 @@ class AuthControllerTest @Autowired constructor(
     fun testCreateGrantTypeRefreshTokenFailInvalidToken() = blocking {
         val client = createClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val createUserPayload = createUserPayloadFactory.create()
-            .also { userFactory.create(it) }
 
         val response = authControllerGateway.createToken(
             CreateTokenRequest(

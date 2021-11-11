@@ -10,11 +10,13 @@ class ScopeTokenConfiguration {
     @Autowired(required = true)
     fun configScopeToken(scopeTokenGenerator: ScopeTokenGenerator) {
         val useScope = ScopeToken(name = "user")
+        val clientScope = ScopeToken(name = "client")
 
         scopeTokenGenerator
             .register(useScope)
+            .register(clientScope)
 
-            .register(ScopeToken(name = "access-token:create"), listOf(useScope))
+            .register(ScopeToken(name = "access-token:create"), listOf(useScope, clientScope))
             .register(ScopeToken(name = "refresh-token:create"), listOf(useScope))
 
             .register(ScopeToken(name = "user:read.self"), listOf(useScope))

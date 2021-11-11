@@ -17,13 +17,11 @@ class ClientCredentialsGrantAuthenticateProcessor(
 ) : AuthenticateProcessor<ClientCredentialsGrantPayload, ClientPrincipal> {
     override suspend fun authenticate(payload: ClientCredentialsGrantPayload): ClientPrincipal? {
         val client = clientFinder.findByIdOrFail(payload.id)
-        if (client.isPublic()) {
-            return clientPrincipalExchanger.exchange(client)
-        }
-
-        val clientCredential = clientCredentialRepository.findByClientOrFail(client)
-        if (clientCredential.secret != payload.secret) {
-            throw SecretIncorrectException()
+        if (client.isConfidential()) {
+            val clientCredential = clientCredentialRepository.findByClientOrFail(client)
+            if (clientCredential.secret != payload.secret) {
+                throw SecretIncorrectException()
+            }
         }
 
         return clientPrincipalExchanger.exchange(client)
