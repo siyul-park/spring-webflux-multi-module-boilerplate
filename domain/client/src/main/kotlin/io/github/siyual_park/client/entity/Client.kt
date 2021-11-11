@@ -7,10 +7,19 @@ import java.net.URI
 
 @Table("clients")
 data class Client(
-    var name: String,
-    var redirectUris: Collection<URI>
+    val name: String?,
+    val tokenEndpointAuthMethod: TokenEndpointAuthMethod,
+    val redirectUris: Collection<URI>
 ) : TimeableEntity<Client, Long>() {
     override fun clone(): Client {
         return copyDefaultColumn(this.copy())
+    }
+
+    fun isConfidential(): Boolean {
+        return !isPublic()
+    }
+
+    fun isPublic(): Boolean {
+        return tokenEndpointAuthMethod == TokenEndpointAuthMethod.NONE
     }
 }
