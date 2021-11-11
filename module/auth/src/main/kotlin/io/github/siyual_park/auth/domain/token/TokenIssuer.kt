@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.domain.Principal
-import io.github.siyual_park.auth.domain.hasScope
+import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import org.springframework.beans.factory.annotation.Value
@@ -10,6 +10,7 @@ import java.time.Duration
 
 @Component
 class TokenIssuer(
+    private val authorizator: Authorizator,
     private val scopeTokenFinder: ScopeTokenFinder,
     private val tokenEncoder: TokenEncoder,
     private val claimEmbedder: ClaimEmbedder,
@@ -22,7 +23,7 @@ class TokenIssuer(
         val accessTokenCreateScope = scopeTokenFinder.findByNameOrFail("access-token:create")
         val refreshTokenCreateScope = scopeTokenFinder.findByNameOrFail("refresh-token:create")
 
-        if (!principal.hasScope(accessTokenCreateScope)) {
+        if (!authorizator.authorize(principal, accessTokenCreateScope)) {
             throw RequiredPermissionException()
         }
 
@@ -36,7 +37,7 @@ class TokenIssuer(
             scope = accessTokenScope
         )
 
-        val refreshToken = if (principal.hasScope(refreshTokenCreateScope)) {
+        val refreshToken = if (authorizator.authorize(principal, refreshTokenCreateScope)) {
             val refreshTokenScope = principal.scope.filter { it.id != refreshTokenCreateScope.id }
             tokenEncoder.encode(
                 claim,
