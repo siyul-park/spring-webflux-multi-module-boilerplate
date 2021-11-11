@@ -85,11 +85,11 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         }
 
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
-        if (!storage.indexNames.contains(indexName)) {
-            return fallback()
+        if (storage.indexNames.contains(indexName)) {
+            return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
         }
 
-        return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+        return fallback()
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -100,55 +100,52 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
 
         if (criteria != null && limit == null && offset == null && sort == null) {
             val indexNameAndValue = getIndexNameAndValue(criteria)
-            when {
-                indexNameAndValue != null -> {
-                    val (indexName, value) = indexNameAndValue
-                    return if (!storage.indexNames.contains(indexName)) {
-                        fallback()
-                    } else {
-                        flow {
-                            storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
-                                ?.let { emit(it) }
-                        }
+            if (indexNameAndValue != null) {
+                val (indexName, value) = indexNameAndValue
+                if (storage.indexNames.contains(indexName)) {
+                    return flow {
+                        storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+                            ?.let { emit(it) }
                     }
                 }
-                isSingleCriteria(criteria) -> {
-                    val column = criteria.column
-                    val value = criteria.value ?: return fallback()
-                    val indexName = column?.reference ?: return fallback()
-                    if (!storage.indexNames.contains(indexName)) {
-                        return fallback()
-                    }
+            }
 
-                    return if (criteria.comparator == CriteriaDefinition.Comparator.IN && value is Collection<*>) {
-                        flow {
-                            val result = TreeMap<Int, T>()
+            if (isSingleCriteria(criteria)) {
+                val column = criteria.column
+                val value = criteria.value ?: return fallback()
+                val indexName = column?.reference ?: return fallback()
 
-                            val notCachedKey = mutableListOf<Pair<Int, *>>()
-                            value.forEachIndexed { index, key ->
-                                val cached = key?.let { storage.getIfPresent(it, indexName) }
-                                if (cached == null) {
-                                    notCachedKey.add(index to key)
-                                } else {
-                                    result[index] = cached
+                if (
+                    storage.indexNames.contains(indexName) &&
+                    criteria.comparator == CriteriaDefinition.Comparator.IN &&
+                    value is Collection<*>
+                ) {
+                    return flow {
+                        val result = TreeMap<Int, T>()
+
+                        val notCachedKey = mutableListOf<Pair<Int, *>>()
+                        value.forEachIndexed { index, key ->
+                            val cached = key?.let { storage.getIfPresent(it, indexName) }
+                            if (cached == null) {
+                                notCachedKey.add(index to key)
+                            } else {
+                                result[index] = cached
+                            }
+                        }
+
+                        if (notCachedKey.isNotEmpty()) {
+                            repository.findAll(Criteria.where(indexName).`in`(notCachedKey.map { it.second }))
+                                .toList()
+                                .forEachIndexed { index, entity ->
+                                    val (originIndex, _) = notCachedKey[index]
+                                    storage.put(entity)
+                                    result[originIndex] = entity
                                 }
-                            }
-
-                            if (notCachedKey.isNotEmpty()) {
-                                repository.findAll(Criteria.where(indexName).`in`(notCachedKey.map { it.second }))
-                                    .toList()
-                                    .forEachIndexed { index, entity ->
-                                        val (originIndex, _) = notCachedKey[index]
-                                        storage.put(entity)
-                                        result[originIndex] = entity
-                                    }
-                            }
-
-                            emitAll(result.values.asFlow())
                         }
-                    } else fallback()
+
+                        emitAll(result.values.asFlow())
+                    }
                 }
-                else -> return fallback()
             }
         }
 
