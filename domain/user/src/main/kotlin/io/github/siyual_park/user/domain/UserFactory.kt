@@ -32,9 +32,9 @@ class UserFactory(
     suspend fun create(payload: CreateUserPayload, scope: Collection<ScopeToken> = emptySet()): User =
         operator.executeAndAwait {
             createUser(payload).also {
-                createUserCredential(it, payload)
-                createDefaultUserScopes(it).collect()
-                createAdditionalUserScopes(it, scope)
+                createCredential(it, payload)
+                createDefaultScopes(it).collect()
+                createAdditionalScopes(it, scope)
             }
         }!!.also {
             eventPublisher.publish(AfterSaveEvent(it))
@@ -44,7 +44,7 @@ class UserFactory(
         return userRepository.create(User(payload.username))
     }
 
-    private suspend fun createUserCredential(user: User, payload: CreateUserPayload): UserCredential {
+    private suspend fun createCredential(user: User, payload: CreateUserPayload): UserCredential {
         val messageDigest = MessageDigest.getInstance(hashAlgorithm)
         val password = messageDigest.hash(payload.password)
 
@@ -57,7 +57,7 @@ class UserFactory(
         )
     }
 
-    private suspend fun createDefaultUserScopes(user: User): Flow<UserScope> {
+    private suspend fun createDefaultScopes(user: User): Flow<UserScope> {
         val userScope = scopeTokenFinder.findAllByParent("user")
         return userScopeRepository.createAll(
             userScope.map {
@@ -69,7 +69,7 @@ class UserFactory(
         )
     }
 
-    private fun createAdditionalUserScopes(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {
+    private fun createAdditionalScopes(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {
         return userScopeRepository.createAll(
             scope.filter { it.id != null }
                 .map {

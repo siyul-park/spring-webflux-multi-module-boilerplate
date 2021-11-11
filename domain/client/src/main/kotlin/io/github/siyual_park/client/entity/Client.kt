@@ -9,7 +9,7 @@ import java.time.Instant
 @Table("clients")
 data class Client(
     val name: String?,
-    val tokenEndpointAuthMethod: TokenEndpointAuthMethod,
+    val type: ClientType,
     @GeneratedValue
     var deletedAt: Instant? = null
 ) : TimeableEntity<Client, Long>(), ClientEntity {
@@ -21,10 +21,10 @@ data class Client(
     }
 
     fun isConfidential(): Boolean {
-        return !isPublic()
+        return type == ClientType.CONFIDENTIAL
     }
 
     fun isPublic(): Boolean {
-        return tokenEndpointAuthMethod == TokenEndpointAuthMethod.NONE
+        return type == ClientType.PUBLIC
     }
 }
