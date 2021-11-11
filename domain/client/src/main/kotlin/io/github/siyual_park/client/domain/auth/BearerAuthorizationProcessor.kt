@@ -13,7 +13,7 @@ class BearerAuthorizationProcessor(
 ) : AuthorizationProcessor<ClientPrincipal>("bearer") {
     override suspend fun authenticate(credentials: String): ClientPrincipal? {
         val claims = tokenDecoder.decode(credentials)
-        if (claims["cid"] == null) {
+        if (claims["cid"] == null || claims["uid"] != null) {
             return null
         }
 

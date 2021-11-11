@@ -8,6 +8,7 @@ import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.token.TokenIssuer
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
+import io.github.siyual_park.client.domain.auth.ClientPrincipal
 import io.github.siyual_park.json.bind.RequestForm
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
@@ -34,11 +35,13 @@ class AuthController(
     @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
-        authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
+        val clientPrincipal =
+            authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
+        clientPrincipal as ClientPrincipal
 
         var principal = authenticator.authenticate(
             when (request.grantType) {
-                GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!)
+                GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!, clientPrincipal)
                 GrantType.CLIENT_CREDENTIALS -> ClientCredentialsGrantPayload(request.clientId, request.clientSecret)
                 GrantType.REFRESH_TOKEN -> AuthorizationPayload("bearer", request.refreshToken!!)
             }

@@ -27,6 +27,6 @@ class PasswordGrantAuthenticateProcessor(
             throw PasswordIncorrectException()
         }
 
-        return userPrincipalExchanger.exchange(user)
+        return userPrincipalExchanger.exchange(user, payload.client)
     }
 }

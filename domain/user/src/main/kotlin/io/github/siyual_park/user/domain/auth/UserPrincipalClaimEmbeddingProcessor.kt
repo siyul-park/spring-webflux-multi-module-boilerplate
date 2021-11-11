@@ -12,6 +12,9 @@ class UserPrincipalClaimEmbeddingProcessor : ClaimEmbeddingProcessor<UserPrincip
         val claims = Claims()
 
         claims["uid"] = principal.id
+        if (principal.clientId != null) {
+            claims["cid"] = principal.clientId
+        }
         claims["scope"] = principal.scope
 
         return claims
