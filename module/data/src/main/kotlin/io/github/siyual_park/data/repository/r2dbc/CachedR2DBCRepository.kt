@@ -85,11 +85,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         }
 
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
-        if (storage.indexNames.contains(indexName)) {
-            return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
-        }
-
-        return fallback()
+        return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -102,11 +98,9 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
             val indexNameAndValue = getIndexNameAndValue(criteria)
             if (indexNameAndValue != null) {
                 val (indexName, value) = indexNameAndValue
-                if (storage.indexNames.contains(indexName)) {
-                    return flow {
-                        storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
-                            ?.let { emit(it) }
-                    }
+                return flow {
+                    storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+                        ?.let { emit(it) }
                 }
             }
 
@@ -163,6 +157,10 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         val indexName = sorted.joinToString(" ") { (column, _) -> column }
         val value = ArrayList<Any?>()
         sorted.forEach { (_, it) -> value.add(it) }
+
+        if (!storage.indexNames.contains(indexName)) {
+            return null
+        }
 
         return indexName to value
     }
