@@ -41,7 +41,7 @@ class UserFactory(
         }
 
     private suspend fun createUser(payload: CreateUserPayload): User {
-        return userRepository.create(User(payload.username))
+        return userRepository.create(User(payload.name))
     }
 
     private suspend fun createCredential(user: User, payload: CreateUserPayload): UserCredential {

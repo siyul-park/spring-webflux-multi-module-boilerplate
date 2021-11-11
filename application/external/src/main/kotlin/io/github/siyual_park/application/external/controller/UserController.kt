@@ -38,8 +38,12 @@ class UserController(
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasPermission(null, 'user:create')")
     suspend fun create(@Valid @RequestBody request: CreateUserRequest): UserInfo {
-        val payload: CreateUserPayload = mapperManager.map(request)
+        val payload = CreateUserPayload(
+            name = request.name,
+            password = request.password
+        )
         val user = userFactory.create(payload)
         return mapperManager.map(user)
     }

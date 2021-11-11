@@ -5,7 +5,7 @@ import io.github.siyual_park.client.entity.ClientType
 
 class CreateClientPayloadFactory {
     fun create() = CreateClientPayload(
-        name = RandomUsernameFactory.create(10),
+        name = RandomNameFactory.create(10),
         type = ClientType.PUBLIC
     )
 }

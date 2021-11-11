@@ -38,7 +38,7 @@ class AuthControllerTest @Autowired constructor(
         val tokenResponse = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
-                username = createUserPayload.username,
+                username = createUserPayload.name,
                 password = createUserPayload.password,
                 clientId = client.id!!
             )
@@ -66,7 +66,7 @@ class AuthControllerTest @Autowired constructor(
         val tokenResponse = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
-                username = createUserPayload.username,
+                username = createUserPayload.name,
                 password = otherUserRequest.password,
                 clientId = client.id!!
             )
@@ -85,7 +85,7 @@ class AuthControllerTest @Autowired constructor(
         val case1 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
-                username = createUserPayload.username,
+                username = createUserPayload.name,
                 clientId = client.id!!
             )
         )
@@ -112,7 +112,7 @@ class AuthControllerTest @Autowired constructor(
         val case5 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
-                username = createUserPayload.username,
+                username = createUserPayload.name,
                 password = createUserPayload.password,
                 clientId = Random().nextLong()
             )
@@ -157,7 +157,7 @@ class AuthControllerTest @Autowired constructor(
         val tokensByPassword = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
-                username = createUserPayload.username,
+                username = createUserPayload.name,
                 password = createUserPayload.password,
                 clientId = client.id!!
             )
@@ -207,7 +207,7 @@ class AuthControllerTest @Autowired constructor(
         val case1 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
-                username = createUserPayload.username,
+                username = createUserPayload.name,
                 clientId = client.id!!
             )
         )

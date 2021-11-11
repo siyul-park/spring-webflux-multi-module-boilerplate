@@ -1,10 +1,10 @@
 package io.github.siyual_park.application.external.dto.request
 
+import io.github.siyual_park.client.entity.ClientType
 import javax.validation.constraints.Size
 
-data class CreateUserRequest(
+data class CreateClientRequest(
     @field:Size(min = 3, max = 20)
     val name: String,
-    @field:Size(min = 8, max = 20)
-    val password: String
+    val type: ClientType,
 )

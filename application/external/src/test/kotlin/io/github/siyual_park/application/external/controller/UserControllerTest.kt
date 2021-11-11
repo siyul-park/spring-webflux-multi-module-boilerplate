@@ -1,10 +1,13 @@
 package io.github.siyual_park.application.external.controller
 
+import io.github.siyual_park.application.external.factory.CreateClientPayloadFactory
 import io.github.siyual_park.application.external.factory.CreateUserPayloadFactory
 import io.github.siyual_park.application.external.factory.CreateUserRequestFactory
-import io.github.siyual_park.application.external.gateway.UserControllerGateway
+import io.github.siyual_park.application.external.gateway.factory.UserControllerGatewayFactory
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
+import io.github.siyual_park.client.domain.ClientFactory
+import io.github.siyual_park.client.domain.auth.ClientPrincipalExchanger
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
@@ -21,17 +24,26 @@ import org.springframework.http.HttpStatus
 
 @IntegrationTest
 class UserControllerTest @Autowired constructor(
-    private val userControllerGateway: UserControllerGateway,
+    private val userControllerGatewayFactory: UserControllerGatewayFactory,
     private val userFactory: UserFactory,
+    private val clientFactory: ClientFactory,
     private val userPrincipalExchanger: UserPrincipalExchanger,
+    private val clientPrincipalExchanger: ClientPrincipalExchanger,
     private val userScopeFinder: UserScopeFinder,
     private val scopeTokenRepository: ScopeTokenRepository
 ) : CoroutineTest() {
     private val createUserRequestFactory = CreateUserRequestFactory()
     private val createUserPayloadFactory = CreateUserPayloadFactory()
+    private val createClientPayloadFactory = CreateClientPayloadFactory()
 
     @Test
     fun testCreateSuccess() = blocking {
+        val principal = createClientPayloadFactory.create()
+            .let { clientFactory.create(it) }
+            .let { clientPrincipalExchanger.exchange(it) }
+
+        val userControllerGateway = userControllerGatewayFactory.create(principal)
+
         val request = createUserRequestFactory.create()
         val response = userControllerGateway.create(request)
 
@@ -47,6 +59,12 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun testCreateFail() = blocking {
+        val principal = createClientPayloadFactory.create()
+            .let { clientFactory.create(it) }
+            .let { clientPrincipalExchanger.exchange(it) }
+
+        val userControllerGateway = userControllerGatewayFactory.create(principal)
+
         val request = createUserRequestFactory.create()
         userControllerGateway.create(request)
 
@@ -60,7 +78,9 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val response = userControllerGateway.readSelf(principal)
+        val userControllerGateway = userControllerGatewayFactory.create(principal)
+
+        val response = userControllerGateway.readSelf()
 
         assertEquals(HttpStatus.OK, response.status)
 
@@ -80,12 +100,14 @@ class UserControllerTest @Autowired constructor(
 
         val removeScope = scopeTokenRepository.findByNameOrFail("user:read.self")
 
-        val response = userControllerGateway.readSelf(
+        val userControllerGateway = userControllerGatewayFactory.create(
             UserPrincipal(
                 id = principal.id,
                 scope = principal.scope.filter { it.id != removeScope.id }.toSet()
             )
         )
+
+        val response = userControllerGateway.readSelf()
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -96,7 +118,9 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val response = userControllerGateway.deleteSelf(principal)
+        val userControllerGateway = userControllerGatewayFactory.create(principal)
+
+        val response = userControllerGateway.deleteSelf()
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
@@ -112,12 +136,14 @@ class UserControllerTest @Autowired constructor(
 
         val removeScope = scopeTokenRepository.findByNameOrFail("user:delete.self")
 
-        val response = userControllerGateway.deleteSelf(
+        val userControllerGateway = userControllerGatewayFactory.create(
             UserPrincipal(
                 id = principal.id,
                 scope = principal.scope.filter { it.id != removeScope.id }.toSet()
             )
         )
+
+        val response = userControllerGateway.deleteSelf()
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -137,13 +163,14 @@ class UserControllerTest @Autowired constructor(
         scope.add(removeScope)
         scope.addAll(principal.scope)
 
-        val response = userControllerGateway.delete(
-            otherUser.id!!,
+        val userControllerGateway = userControllerGatewayFactory.create(
             UserPrincipal(
                 id = principal.id,
                 scope = scope
             )
         )
+
+        val response = userControllerGateway.delete(otherUser.id!!)
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
     }
@@ -157,10 +184,9 @@ class UserControllerTest @Autowired constructor(
         val otherPayload = createUserPayloadFactory.create()
         val otherUser = userFactory.create(otherPayload)
 
-        val response = userControllerGateway.delete(
-            otherUser.id!!,
-            principal
-        )
+        val userControllerGateway = userControllerGatewayFactory.create(principal)
+
+        val response = userControllerGateway.delete(otherUser.id!!)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
