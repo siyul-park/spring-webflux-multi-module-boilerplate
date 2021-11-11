@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.configuration
 
 import io.github.siyual_park.data.migration.MigrationManager
+import io.github.siyual_park.data.property.MigrationProperty
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Configuration

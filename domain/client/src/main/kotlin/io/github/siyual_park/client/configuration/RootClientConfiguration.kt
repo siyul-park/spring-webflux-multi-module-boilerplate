@@ -5,6 +5,7 @@ import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientFinder
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientType
+import io.github.siyual_park.client.property.RootClientProperty
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.data.patch.Patch
 import kotlinx.coroutines.flow.toList

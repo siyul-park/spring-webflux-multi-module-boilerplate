@@ -1,4 +1,4 @@
-package io.github.siyual_park.client.configuration
+package io.github.siyual_park.client.property
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding

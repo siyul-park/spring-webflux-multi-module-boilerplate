@@ -1,8 +1,8 @@
 package io.github.siyual_park.client.domain
 
 import io.github.siyual_park.auth.entity.ScopeToken
-import io.github.siyual_park.client.configuration.RootClientProperty
 import io.github.siyual_park.client.entity.ClientScope
+import io.github.siyual_park.client.property.RootClientProperty
 import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.event.EventConsumer
