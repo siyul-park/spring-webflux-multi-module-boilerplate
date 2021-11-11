@@ -5,7 +5,7 @@ import io.github.siyual_park.auth.domain.authentication.AuthenticateProcessor
 import io.github.siyual_park.client.domain.ClientFinder
 import io.github.siyual_park.client.exception.SecretIncorrectException
 import io.github.siyual_park.client.repository.ClientCredentialRepository
-import io.github.siyual_park.search.finder.findByIdOrFail
+import io.github.siyual_park.reader.finder.findByIdOrFail
 import org.springframework.stereotype.Component
 
 @Component

@@ -1,8 +1,8 @@
-package io.github.siyual_park.search.filter
+package io.github.siyual_park.reader.filter
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.siyual_park.data.expansion.columnName
-import io.github.siyual_park.search.exception.FilterInvalidException
+import io.github.siyual_park.reader.exception.FilterInvalidException
 import org.springframework.data.relational.core.query.Criteria
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties

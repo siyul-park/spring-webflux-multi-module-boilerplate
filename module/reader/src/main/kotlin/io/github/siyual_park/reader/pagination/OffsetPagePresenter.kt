@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.pagination
+package io.github.siyual_park.reader.pagination
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.siyual_park.view.Presenter

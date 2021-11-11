@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.pagination
+package io.github.siyual_park.reader.pagination
 
 interface OffsetPaginator<T> {
     suspend fun paginate(query: OffsetPageQuery): OffsetPage<T>

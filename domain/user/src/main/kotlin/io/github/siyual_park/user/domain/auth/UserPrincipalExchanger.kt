@@ -1,7 +1,7 @@
 package io.github.siyual_park.user.domain.auth
 
 import io.github.siyual_park.client.entity.ClientEntity
-import io.github.siyual_park.search.finder.findByIdOrFail
+import io.github.siyual_park.reader.finder.findByIdOrFail
 import io.github.siyual_park.user.domain.UserFinder
 import io.github.siyual_park.user.domain.UserScopeFinder
 import io.github.siyual_park.user.entity.User

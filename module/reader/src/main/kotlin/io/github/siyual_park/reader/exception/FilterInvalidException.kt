@@ -1,3 +1,3 @@
-package io.github.siyual_park.search.exception
+package io.github.siyual_park.reader.exception
 
 class FilterInvalidException(message: String? = null) : InvalidRequestException(message)

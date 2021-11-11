@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.sort
+package io.github.siyual_park.reader.sort
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component

@@ -1,3 +1,3 @@
-package io.github.siyual_park.search.exception
+package io.github.siyual_park.reader.exception
 
 open class InvalidRequestException(message: String? = null) : RuntimeException(message)

@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.finder
+package io.github.siyual_park.reader.finder
 
 import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.flow.Flow

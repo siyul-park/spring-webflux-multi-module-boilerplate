@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.pagination
+package io.github.siyual_park.reader.pagination
 
 import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository

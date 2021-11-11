@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.pagination
+package io.github.siyual_park.reader.pagination
 
 import io.github.siyual_park.view.ResponseBodyResultHandlerAdapter
 import org.springframework.http.codec.ServerCodecConfigurer

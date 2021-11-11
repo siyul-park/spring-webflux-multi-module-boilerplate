@@ -3,7 +3,7 @@ package io.github.siyual_park.client.domain.auth
 import io.github.siyual_park.client.domain.ClientFinder
 import io.github.siyual_park.client.domain.ClientScopeFinder
 import io.github.siyual_park.client.entity.Client
-import io.github.siyual_park.search.finder.findByIdOrFail
+import io.github.siyual_park.reader.finder.findByIdOrFail
 import kotlinx.coroutines.flow.toSet
 import org.springframework.stereotype.Component
 

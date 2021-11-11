@@ -1,9 +1,9 @@
-package io.github.siyual_park.search.sort
+package io.github.siyual_park.reader.sort
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.introspect.AnnotatedField
 import io.github.siyual_park.data.expansion.columnName
-import io.github.siyual_park.search.exception.SortInvalidException
+import io.github.siyual_park.reader.exception.SortInvalidException
 import org.springframework.data.domain.Sort
 import java.net.URLDecoder
 import kotlin.reflect.KClass

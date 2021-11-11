@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.finder
+package io.github.siyual_park.reader.finder
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException

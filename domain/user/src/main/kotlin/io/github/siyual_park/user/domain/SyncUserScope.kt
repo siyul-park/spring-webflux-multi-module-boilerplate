@@ -6,9 +6,9 @@ import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventConsumer
 import io.github.siyual_park.event.Subscribe
-import io.github.siyual_park.search.finder.findByIdOrFail
-import io.github.siyual_park.search.pagination.OffsetPaginatorAdapter
-import io.github.siyual_park.search.pagination.forEach
+import io.github.siyual_park.reader.finder.findByIdOrFail
+import io.github.siyual_park.reader.pagination.OffsetPaginatorAdapter
+import io.github.siyual_park.reader.pagination.forEach
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.entity.UserScope
 import io.github.siyual_park.user.repository.UserRepository

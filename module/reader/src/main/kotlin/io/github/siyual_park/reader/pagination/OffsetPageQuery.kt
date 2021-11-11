@@ -1,4 +1,4 @@
-package io.github.siyual_park.search.pagination
+package io.github.siyual_park.reader.pagination
 
 data class OffsetPageQuery(
     val page: Int = 0,
