@@ -12,6 +12,10 @@ data class CreateTokenRequest(
     val password: String? = null,
     @ApiModelProperty(name = "refresh_token")
     val refreshToken: String? = null,
+    @ApiModelProperty(name = "client_id")
+    val clientId: Long,
+    @ApiModelProperty(name = "client_secret")
+    val clientSecret: String? = null
 ) {
     @JsonIgnore
     @AssertTrue
@@ -19,6 +23,7 @@ data class CreateTokenRequest(
         return when (grantType) {
             GrantType.PASSWORD -> username != null && password != null
             GrantType.REFRESH_TOKEN -> refreshToken != null
+            GrantType.CLIENT_CREDENTIALS -> true
         }
     }
 }

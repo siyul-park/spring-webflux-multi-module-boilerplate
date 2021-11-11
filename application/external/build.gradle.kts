@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":module:event"))
 
     implementation(project(":domain:user"))
+    implementation(project(":domain:client"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
