@@ -17,8 +17,7 @@ data class ScopeToken(
 }
 
 fun Collection<ScopeToken>.ids(): List<Long> {
-    return this.map { it.id }
-        .filterNotNull()
+    return this.mapNotNull { it.id }
 }
 
 fun Collection<ScopeToken>.names(): List<String> {
