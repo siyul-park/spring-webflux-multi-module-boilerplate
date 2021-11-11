@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import java.util.Random
 
 @IntegrationTest
 class AuthControllerTest @Autowired constructor(
@@ -108,11 +109,20 @@ class AuthControllerTest @Autowired constructor(
                 clientId = client.id!!
             )
         )
+        val case5 = authControllerGateway.createToken(
+            CreateTokenRequest(
+                grantType = GrantType.PASSWORD,
+                username = createUserPayload.username,
+                password = createUserPayload.password,
+                clientId = Random().nextLong()
+            )
+        )
 
         assertEquals(HttpStatus.BAD_REQUEST, case1.status)
         assertEquals(HttpStatus.BAD_REQUEST, case2.status)
         assertEquals(HttpStatus.BAD_REQUEST, case3.status)
         assertEquals(HttpStatus.BAD_REQUEST, case4.status)
+        assertEquals(HttpStatus.UNAUTHORIZED, case5.status)
     }
 
     @Test
