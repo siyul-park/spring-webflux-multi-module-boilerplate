@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConstructorBinding
-@ConfigurationProperties(prefix = "client.root")
+@ConfigurationProperties(prefix = "application.client.root")
 data class RootClientProperty(
     val name: String,
     val secret: String
