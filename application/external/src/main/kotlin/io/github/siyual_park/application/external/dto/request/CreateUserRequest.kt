@@ -5,7 +5,7 @@ import javax.validation.constraints.Size
 
 data class CreateUserRequest(
     @field:Size(min = 3, max = 20)
-    @field:Pattern(regexp = "\\w+\\.\\w+")
+    @field:Pattern(regexp = "\\w+")
     val name: String,
     @field:Size(min = 8, max = 20)
     val password: String
