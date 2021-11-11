@@ -1,14 +1,15 @@
 package io.github.siyual_park.client.migration
 
 import io.github.siyual_park.data.migration.Migration
+import io.github.siyual_park.data.migration.createUniqueIndex
 import io.github.siyual_park.data.migration.createUpdatedAtTrigger
 import io.github.siyual_park.data.migration.dropTable
 import io.github.siyual_park.data.migration.fetchSQL
 import io.github.siyual_park.data.migration.isDriver
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
-class CreateClient : Migration {
-    private val tableName = "clients"
+class CreateClientCredential : Migration {
+    private val tableName = "client_credentials"
 
     override suspend fun up(entityOperations: R2dbcEntityOperations) {
         if (entityOperations.isDriver("PostgreSQL")) {
@@ -17,12 +18,12 @@ class CreateClient : Migration {
                     "(" +
                     "id SERIAL PRIMARY KEY, " +
 
-                    "name VARCHAR(64), " +
-                    "token_endpoint_auth_method VARCHAR(64) NOT NULL, " +
+                    "client_id INTEGER NOT NULL REFERENCES clients (id), " +
+
+                    "secret VARCHAR(128) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
+                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
                     ")"
             )
             entityOperations.createUpdatedAtTrigger(tableName)
@@ -32,15 +33,17 @@ class CreateClient : Migration {
                     "(" +
                     "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 
-                    "name VARCHAR(64), " +
-                    "token_endpoint_auth_method VARCHAR(64) NOT NULL, " +
+                    "client_id BIGINT NOT NULL REFERENCES clients (id), " +
+
+                    "secret VARCHAR(128) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
+                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
                     ")"
             )
         }
+
+        entityOperations.createUniqueIndex(tableName, listOf("client_id"))
     }
 
     override suspend fun down(entityOperations: R2dbcEntityOperations) {
