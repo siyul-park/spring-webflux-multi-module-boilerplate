@@ -3,8 +3,8 @@ package io.github.siyual_park.auth.domain.scope_token
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.search.finder.Finder
-import io.github.siyual_park.search.finder.FinderAdapter
+import io.github.siyual_park.reader.finder.Finder
+import io.github.siyual_park.reader.finder.FinderAdapter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow

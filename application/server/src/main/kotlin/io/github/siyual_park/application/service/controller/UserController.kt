@@ -4,7 +4,7 @@ import io.github.siyual_park.application.service.dto.request.CreateUserRequest
 import io.github.siyual_park.application.service.dto.response.UserInfo
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.search.finder.findByIdOrFail
+import io.github.siyual_park.reader.finder.findByIdOrFail
 import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserFinder

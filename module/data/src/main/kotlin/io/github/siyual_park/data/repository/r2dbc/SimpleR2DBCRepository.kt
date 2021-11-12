@@ -206,6 +206,14 @@ class SimpleR2DBCRepository<T : Cloneable<T>, ID : Any>(
         return findById(entityManager.getId(originOutboundRow))
     }
 
+    override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
+        return update(criteria, patch.async())
+    }
+
+    override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
+        return findOne(criteria)?.let { update(it, patch) }
+    }
+
     override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
         return updateAll(criteria, patch.async())
     }

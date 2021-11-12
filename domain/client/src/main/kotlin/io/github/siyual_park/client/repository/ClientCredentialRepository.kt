@@ -3,6 +3,7 @@ package io.github.siyual_park.client.repository
 import io.github.siyual_park.client.entity.Client
 import io.github.siyual_park.client.entity.ClientCredential
 import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import org.springframework.dao.EmptyResultDataAccessException
@@ -38,6 +39,14 @@ class ClientCredentialRepository(
 
     suspend fun existsByClientId(clientId: Long): Boolean {
         return exists(where(ClientCredential::clientId).`is`(clientId))
+    }
+
+    suspend fun updateByClient(client: Client, patch: AsyncPatch<ClientCredential>): ClientCredential? {
+        return client.id?.let { updateByClientId(it, patch) }
+    }
+
+    suspend fun updateByClientId(clientId: Long, patch: AsyncPatch<ClientCredential>): ClientCredential? {
+        return update(where(ClientCredential::clientId).`is`(clientId), patch)
     }
 
     suspend fun deleteByClient(client: Client) {

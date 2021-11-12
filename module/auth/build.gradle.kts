@@ -13,7 +13,7 @@ dependencies {
     testImplementation(project(":dependency:async-test"))
 
     implementation(project(":module:event"))
-    implementation(project(":module:search"))
+    implementation(project(":module:reader"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

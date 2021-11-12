@@ -1,7 +1,7 @@
 package io.github.siyual_park.user.domain
 
-import io.github.siyual_park.search.finder.Finder
-import io.github.siyual_park.search.finder.FinderAdapter
+import io.github.siyual_park.reader.finder.Finder
+import io.github.siyual_park.reader.finder.FinderAdapter
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.repository.UserRepository
 import org.springframework.stereotype.Component

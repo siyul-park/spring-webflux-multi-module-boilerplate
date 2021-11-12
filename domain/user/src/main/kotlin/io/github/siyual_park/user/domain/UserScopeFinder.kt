@@ -2,7 +2,7 @@ package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
-import io.github.siyual_park.search.finder.Finder
+import io.github.siyual_park.reader.finder.Finder
 import io.github.siyual_park.user.entity.User
 import io.github.siyual_park.user.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow

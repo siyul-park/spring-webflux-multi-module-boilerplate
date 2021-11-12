@@ -2,8 +2,8 @@ package io.github.siyual_park.client.domain
 
 import io.github.siyual_park.client.entity.Client
 import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.search.finder.Finder
-import io.github.siyual_park.search.finder.FinderAdapter
+import io.github.siyual_park.reader.finder.Finder
+import io.github.siyual_park.reader.finder.FinderAdapter
 import org.springframework.stereotype.Component
 
 @Component

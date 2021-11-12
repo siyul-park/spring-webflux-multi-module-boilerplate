@@ -4,7 +4,7 @@ import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
 import io.github.siyual_park.auth.domain.authentication.AuthenticateProcessor
 import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.client.domain.ClientFinder
-import io.github.siyual_park.search.finder.findByIdOrFail
+import io.github.siyual_park.reader.finder.findByIdOrFail
 import io.github.siyual_park.user.domain.UserFinder
 import io.github.siyual_park.user.exception.PasswordIncorrectException
 import io.github.siyual_park.user.repository.UserCredentialRepository

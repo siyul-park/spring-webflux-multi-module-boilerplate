@@ -1,13 +1,13 @@
 package io.github.siyual_park.client.configuration
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
+import io.github.siyual_park.client.domain.ClientCredentialUpdater
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientFinder
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.property.RootClientProperty
-import io.github.siyual_park.client.repository.ClientCredentialRepository
-import io.github.siyual_park.data.repository.update
+import io.github.siyual_park.data.patch.AsyncPatch
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -22,7 +22,7 @@ class RootClientConfiguration(
     private val property: RootClientProperty,
     private val clientFactory: ClientFactory,
     private val clientFinder: ClientFinder,
-    private val clientCredentialRepository: ClientCredentialRepository,
+    private val clientCredentialUpdater: ClientCredentialUpdater,
     private val scopeTokenFinder: ScopeTokenFinder,
     private val operator: TransactionalOperator,
 ) {
@@ -40,14 +40,12 @@ class RootClientConfiguration(
             }
 
             if (property.secret.isNotEmpty()) {
-                val credential = clientCredentialRepository.findByClientOrFail(client)
-                if (credential.secret == property.secret) {
-                    return@executeAndAwait
-                }
-
-                clientCredentialRepository.update(credential) {
-                    it.secret = property.secret
-                }
+                clientCredentialUpdater.updateByClient(
+                    client,
+                    AsyncPatch.with {
+                        it.secret = property.secret
+                    }
+                )
             }
         }
     }

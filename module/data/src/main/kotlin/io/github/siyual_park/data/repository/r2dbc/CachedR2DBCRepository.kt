@@ -6,6 +6,7 @@ import io.github.siyual_park.data.annotation.Key
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.cache.CachedRepository
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
@@ -206,9 +207,17 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         return criteria != null && !criteria.hasPrevious() && !criteria.isGroup
     }
 
+    override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
+        return update(criteria, patch.async())
+    }
+
+    override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
+        return repository.update(criteria, patch)
+            ?.also { storage.put(it) }
+    }
+
     override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return repository.updateAll(criteria, patch)
-            .onEach { storage.put(it) }
+        return updateAll(criteria, patch.async())
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
