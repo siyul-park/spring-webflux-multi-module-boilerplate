@@ -23,6 +23,10 @@ interface R2DBCRepository<T : Cloneable<T>, ID : Any> : Repository<T, ID> {
         sort: Sort? = null
     ): Flow<T>
 
+    suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T?
+
+    suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T?
+
     fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T>
 
     fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T>
@@ -34,4 +38,32 @@ interface R2DBCRepository<T : Cloneable<T>, ID : Any> : Repository<T, ID> {
 
 suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.findOneOrFail(criteria: CriteriaDefinition): T {
     return findOne(criteria) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.updateOrFail(
+    criteria: CriteriaDefinition,
+    patch: AsyncPatch<T>
+): T {
+    return update(criteria, patch) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.updateOrFail(
+    criteria: CriteriaDefinition,
+    patch: Patch<T>
+): T {
+    return update(criteria, patch) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.updateOrFail(
+    criteria: CriteriaDefinition,
+    patch: (entity: T) -> Unit
+): T {
+    return updateOrFail(criteria, Patch.with(patch))
+}
+
+suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.update(
+    criteria: CriteriaDefinition,
+    patch: (entity: T) -> Unit
+): T? {
+    return update(criteria, Patch.with(patch))
 }
