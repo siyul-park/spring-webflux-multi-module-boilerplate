@@ -1,4 +1,4 @@
-package io.github.siyual_park.json.patch
+package io.github.siyual_park.updater.patch
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.siyual_park.data.patch.Patch
