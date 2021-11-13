@@ -242,7 +242,7 @@ class SimpleR2DBCRepository<T : Cloneable<T>, ID : Any>(
         }
 
         if (diff.isEmpty()) {
-            return findById(entityManager.getId(patchedOutboundRow))
+            return null
         }
 
         val updateCount = this.entityOperations.update(
