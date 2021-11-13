@@ -4,7 +4,6 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
-import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.runBlocking
 import org.springframework.security.access.PermissionEvaluator
 import org.springframework.security.core.Authentication
@@ -25,9 +24,15 @@ class ScopeEvaluator(
 
             try {
                 val scope = getScope(permission) ?: return@runBlocking false
-                val adjustedTargetDomainObject = adjustTargetDomainObject(targetDomainObject)
+                val adjustTargetDomainObject = (
+                    if (permission is Collection<*>) {
+                        (targetDomainObject as? Collection<Any?>)?.toList() ?: return@runBlocking false
+                    } else {
+                        listOf(targetDomainObject)
+                    }
+                    ).map { adjustTargetDomainObject(it) }
 
-                return@runBlocking authorizator.authorize(principal, scope, adjustedTargetDomainObject)
+                return@runBlocking authorizator.authorize(principal, scope, adjustTargetDomainObject)
             } catch (e: Exception) {
                 return@runBlocking false
             }
@@ -43,13 +48,13 @@ class ScopeEvaluator(
         return false
     }
 
-    private suspend fun getScope(permission: Any): Set<ScopeToken>? {
+    private suspend fun getScope(permission: Any): List<ScopeToken>? {
         return when (permission) {
             is String -> {
-                setOf(scopeTokenFinder.findByNameOrFail(permission))
+                listOf(scopeTokenFinder.findByNameOrFail(permission))
             }
             is Collection<*> -> {
-                scopeTokenFinder.findAllByName(permission.map { it.toString() }).toSet()
+                permission.map { scopeTokenFinder.findByNameOrFail(it.toString()) }.toList()
             }
             else -> {
                 null

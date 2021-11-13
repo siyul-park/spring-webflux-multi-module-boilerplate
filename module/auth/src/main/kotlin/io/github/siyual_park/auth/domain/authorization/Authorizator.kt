@@ -19,10 +19,20 @@ class Authorizator(
 
     suspend fun <PRINCIPAL : Principal> authorize(
         principal: PRINCIPAL,
-        scope: Collection<ScopeToken>,
-        targetDomainObject: Any? = null
+        scope: List<ScopeToken>,
+        targetDomainObjects: List<Any?>
     ): Boolean {
-        return scope.all { authorize(principal, it, targetDomainObject) }
+        if (scope.size != targetDomainObjects.size) {
+            return false
+        }
+
+        for (i in scope.indices) {
+            if (!authorize(principal, scope[i], targetDomainObjects[i])) {
+                return false
+            }
+        }
+
+        return true
     }
 
     suspend fun <PRINCIPAL : Principal> authorize(
