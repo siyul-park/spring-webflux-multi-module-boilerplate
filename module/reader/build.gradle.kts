@@ -6,7 +6,7 @@ dependencies {
 
     implementation(project(":module:data"))
     testImplementation(project(":module:data-test"))
-    implementation(project(":module:view"))
+    implementation(project(":module:viewer"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

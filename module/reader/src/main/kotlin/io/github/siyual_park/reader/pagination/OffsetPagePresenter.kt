@@ -1,7 +1,7 @@
 package io.github.siyual_park.reader.pagination
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.github.siyual_park.view.Presenter
+import io.github.siyual_park.viewer.Presenter
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType

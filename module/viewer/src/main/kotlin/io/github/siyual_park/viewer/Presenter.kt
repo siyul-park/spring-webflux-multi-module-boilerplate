@@ -1,4 +1,4 @@
-package io.github.siyual_park.view
+package io.github.siyual_park.viewer
 
 import org.springframework.web.reactive.HandlerResult
 import org.springframework.web.server.ServerWebExchange
