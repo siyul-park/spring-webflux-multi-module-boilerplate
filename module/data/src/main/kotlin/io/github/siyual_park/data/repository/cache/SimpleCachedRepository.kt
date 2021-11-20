@@ -31,8 +31,11 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun existsById(id: ID): Boolean {
+        if (storage.getIfPresent(id) != null) {
+            return true
+        }
+
         return repository.existsById(id)
-            .also { if (!it) storage.removeBy(id) }
     }
 
     override suspend fun findById(id: ID): T? {
@@ -126,27 +129,27 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteById(id: ID) {
-        repository.deleteById(id)
         storage.removeBy(id)
+        repository.deleteById(id)
     }
 
     override suspend fun delete(entity: T) {
-        repository.delete(entity)
         storage.remove(entity)
+        repository.delete(entity)
     }
 
     override suspend fun deleteAllById(ids: Iterable<ID>) {
-        repository.deleteAllById(ids)
         ids.forEach { storage.removeBy(it) }
+        repository.deleteAllById(ids)
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
-        repository.deleteAll(entities)
         entities.forEach { storage.remove(it) }
+        repository.deleteAll(entities)
     }
 
     override suspend fun deleteAll() {
-        repository.deleteAll()
         storage.clear()
+        repository.deleteAll()
     }
 }

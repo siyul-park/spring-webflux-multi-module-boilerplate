@@ -77,7 +77,14 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        return repository.exists(criteria)
+        val fallback = suspend { repository.exists(criteria) }
+        val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
+
+        return if (storage.getIfPresent(value, indexName) != null) {
+            true
+        } else {
+            fallback()
+        }
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
