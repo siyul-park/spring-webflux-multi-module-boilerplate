@@ -1,5 +1,6 @@
 package io.github.siyual_park.auth.repository
 
+import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.entity.ScopeRelation
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.data.expansion.where
@@ -10,12 +11,19 @@ import kotlinx.coroutines.flow.emptyFlow
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
+import java.time.Duration
 
 @Repository
 class ScopeRelationRepository(
     entityOperations: R2dbcEntityOperations
 ) : R2DBCRepository<ScopeRelation, Long> by CachedR2DBCRepository.of(
-    entityOperations, ScopeRelation::class
+    entityOperations,
+    ScopeRelation::class,
+    CacheBuilder.newBuilder()
+        .softValues()
+        .expireAfterAccess(Duration.ofMinutes(10))
+        .expireAfterWrite(Duration.ofMinutes(30))
+        .maximumSize(1_000)
 ) {
     suspend fun findByOrFail(parent: ScopeToken, child: ScopeToken): ScopeRelation {
         return findBy(parent, child) ?: throw EmptyResultDataAccessException(1)
