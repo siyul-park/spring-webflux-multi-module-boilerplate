@@ -270,8 +270,8 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
 
         private fun defaultCacheBuilder() = CacheBuilder.newBuilder()
             .softValues()
-            .expireAfterAccess(Duration.ofMinutes(5))
-            .expireAfterWrite(Duration.ofMinutes(10))
+            .expireAfterAccess(Duration.ofMinutes(2))
+            .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
     }
 }
