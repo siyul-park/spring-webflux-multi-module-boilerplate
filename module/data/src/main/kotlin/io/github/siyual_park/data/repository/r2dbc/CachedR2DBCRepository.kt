@@ -14,10 +14,10 @@ import io.github.siyual_park.data.repository.cache.Storage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria
@@ -119,7 +119,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
                 val indexName = column?.reference ?: return fallback()
 
                 if (
-                    storage.indexNames.contains(indexName) &&
+                    storage.containsIndex(indexName) &&
                     criteria.comparator == CriteriaDefinition.Comparator.IN &&
                     value is Collection<*>
                 ) {
@@ -138,8 +138,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
 
                         if (notCachedKey.isNotEmpty()) {
                             repository.findAll(Criteria.where(indexName).`in`(notCachedKey.map { it.second }))
-                                .toList()
-                                .forEachIndexed { index, entity ->
+                                .collectIndexed { index, entity ->
                                     val (originIndex, _) = notCachedKey[index]
                                     storage.put(entity)
                                     result[originIndex] = entity
@@ -167,7 +166,7 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
         val value = ArrayList<Any?>()
         sorted.forEach { (_, it) -> value.add(it) }
 
-        if (!storage.indexNames.contains(indexName)) {
+        if (!storage.containsIndex(indexName)) {
             return null
         }
 

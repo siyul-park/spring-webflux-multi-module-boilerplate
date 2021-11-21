@@ -5,10 +5,10 @@ import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.toList
 import java.util.TreeMap
 
 class SimpleCachedRepository<T : Any, ID : Any>(
@@ -62,8 +62,8 @@ class SimpleCachedRepository<T : Any, ID : Any>(
             }
 
             if (notCachedKey.isNotEmpty()) {
-                repository.findAllById(notCachedKey.map { it.second }).toList()
-                    .forEachIndexed { index, entity ->
+                repository.findAllById(notCachedKey.map { it.second })
+                    .collectIndexed { index, entity ->
                         val (originIndex, _) = notCachedKey[index]
                         storage.put(entity)
                         result[originIndex] = entity

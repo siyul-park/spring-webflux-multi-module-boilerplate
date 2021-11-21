@@ -13,9 +13,6 @@ class Storage<T : Any, ID : Any>(
     private val indexes = mutableMapOf<String, MutableMap<*, ID>>()
     private val extractors = mutableMapOf<String, Extractor<T, *>>()
 
-    val indexNames: Set<String>
-        get() = indexes.keys
-
     private val cache: Cache<ID, T> = cacheBuilder
         .removalListener<ID, T> {
             val entity: T = it.value
@@ -33,6 +30,10 @@ class Storage<T : Any, ID : Any>(
     fun <KEY : Any> removeIndex(name: String) {
         indexes.remove(name)
         extractors.remove(name)
+    }
+
+    fun containsIndex(name: String): Boolean {
+        return indexes.keys.contains(name)
     }
 
     fun get(id: ID, loader: () -> T): T {
