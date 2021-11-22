@@ -9,7 +9,9 @@ class JsonMergePatch<T : Any>(
     node: JsonNode,
     private val objectMapper: ObjectMapper
 ) : Patch<T> {
-    private val patch = JsonMergePatch.fromJson(node)
+    private val patch by lazy {
+        JsonMergePatch.fromJson(node)
+    }
 
     override fun apply(entity: T): T {
         val node: JsonNode = objectMapper.valueToTree(entity)
