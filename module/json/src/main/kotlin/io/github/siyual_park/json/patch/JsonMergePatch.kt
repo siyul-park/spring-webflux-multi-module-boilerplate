@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.fge.jsonpatch.mergepatch.JsonMergePatch
 import io.github.siyual_park.data.patch.Patch
+import javax.validation.ValidationException
 
 class JsonMergePatch<T : Any>(
     node: JsonNode,
@@ -14,8 +15,12 @@ class JsonMergePatch<T : Any>(
     }
 
     override fun apply(entity: T): T {
-        val node: JsonNode = objectMapper.valueToTree(entity)
-        val result = patch.apply(node)
-        return objectMapper.treeToValue(result, entity.javaClass)
+        try {
+            val node: JsonNode = objectMapper.valueToTree(entity)
+            val result = patch.apply(node)
+            return objectMapper.treeToValue(result, entity.javaClass)
+        } catch (e: RuntimeException) {
+            throw ValidationException(e)
+        }
     }
 }
