@@ -25,8 +25,9 @@ dependencies {
     implementation(project(":module:error"))
     implementation(project(":module:swagger"))
     implementation(project(":module:auth"))
-    implementation(project(":module:reader"))
     implementation(project(":module:event"))
+    implementation(project(":module:reader"))
+    implementation(project(":module:updater"))
 
     implementation(project(":domain:user"))
     implementation(project(":domain:client"))
