@@ -1,8 +1,10 @@
 package io.github.siyual_park.application.server.controller
 
+import io.github.siyual_park.application.server.dto.request.MutableUser
 import io.github.siyual_park.application.server.factory.CreateClientPayloadFactory
 import io.github.siyual_park.application.server.factory.CreateUserPayloadFactory
 import io.github.siyual_park.application.server.factory.CreateUserRequestFactory
+import io.github.siyual_park.application.server.factory.RandomNameFactory
 import io.github.siyual_park.application.server.gateway.factory.UserControllerGatewayFactory
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
@@ -110,6 +112,29 @@ class UserControllerTest @Autowired constructor(
         val response = userControllerGateway.readSelf()
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun testUpdateSelfSuccess() = blocking {
+        val payload = createUserPayloadFactory.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val userControllerGateway = userControllerGatewayFactory.create(principal)
+
+        val request = MutableUser(
+            name = RandomNameFactory.create(10)
+        )
+        val response = userControllerGateway.updateSelf(request)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseUser = response.responseBody.awaitSingle()
+
+        assertEquals(user.id, responseUser.id)
+        assertEquals(user.name, request.name)
+        assertNotNull(responseUser.createdAt)
+        assertNotNull(responseUser.updatedAt)
     }
 
     @Test

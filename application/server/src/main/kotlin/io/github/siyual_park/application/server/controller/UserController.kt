@@ -1,7 +1,11 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
+import io.github.siyual_park.application.server.dto.request.MutableUser
 import io.github.siyual_park.application.server.dto.response.UserInfo
+import io.github.siyual_park.json.patch.JsonMergePatch
+import io.github.siyual_park.json.patch.PatchExchanger
+import io.github.siyual_park.json.patch.exchange
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.reader.finder.findByIdOrFail
@@ -9,6 +13,7 @@ import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserFinder
 import io.github.siyual_park.user.domain.UserRemover
+import io.github.siyual_park.user.domain.UserUpdater
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
 import io.swagger.annotations.Api
@@ -17,6 +22,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -30,9 +36,11 @@ import javax.validation.Valid
 @RequestMapping("/users")
 class UserController(
     private val userFactory: UserFactory,
-    private val userPrincipalExchanger: UserPrincipalExchanger,
     private val userRemover: UserRemover,
     private val userFinder: UserFinder,
+    private val userUpdater: UserUpdater,
+    private val userPrincipalExchanger: UserPrincipalExchanger,
+    private val patchExchanger: PatchExchanger,
     private val mapperManager: MapperManager
 ) {
 
@@ -54,6 +62,20 @@ class UserController(
     suspend fun readSelf(@AuthenticationPrincipal principal: UserPrincipal): UserInfo {
         val user = userPrincipalExchanger.exchange(principal)
         return mapperManager.map(user)
+    }
+
+    @PatchMapping("/self")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'user:update.self')")
+    suspend fun updateSelf(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @Valid @RequestBody patch: JsonMergePatch<MutableUser>
+    ): UserInfo {
+        return userUpdater.updateById(
+            principal.userId,
+            patchExchanger.exchange(patch)
+        )
+            .let { mapperManager.map(it) }
     }
 
     @DeleteMapping("/self")
