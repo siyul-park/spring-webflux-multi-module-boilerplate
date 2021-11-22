@@ -132,7 +132,7 @@ class UserControllerTest @Autowired constructor(
         val responseUser = response.responseBody.awaitSingle()
 
         assertEquals(user.id, responseUser.id)
-        assertEquals(user.name, request.name)
+        assertEquals(request.name, responseUser.name)
         assertNotNull(responseUser.createdAt)
         assertNotNull(responseUser.updatedAt)
     }
