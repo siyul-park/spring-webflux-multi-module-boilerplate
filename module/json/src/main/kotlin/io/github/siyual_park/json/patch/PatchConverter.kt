@@ -6,10 +6,10 @@ import org.springframework.stereotype.Component
 import kotlin.reflect.KClass
 
 @Component
-class PatchExchanger(
+class PatchConverter(
     private val objectMapper: ObjectMapper
 ) {
-    fun <IN : Any, OUT : Any> exchange(
+    fun <IN : Any, OUT : Any> convert(
         patch: Patch<IN>,
         source: KClass<IN>,
         target: KClass<OUT>
@@ -22,7 +22,7 @@ class PatchExchanger(
     }
 }
 
-inline fun <reified IN : Any, reified OUT : Any> PatchExchanger.exchange(patch: Patch<IN>) = exchange(
+inline fun <reified IN : Any, reified OUT : Any> PatchConverter.convert(patch: Patch<IN>) = convert(
     patch,
     IN::class,
     OUT::class

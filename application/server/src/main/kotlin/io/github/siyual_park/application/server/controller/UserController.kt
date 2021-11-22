@@ -4,8 +4,8 @@ import io.github.siyual_park.application.server.dto.request.CreateUserRequest
 import io.github.siyual_park.application.server.dto.request.MutableUser
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.json.patch.JsonMergePatch
-import io.github.siyual_park.json.patch.PatchExchanger
-import io.github.siyual_park.json.patch.exchange
+import io.github.siyual_park.json.patch.PatchConverter
+import io.github.siyual_park.json.patch.convert
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.reader.finder.findByIdOrFail
@@ -40,7 +40,7 @@ class UserController(
     private val userFinder: UserFinder,
     private val userUpdater: UserUpdater,
     private val userPrincipalExchanger: UserPrincipalExchanger,
-    private val patchExchanger: PatchExchanger,
+    private val patchConverter: PatchConverter,
     private val mapperManager: MapperManager
 ) {
 
@@ -73,7 +73,7 @@ class UserController(
     ): UserInfo {
         return userUpdater.updateById(
             principal.userId,
-            patchExchanger.exchange(patch)
+            patchConverter.convert(patch)
         )
             .let { mapperManager.map(it) }
     }
