@@ -26,8 +26,7 @@ class RequestFormMethodArgumentResolver(
                 it.map { (key, value) ->
                     map[key] = value.firstOrNull()
                 }
-                val jsonString = objectMapper.writeValueAsString(map)
-                objectMapper.readValue(jsonString, parameter.parameterType)
+                objectMapper.convertValue(map, parameter.parameterType)
             }.doOnNext {
                 val hints = extractValidationHints(parameter)
                 if (hints != null) {

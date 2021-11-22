@@ -1,0 +1,19 @@
+package io.github.siyual_park.json.patch
+
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.fge.jsonpatch.mergepatch.JsonMergePatch
+import io.github.siyual_park.data.patch.Patch
+
+class JsonMergePatch<T : Any>(
+    node: JsonNode,
+    private val objectMapper: ObjectMapper
+) : Patch<T> {
+    private val patch = JsonMergePatch.fromJson(node)
+
+    override fun apply(entity: T): T {
+        val node: JsonNode = objectMapper.valueToTree(entity)
+        val result = patch.apply(node)
+        return objectMapper.treeToValue(result, entity.javaClass)
+    }
+}
