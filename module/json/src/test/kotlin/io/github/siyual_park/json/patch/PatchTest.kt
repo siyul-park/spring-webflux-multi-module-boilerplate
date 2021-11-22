@@ -14,6 +14,9 @@ class PatchTest {
         .registerModule(JavaTimeModule())
         .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
 
+    private val jsonPatchFactory = JsonPatchFactory(objectMapper)
+    private val jsonMergePatchFactory = JsonMergePatchFactory(objectMapper)
+
     @Test
     fun patch() {
         val source = Book(
@@ -36,7 +39,7 @@ class PatchTest {
         ]
         """.trimIndent()
 
-        val jsonPatch = JsonPatch<Any>(objectMapper.readTree(patch), objectMapper)
+        val jsonPatch = jsonPatchFactory.create<Any>(patch)
         val target = jsonPatch.apply(source)
 
         assertEquals(
@@ -78,7 +81,7 @@ class PatchTest {
         }   
         """.trimIndent()
 
-        val jsonPatch = JsonMergePatch<Any>(objectMapper.readTree(patch), objectMapper)
+        val jsonPatch = jsonMergePatchFactory.create<Any>(patch)
         val target = jsonPatch.apply(source)
 
         assertEquals(
