@@ -14,6 +14,7 @@ import io.github.siyual_park.user.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -61,14 +62,9 @@ class UserFactory(
     }
 
     private suspend fun createDefaultScope(user: User): Flow<UserScope> {
-        val userScope = scopeTokenFinder.findAllByParent("user")
-        return userScopeRepository.createAll(
-            userScope.map {
-                UserScope(
-                    userId = user.id!!,
-                    scopeTokenId = it.id!!
-                )
-            }
+        return createScope(
+            user,
+            scopeTokenFinder.findAllByParent("user").toList()
         )
     }
 

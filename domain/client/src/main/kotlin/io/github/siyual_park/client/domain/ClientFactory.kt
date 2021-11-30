@@ -13,6 +13,7 @@ import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -59,14 +60,9 @@ class ClientFactory(
     }
 
     private suspend fun createDefaultScope(client: Client): Flow<ClientScope> {
-        val clientScope = scopeTokenFinder.findAllByParent("client")
-        return clientScopeRepository.createAll(
-            clientScope.map {
-                ClientScope(
-                    clientId = client.id!!,
-                    scopeTokenId = it.id!!
-                )
-            }
+        return createScope(
+            client,
+            scopeTokenFinder.findAllByParent("client").toList()
         )
     }
 
