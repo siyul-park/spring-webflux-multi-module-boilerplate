@@ -20,14 +20,14 @@ class Authorizator(
     suspend fun <PRINCIPAL : Principal> authorize(
         principal: PRINCIPAL,
         scope: List<ScopeToken>,
-        targetDomainObjects: List<Any?>
+        targetDomainObjects: List<Any?>? = null
     ): Boolean {
-        if (scope.size != targetDomainObjects.size) {
+        if (targetDomainObjects != null && scope.size != targetDomainObjects.size) {
             return false
         }
 
         for (i in scope.indices) {
-            if (!authorize(principal, scope[i], targetDomainObjects[i])) {
+            if (!authorize(principal, scope[i], targetDomainObjects?.get(i))) {
                 return false
             }
         }

@@ -38,11 +38,9 @@ class AuthController(
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
         authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
-            .also {
-                if (!authorizator.authorize(it, "token:create")) {
-                    throw RequiredPermissionException()
-                }
-            }
+            .also { if (!authorizator.authorize(it, "token:create")) {
+                throw RequiredPermissionException()
+            } }
 
         var principal = authenticator.authenticate(
             when (request.grantType) {
