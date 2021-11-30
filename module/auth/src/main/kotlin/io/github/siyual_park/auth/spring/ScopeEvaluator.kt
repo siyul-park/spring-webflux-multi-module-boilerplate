@@ -25,15 +25,15 @@ class ScopeEvaluator(
             try {
                 val scope = getScope(permission) ?: return@runBlocking false
                 val adjustTargetDomainObject = (
-                        if (targetDomainObject == null) {
-                            null
+                    if (targetDomainObject == null) {
+                        null
+                    } else {
+                        if (permission is Collection<*>) {
+                            (targetDomainObject as? Collection<Any?>)?.toList() ?: return@runBlocking false
                         } else {
-                            if (permission is Collection<*>) {
-                                (targetDomainObject as? Collection<Any?>)?.toList() ?: return@runBlocking false
-                            } else {
-                                listOf(targetDomainObject)
-                            }
+                            listOf(targetDomainObject)
                         }
+                    }
                     )?.map { adjustTargetDomainObject(it) }
 
                 return@runBlocking authorizator.authorize(principal, scope, adjustTargetDomainObject)

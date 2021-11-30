@@ -32,7 +32,7 @@ class RootClientConfiguration(
         operator.executeAndAwait {
             var client = clientFinder.findByName(property.name)
             if (client == null) {
-                client =  CreateClientPayload(
+                client = CreateClientPayload(
                     property.name,
                     ClientType.CONFIDENTIAL,
                     scope = scopeTokenFinder.findAll().toList()
