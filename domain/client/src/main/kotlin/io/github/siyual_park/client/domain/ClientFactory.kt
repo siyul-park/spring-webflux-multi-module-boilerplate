@@ -27,14 +27,14 @@ class ClientFactory(
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
 ) {
-    suspend fun create(payload: CreateClientPayload, scope: Collection<ScopeToken>? = null): Client =
+    suspend fun create(payload: CreateClientPayload): Client =
         operator.executeAndAwait {
             createClient(payload).also {
                 createCredential(it)
-                if (scope == null) {
+                if (payload.scope == null) {
                     createDefaultScope(it).collect()
                 } else {
-                    createScope(it, scope)
+                    createScope(it, payload.scope).collect()
                 }
             }
         }!!.also {

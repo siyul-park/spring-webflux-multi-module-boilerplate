@@ -29,14 +29,14 @@ class UserFactory(
     private val eventPublisher: EventPublisher,
     private val hashAlgorithm: String = "SHA-256"
 ) {
-    suspend fun create(payload: CreateUserPayload, scope: Collection<ScopeToken>? = null): User =
+    suspend fun create(payload: CreateUserPayload): User =
         operator.executeAndAwait {
             createUser(payload).also {
                 createCredential(it, payload)
-                if (scope == null) {
+                if (payload.scope == null) {
                     createDefaultScope(it).collect()
                 } else {
-                    createScope(it, scope)
+                    createScope(it, payload.scope).collect()
                 }
             }
         }!!.also {

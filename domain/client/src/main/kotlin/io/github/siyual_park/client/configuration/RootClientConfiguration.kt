@@ -32,11 +32,11 @@ class RootClientConfiguration(
         operator.executeAndAwait {
             var client = clientFinder.findByName(property.name)
             if (client == null) {
-                val allScope = scopeTokenFinder.findAll().toList()
-                client = clientFactory.create(
-                    CreateClientPayload(property.name, ClientType.CONFIDENTIAL),
-                    allScope
-                )
+                client =  CreateClientPayload(
+                    property.name,
+                    ClientType.CONFIDENTIAL,
+                    scope = scopeTokenFinder.findAll().toList()
+                ).let { clientFactory.create(it) }
             }
 
             if (property.secret.isNotEmpty()) {
