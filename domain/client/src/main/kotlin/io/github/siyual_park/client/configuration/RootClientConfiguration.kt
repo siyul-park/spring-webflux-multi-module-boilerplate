@@ -4,6 +4,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.client.domain.ClientCredentialUpdater
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientFinder
+import io.github.siyual_park.client.domain.ClientUpdater
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.property.RootClientProperty
@@ -22,6 +23,7 @@ class RootClientConfiguration(
     private val property: RootClientProperty,
     private val clientFactory: ClientFactory,
     private val clientFinder: ClientFinder,
+    private val clientUpdater: ClientUpdater,
     private val clientCredentialUpdater: ClientCredentialUpdater,
     private val scopeTokenFinder: ScopeTokenFinder,
     private val operator: TransactionalOperator,
@@ -35,9 +37,17 @@ class RootClientConfiguration(
                 client = CreateClientPayload(
                     property.name,
                     ClientType.CONFIDENTIAL,
+                    origin = property.origin,
                     scope = scopeTokenFinder.findAll().toList()
                 ).let { clientFactory.create(it) }
             }
+
+            clientUpdater.update(
+                client,
+                AsyncPatch.with {
+                    it.origin = property.origin
+                }
+            )
 
             if (property.secret.isNotEmpty()) {
                 clientCredentialUpdater.updateByClient(

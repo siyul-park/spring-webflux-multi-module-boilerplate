@@ -13,7 +13,7 @@ data class Client(
     @Key
     val name: String,
     val type: ClientType,
-    val origin: URL,
+    var origin: URL,
     @GeneratedValue
     var deletedAt: Instant? = null
 ) : TimeableEntity<Client, Long>(), ClientEntity {
