@@ -1,7 +1,6 @@
 package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.domain.hash
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.event.EventPublisher
@@ -25,7 +24,7 @@ class UserFactory(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
-    private val scopeTokenFinder: ScopeTokenFinder,
+    private val userScopeFinder: UserScopeFinder,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
     private val hashAlgorithm: String = "SHA-256"
@@ -39,10 +38,8 @@ class UserFactory(
                 } else {
                     createScope(it, payload.scope).collect()
                 }
-            }
-        }!!.also {
-            eventPublisher.publish(AfterSaveEvent(it))
-        }
+            }.also { eventPublisher.publish(AfterSaveEvent(it)) }
+        }!!
 
     private suspend fun createUser(payload: CreateUserPayload): User {
         return userRepository.create(User(payload.name))
@@ -62,10 +59,7 @@ class UserFactory(
     }
 
     private suspend fun createDefaultScope(user: User): Flow<UserScope> {
-        return createScope(
-            user,
-            scopeTokenFinder.findAllByParent("user").toList()
-        )
+        return createScope(user, userScopeFinder.findAll().toList())
     }
 
     private fun createScope(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {

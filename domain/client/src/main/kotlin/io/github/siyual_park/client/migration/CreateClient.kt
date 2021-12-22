@@ -20,6 +20,7 @@ class CreateClient : Migration {
 
                     "name VARCHAR(64) NOT NULL, " +
                     "type VARCHAR(64) NOT NULL, " +
+                    "origin VARCHAR(256) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
@@ -35,6 +36,7 @@ class CreateClient : Migration {
 
                     "name VARCHAR(64) NOT NULL, " +
                     "type VARCHAR(64) NOT NULL, " +
+                    "origin VARCHAR(256) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +

@@ -30,7 +30,8 @@ class ClientController(
     suspend fun create(@Valid @RequestBody request: CreateClientRequest): ClientDetailInfo {
         val payload = CreateClientPayload(
             name = request.name,
-            type = request.type
+            type = request.type,
+            origin = request.origin
         )
         val client = clientFactory.create(payload)
         return mapperManager.map(client)
