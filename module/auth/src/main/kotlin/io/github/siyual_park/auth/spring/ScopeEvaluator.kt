@@ -3,7 +3,6 @@ package io.github.siyual_park.auth.spring
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
-import io.github.siyual_park.auth.entity.ScopeToken
 import kotlinx.coroutines.runBlocking
 import org.springframework.security.access.PermissionEvaluator
 import org.springframework.security.core.Authentication
@@ -52,13 +51,13 @@ class ScopeEvaluator(
         return false
     }
 
-    private suspend fun getScope(permission: Any): List<ScopeToken>? {
+    private suspend fun getScope(permission: Any): List<*>? {
         return when (permission) {
             is String -> {
                 listOf(scopeTokenFinder.findByNameOrFail(permission))
             }
             is Collection<*> -> {
-                permission.map { scopeTokenFinder.findByNameOrFail(it.toString()) }.toList()
+                permission.filterNotNull().mapNotNull { getScope(it) }.toList()
             }
             else -> {
                 null
