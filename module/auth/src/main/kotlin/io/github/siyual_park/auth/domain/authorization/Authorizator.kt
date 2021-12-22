@@ -19,15 +19,59 @@ class Authorizator(
 
     suspend fun <PRINCIPAL : Principal> authorize(
         principal: PRINCIPAL,
-        scope: List<ScopeToken>,
-        targetDomainObjects: List<Any?>? = null
+        scope: List<*>,
+        targetDomainObjects: List<*>? = null
+    ): Boolean {
+        return authorizeWithOr(principal, scope, targetDomainObjects)
+    }
+
+    private suspend fun <PRINCIPAL : Principal> authorizeWithOr(
+        principal: PRINCIPAL,
+        scope: List<*>,
+        targetDomainObjects: List<*>? = null
     ): Boolean {
         if (targetDomainObjects != null && scope.size != targetDomainObjects.size) {
             return false
         }
 
         for (i in scope.indices) {
-            if (!authorize(principal, scope[i], targetDomainObjects?.get(i))) {
+            val scopeToken = scope[i]
+            if (scopeToken is ScopeToken) {
+                if (authorize(principal, scopeToken, targetDomainObjects?.get(i))) {
+                    return true
+                }
+            } else if (scopeToken is List<*>) {
+                if (authorizeWithAnd(principal, scopeToken, targetDomainObjects?.get(i) as? List<Any?>?)) {
+                    return true
+                }
+            } else {
+                return false
+            }
+        }
+
+        return false
+    }
+
+    private suspend fun <PRINCIPAL : Principal> authorizeWithAnd(
+        principal: PRINCIPAL,
+        scope: List<*>,
+        targetDomainObjects: List<*>? = null
+    ): Boolean {
+        if (targetDomainObjects != null && scope.size != targetDomainObjects.size) {
+            return false
+        }
+
+        for (i in scope.indices) {
+            val scopeToken = scope[i]
+            if (scopeToken is ScopeToken) {
+                if (!authorize(principal, scopeToken, targetDomainObjects?.get(i))) {
+                    return false
+                }
+            } else if (scopeToken is List<*>) {
+                if (!authorizeWithOr(principal, scopeToken, targetDomainObjects?.get(i) as? List<Any?>?)) {
+                    return false
+                }
+            } else {
                 return false
             }
         }
