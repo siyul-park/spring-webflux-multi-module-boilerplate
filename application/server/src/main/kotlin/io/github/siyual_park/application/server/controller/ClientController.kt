@@ -26,7 +26,7 @@ class ClientController(
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasPermission(null, 'client:create')")
+    @PreAuthorize("hasPermission(null, 'clients:create')")
     suspend fun create(@Valid @RequestBody request: CreateClientRequest): ClientDetailInfo {
         val payload = CreateClientPayload(
             name = request.name,

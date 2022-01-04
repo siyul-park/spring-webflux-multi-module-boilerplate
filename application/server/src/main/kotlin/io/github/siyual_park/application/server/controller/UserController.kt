@@ -1,7 +1,7 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
-import io.github.siyual_park.application.server.dto.request.MutableUser
+import io.github.siyual_park.application.server.dto.request.MutableUserData
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.json.patch.JsonMergePatch
 import io.github.siyual_park.json.patch.PatchConverter
@@ -46,7 +46,7 @@ class UserController(
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasPermission(null, 'user:create')")
+    @PreAuthorize("hasPermission(null, 'users:create')")
     suspend fun create(@Valid @RequestBody request: CreateUserRequest): UserInfo {
         val payload = CreateUserPayload(
             name = request.name,
@@ -58,7 +58,7 @@ class UserController(
 
     @GetMapping("/self")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'user:read.self')")
+    @PreAuthorize("hasPermission(null, 'users[self]:read')")
     suspend fun readSelf(@AuthenticationPrincipal principal: UserPrincipal): UserInfo {
         val user = userPrincipalExchanger.exchange(principal)
         return mapperManager.map(user)
@@ -66,10 +66,10 @@ class UserController(
 
     @PatchMapping("/self")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'user:update.self')")
+    @PreAuthorize("hasPermission(null, 'users[self]:update')")
     suspend fun updateSelf(
         @AuthenticationPrincipal principal: UserPrincipal,
-        @Valid @RequestBody patch: JsonMergePatch<MutableUser>
+        @Valid @RequestBody patch: JsonMergePatch<MutableUserData>
     ): UserInfo {
         return userUpdater.updateById(
             principal.userId,
@@ -80,7 +80,7 @@ class UserController(
 
     @DeleteMapping("/self")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'user:delete.self')")
+    @PreAuthorize("hasPermission(null, 'users[self]:delete')")
     suspend fun deleteSelf(@AuthenticationPrincipal principal: UserPrincipal) {
         val user = userPrincipalExchanger.exchange(principal)
         userRemover.remove(user, soft = true)
@@ -88,7 +88,7 @@ class UserController(
 
     @GetMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'user:read')")
+    @PreAuthorize("hasPermission(null, 'users:read')")
     suspend fun read(@PathVariable("user-id") userId: Long): UserInfo {
         val user = userFinder.findByIdOrFail(userId)
         return mapperManager.map(user)
@@ -96,7 +96,7 @@ class UserController(
 
     @DeleteMapping("/{user-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'user:delete')")
+    @PreAuthorize("hasPermission(null, 'users:delete')")
     suspend fun delete(@PathVariable("user-id") userId: Long) {
         val user = userFinder.findByIdOrFail(userId)
         userRemover.remove(user, soft = true)

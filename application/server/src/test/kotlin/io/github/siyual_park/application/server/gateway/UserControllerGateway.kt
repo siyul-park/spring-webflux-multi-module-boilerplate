@@ -1,7 +1,7 @@
 package io.github.siyual_park.application.server.gateway
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
-import io.github.siyual_park.application.server.dto.request.MutableUser
+import io.github.siyual_park.application.server.dto.request.MutableUserData
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.application.server.helper.AuthorizationHeaderGenerator
 import io.github.siyual_park.auth.domain.Principal
@@ -32,7 +32,7 @@ class UserControllerGateway(
             .returnResult(UserInfo::class.java)
     }
 
-    suspend fun updateSelf(request: MutableUser): FluxExchangeResult<UserInfo> {
+    suspend fun updateSelf(request: MutableUserData): FluxExchangeResult<UserInfo> {
         return client.patch()
             .uri("/users/self")
             .header(HttpHeaders.AUTHORIZATION, getAuthorization())

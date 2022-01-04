@@ -30,7 +30,7 @@ class SyncClientScope(
     override suspend fun consume(event: AfterSaveEvent<*>) {
         val entity = event.entity as? ScopeRelation ?: return
         val parent = scopeTokenFinder.findByIdOrFail(entity.parentId)
-        if (parent.name != "client") {
+        if (parent.name != "pack:client") {
             return
         }
 

@@ -1,6 +1,6 @@
 package io.github.siyual_park.application.server.controller
 
-import io.github.siyual_park.application.server.dto.request.MutableUser
+import io.github.siyual_park.application.server.dto.request.MutableUserData
 import io.github.siyual_park.application.server.factory.CreateClientPayloadFactory
 import io.github.siyual_park.application.server.factory.CreateUserPayloadFactory
 import io.github.siyual_park.application.server.factory.CreateUserRequestFactory
@@ -100,7 +100,7 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val removeScope = scopeTokenRepository.findByNameOrFail("user:read.self")
+        val removeScope = scopeTokenRepository.findByNameOrFail("users[self]:read")
 
         val userControllerGateway = userControllerGatewayFactory.create(
             UserPrincipal(
@@ -122,7 +122,7 @@ class UserControllerTest @Autowired constructor(
 
         val userControllerGateway = userControllerGatewayFactory.create(principal)
 
-        val request = MutableUser(
+        val request = MutableUserData(
             name = RandomNameFactory.create(10)
         )
         val response = userControllerGateway.updateSelf(request)
@@ -159,7 +159,7 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val removeScope = scopeTokenRepository.findByNameOrFail("user:delete.self")
+        val removeScope = scopeTokenRepository.findByNameOrFail("users[self]:delete")
 
         val userControllerGateway = userControllerGatewayFactory.create(
             UserPrincipal(
@@ -174,7 +174,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testDeleterSuccess() = blocking {
+    fun testDeleteSuccess() = blocking {
         val payload = createUserPayloadFactory.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
@@ -182,7 +182,7 @@ class UserControllerTest @Autowired constructor(
         val otherPayload = createUserPayloadFactory.create()
         val otherUser = userFactory.create(otherPayload)
 
-        val removeScope = scopeTokenRepository.findByNameOrFail("user:delete")
+        val removeScope = scopeTokenRepository.findByNameOrFail("users:delete")
 
         val scope = mutableSetOf<ScopeToken>()
         scope.add(removeScope)

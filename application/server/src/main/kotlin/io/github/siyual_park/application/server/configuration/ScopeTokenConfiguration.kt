@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration
 class ScopeTokenConfiguration {
     @Autowired(required = true)
     fun configScopeToken(scopeTokenGenerator: ScopeTokenGenerator) {
-        val useScope = ScopeToken(name = "user")
-        val clientScope = ScopeToken(name = "client")
+        val useScope = ScopeToken(name = "pack:user")
+        val clientScope = ScopeToken(name = "pack:client")
 
         scopeTokenGenerator
             .register(useScope)
@@ -20,12 +20,12 @@ class ScopeTokenConfiguration {
             .register(ScopeToken(name = "access-token:create"), listOf(useScope, clientScope))
             .register(ScopeToken(name = "refresh-token:create"), listOf(useScope))
 
-            .register(ScopeToken(name = "user:create"), listOf(clientScope))
-            .register(ScopeToken(name = "user:delete"))
-            .register(ScopeToken(name = "user:read.self"), listOf(useScope))
-            .register(ScopeToken(name = "user:update.self"), listOf(useScope))
-            .register(ScopeToken(name = "user:delete.self"), listOf(useScope))
+            .register(ScopeToken(name = "users:create"), listOf(clientScope))
+            .register(ScopeToken(name = "users:delete"))
+            .register(ScopeToken(name = "users[self]:read"), listOf(useScope))
+            .register(ScopeToken(name = "users[self]:update"), listOf(useScope))
+            .register(ScopeToken(name = "users[self]:delete"), listOf(useScope))
 
-            .register(ScopeToken(name = "client:create"), listOf(useScope))
+            .register(ScopeToken(name = "clients:create"), listOf(useScope))
     }
 }
