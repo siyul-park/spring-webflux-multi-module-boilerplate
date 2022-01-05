@@ -39,7 +39,7 @@ class TokenDecoder(
     }
 
     private fun decodeScope(scope: String): Flow<ScopeToken> {
-        return scopeTokenFinder.findAllById(
+        return scopeTokenFinder.findAllWithResolved(
             scope.split(" ").mapNotNull { it.toLongOrNull() },
         )
     }

@@ -1,5 +1,6 @@
 package io.github.siyual_park.client.domain
 
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.client.entity.Client
 import io.github.siyual_park.client.entity.ClientCredential
@@ -11,7 +12,6 @@ import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -22,7 +22,7 @@ class ClientFactory(
     private val clientRepository: ClientRepository,
     private val clientCredentialRepository: ClientCredentialRepository,
     private val clientScopeRepository: ClientScopeRepository,
-    private val clientScopeFinder: ClientScopeFinder,
+    private val scopeTokenFinder: ScopeTokenFinder,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
 ) {
@@ -56,7 +56,7 @@ class ClientFactory(
     }
 
     private suspend fun createDefaultScope(client: Client): Flow<ClientScope> {
-        return createScope(client, clientScopeFinder.findAll().toList())
+        return createScope(client, listOf(scopeTokenFinder.findByNameOrFail("pack:client")))
     }
 
     private fun createScope(client: Client, scope: Collection<ScopeToken>): Flow<ClientScope> {

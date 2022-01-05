@@ -40,6 +40,17 @@ class UserScopeFinder(
         return scopeTokenFinder.findAllByParent("pack:user")
     }
 
+    fun findAllWithResolvedByUser(user: User): Flow<ScopeToken> {
+        return user.id?.let { findAllWithResolvedByUserId(it) } ?: emptyFlow()
+    }
+
+    fun findAllWithResolvedByUserId(userId: Long): Flow<ScopeToken> {
+        return flow {
+            val userScopes = userScopeRepository.findAllByUserId(userId).toList()
+            emitAll(scopeTokenFinder.findAllWithResolved(userScopes.map { it.scopeTokenId }))
+        }
+    }
+
     fun findAllByUser(user: User): Flow<ScopeToken> {
         return user.id?.let { findAllByUserId(it) } ?: emptyFlow()
     }
@@ -47,7 +58,7 @@ class UserScopeFinder(
     fun findAllByUserId(userId: Long): Flow<ScopeToken> {
         return flow {
             val userScopes = userScopeRepository.findAllByUserId(userId).toList()
-            emitAll(scopeTokenFinder.findAllById(userScopes.map { it.scopeTokenId }))
+            emitAll(scopeTokenFinder.findAllWithResolved(userScopes.map { it.scopeTokenId }))
         }
     }
 }

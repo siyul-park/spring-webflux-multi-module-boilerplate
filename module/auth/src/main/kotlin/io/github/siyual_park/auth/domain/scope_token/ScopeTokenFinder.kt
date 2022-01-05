@@ -6,6 +6,7 @@ import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.reader.finder.Finder
 import io.github.siyual_park.reader.finder.FinderAdapter
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -18,6 +19,32 @@ class ScopeTokenFinder(
     private val scopeTokenRepository: ScopeTokenRepository,
     private val scopeRelationRepository: ScopeRelationRepository
 ) : Finder<ScopeToken, Long> by FinderAdapter(scopeTokenRepository) {
+    fun findAllWithResolved(ids: Iterable<Long>): Flow<ScopeToken> {
+        return flow {
+            findAllById(ids)
+                .collect {
+                    if (isPacked(it.name)) {
+                        findAllByParent(it).collect { emit(it) }
+                    } else {
+                        emit(it)
+                    }
+                }
+        }
+    }
+
+    fun findAllWithResolved(id: Long): Flow<ScopeToken> {
+        return flow {
+            findById(id)
+                ?.let {
+                    if (isPacked(it.name)) {
+                        findAllByParent(it).collect { emit(it) }
+                    } else {
+                        emit(it)
+                    }
+                }
+        }
+    }
+
     fun findAllByParent(parentName: String): Flow<ScopeToken> {
         return flow {
             scopeTokenRepository.findByName(parentName)
@@ -28,7 +55,14 @@ class ScopeTokenFinder(
     fun findAllByParent(parent: ScopeToken): Flow<ScopeToken> {
         return flow {
             val relations = scopeRelationRepository.findAllByParent(parent)
-            emitAll(findAllById(relations.map { it.childId }.toList()))
+            findAllById(relations.map { it.childId }.toList())
+                .collect {
+                    if (isPacked(it.name)) {
+                        findAllByParent(it).collect { emit(it) }
+                    } else {
+                        emit(it)
+                    }
+                }
         }
     }
 
@@ -42,5 +76,9 @@ class ScopeTokenFinder(
 
     suspend fun findByName(name: String): ScopeToken? {
         return scopeTokenRepository.findByName(name)
+    }
+
+    private fun isPacked(name: String): Boolean {
+        return name.startsWith("pack:")
     }
 }

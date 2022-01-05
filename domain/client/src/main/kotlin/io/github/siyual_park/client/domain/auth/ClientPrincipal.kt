@@ -6,7 +6,7 @@ import io.github.siyual_park.client.entity.ClientEntity
 
 data class ClientPrincipal(
     override val id: String,
-    override val scope: Set<ScopeToken>
+    override var scope: Set<ScopeToken>
 ) : Principal, ClientEntity {
     override val clientId: Long
         get() = id.toLong()

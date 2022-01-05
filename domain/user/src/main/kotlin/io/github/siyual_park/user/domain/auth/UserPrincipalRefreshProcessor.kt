@@ -13,7 +13,7 @@ class UserPrincipalRefreshProcessor(
     override val principalClazz = UserPrincipal::class
 
     override suspend fun refresh(principal: UserPrincipal): UserPrincipal {
-        val exitedScope = userScopeFinder.findAllByUserId(principal.userId).toSet()
+        val exitedScope = userScopeFinder.findAllWithResolvedByUserId(principal.userId).toSet()
         return UserPrincipal(
             id = principal.id,
             clientId = principal.clientId,

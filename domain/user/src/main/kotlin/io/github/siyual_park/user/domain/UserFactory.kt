@@ -1,6 +1,7 @@
 package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.domain.hash
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.event.EventPublisher
@@ -13,7 +14,6 @@ import io.github.siyual_park.user.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -24,7 +24,7 @@ class UserFactory(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
-    private val userScopeFinder: UserScopeFinder,
+    private val scopeTokenFinder: ScopeTokenFinder,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
     private val hashAlgorithm: String = "SHA-256"
@@ -59,7 +59,7 @@ class UserFactory(
     }
 
     private suspend fun createDefaultScope(user: User): Flow<UserScope> {
-        return createScope(user, userScopeFinder.findAll().toList())
+        return createScope(user, listOf(scopeTokenFinder.findByNameOrFail("pack:user")))
     }
 
     private fun createScope(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {

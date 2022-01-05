@@ -6,7 +6,9 @@ import io.github.siyual_park.application.server.factory.CreateUserPayloadFactory
 import io.github.siyual_park.application.server.factory.CreateUserRequestFactory
 import io.github.siyual_park.application.server.factory.RandomNameFactory
 import io.github.siyual_park.application.server.gateway.factory.UserControllerGatewayFactory
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.entity.ids
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.auth.ClientPrincipalExchanger
@@ -16,6 +18,7 @@ import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserScopeFinder
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -32,6 +35,7 @@ class UserControllerTest @Autowired constructor(
     private val userPrincipalExchanger: UserPrincipalExchanger,
     private val clientPrincipalExchanger: ClientPrincipalExchanger,
     private val userScopeFinder: UserScopeFinder,
+    private val scopeTokenFinder: ScopeTokenFinder,
     private val scopeTokenRepository: ScopeTokenRepository
 ) : CoroutineTest() {
     private val createUserRequestFactory = CreateUserRequestFactory()
@@ -105,7 +109,9 @@ class UserControllerTest @Autowired constructor(
         val userControllerGateway = userControllerGatewayFactory.create(
             UserPrincipal(
                 id = principal.id,
-                scope = principal.scope.filter { it.id != removeScope.id }.toSet()
+                scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())
+                    .filter { it.id != removeScope.id }
+                    .toSet()
             )
         )
 
@@ -149,7 +155,7 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
-        val scope = userScopeFinder.findAllByUser(user).toSet()
+        val scope = userScopeFinder.findAllWithResolvedByUser(user).toSet()
         assertEquals(0, scope.size)
     }
 
@@ -164,7 +170,9 @@ class UserControllerTest @Autowired constructor(
         val userControllerGateway = userControllerGatewayFactory.create(
             UserPrincipal(
                 id = principal.id,
-                scope = principal.scope.filter { it.id != removeScope.id }.toSet()
+                scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())
+                    .filter { it.id != removeScope.id }
+                    .toSet()
             )
         )
 

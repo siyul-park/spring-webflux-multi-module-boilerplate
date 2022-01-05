@@ -40,6 +40,17 @@ class ClientScopeFinder(
         return scopeTokenFinder.findAllByParent("pack:client")
     }
 
+    fun findAllWithResolvedByClient(client: Client): Flow<ScopeToken> {
+        return client.id?.let { findAllWithResolvedByClientId(it) } ?: emptyFlow()
+    }
+
+    fun findAllWithResolvedByClientId(clientId: Long): Flow<ScopeToken> {
+        return flow {
+            val clientScopes = clientScopeRepository.findAllByClientId(clientId).toList()
+            emitAll(scopeTokenFinder.findAllWithResolved(clientScopes.map { it.scopeTokenId }))
+        }
+    }
+
     fun findAllByClient(client: Client): Flow<ScopeToken> {
         return client.id?.let { findAllByClientId(it) } ?: emptyFlow()
     }

@@ -8,7 +8,7 @@ import io.github.siyual_park.user.entity.UserEntity
 data class UserPrincipal(
     override val id: String,
     override val clientId: Long? = null,
-    override val scope: Set<ScopeToken>,
+    override var scope: Set<ScopeToken>,
 ) : Principal, UserEntity, ClientEntity {
     override val userId: Long
         get() = id.toLong()

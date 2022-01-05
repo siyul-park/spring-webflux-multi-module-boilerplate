@@ -15,7 +15,7 @@ class UserPrincipalExchanger(
     private val userScopeFinder: UserScopeFinder
 ) {
     suspend fun exchange(user: UserEntity, client: ClientEntity? = null): UserPrincipal {
-        val scope = userScopeFinder.findAllByUserId(user.userId!!).toSet()
+        val scope = userScopeFinder.findAllWithResolvedByUserId(user.userId!!).toSet()
         return UserPrincipal(
             id = user.userId.toString(),
             clientId = client?.clientId,
