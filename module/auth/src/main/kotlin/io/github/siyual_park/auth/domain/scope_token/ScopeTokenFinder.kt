@@ -19,6 +19,19 @@ class ScopeTokenFinder(
     private val scopeTokenRepository: ScopeTokenRepository,
     private val scopeRelationRepository: ScopeRelationRepository
 ) : Finder<ScopeToken, Long> by FinderAdapter(scopeTokenRepository) {
+    fun findAllWithResolvedByName(names: Iterable<String>): Flow<ScopeToken> {
+        return flow {
+            findAllByName(names)
+                .collect {
+                    if (isPacked(it.name)) {
+                        findAllByParent(it).collect { emit(it) }
+                    } else {
+                        emit(it)
+                    }
+                }
+        }
+    }
+
     fun findAllWithResolved(ids: Iterable<Long>): Flow<ScopeToken> {
         return flow {
             findAllById(ids)

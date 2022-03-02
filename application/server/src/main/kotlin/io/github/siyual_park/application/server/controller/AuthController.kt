@@ -7,6 +7,7 @@ import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.domain.token.TokenIssuer
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
@@ -15,6 +16,7 @@ import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.user.domain.auth.PasswordGrantPayload
 import io.swagger.annotations.Api
+import kotlinx.coroutines.flow.toSet
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.PostMapping
@@ -31,6 +33,7 @@ class AuthController(
     private val authorizator: Authorizator,
     private val tokenIssuer: TokenIssuer,
     private val principalRefresher: PrincipalRefresher,
+    private val scopeTokenFinder: ScopeTokenFinder,
     private val mapperManager: MapperManager
 ) {
 
@@ -56,7 +59,10 @@ class AuthController(
             principal = principalRefresher.refresh(principal)
         }
 
-        val tokens = tokenIssuer.issue(principal)
+        val scope = request.scope?.split(" ")?.let {
+            scopeTokenFinder.findAllWithResolvedByName(it)
+        }?.toSet()
+        val tokens = tokenIssuer.issue(principal, scope)
 
         return mapperManager.map(tokens)
     }

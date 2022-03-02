@@ -8,10 +8,14 @@ import javax.validation.constraints.AssertTrue
 data class CreateTokenRequest(
     @ApiModelProperty(name = "grant_type")
     val grantType: GrantType,
+    val scope: String? = null,
+
     val username: String? = null,
     val password: String? = null,
+
     @ApiModelProperty(name = "refresh_token")
     val refreshToken: String? = null,
+
     @ApiModelProperty(name = "client_id")
     val clientId: Long,
     @ApiModelProperty(name = "client_secret")
