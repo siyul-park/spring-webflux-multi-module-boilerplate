@@ -36,6 +36,11 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         }
 
         return repository.existsById(id)
+            .also {
+                if (!it) {
+                    storage.removeBy(id)
+                }
+            }
     }
 
     override suspend fun findById(id: ID): T? {
