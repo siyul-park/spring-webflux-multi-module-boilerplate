@@ -1,6 +1,5 @@
 package io.github.siyual_park.updater
 
-import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
@@ -12,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.flow
 
-class UpdaterAdapter<T : Cloneable<T>, ID : Any>(
+class UpdaterAdapter<T : Any, ID : Any>(
     private val repository: Repository<T, ID>,
     private val eventPublisher: EventPublisher,
 ) : Updater<T, ID> {

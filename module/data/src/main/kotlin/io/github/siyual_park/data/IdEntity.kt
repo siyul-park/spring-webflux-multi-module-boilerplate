@@ -3,7 +3,7 @@ package io.github.siyual_park.data
 import io.github.siyual_park.data.annotation.GeneratedValue
 import org.springframework.data.annotation.Id
 
-abstract class IdEntity<T, ID> : Cloneable<T> {
+abstract class IdEntity<T, ID> {
     @Id
     @GeneratedValue
     var id: ID? = null
@@ -20,10 +20,4 @@ abstract class IdEntity<T, ID> : Cloneable<T> {
 
         return id == other.id
     }
-}
-
-fun <T : IdEntity<T, ID>, ID> IdEntity<T, ID>.copyDefaultColumn(entity: T): T {
-    entity.id = id
-
-    return entity
 }

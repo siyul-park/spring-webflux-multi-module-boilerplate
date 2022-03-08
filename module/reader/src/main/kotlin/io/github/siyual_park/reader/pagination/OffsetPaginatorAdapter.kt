@@ -1,12 +1,11 @@
 package io.github.siyual_park.reader.pagination
 
-import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.CriteriaDefinition
 
-class OffsetPaginatorAdapter<T : Cloneable<T>, ID : Any>(
+class OffsetPaginatorAdapter<T : Any, ID : Any>(
     private val repository: R2DBCRepository<T, ID>,
     private val criteria: CriteriaDefinition? = null,
     private val sort: Sort? = null

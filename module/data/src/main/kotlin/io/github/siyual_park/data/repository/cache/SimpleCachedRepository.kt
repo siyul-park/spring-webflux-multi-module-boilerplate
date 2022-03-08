@@ -1,20 +1,23 @@
 package io.github.siyual_park.data.repository.cache
 
+import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
-import java.util.TreeMap
 
 class SimpleCachedRepository<T : Any, ID : Any>(
     private val repository: Repository<T, ID>,
-    override val storage: Storage<T, ID>,
+    cacheBuilder: CacheBuilder<ID, T>,
+    private val idExtractor: Extractor<T, ID>
 ) : CachedRepository<T, ID> {
+    override val storage: Storage<T, ID> = Storage(cacheBuilder, idExtractor)
+
     override suspend fun create(entity: T): T {
         return repository.create(entity)
             .also { storage.put(it) }
@@ -54,28 +57,32 @@ class SimpleCachedRepository<T : Any, ID : Any>(
 
     override fun findAllById(ids: Iterable<ID>): Flow<T> {
         return flow {
-            val result = TreeMap<Int, T>()
-
-            val notCachedKey = mutableListOf<Pair<Int, ID>>()
-            ids.forEachIndexed { index, key ->
+            val result = mutableListOf<T>()
+            val notCachedKey = mutableListOf<ID>()
+            ids.forEach { key ->
                 val cached = storage.getIfPresent(key)
                 if (cached == null) {
-                    notCachedKey.add(index to key)
+                    notCachedKey.add(key)
                 } else {
-                    result[index] = cached
+                    result.add(cached)
                 }
             }
 
             if (notCachedKey.isNotEmpty()) {
-                repository.findAllById(notCachedKey.map { it.second })
-                    .collectIndexed { index, entity ->
-                        val (originIndex, _) = notCachedKey[index]
-                        storage.put(entity)
-                        result[originIndex] = entity
-                    }
+                repository.findAllById(notCachedKey)
+                    .collect { result.add(it) }
             }
 
-            emitAll(result.values.asFlow())
+            emitAll(
+                result.also {
+                    it.sortWith { p1, p2 ->
+                        val p1Id = idExtractor.getKey(p1)
+                        val p2Id = idExtractor.getKey(p2)
+
+                        ids.indexOf(p1Id) - ids.indexOf(p2Id)
+                    }
+                }.asFlow()
+            )
         }
     }
 

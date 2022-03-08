@@ -206,7 +206,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
             .let { personRepository.create(it) }
         val person2 = personFactory.create()
 
-        val originPerson = person.clone()
+        val originPerson = person.copy()
 
         person.name = person2.name
         person.age = person2.age
@@ -277,7 +277,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
             .let { personRepository.createAll(it) }
             .toList()
 
-        val originPersons = persons.map { it.clone() }
+        val originPersons = persons.map { it.copy() }
 
         val person2 = personFactory.create()
         persons = persons.map {

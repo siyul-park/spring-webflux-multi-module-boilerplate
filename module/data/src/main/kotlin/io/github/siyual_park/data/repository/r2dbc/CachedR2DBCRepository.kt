@@ -1,7 +1,6 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.annotation.Key
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.patch.AsyncPatch
@@ -10,7 +9,6 @@ import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.cache.CachedRepository
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
-import io.github.siyual_park.data.repository.cache.Storage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -31,20 +29,18 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
 @Suppress("UNCHECKED_CAST")
-class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
+class CachedR2DBCRepository<T : Any, ID : Any>(
     private val repository: R2DBCRepository<T, ID>,
     cacheBuilder: CacheBuilder<ID, T>,
 ) : R2DBCRepository<T, ID>,
     CachedRepository<T, ID> by SimpleCachedRepository(
         repository,
-        Storage(
-            cacheBuilder,
-            object : Extractor<T, ID> {
-                override fun getKey(entity: T): ID {
-                    return repository.entityManager.getId(entity)
-                }
+        cacheBuilder,
+        object : Extractor<T, ID> {
+            override fun getKey(entity: T): ID {
+                return repository.entityManager.getId(entity)
             }
-        )
+        }
     ) {
 
     override val entityManager: EntityManager<T, ID>
@@ -248,14 +244,14 @@ class CachedR2DBCRepository<T : Cloneable<T>, ID : Any>(
     }
 
     companion object {
-        fun <T : Cloneable<T>, ID : Any> of(
+        fun <T : Any, ID : Any> of(
             repository: R2DBCRepository<T, ID>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder()
         ): CachedR2DBCRepository<T, ID> {
             return CachedR2DBCRepository(repository, cacheBuilder as CacheBuilder<ID, T>)
         }
 
-        fun <T : Cloneable<T>, ID : Any> of(
+        fun <T : Any, ID : Any> of(
             entityOperations: R2dbcEntityOperations,
             clazz: KClass<T>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),

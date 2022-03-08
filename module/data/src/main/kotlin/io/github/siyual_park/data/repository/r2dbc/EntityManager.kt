@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.repository.r2dbc
 
-import io.github.siyual_park.data.Cloneable
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.r2dbc.mapping.OutboundRow
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity
@@ -8,7 +7,7 @@ import org.springframework.data.relational.core.sql.SqlIdentifier
 import org.springframework.data.util.ProxyUtils
 import kotlin.reflect.KClass
 
-class EntityManager<T : Cloneable<T>, ID : Any>(
+class EntityManager<T : Any, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     val clazz: KClass<T>,
 ) {

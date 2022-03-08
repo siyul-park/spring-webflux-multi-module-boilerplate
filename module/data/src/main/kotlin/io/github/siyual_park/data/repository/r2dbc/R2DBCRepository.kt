@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.repository.r2dbc
 
-import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.Repository
@@ -9,7 +8,7 @@ import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.CriteriaDefinition
 
-interface R2DBCRepository<T : Cloneable<T>, ID : Any> : Repository<T, ID> {
+interface R2DBCRepository<T : Any, ID : Any> : Repository<T, ID> {
     val entityManager: EntityManager<T, ID>
 
     suspend fun exists(criteria: CriteriaDefinition): Boolean
@@ -36,32 +35,32 @@ interface R2DBCRepository<T : Cloneable<T>, ID : Any> : Repository<T, ID> {
     suspend fun deleteAll(criteria: CriteriaDefinition? = null)
 }
 
-suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.findOneOrFail(criteria: CriteriaDefinition): T {
+suspend fun <T : Any, ID : Any> R2DBCRepository<T, ID>.findOneOrFail(criteria: CriteriaDefinition): T {
     return findOne(criteria) ?: throw EmptyResultDataAccessException(1)
 }
 
-suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.updateOrFail(
+suspend fun <T : Any, ID : Any> R2DBCRepository<T, ID>.updateOrFail(
     criteria: CriteriaDefinition,
     patch: AsyncPatch<T>
 ): T {
     return update(criteria, patch) ?: throw EmptyResultDataAccessException(1)
 }
 
-suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.updateOrFail(
+suspend fun <T : Any, ID : Any> R2DBCRepository<T, ID>.updateOrFail(
     criteria: CriteriaDefinition,
     patch: Patch<T>
 ): T {
     return update(criteria, patch) ?: throw EmptyResultDataAccessException(1)
 }
 
-suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.updateOrFail(
+suspend fun <T : Any, ID : Any> R2DBCRepository<T, ID>.updateOrFail(
     criteria: CriteriaDefinition,
     patch: (entity: T) -> Unit
 ): T {
     return updateOrFail(criteria, Patch.with(patch))
 }
 
-suspend fun <T : Cloneable<T>, ID : Any> R2DBCRepository<T, ID>.update(
+suspend fun <T : Any, ID : Any> R2DBCRepository<T, ID>.update(
     criteria: CriteriaDefinition,
     patch: (entity: T) -> Unit
 ): T? {

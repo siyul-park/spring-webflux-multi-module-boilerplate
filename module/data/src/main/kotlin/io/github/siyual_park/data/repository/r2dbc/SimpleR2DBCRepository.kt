@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.repository.r2dbc
 
-import io.github.siyual_park.data.Cloneable
 import io.github.siyual_park.data.annotation.GeneratedValue
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
@@ -31,7 +30,7 @@ import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
-class SimpleR2DBCRepository<T : Cloneable<T>, ID : Any>(
+class SimpleR2DBCRepository<T : Any, ID : Any>(
     private val entityOperations: R2dbcEntityOperations,
     private val clazz: KClass<T>,
     private val scheduler: Scheduler = Schedulers.boundedElastic()
@@ -225,10 +224,9 @@ class SimpleR2DBCRepository<T : Cloneable<T>, ID : Any>(
     }
 
     override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
-        val origin = entity.clone()
-        val patched = patch.apply(entity)
+        val originOutboundRow = entityManager.getOutboundRow(entity)
 
-        val originOutboundRow = entityManager.getOutboundRow(origin)
+        val patched = patch.apply(entity)
         val patchedOutboundRow = entityManager.getOutboundRow(patched)
 
         val diff = mutableMapOf<SqlIdentifier, Any?>()
