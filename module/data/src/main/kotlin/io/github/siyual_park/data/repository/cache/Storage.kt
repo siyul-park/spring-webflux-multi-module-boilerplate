@@ -15,10 +15,11 @@ class Storage<T : Any, ID : Any>(
 
     private val cache: Cache<ID, T> = cacheBuilder
         .removalListener<ID, T> {
-            val entity: T = it.value
-            indexes.forEach { (name, index) ->
-                val extractor = extractors[name] ?: return@forEach
-                index.remove(extractor.getKey(entity))
+            it.value?.let { entity ->
+                indexes.forEach { (name, index) ->
+                    val extractor = extractors[name] ?: return@forEach
+                    index.remove(extractor.getKey(entity))
+                }
             }
         }.build()
 
