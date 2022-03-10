@@ -12,7 +12,6 @@ import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
@@ -23,7 +22,6 @@ import org.springframework.data.relational.core.query.CriteriaDefinition
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import java.time.Duration
-import java.util.TreeMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
@@ -120,28 +118,26 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                     value is Collection<*>
                 ) {
                     return flow {
-                        val result = TreeMap<Int, T>()
-
-                        val notCachedKey = mutableListOf<Pair<Int, *>>()
-                        value.forEachIndexed { index, key ->
+                        val result = mutableListOf<T>()
+                        val notCachedKey = mutableListOf<Any?>()
+                        value.forEach { key ->
                             val cached = key?.let { storage.getIfPresent(it, indexName) }
                             if (cached == null) {
-                                notCachedKey.add(index to key)
+                                notCachedKey.add(key)
                             } else {
-                                result[index] = cached
+                                result.add(cached)
                             }
                         }
 
                         if (notCachedKey.isNotEmpty()) {
-                            repository.findAll(Criteria.where(indexName).`in`(notCachedKey.map { it.second }))
-                                .collectIndexed { index, entity ->
-                                    val (originIndex, _) = notCachedKey[index]
+                            repository.findAll(Criteria.where(indexName).`in`(notCachedKey))
+                                .collect { entity ->
                                     storage.put(entity)
-                                    result[originIndex] = entity
+                                    result.add(entity)
                                 }
                         }
 
-                        emitAll(result.values.asFlow())
+                        emitAll(result.asFlow())
                     }
                 }
             }
