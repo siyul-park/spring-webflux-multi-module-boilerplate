@@ -2,13 +2,18 @@ package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateClientRequest
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
+import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.CreateClientPayload
+import io.github.siyual_park.client.domain.auth.ClientPrincipal
+import io.github.siyual_park.client.domain.auth.ClientPrincipalExchanger
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -21,6 +26,7 @@ import javax.validation.Valid
 @RequestMapping("/clients")
 class ClientController(
     private val clientFactory: ClientFactory,
+    private val clientPrincipalExchanger: ClientPrincipalExchanger,
     private val mapperManager: MapperManager
 ) {
 
@@ -34,6 +40,14 @@ class ClientController(
             origin = request.origin
         )
         val client = clientFactory.create(payload)
+        return mapperManager.map(client)
+    }
+
+    @GetMapping("/self")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'clients[self]:read')")
+    suspend fun readSelf(@AuthenticationPrincipal principal: ClientPrincipal): ClientInfo {
+        val client = clientPrincipalExchanger.exchange(principal)
         return mapperManager.map(client)
     }
 }
