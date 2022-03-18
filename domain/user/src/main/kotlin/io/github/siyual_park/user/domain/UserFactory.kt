@@ -59,7 +59,7 @@ class UserFactory(
     }
 
     private suspend fun createDefaultScope(user: User): Flow<UserScope> {
-        return createScope(user, listOf(scopeTokenFinder.findByNameOrFail("pack:user")))
+        return createScope(user, listOf(scopeTokenFinder.findByNameOrFail("user:pack")))
     }
 
     private fun createScope(user: User, scope: Collection<ScopeToken>): Flow<UserScope> {

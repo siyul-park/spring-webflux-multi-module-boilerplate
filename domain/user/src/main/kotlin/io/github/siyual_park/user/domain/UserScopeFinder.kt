@@ -21,7 +21,7 @@ class UserScopeFinder(
     private val scopeTokenFinder: ScopeTokenFinder
 ) : Finder<ScopeToken, Long> {
     override suspend fun findById(id: Long): ScopeToken? {
-        val parent = scopeTokenFinder.findByName("pack:user") ?: return null
+        val parent = scopeTokenFinder.findByName("user:pack") ?: return null
         val scopeToken = scopeTokenFinder.findById(id) ?: return null
 
         return if (scopeRelationRepository.findBy(parent.id!!, scopeToken.id!!) != null) {
@@ -37,7 +37,7 @@ class UserScopeFinder(
     }
 
     override fun findAll(): Flow<ScopeToken> {
-        return scopeTokenFinder.findAllByParent("pack:user")
+        return scopeTokenFinder.findAllByParent("user:pack")
     }
 
     fun findAllWithResolvedByUser(user: User): Flow<ScopeToken> {

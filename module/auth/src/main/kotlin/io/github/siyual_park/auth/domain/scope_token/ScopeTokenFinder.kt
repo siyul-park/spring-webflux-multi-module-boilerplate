@@ -92,6 +92,6 @@ class ScopeTokenFinder(
     }
 
     private fun isPacked(name: String): Boolean {
-        return name.startsWith("pack:")
+        return name.endsWith(":pack")
     }
 }

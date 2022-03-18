@@ -56,7 +56,7 @@ class ClientFactory(
     }
 
     private suspend fun createDefaultScope(client: Client): Flow<ClientScope> {
-        return createScope(client, listOf(scopeTokenFinder.findByNameOrFail("pack:client")))
+        return createScope(client, listOf(scopeTokenFinder.findByNameOrFail("client:pack")))
     }
 
     private fun createScope(client: Client, scope: Collection<ScopeToken>): Flow<ClientScope> {

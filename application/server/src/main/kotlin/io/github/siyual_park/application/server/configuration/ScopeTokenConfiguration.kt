@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration
 class ScopeTokenConfiguration {
     @Autowired(required = true)
     fun configScopeToken(scopeTokenGenerator: ScopeTokenGenerator) {
-        val useScope = ScopeToken(name = "pack:user")
-        val clientScope = ScopeToken(name = "pack:client")
+        val useScope = ScopeToken(name = "user:pack")
+        val clientScope = ScopeToken(name = "client:pack")
 
         scopeTokenGenerator
             .register(useScope)
