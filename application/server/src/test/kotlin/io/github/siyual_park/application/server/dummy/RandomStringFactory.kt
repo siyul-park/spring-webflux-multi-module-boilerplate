@@ -1,4 +1,4 @@
-package io.github.siyual_park.application.server.factory
+package io.github.siyual_park.application.server.dummy
 
 import java.util.UUID
 

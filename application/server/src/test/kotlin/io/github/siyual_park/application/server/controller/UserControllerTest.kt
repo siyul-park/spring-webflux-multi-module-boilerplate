@@ -1,10 +1,10 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.MutableUserData
-import io.github.siyual_park.application.server.factory.CreateClientPayloadFactory
-import io.github.siyual_park.application.server.factory.CreateUserPayloadFactory
-import io.github.siyual_park.application.server.factory.CreateUserRequestFactory
-import io.github.siyual_park.application.server.factory.RandomNameFactory
+import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
+import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
+import io.github.siyual_park.application.server.dummy.DummyCreateUserRequest
+import io.github.siyual_park.application.server.dummy.RandomNameFactory
 import io.github.siyual_park.application.server.gateway.factory.UserControllerGatewayFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
@@ -38,19 +38,16 @@ class UserControllerTest @Autowired constructor(
     private val scopeTokenFinder: ScopeTokenFinder,
     private val scopeTokenRepository: ScopeTokenRepository
 ) : CoroutineTest() {
-    private val createUserRequestFactory = CreateUserRequestFactory()
-    private val createUserPayloadFactory = CreateUserPayloadFactory()
-    private val createClientPayloadFactory = CreateClientPayloadFactory()
 
     @Test
     fun testCreateSuccess() = blocking {
-        val principal = createClientPayloadFactory.create()
+        val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
             .let { clientPrincipalExchanger.exchange(it) }
 
         val userControllerGateway = userControllerGatewayFactory.create(principal)
 
-        val request = createUserRequestFactory.create()
+        val request = DummyCreateUserRequest.create()
         val response = userControllerGateway.create(request)
 
         assertEquals(HttpStatus.CREATED, response.status)
@@ -65,13 +62,13 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun testCreateFail() = blocking {
-        val principal = createClientPayloadFactory.create()
+        val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
             .let { clientPrincipalExchanger.exchange(it) }
 
         val userControllerGateway = userControllerGatewayFactory.create(principal)
 
-        val request = createUserRequestFactory.create()
+        val request = DummyCreateUserRequest.create()
         userControllerGateway.create(request)
 
         val response = userControllerGateway.create(request)
@@ -80,7 +77,7 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun testReadSelfSuccess() = blocking {
-        val payload = createUserPayloadFactory.create()
+        val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
@@ -100,7 +97,7 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun testReadSelfFail() = blocking {
-        val payload = createUserPayloadFactory.create()
+        val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
@@ -122,7 +119,7 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun testUpdateSelfSuccess() = blocking {
-        val payload = createUserPayloadFactory.create()
+        val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
@@ -145,7 +142,7 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun testDeleteSelfSuccess() = blocking {
-        val payload = createUserPayloadFactory.create()
+        val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
@@ -161,7 +158,7 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun testDeleterSelfFail() = blocking {
-        val payload = createUserPayloadFactory.create()
+        val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
@@ -183,11 +180,11 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun testDeleteSuccess() = blocking {
-        val payload = createUserPayloadFactory.create()
+        val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val otherPayload = createUserPayloadFactory.create()
+        val otherPayload = DummyCreateUserPayload.create()
         val otherUser = userFactory.create(otherPayload)
 
         val removeScope = scopeTokenRepository.findByNameOrFail("users:delete")
@@ -210,11 +207,11 @@ class UserControllerTest @Autowired constructor(
 
     @Test
     fun testDeleterFail() = blocking {
-        val payload = createUserPayloadFactory.create()
+        val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val otherPayload = createUserPayloadFactory.create()
+        val otherPayload = DummyCreateUserPayload.create()
         val otherUser = userFactory.create(otherPayload)
 
         val userControllerGateway = userControllerGatewayFactory.create(principal)
