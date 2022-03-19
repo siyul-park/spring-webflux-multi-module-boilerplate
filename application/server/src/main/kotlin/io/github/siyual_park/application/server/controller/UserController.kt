@@ -72,14 +72,20 @@ class UserController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'users:read')")
     suspend fun readAll(
+        @RequestParam("id") id: String? = null,
         @RequestParam("name") name: String? = null,
+        @RequestParam("created-at") createdAt: String? = null,
+        @RequestParam("updated-at") updatedAt: String? = null,
         @RequestParam("sort") sort: String? = null,
         @RequestParam("page") page: Int = 0,
         @RequestParam("per-page") perPage: Int = 15,
     ): OffsetPage<UserInfo> {
         val criteria = userRHSFilterParser.parseFromProperty(
             mapOf(
-                User::name to listOf(name)
+                User::id to listOf(id),
+                User::name to listOf(name),
+                User::createdAt to listOf(createdAt),
+                User::updatedAt to listOf(updatedAt)
             )
         )
         val paginator = userPaginatorFactory.create(
