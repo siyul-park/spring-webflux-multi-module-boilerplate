@@ -77,8 +77,8 @@ class UserController(
         @RequestParam("created-at", required = false) createdAt: String? = null,
         @RequestParam("updated-at", required = false) updatedAt: String? = null,
         @RequestParam("sort", required = false) sort: String? = null,
-        @RequestParam("page", required = false) page: Int = 0,
-        @RequestParam("per-page", required = false) perPage: Int = 15,
+        @RequestParam("page", required = false) page: Int? = null,
+        @RequestParam("per-page", required = false) perPage: Int? = null
     ): OffsetPage<UserInfo> {
         val criteria = rhsFilterParser.parseFromProperty(
             mapOf(
@@ -94,8 +94,8 @@ class UserController(
         )
         val offsetPage = paginator.paginate(
             OffsetPageQuery(
-                page = page,
-                perPage = perPage
+                page = page ?: 0,
+                perPage = perPage ?: 15
             )
         )
         return offsetPage.mapDataAsync { mapperManager.map(it) }

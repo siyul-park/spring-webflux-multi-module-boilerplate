@@ -20,4 +20,9 @@ class VilificationExceptionHandler {
     fun handle(exception: InvalidRequestException) {
         throw BadRequestException(exception.message)
     }
+
+    @ExceptionHandler(IllegalStateException::class)
+    fun handle(exception: IllegalStateException) {
+        throw BadRequestException(exception.message)
+    }
 }

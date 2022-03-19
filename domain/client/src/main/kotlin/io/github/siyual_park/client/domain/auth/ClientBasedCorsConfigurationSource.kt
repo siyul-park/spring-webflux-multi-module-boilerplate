@@ -18,29 +18,33 @@ class ClientBasedCorsConfigurationSource(
 ) : CorsConfigurationSource {
     override fun getCorsConfiguration(exchange: ServerWebExchange): CorsConfiguration? {
         return runBlocking {
-            val headers = exchange.request.headers
-            val authorization = headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return@runBlocking null
+            try {
+                val headers = exchange.request.headers
+                val authorization = headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return@runBlocking null
 
-            val token = authorization.split(" ")
-            if (token.size != 2) {
+                val token = authorization.split(" ")
+                if (token.size != 2) {
+                    return@runBlocking null
+                }
+
+                val payload = AuthorizationPayload(token[0], token[1])
+                val principal = authenticator.authenticate(payload)
+
+                if (principal is ClientEntity) {
+                    val client = principal.clientId?.let { clientFinder.findById(it) } ?: return@runBlocking null
+                    return@runBlocking CorsConfiguration()
+                        .apply {
+                            addAllowedOriginPattern(client.origin.toString())
+                            addAllowedHeader("*")
+                            addAllowedMethod("*")
+                            allowCredentials = true
+                        }
+                }
+
+                return@runBlocking null
+            } catch (e: Exception) {
                 return@runBlocking null
             }
-
-            val payload = AuthorizationPayload(token[0], token[1])
-            val principal = authenticator.authenticate(payload)
-
-            if (principal is ClientEntity) {
-                val client = principal.clientId?.let { clientFinder.findById(it) } ?: return@runBlocking null
-                return@runBlocking CorsConfiguration()
-                    .apply {
-                        addAllowedOriginPattern(client.origin.toString())
-                        addAllowedHeader("*")
-                        addAllowedMethod("*")
-                        allowCredentials = true
-                    }
-            }
-
-            return@runBlocking null
         }
     }
 }
