@@ -53,8 +53,8 @@ class UserController(
     sortParserFactory: SortParserFactory,
     private val mapperManager: MapperManager
 ) {
-    private val userRHSFilterParser = rhsFilterParserFactory.create(User::class)
-    private val userSortParser = sortParserFactory.create(User::class)
+    private val rhsFilterParser = rhsFilterParserFactory.create(User::class)
+    private val sortParser = sortParserFactory.create(User::class)
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
@@ -80,7 +80,7 @@ class UserController(
         @RequestParam("page") page: Int = 0,
         @RequestParam("per-page") perPage: Int = 15,
     ): OffsetPage<UserInfo> {
-        val criteria = userRHSFilterParser.parseFromProperty(
+        val criteria = rhsFilterParser.parseFromProperty(
             mapOf(
                 User::id to listOf(id),
                 User::name to listOf(name),
@@ -90,7 +90,7 @@ class UserController(
         )
         val paginator = userPaginatorFactory.create(
             criteria = criteria,
-            sort = sort?.let { userSortParser.parse(it) }
+            sort = sort?.let { sortParser.parse(it) }
         )
         val offsetPage = paginator.paginate(
             OffsetPageQuery(

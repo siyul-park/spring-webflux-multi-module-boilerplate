@@ -85,18 +85,8 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val additionalScope = scopeTokenRepository.findByNameOrFail("users:read")
+        gatewayAuthorization.setPrincipal(principal)
 
-        val scope = mutableSetOf<ScopeToken>()
-        scope.add(additionalScope)
-        scope.addAll(principal.scope)
-
-        gatewayAuthorization.setPrincipal(
-            UserPrincipal(
-                id = principal.id,
-                scope = scope
-            )
-        )
         val response = userControllerGateway.readAll(
             name = "eq:${user.name}",
             sort = "asc(created_at)",
@@ -122,7 +112,16 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        gatewayAuthorization.setPrincipal(principal)
+        val removeScope = scopeTokenRepository.findByNameOrFail("users:read")
+
+        gatewayAuthorization.setPrincipal(
+            UserPrincipal(
+                id = principal.id,
+                scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())
+                    .filter { it.id != removeScope.id }
+                    .toSet()
+            )
+        )
 
         val response = userControllerGateway.readAll(
             name = "eq:${user.name}",

@@ -16,9 +16,12 @@ import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
+import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -83,6 +86,65 @@ class ClientControllerTest@Autowired constructor(
 
         val response = clientControllerGateway.create(request)
         assertEquals(HttpStatus.CONFLICT, response.status)
+    }
+
+    @Test
+    fun testReadAllSuccess() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+            .let { userPrincipalExchanger.exchange(it) }
+
+        val client = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val response = clientControllerGateway.readAll(
+            name = "eq:${client.name}",
+            sort = "asc(created_at)",
+            page = 0,
+            perPage = 1
+        )
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseClients = response.responseBody.asFlow().toList()
+        assertEquals(1, responseClients.size)
+
+        val responseClient = responseClients[0]
+        assertEquals(client.id, responseClient.id)
+        assertEquals(client.name, responseClient.name)
+        assertNotNull(responseClient.createdAt)
+        assertNotNull(responseClient.updatedAt)
+    }
+
+    @Test
+    fun testReadAllFail() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+            .let { userPrincipalExchanger.exchange(it) }
+
+        val client = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        val removeScope = scopeTokenRepository.findByNameOrFail("clients:read")
+
+        gatewayAuthorization.setPrincipal(
+            UserPrincipal(
+                id = principal.id,
+                scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())
+                    .filter { it.id != removeScope.id }
+                    .toSet()
+            )
+        )
+
+        val response = clientControllerGateway.readAll(
+            name = "eq:${client.name}",
+            sort = "asc(created_at)",
+            page = 0,
+            perPage = 1
+        )
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
     @Test
