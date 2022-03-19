@@ -1,5 +1,6 @@
 package io.github.siyual_park.validation.validator
 
+import io.github.siyual_park.validation.annotation.ValidateMapping
 import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl
 import org.springframework.stereotype.Component
@@ -10,6 +11,7 @@ import javax.validation.constraints.Size
 
 @Suppress("UNCHECKED_CAST")
 @Component
+@ValidateMapping(Size::class)
 class URLSizeValidator : ConstraintValidator<Size, URL> {
     override fun isValid(value: URL, context: ConstraintValidatorContext): Boolean {
         val context = context as? ConstraintValidatorContextImpl ?: return false
