@@ -63,6 +63,15 @@ class ClientControllerGateway(
             .returnResult(ClientInfo::class.java)
     }
 
+    suspend fun updateSelf(request: MutableClientData): FluxExchangeResult<ClientInfo> {
+        return client.patch()
+            .uri("/clients/self")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .bodyValue(request)
+            .exchange()
+            .returnResult(ClientInfo::class.java)
+    }
+
     suspend fun update(clientId: Long, request: MutableClientData): FluxExchangeResult<ClientInfo> {
         return client.patch()
             .uri("/clients/$clientId")

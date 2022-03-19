@@ -245,6 +245,42 @@ class ClientControllerTest@Autowired constructor(
     }
 
     @Test
+    fun testUpdateSelfSuccess() = blocking {
+        val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = clientPrincipalExchanger.exchange(client)
+
+        val additionalScope = scopeTokenRepository.findByNameOrFail("clients[self]:update")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(additionalScope)
+        scope.addAll(principal.scope)
+
+        gatewayAuthorization.setPrincipal(
+            ClientPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
+        val request = MutableClientData(
+            name = RandomNameFactory.create(10),
+            origin = client.origin
+        )
+        val response = clientControllerGateway.updateSelf(request)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseClient = response.responseBody.awaitSingle()
+
+        assertEquals(client.id, responseClient.id)
+        assertEquals(request.name, responseClient.name)
+        assertEquals(client.type, responseClient.type)
+        assertEquals(request.origin, responseClient.origin)
+        assertNotNull(responseClient.createdAt)
+        assertNotNull(responseClient.updatedAt)
+    }
+
+    @Test
     fun testUpdateSuccess() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)

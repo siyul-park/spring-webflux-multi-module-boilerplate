@@ -107,8 +107,22 @@ class ClientController(
     @PreAuthorize("hasPermission(null, 'clients[self]:read')")
     suspend fun readSelf(@AuthenticationPrincipal principal: ClientEntity): ClientInfo {
         val client = principal.clientId?.let { clientFinder.findById(it) }
-            ?: throw throw EmptyResultDataAccessException(1)
+            ?: throw EmptyResultDataAccessException(1)
         return mapperManager.map(client)
+    }
+
+    @PatchMapping("/self")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'clients[self]:update')")
+    suspend fun updateSelf(
+        @AuthenticationPrincipal principal: ClientEntity,
+        @Valid @RequestBody patch: JsonMergePatch<MutableClientData>
+    ): ClientInfo {
+        return clientUpdater.updateById(
+            principal.clientId ?: throw EmptyResultDataAccessException(1),
+            patchConverter.convert(patch)
+        )
+            .let { mapperManager.map(it) }
     }
 
     @PatchMapping("/{client-id}")
