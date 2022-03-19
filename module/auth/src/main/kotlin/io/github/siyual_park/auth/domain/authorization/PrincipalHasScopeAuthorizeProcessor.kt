@@ -6,7 +6,7 @@ import io.github.siyual_park.auth.entity.ScopeToken
 import org.springframework.stereotype.Component
 
 @Component
-@AuthorizeMapping
+@AuthorizeMapping(UnblockedAuthorizeFilter::class)
 class PrincipalHasScopeAuthorizeProcessor : AuthorizeProcessor<Principal> {
     override suspend fun authorize(principal: Principal, scopeToken: ScopeToken, targetDomainObject: Any?): Boolean {
         return principal.hasScope(scopeToken)
