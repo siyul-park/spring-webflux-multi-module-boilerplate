@@ -105,6 +105,8 @@ class UserControllerTest @Autowired constructor(
             perPage = 1
         )
 
+        assertEquals(HttpStatus.OK, response.status)
+
         val responseUsers = response.responseBody.asFlow().toList()
         assertEquals(1, responseUsers.size)
 
@@ -113,6 +115,24 @@ class UserControllerTest @Autowired constructor(
         assertEquals(user.name, responseUser.name)
         assertNotNull(responseUser.createdAt)
         assertNotNull(responseUser.updatedAt)
+    }
+
+
+    @Test
+    fun testReadAllFail() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val response = userControllerGateway.readAll(
+            name = "eq:${user.name}",
+            sort = "asc(created_at)",
+            page = 0,
+            perPage = 1
+        )
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
     @Test
