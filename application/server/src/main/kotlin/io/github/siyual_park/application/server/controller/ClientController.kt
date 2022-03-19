@@ -9,7 +9,6 @@ import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.reader.finder.findByIdOrFail
 import io.swagger.annotations.Api
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus

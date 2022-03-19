@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import reactor.kotlin.core.publisher.toFlux
 
 @IntegrationTest
 class UserControllerTest @Autowired constructor(
@@ -116,7 +115,6 @@ class UserControllerTest @Autowired constructor(
         assertNotNull(responseUser.createdAt)
         assertNotNull(responseUser.updatedAt)
     }
-
 
     @Test
     fun testReadAllFail() = blocking {

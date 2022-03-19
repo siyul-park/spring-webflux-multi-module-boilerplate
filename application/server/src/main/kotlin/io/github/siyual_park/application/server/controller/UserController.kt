@@ -92,10 +92,12 @@ class UserController(
             criteria = criteria,
             sort = sort?.let { userSortParser.parse(it) }
         )
-        val offsetPage = paginator.paginate(OffsetPageQuery(
-            page = page,
-            perPage = perPage
-        ))
+        val offsetPage = paginator.paginate(
+            OffsetPageQuery(
+                page = page,
+                perPage = perPage
+            )
+        )
         return offsetPage.mapDataAsync { mapperManager.map(it) }
     }
 
