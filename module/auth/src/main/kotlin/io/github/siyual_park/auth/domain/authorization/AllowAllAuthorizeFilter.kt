@@ -5,7 +5,7 @@ import io.github.siyual_park.auth.entity.ScopeToken
 import org.springframework.stereotype.Component
 
 @Component
-class UnblockedAuthorizeFilter : AuthorizeFilter {
+class AllowAllAuthorizeFilter : AuthorizeFilter {
     override fun isSubscribe(principal: Principal, scopeToken: ScopeToken): Boolean {
         return true
     }
