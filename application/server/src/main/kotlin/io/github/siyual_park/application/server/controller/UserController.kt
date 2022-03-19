@@ -139,6 +139,20 @@ class UserController(
         return mapperManager.map(user)
     }
 
+    @PatchMapping("/{user-id}")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'users:read')")
+    suspend fun update(
+        @PathVariable("user-id") userId: Long,
+        @Valid @RequestBody patch: JsonMergePatch<MutableUserData>
+    ): UserInfo {
+        return userUpdater.updateById(
+            userId,
+            patchConverter.convert(patch)
+        )
+            .let { mapperManager.map(it) }
+    }
+
     @DeleteMapping("/{user-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'users:delete')")

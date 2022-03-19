@@ -236,6 +236,43 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
+    fun testUpdateSuccess() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val otherPayload = DummyCreateUserPayload.create()
+        val otherUser = userFactory.create(otherPayload)
+
+        val additionalScope = scopeTokenRepository.findByNameOrFail("users:update")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(additionalScope)
+        scope.addAll(principal.scope)
+
+        gatewayAuthorization.setPrincipal(
+            UserPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
+
+        val request = MutableUserData(
+            name = RandomNameFactory.create(10)
+        )
+        val response = userControllerGateway.update(otherUser.id!!, request)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseUser = response.responseBody.awaitSingle()
+
+        assertEquals(otherUser.id, responseUser.id)
+        assertEquals(request.name, responseUser.name)
+        assertNotNull(responseUser.createdAt)
+        assertNotNull(responseUser.updatedAt)
+    }
+
+    @Test
     fun testDeleteSuccess() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
