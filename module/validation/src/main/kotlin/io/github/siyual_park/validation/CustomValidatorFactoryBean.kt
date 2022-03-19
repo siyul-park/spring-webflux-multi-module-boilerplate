@@ -2,7 +2,6 @@ package io.github.siyual_park.validation
 
 import org.hibernate.validator.HibernateValidatorConfiguration
 import org.hibernate.validator.internal.engine.DefaultClockProvider
-import org.springframework.stereotype.Component
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
 import javax.validation.ClockProvider
 import javax.validation.Configuration

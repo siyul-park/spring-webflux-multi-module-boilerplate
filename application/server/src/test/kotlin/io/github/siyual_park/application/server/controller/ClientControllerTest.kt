@@ -4,7 +4,8 @@ import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.Presence
-import io.github.siyual_park.application.server.gateway.factory.ClientControllerGatewayFactory
+import io.github.siyual_park.application.server.gateway.ClientControllerGateway
+import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ids
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
@@ -15,7 +16,6 @@ import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
-import io.github.siyual_park.user.domain.UserScopeFinder
 import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toSet
@@ -28,12 +28,12 @@ import org.springframework.http.HttpStatus
 
 @IntegrationTest
 class ClientControllerTest@Autowired constructor(
-    private val clientControllerGatewayFactory: ClientControllerGatewayFactory,
+    private val gatewayAuthorization: GatewayAuthorization,
+    private val clientControllerGateway: ClientControllerGateway,
     private val userFactory: UserFactory,
     private val clientFactory: ClientFactory,
     private val userPrincipalExchanger: UserPrincipalExchanger,
     private val clientPrincipalExchanger: ClientPrincipalExchanger,
-    private val userScopeFinder: UserScopeFinder,
     private val scopeTokenFinder: ScopeTokenFinder,
     private val scopeTokenRepository: ScopeTokenRepository
 ) : CoroutineTest() {
@@ -43,7 +43,7 @@ class ClientControllerTest@Autowired constructor(
             .let { userFactory.create(it) }
             .let { userPrincipalExchanger.exchange(it) }
 
-        val clientControllerGateway = clientControllerGatewayFactory.create(principal)
+        gatewayAuthorization.setPrincipal(principal)
 
         ClientType.values().forEach {
             val request = DummyCreateClientRequest.create(
@@ -76,7 +76,7 @@ class ClientControllerTest@Autowired constructor(
             .let { userFactory.create(it) }
             .let { userPrincipalExchanger.exchange(it) }
 
-        val clientControllerGateway = clientControllerGatewayFactory.create(principal)
+        gatewayAuthorization.setPrincipal(principal)
 
         val request = DummyCreateClientRequest.create()
         clientControllerGateway.create(request)
@@ -91,7 +91,7 @@ class ClientControllerTest@Autowired constructor(
         val client = clientFactory.create(payload)
         val principal = clientPrincipalExchanger.exchange(client)
 
-        val clientControllerGateway = clientControllerGatewayFactory.create(principal)
+        gatewayAuthorization.setPrincipal(principal)
 
         val response = clientControllerGateway.readSelf()
 
@@ -114,7 +114,7 @@ class ClientControllerTest@Autowired constructor(
 
         val removeScope = scopeTokenRepository.findByNameOrFail("clients[self]:read")
 
-        val clientControllerGateway = clientControllerGatewayFactory.create(
+        gatewayAuthorization.setPrincipal(
             ClientPrincipal(
                 id = principal.id,
                 scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())

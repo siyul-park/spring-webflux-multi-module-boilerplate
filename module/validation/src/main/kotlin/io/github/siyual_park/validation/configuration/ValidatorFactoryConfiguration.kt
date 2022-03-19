@@ -2,7 +2,6 @@ package io.github.siyual_park.validation.configuration
 
 import io.github.siyual_park.validation.CustomValidatorFactoryBean
 import io.github.siyual_park.validation.annotation.ValidateMapping
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

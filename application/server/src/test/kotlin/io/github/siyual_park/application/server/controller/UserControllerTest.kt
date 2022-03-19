@@ -5,7 +5,8 @@ import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserRequest
 import io.github.siyual_park.application.server.dummy.RandomNameFactory
-import io.github.siyual_park.application.server.gateway.factory.UserControllerGatewayFactory
+import io.github.siyual_park.application.server.gateway.GatewayAuthorization
+import io.github.siyual_park.application.server.gateway.UserControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
 import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.entity.ids
@@ -29,7 +30,8 @@ import org.springframework.http.HttpStatus
 
 @IntegrationTest
 class UserControllerTest @Autowired constructor(
-    private val userControllerGatewayFactory: UserControllerGatewayFactory,
+    private val gatewayAuthorization: GatewayAuthorization,
+    private val userControllerGateway: UserControllerGateway,
     private val userFactory: UserFactory,
     private val clientFactory: ClientFactory,
     private val userPrincipalExchanger: UserPrincipalExchanger,
@@ -45,7 +47,7 @@ class UserControllerTest @Autowired constructor(
             .let { clientFactory.create(it) }
             .let { clientPrincipalExchanger.exchange(it) }
 
-        val userControllerGateway = userControllerGatewayFactory.create(principal)
+        gatewayAuthorization.setPrincipal(principal)
 
         val request = DummyCreateUserRequest.create()
         val response = userControllerGateway.create(request)
@@ -66,7 +68,7 @@ class UserControllerTest @Autowired constructor(
             .let { clientFactory.create(it) }
             .let { clientPrincipalExchanger.exchange(it) }
 
-        val userControllerGateway = userControllerGatewayFactory.create(principal)
+        gatewayAuthorization.setPrincipal(principal)
 
         val request = DummyCreateUserRequest.create()
         userControllerGateway.create(request)
@@ -81,7 +83,7 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val userControllerGateway = userControllerGatewayFactory.create(principal)
+        gatewayAuthorization.setPrincipal(principal)
 
         val response = userControllerGateway.readSelf()
 
@@ -103,7 +105,7 @@ class UserControllerTest @Autowired constructor(
 
         val removeScope = scopeTokenRepository.findByNameOrFail("users[self]:read")
 
-        val userControllerGateway = userControllerGatewayFactory.create(
+        gatewayAuthorization.setPrincipal(
             UserPrincipal(
                 id = principal.id,
                 scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())
@@ -123,7 +125,7 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val userControllerGateway = userControllerGatewayFactory.create(principal)
+        gatewayAuthorization.setPrincipal(principal)
 
         val request = MutableUserData(
             name = RandomNameFactory.create(10)
@@ -146,7 +148,7 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val userControllerGateway = userControllerGatewayFactory.create(principal)
+        gatewayAuthorization.setPrincipal(principal)
 
         val response = userControllerGateway.deleteSelf()
 
@@ -164,7 +166,7 @@ class UserControllerTest @Autowired constructor(
 
         val removeScope = scopeTokenRepository.findByNameOrFail("users[self]:delete")
 
-        val userControllerGateway = userControllerGatewayFactory.create(
+        gatewayAuthorization.setPrincipal(
             UserPrincipal(
                 id = principal.id,
                 scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())
@@ -193,7 +195,7 @@ class UserControllerTest @Autowired constructor(
         scope.add(removeScope)
         scope.addAll(principal.scope)
 
-        val userControllerGateway = userControllerGatewayFactory.create(
+        gatewayAuthorization.setPrincipal(
             UserPrincipal(
                 id = principal.id,
                 scope = scope
@@ -214,7 +216,7 @@ class UserControllerTest @Autowired constructor(
         val otherPayload = DummyCreateUserPayload.create()
         val otherUser = userFactory.create(otherPayload)
 
-        val userControllerGateway = userControllerGatewayFactory.create(principal)
+        gatewayAuthorization.setPrincipal(principal)
 
         val response = userControllerGateway.delete(otherUser.id!!)
 
