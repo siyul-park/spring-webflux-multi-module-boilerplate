@@ -8,14 +8,20 @@ import io.github.siyual_park.json.patch.PatchConverter
 import io.github.siyual_park.json.patch.convert
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
+import io.github.siyual_park.reader.filter.RHSFilterParserFactory
 import io.github.siyual_park.reader.finder.findByIdOrFail
+import io.github.siyual_park.reader.pagination.OffsetPage
+import io.github.siyual_park.reader.pagination.OffsetPageQuery
+import io.github.siyual_park.reader.sort.SortParserFactory
 import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserFinder
+import io.github.siyual_park.user.domain.UserPaginatorFactory
 import io.github.siyual_park.user.domain.UserRemover
 import io.github.siyual_park.user.domain.UserUpdater
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
+import io.github.siyual_park.user.entity.User
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -27,6 +33,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
@@ -39,10 +46,15 @@ class UserController(
     private val userRemover: UserRemover,
     private val userFinder: UserFinder,
     private val userUpdater: UserUpdater,
+    private val userPaginatorFactory: UserPaginatorFactory,
     private val userPrincipalExchanger: UserPrincipalExchanger,
     private val patchConverter: PatchConverter,
+    rhsFilterParserFactory: RHSFilterParserFactory,
+    sortParserFactory: SortParserFactory,
     private val mapperManager: MapperManager
 ) {
+    private val userRHSFilterParser = rhsFilterParserFactory.create(User::class)
+    private val userSortParser = sortParserFactory.create(User::class)
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
@@ -54,6 +66,31 @@ class UserController(
         )
         val user = userFactory.create(payload)
         return mapperManager.map(user)
+    }
+
+    @GetMapping("")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'users:read')")
+    suspend fun readAll(
+        @RequestParam("name") name: String? = null,
+        @RequestParam("sort") sort: String? = null,
+        @RequestParam("page") page: Int = 0,
+        @RequestParam("per-page") perPage: Int = 15,
+    ): OffsetPage<UserInfo> {
+        val criteria = userRHSFilterParser.parseFromProperty(
+            mapOf(
+                User::name to listOf(name)
+            )
+        )
+        val paginator = userPaginatorFactory.create(
+            criteria = criteria,
+            sort = sort?.let { userSortParser.parse(it) }
+        )
+        val offsetPage = paginator.paginate(OffsetPageQuery(
+            page = page,
+            perPage = perPage
+        ))
+        return offsetPage.mapDataAsync { mapperManager.map(it) }
     }
 
     @GetMapping("/self")

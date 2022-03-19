@@ -21,6 +21,7 @@ class ScopeTokenConfiguration {
             .register(ScopeToken(name = "refresh-token:create"), listOf(useScope))
 
             .register(ScopeToken(name = "users:create"), listOf(clientScope))
+            .register(ScopeToken(name = "users:read"))
             .register(ScopeToken(name = "users:delete"))
             .register(ScopeToken(name = "users[self]:read"), listOf(useScope))
             .register(ScopeToken(name = "users[self]:update"), listOf(useScope))

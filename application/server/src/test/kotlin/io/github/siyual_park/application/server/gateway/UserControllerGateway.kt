@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.FluxExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.returnResult
+import java.util.Optional
 
 @Component
 class UserControllerGateway(
@@ -19,6 +20,26 @@ class UserControllerGateway(
             .uri("/users")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .bodyValue(request)
+            .exchange()
+            .returnResult(UserInfo::class.java)
+    }
+
+    suspend fun readAll(
+        name: String? = null,
+        sort: String? = null,
+        page: Int = 0,
+        perPage: Int = 15,
+    ): FluxExchangeResult<UserInfo> {
+        return client.get()
+            .uri {
+                it.path("/users")
+                    .queryParamIfPresent("name", Optional.ofNullable(name))
+                    .queryParamIfPresent("sort", Optional.ofNullable(sort))
+                    .queryParamIfPresent("page", Optional.ofNullable(page))
+                    .queryParamIfPresent("per-page", Optional.ofNullable(perPage))
+                    .build()
+            }
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult(UserInfo::class.java)
     }

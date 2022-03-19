@@ -20,13 +20,16 @@ import io.github.siyual_park.user.domain.UserScopeFinder
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import reactor.kotlin.core.publisher.toFlux
 
 @IntegrationTest
 class UserControllerTest @Autowired constructor(
@@ -75,6 +78,41 @@ class UserControllerTest @Autowired constructor(
 
         val response = userControllerGateway.create(request)
         assertEquals(HttpStatus.CONFLICT, response.status)
+    }
+
+    @Test
+    fun testReadAllSuccess() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        val additionalScope = scopeTokenRepository.findByNameOrFail("users:read")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(additionalScope)
+        scope.addAll(principal.scope)
+
+        gatewayAuthorization.setPrincipal(
+            UserPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
+        val response = userControllerGateway.readAll(
+            name = "eq:${user.name}",
+            sort = "asc(created_at)",
+            page = 0,
+            perPage = 1
+        )
+
+        val responseUsers = response.responseBody.asFlow().toList()
+        assertEquals(1, responseUsers.size)
+
+        val responseUser = responseUsers[0]
+        assertEquals(user.id, responseUser.id)
+        assertEquals(user.name, responseUser.name)
+        assertNotNull(responseUser.createdAt)
+        assertNotNull(responseUser.updatedAt)
     }
 
     @Test
@@ -189,10 +227,10 @@ class UserControllerTest @Autowired constructor(
         val otherPayload = DummyCreateUserPayload.create()
         val otherUser = userFactory.create(otherPayload)
 
-        val removeScope = scopeTokenRepository.findByNameOrFail("users:delete")
+        val additionalScope = scopeTokenRepository.findByNameOrFail("users:delete")
 
         val scope = mutableSetOf<ScopeToken>()
-        scope.add(removeScope)
+        scope.add(additionalScope)
         scope.addAll(principal.scope)
 
         gatewayAuthorization.setPrincipal(

@@ -5,6 +5,7 @@ import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.reader.exception.FilterInvalidException
 import org.springframework.data.relational.core.query.Criteria
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 
 class RHSFilterParser<T : Any>(
@@ -12,6 +13,10 @@ class RHSFilterParser<T : Any>(
     private val objectMapper: ObjectMapper
 ) {
     private val regex = Regex("(.+):(.+)")
+
+    fun parseFromProperty(query: Map<KProperty<*>, Collection<String?>>): Criteria {
+        return parse(query.mapKeys { it.key.name })
+    }
 
     fun parse(query: Map<String, Collection<String?>>): Criteria {
         try {
