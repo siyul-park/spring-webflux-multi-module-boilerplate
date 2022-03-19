@@ -1,7 +1,6 @@
 package io.github.siyual_park.user.entity
 
 import io.github.siyual_park.data.TimeableEntity
-import io.github.siyual_park.data.annotation.GeneratedValue
 import io.github.siyual_park.data.annotation.Key
 import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant
@@ -10,7 +9,6 @@ import java.time.Instant
 data class User(
     @Key
     var name: String,
-    @GeneratedValue
     var deletedAt: Instant? = null
 ) : TimeableEntity<User, Long>(), UserEntity {
     override val userId: Long?

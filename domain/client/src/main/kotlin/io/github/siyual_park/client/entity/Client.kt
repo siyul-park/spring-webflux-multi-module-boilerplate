@@ -1,7 +1,6 @@
 package io.github.siyual_park.client.entity
 
 import io.github.siyual_park.data.TimeableEntity
-import io.github.siyual_park.data.annotation.GeneratedValue
 import io.github.siyual_park.data.annotation.Key
 import org.springframework.data.relational.core.mapping.Table
 import java.net.URL
@@ -13,7 +12,6 @@ data class Client(
     val name: String,
     val type: ClientType,
     var origin: URL,
-    @GeneratedValue
     var deletedAt: Instant? = null
 ) : TimeableEntity<Client, Long>(), ClientEntity {
     override val clientId: Long

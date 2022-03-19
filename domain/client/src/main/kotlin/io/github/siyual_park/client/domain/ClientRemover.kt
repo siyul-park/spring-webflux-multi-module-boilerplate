@@ -5,6 +5,7 @@ import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.repository.updateById
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -22,6 +23,11 @@ class ClientRemover(
     }
 
     suspend fun remove(clientId: Long, soft: Boolean = true) = operator.executeAndAwait {
+        val client = clientRepository.findById(clientId)
+        if (client == null || client.deletedAt != null) {
+            throw EmptyResultDataAccessException(1)
+        }
+
         clientScopeRepository.deleteAllByClientId(clientId)
         clientCredentialRepository.deleteByClientId(clientId)
         if (!soft) {
