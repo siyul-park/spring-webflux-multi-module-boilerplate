@@ -60,15 +60,15 @@ class ClientController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'clients:read')")
     suspend fun readAll(
-        @RequestParam("id") id: String? = null,
-        @RequestParam("name") name: String? = null,
-        @RequestParam("type") type: String? = null,
-        @RequestParam("origin") origin: String? = null,
-        @RequestParam("created-at") createdAt: String? = null,
-        @RequestParam("updated-at") updatedAt: String? = null,
-        @RequestParam("sort") sort: String? = null,
-        @RequestParam("page") page: Int = 0,
-        @RequestParam("per-page") perPage: Int = 15,
+        @RequestParam("id", required = false) id: String? = null,
+        @RequestParam("name", required = false) name: String? = null,
+        @RequestParam("type", required = false) type: String? = null,
+        @RequestParam("origin", required = false) origin: String? = null,
+        @RequestParam("created-at", required = false) createdAt: String? = null,
+        @RequestParam("updated-at", required = false) updatedAt: String? = null,
+        @RequestParam("sort", required = false) sort: String? = null,
+        @RequestParam("page", required = false) page: Int = 0,
+        @RequestParam("per-page", required = false) perPage: Int = 15,
     ): OffsetPage<ClientInfo> {
         val criteria = rhsFilterParser.parseFromProperty(
             mapOf(
