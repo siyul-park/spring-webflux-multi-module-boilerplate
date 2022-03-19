@@ -1,6 +1,7 @@
 package io.github.siyual_park.client.configuration
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
+import io.github.siyual_park.client.domain.ClientCredentialFinder
 import io.github.siyual_park.client.domain.ClientCredentialUpdater
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientFinder
@@ -11,6 +12,7 @@ import io.github.siyual_park.client.property.RootClientProperty
 import io.github.siyual_park.data.patch.AsyncPatch
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
@@ -23,11 +25,14 @@ class RootClientConfiguration(
     private val property: RootClientProperty,
     private val clientFactory: ClientFactory,
     private val clientFinder: ClientFinder,
+    private val clientCredentialFinder: ClientCredentialFinder,
     private val clientUpdater: ClientUpdater,
     private val clientCredentialUpdater: ClientCredentialUpdater,
     private val scopeTokenFinder: ScopeTokenFinder,
     private val operator: TransactionalOperator,
 ) {
+    private val logger = LoggerFactory.getLogger(RootClientConfiguration::class.java)
+
     @EventListener(ApplicationReadyEvent::class)
     @Order(100)
     fun createRootClient() = runBlocking {
@@ -39,7 +44,12 @@ class RootClientConfiguration(
                     ClientType.CONFIDENTIAL,
                     origin = property.origin,
                     scope = scopeTokenFinder.findAll().toList()
-                ).let { clientFactory.create(it) }
+                )
+                    .let { clientFactory.create(it) }
+                    .also {
+                        val credential = clientCredentialFinder.findByClientOrFail(it)
+                        logger.info("Creating root client [id: ${it.id}, name: ${it.name}, secret: ${credential.secret}]")
+                    }
             }
 
             clientUpdater.update(
@@ -55,7 +65,9 @@ class RootClientConfiguration(
                     AsyncPatch.with {
                         it.secret = property.secret
                     }
-                )
+                ).also {
+                    logger.info("Updating root client [secret: ${it?.secret}]")
+                }
             }
         }
     }
