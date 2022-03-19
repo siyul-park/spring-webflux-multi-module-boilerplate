@@ -17,9 +17,8 @@ class ValidatorFactoryConfiguration(
     fun customValidatorFactoryBean(): CustomValidatorFactoryBean {
         return CustomValidatorFactoryBean().also { customValidatorFactoryBean ->
             applicationContext.getBeansOfType(ConstraintValidator::class.java).values.forEach {
-                it.javaClass.annotations.filter { it is ValidateMapping }
+                it.javaClass.annotations.filterIsInstance<ValidateMapping>()
                     .forEach { annotation ->
-                        if (annotation !is ValidateMapping) return@forEach
                         customValidatorFactoryBean.register(
                             annotation.annotation as KClass<Annotation>,
                             it as ConstraintValidator<Annotation, Any>

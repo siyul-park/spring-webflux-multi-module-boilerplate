@@ -12,9 +12,8 @@ class EventConfiguration(
     @Autowired(required = true)
     fun configEventEmitter(eventEmitter: EventEmitter) {
         applicationContext.getBeansOfType(EventConsumer::class.java).values.forEach {
-            it.javaClass.annotations.filter { it is Subscribe }
+            it.javaClass.annotations.filterIsInstance<Subscribe>()
                 .forEach { annotation ->
-                    if (annotation !is Subscribe) return@forEach
                     val filter = eventFilterFactory.create(annotation)
                     eventEmitter.on(filter, it)
                 }

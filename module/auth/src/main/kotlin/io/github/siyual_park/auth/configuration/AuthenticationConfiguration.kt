@@ -15,9 +15,8 @@ class AuthenticationConfiguration(
     @Autowired(required = true)
     fun configAuthenticator(authenticator: Authenticator, filterFactory: AuthenticateFilterFactory) {
         applicationContext.getBeansOfType(AuthenticateProcessor::class.java).values.forEach {
-            it.javaClass.annotations.filter { it is AuthenticateMapping }
+            it.javaClass.annotations.filterIsInstance<AuthenticateMapping>()
                 .forEach { annotation ->
-                    if (annotation !is AuthenticateMapping) return@forEach
                     val filter = filterFactory.create(annotation) ?: return@forEach
                     authenticator.register(filter, it)
                 }

@@ -19,9 +19,8 @@ class PrincipalConfiguration(
     @Autowired(required = true)
     fun configPrincipalRefresher(principalRefresher: PrincipalRefresher) {
         applicationContext.getBeansOfType(PrincipalRefreshProcessor::class.java).values.forEach {
-            it.javaClass.annotations.filter { it is PrincipalMapping }
+            it.javaClass.annotations.filterIsInstance<PrincipalMapping>()
                 .forEach { annotation ->
-                    if (annotation !is PrincipalMapping) return@forEach
                     principalRefresher.register(annotation.clazz as KClass<Principal>, it as PrincipalRefreshProcessor<Principal>)
                 }
         }
@@ -30,9 +29,8 @@ class PrincipalConfiguration(
     @Autowired(required = true)
     fun configClaimEmbedder(claimEmbedder: ClaimEmbedder) {
         applicationContext.getBeansOfType(ClaimEmbeddingProcessor::class.java).values.forEach {
-            it.javaClass.annotations.filter { it is PrincipalMapping }
+            it.javaClass.annotations.filterIsInstance<PrincipalMapping>()
                 .forEach { annotation ->
-                    if (annotation !is PrincipalMapping) return@forEach
                     claimEmbedder.register(annotation.clazz as KClass<Principal>, it as ClaimEmbeddingProcessor<Principal>)
                 }
         }
