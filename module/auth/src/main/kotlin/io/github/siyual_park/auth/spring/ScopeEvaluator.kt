@@ -65,7 +65,7 @@ class ScopeEvaluator(
         }
     }
 
-    private suspend fun adjustTargetDomainObject(targetDomainObject: Any?): Any? {
+    private fun adjustTargetDomainObject(targetDomainObject: Any?): Any? {
         return if (targetDomainObject is Array<*>) {
             if (targetDomainObject.size == 2 && targetDomainObject[1]?.javaClass?.name == "kotlin.reflect.full.KCallables\$callSuspend\$1") {
                 targetDomainObject[0]
