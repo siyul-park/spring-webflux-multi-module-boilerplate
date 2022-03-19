@@ -80,6 +80,14 @@ class ClientControllerGateway(
             .returnResult()
     }
 
+    suspend fun read(clientId: Long): FluxExchangeResult<ClientInfo> {
+        return client.get()
+            .uri("/clients/$clientId")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(ClientInfo::class.java)
+    }
+
     suspend fun update(clientId: Long, request: MutableClientData): FluxExchangeResult<ClientInfo> {
         return client.patch()
             .uri("/clients/$clientId")

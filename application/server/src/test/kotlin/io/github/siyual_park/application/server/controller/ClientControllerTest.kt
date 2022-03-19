@@ -309,13 +309,38 @@ class ClientControllerTest@Autowired constructor(
     }
 
     @Test
-    fun testUpdateSuccess() = blocking {
+    fun testReadSuccess() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
         val principal = clientPrincipalExchanger.exchange(client)
 
         val otherPayload = DummyCreateClientPayload.create()
         val otherClient = clientFactory.create(otherPayload)
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val response = clientControllerGateway.read(otherClient.id!!)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseClient = response.responseBody.awaitSingle()
+
+        assertEquals(otherClient.id, responseClient.id)
+        assertEquals(otherClient.name, responseClient.name)
+        assertEquals(otherClient.type, responseClient.type)
+        assertEquals(otherClient.origin, responseClient.origin)
+        assertNotNull(responseClient.createdAt)
+        assertNotNull(responseClient.updatedAt)
+    }
+
+    @Test
+    fun testUpdateSuccess() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+            .let { clientPrincipalExchanger.exchange(it) }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
 
         val additionalScope = scopeTokenRepository.findByNameOrFail("clients:update")
 

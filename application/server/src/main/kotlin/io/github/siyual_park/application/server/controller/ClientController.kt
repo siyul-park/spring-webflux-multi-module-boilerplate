@@ -18,6 +18,7 @@ import io.github.siyual_park.json.patch.convert
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.reader.filter.RHSFilterParserFactory
+import io.github.siyual_park.reader.finder.findByIdOrFail
 import io.github.siyual_park.reader.pagination.OffsetPage
 import io.github.siyual_park.reader.pagination.OffsetPageQuery
 import io.github.siyual_park.reader.sort.SortParserFactory
@@ -133,6 +134,14 @@ class ClientController(
     @PreAuthorize("hasPermission(null, 'clients[self]:delete')")
     suspend fun deleteSelf(@AuthenticationPrincipal principal: ClientEntity) {
         clientRemover.remove(principal.clientId ?: throw EmptyResultDataAccessException(1), soft = true)
+    }
+
+    @GetMapping("/{client-id}")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'clients:read')")
+    suspend fun read(@PathVariable("client-id") clientId: Long): ClientInfo {
+        val client = clientFinder.findByIdOrFail(clientId)
+        return mapperManager.map(client)
     }
 
     @PatchMapping("/{client-id}")
