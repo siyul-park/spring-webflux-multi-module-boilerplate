@@ -1,9 +1,11 @@
 package io.github.siyual_park.application.server.controller
 
+import io.github.siyual_park.application.server.dto.request.MutableClientData
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.Presence
+import io.github.siyual_park.application.server.dummy.RandomNameFactory
 import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
@@ -75,6 +77,7 @@ class ClientControllerTest@Autowired constructor(
             assertNotNull(client.id)
             assertEquals(request.name, client.name)
             assertEquals(request.type, client.type)
+            assertEquals(request.origin, client.origin)
             if (request.type == ClientType.CONFIDENTIAL) {
                 assertNotNull(client.secret)
             } else {
@@ -137,6 +140,8 @@ class ClientControllerTest@Autowired constructor(
         val responseClient = responseClients[0]
         assertEquals(client.id, responseClient.id)
         assertEquals(client.name, responseClient.name)
+        assertEquals(client.type, responseClient.type)
+        assertEquals(client.origin, responseClient.origin)
         assertNotNull(responseClient.createdAt)
         assertNotNull(responseClient.updatedAt)
     }
@@ -187,6 +192,7 @@ class ClientControllerTest@Autowired constructor(
         assertEquals(client.id, responseClient.id)
         assertEquals(client.name, responseClient.name)
         assertEquals(client.type, responseClient.type)
+        assertEquals(client.origin, responseClient.origin)
         assertNotNull(responseClient.createdAt)
         assertNotNull(responseClient.updatedAt)
     }
@@ -211,6 +217,7 @@ class ClientControllerTest@Autowired constructor(
         assertEquals(client.id, responseClient.id)
         assertEquals(client.name, responseClient.name)
         assertEquals(client.type, responseClient.type)
+        assertEquals(client.origin, responseClient.origin)
         assertNotNull(responseClient.createdAt)
         assertNotNull(responseClient.updatedAt)
     }
@@ -235,5 +242,45 @@ class ClientControllerTest@Autowired constructor(
         val response = clientControllerGateway.readSelf()
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun testUpdateSuccess() = blocking {
+        val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = clientPrincipalExchanger.exchange(client)
+
+        val otherPayload = DummyCreateClientPayload.create()
+        val otherClient = clientFactory.create(otherPayload)
+
+        val additionalScope = scopeTokenRepository.findByNameOrFail("clients:update")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(additionalScope)
+        scope.addAll(principal.scope)
+
+        gatewayAuthorization.setPrincipal(
+            ClientPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
+
+        val request = MutableClientData(
+            name = RandomNameFactory.create(10),
+            origin = otherClient.origin
+        )
+        val response = clientControllerGateway.update(otherClient.id!!, request)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseClient = response.responseBody.awaitSingle()
+
+        assertEquals(otherClient.id, responseClient.id)
+        assertEquals(request.name, responseClient.name)
+        assertEquals(otherClient.type, responseClient.type)
+        assertEquals(request.origin, responseClient.origin)
+        assertNotNull(responseClient.createdAt)
+        assertNotNull(responseClient.updatedAt)
     }
 }

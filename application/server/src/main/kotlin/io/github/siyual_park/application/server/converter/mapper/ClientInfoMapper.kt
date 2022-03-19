@@ -16,6 +16,7 @@ class ClientInfoMapper : Mapper<Client, ClientInfo> {
             id = source.id!!,
             name = source.name,
             type = source.type,
+            origin = source.origin,
             createdAt = source.createdAt!!,
             updatedAt = source.updatedAt,
             deletedAt = source.deletedAt

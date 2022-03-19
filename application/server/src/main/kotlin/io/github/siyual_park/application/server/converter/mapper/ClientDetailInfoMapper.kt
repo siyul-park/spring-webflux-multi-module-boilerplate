@@ -23,6 +23,7 @@ class ClientDetailInfoMapper(
             id = source.id!!,
             name = source.name,
             type = source.type,
+            origin = source.origin,
             secret = secret,
             createdAt = source.createdAt!!,
             updatedAt = source.updatedAt,
