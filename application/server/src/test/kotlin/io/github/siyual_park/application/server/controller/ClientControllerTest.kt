@@ -86,10 +86,34 @@ class ClientControllerTest@Autowired constructor(
     }
 
     @Test
-    fun testReadSelfSuccess() = blocking {
+    fun testReadSelfSuccessWhenUseClient() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
         val principal = clientPrincipalExchanger.exchange(client)
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val response = clientControllerGateway.readSelf()
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseClient = response.responseBody.awaitSingle()
+
+        assertEquals(client.id, responseClient.id)
+        assertEquals(client.name, responseClient.name)
+        assertEquals(client.type, responseClient.type)
+        assertNotNull(responseClient.createdAt)
+        assertNotNull(responseClient.updatedAt)
+    }
+
+    @Test
+    fun testReadSelfSuccessWhenUseUser() = blocking {
+        val client = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+        val user = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+
+        val principal = userPrincipalExchanger.exchange(user, client)
 
         gatewayAuthorization.setPrincipal(principal)
 
