@@ -27,7 +27,7 @@ class ScopeTokenConfiguration {
             .register(ScopeToken(name = "users[self]:update"), listOf(userScope))
             .register(ScopeToken(name = "users[self]:delete"), listOf(userScope))
 
-            .register(ScopeToken(name = "clients:create"), listOf(userScope, clientScope))
+            .register(ScopeToken(name = "clients:create"))
             .register(ScopeToken(name = "clients:read"), listOf(userScope, clientScope))
             .register(ScopeToken(name = "clients[self]:read"), listOf(userScope, clientScope))
     }

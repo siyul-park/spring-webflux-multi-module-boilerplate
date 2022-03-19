@@ -7,6 +7,7 @@ import io.github.siyual_park.application.server.dummy.Presence
 import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
+import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.entity.ids
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.client.domain.ClientFactory
@@ -42,11 +43,22 @@ class ClientControllerTest@Autowired constructor(
 ) : CoroutineTest() {
     @Test
     fun testCreateSuccess() = blocking {
-        val principal = DummyCreateUserPayload.create()
-            .let { userFactory.create(it) }
-            .let { userPrincipalExchanger.exchange(it) }
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+            .let { clientPrincipalExchanger.exchange(it) }
 
-        gatewayAuthorization.setPrincipal(principal)
+        val additionalScope = scopeTokenRepository.findByNameOrFail("clients:create")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(additionalScope)
+        scope.addAll(principal.scope)
+
+        gatewayAuthorization.setPrincipal(
+            ClientPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
 
         ClientType.values().forEach {
             val request = DummyCreateClientRequest.create(
@@ -75,11 +87,22 @@ class ClientControllerTest@Autowired constructor(
 
     @Test
     fun testCreateFail() = blocking {
-        val principal = DummyCreateUserPayload.create()
-            .let { userFactory.create(it) }
-            .let { userPrincipalExchanger.exchange(it) }
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+            .let { clientPrincipalExchanger.exchange(it) }
 
-        gatewayAuthorization.setPrincipal(principal)
+        val additionalScope = scopeTokenRepository.findByNameOrFail("clients:create")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(additionalScope)
+        scope.addAll(principal.scope)
+
+        gatewayAuthorization.setPrincipal(
+            ClientPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
 
         val request = DummyCreateClientRequest.create()
         clientControllerGateway.create(request)
@@ -194,9 +217,9 @@ class ClientControllerTest@Autowired constructor(
 
     @Test
     fun testReadSelfFail() = blocking {
-        val payload = DummyCreateClientPayload.create()
-        val client = clientFactory.create(payload)
-        val principal = clientPrincipalExchanger.exchange(client)
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+            .let { clientPrincipalExchanger.exchange(it) }
 
         val removeScope = scopeTokenRepository.findByNameOrFail("clients[self]:read")
 
