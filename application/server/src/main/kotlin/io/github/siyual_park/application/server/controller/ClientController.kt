@@ -7,6 +7,7 @@ import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientFinder
 import io.github.siyual_park.client.domain.ClientPaginatorFactory
+import io.github.siyual_park.client.domain.ClientRemover
 import io.github.siyual_park.client.domain.ClientUpdater
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.Client
@@ -25,6 +26,7 @@ import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -41,6 +43,7 @@ import javax.validation.Valid
 @RequestMapping("/clients")
 class ClientController(
     private val clientFactory: ClientFactory,
+    private val clientRemover: ClientRemover,
     private val clientFinder: ClientFinder,
     private val clientUpdater: ClientUpdater,
     private val clientPaginatorFactory: ClientPaginatorFactory,
@@ -125,6 +128,13 @@ class ClientController(
             .let { mapperManager.map(it) }
     }
 
+    @DeleteMapping("/self")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'clients[self]:delete')")
+    suspend fun deleteSelf(@AuthenticationPrincipal principal: ClientEntity) {
+        clientRemover.remove(principal.clientId ?: throw EmptyResultDataAccessException(1), soft = true)
+    }
+
     @PatchMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'clients:read')")
@@ -137,5 +147,14 @@ class ClientController(
             patchConverter.convert(patch)
         )
             .let { mapperManager.map(it) }
+    }
+
+    @DeleteMapping("/{client-id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'clients:delete')")
+    suspend fun delete(
+        @PathVariable("client-id") clientId: Long,
+    ) {
+        clientRemover.remove(clientId, soft = true)
     }
 }

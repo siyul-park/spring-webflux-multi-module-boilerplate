@@ -72,6 +72,14 @@ class ClientControllerGateway(
             .returnResult(ClientInfo::class.java)
     }
 
+    suspend fun deleteSelf(): FluxExchangeResult<Unit> {
+        return client.delete()
+            .uri("/clients/self")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult()
+    }
+
     suspend fun update(clientId: Long, request: MutableClientData): FluxExchangeResult<ClientInfo> {
         return client.patch()
             .uri("/clients/$clientId")
@@ -79,5 +87,13 @@ class ClientControllerGateway(
             .bodyValue(request)
             .exchange()
             .returnResult(ClientInfo::class.java)
+    }
+
+    suspend fun delete(clientId: Long): FluxExchangeResult<Unit> {
+        return client.delete()
+            .uri("/clients/$clientId")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult()
     }
 }

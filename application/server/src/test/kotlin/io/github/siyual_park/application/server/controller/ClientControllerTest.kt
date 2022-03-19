@@ -13,6 +13,7 @@ import io.github.siyual_park.auth.entity.ScopeToken
 import io.github.siyual_park.auth.entity.ids
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.client.domain.ClientFactory
+import io.github.siyual_park.client.domain.ClientScopeFinder
 import io.github.siyual_park.client.domain.auth.ClientPrincipal
 import io.github.siyual_park.client.domain.auth.ClientPrincipalExchanger
 import io.github.siyual_park.client.entity.ClientType
@@ -40,6 +41,7 @@ class ClientControllerTest@Autowired constructor(
     private val clientFactory: ClientFactory,
     private val userPrincipalExchanger: UserPrincipalExchanger,
     private val clientPrincipalExchanger: ClientPrincipalExchanger,
+    private val clientScopeFinder: ClientScopeFinder,
     private val scopeTokenFinder: ScopeTokenFinder,
     private val scopeTokenRepository: ScopeTokenRepository
 ) : CoroutineTest() {
@@ -281,6 +283,32 @@ class ClientControllerTest@Autowired constructor(
     }
 
     @Test
+    fun testDeleteSelfSuccess() = blocking {
+        val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = clientPrincipalExchanger.exchange(client)
+
+        val additionalScope = scopeTokenRepository.findByNameOrFail("clients[self]:delete")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(additionalScope)
+        scope.addAll(principal.scope)
+
+        gatewayAuthorization.setPrincipal(
+            ClientPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
+        val response = clientControllerGateway.deleteSelf()
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+
+        val clientScope = clientScopeFinder.findAllWithResolvedByClient(client).toSet()
+        assertEquals(0, clientScope.size)
+    }
+
+    @Test
     fun testUpdateSuccess() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
@@ -318,5 +346,34 @@ class ClientControllerTest@Autowired constructor(
         assertEquals(request.origin, responseClient.origin)
         assertNotNull(responseClient.createdAt)
         assertNotNull(responseClient.updatedAt)
+    }
+
+    @Test
+    fun testDeleteSuccess() = blocking {
+        val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = clientPrincipalExchanger.exchange(client)
+
+        val otherPayload = DummyCreateClientPayload.create()
+        val otherClient = clientFactory.create(otherPayload)
+
+        val additionalScope = scopeTokenRepository.findByNameOrFail("clients:delete")
+
+        val scope = mutableSetOf<ScopeToken>()
+        scope.add(additionalScope)
+        scope.addAll(principal.scope)
+
+        gatewayAuthorization.setPrincipal(
+            ClientPrincipal(
+                id = principal.id,
+                scope = scope
+            )
+        )
+        val response = clientControllerGateway.delete(otherClient.id!!)
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+
+        val clientScope = clientScopeFinder.findAllWithResolvedByClient(otherClient).toSet()
+        assertEquals(0, clientScope.size)
     }
 }
