@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.r2dbc.connection.R2dbcTransactionManager
+import org.springframework.transaction.ReactiveTransaction
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import java.util.UUID
@@ -45,9 +46,9 @@ open class R2DBCTest : CoroutineTest() {
     fun contextLoads() {
     }
 
-    fun transactional(func: suspend CoroutineScope.() -> Unit) = blocking {
+    fun transactional(func: suspend CoroutineScope.(ReactiveTransaction) -> Unit) = blocking {
         transactionalOperator.executeAndAwait {
-            func()
+            func(it)
         }
     }
 }
