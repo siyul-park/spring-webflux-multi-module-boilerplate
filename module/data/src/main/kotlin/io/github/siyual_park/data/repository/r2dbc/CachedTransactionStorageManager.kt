@@ -30,8 +30,6 @@ class CachedTransactionStorageManager<T : Any, ID : Any>(
             return storage
         } catch (e: NoTransactionException) {
             return storage
-        } catch (e: Exception) {
-            throw e
         }
     }
 
