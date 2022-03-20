@@ -4,7 +4,7 @@ import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.r2dbc.CacheTransactionSynchronization
-import io.github.siyual_park.data.repository.r2dbc.CachedTransactionStorageManager
+import io.github.siyual_park.data.repository.r2dbc.R2DBCStorageManager
 import io.github.siyual_park.data.test.R2DBCTest
 import io.github.siyual_park.data.test.entity.Person
 import kotlinx.coroutines.reactor.awaitSingle
@@ -25,7 +25,7 @@ class CachedTransactionStorageManagerTest : R2DBCTest() {
         }
     )
     private val cacheTransactionSynchronization = CacheTransactionSynchronization<Person, Long>()
-    private val manager = CachedTransactionStorageManager(storage, cacheTransactionSynchronization)
+    private val manager = R2DBCStorageManager(storage, cacheTransactionSynchronization)
 
     @Test
     fun getCurrent() = transactional {

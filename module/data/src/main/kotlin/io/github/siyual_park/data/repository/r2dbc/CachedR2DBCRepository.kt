@@ -9,9 +9,7 @@ import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.cache.CachedRepository
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
-import io.github.siyual_park.data.repository.cache.NestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
-import io.github.siyual_park.data.repository.cache.Storage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -32,16 +30,14 @@ import kotlin.reflect.full.memberProperties
 @Suppress("UNCHECKED_CAST")
 class CachedR2DBCRepository<T : Any, ID : Any>(
     private val repository: R2DBCRepository<T, ID>,
-    override val storage: Storage<T, ID>,
+    override val storageManager: R2DBCStorageManager<T, ID>,
     private val idExtractor: Extractor<T, ID>
 ) : R2DBCRepository<T, ID>,
     CachedRepository<T, ID> by SimpleCachedRepository(
         repository,
-        storage,
+        storageManager,
         idExtractor
     ) {
-
-    private val cachedTransactionStorageManager = CachedTransactionStorageManager(storage as NestedStorage<T, ID>)
 
     override val entityManager: EntityManager<T, ID>
         get() = repository.entityManager
@@ -59,7 +55,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
         indexes.forEach { (_, properties) ->
             val sortedProperties = properties.map { it to columnName(it) }.sortedBy { (_, columnName) -> columnName }
-            storage.createIndex(
+            storageManager.root.createIndex(
                 sortedProperties.joinToString(" ") { (_, columnName) -> columnName },
                 object : Extractor<T, Any> {
                     override fun getKey(entity: T): Any {
@@ -73,7 +69,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        val storage = cachedTransactionStorageManager.getCurrent()
+        val storage = storageManager.getCurrent()
 
         val fallback = suspend { repository.exists(criteria) }
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
@@ -86,7 +82,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        val storage = cachedTransactionStorageManager.getCurrent()
+        val storage = storageManager.getCurrent()
 
         val fallback = suspend {
             repository.findOne(criteria)
@@ -99,7 +95,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return flow {
-            val storage = cachedTransactionStorageManager.getCurrent()
+            val storage = storageManager.getCurrent()
 
             val fallback = {
                 repository.findAll(criteria, limit, offset, sort)
@@ -154,7 +150,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     private suspend fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
-        val storage = cachedTransactionStorageManager.getCurrent()
+        val storage = storageManager.getCurrent()
 
         if (criteria == null) return null
 
@@ -220,7 +216,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
-        val storage = cachedTransactionStorageManager.getCurrent()
+        val storage = storageManager.getCurrent()
 
         return repository.update(criteria, patch)
             ?.also { storage.put(it) }
@@ -232,7 +228,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
     override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
         return flow {
-            val storage = cachedTransactionStorageManager.getCurrent()
+            val storage = storageManager.getCurrent()
 
             emitAll(
                 repository.updateAll(criteria, patch)
@@ -246,7 +242,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?) {
-        val storage = cachedTransactionStorageManager.getCurrent()
+        val storage = storageManager.getCurrent()
 
         if (criteria == null) {
             storage.clear()
@@ -267,9 +263,11 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
             return CachedR2DBCRepository(
                 repository,
-                InMemoryNestedStorage(
-                    cacheBuilder as () -> CacheBuilder<ID, T>,
-                    idExtractor
+                R2DBCStorageManager(
+                    InMemoryNestedStorage(
+                        cacheBuilder as () -> CacheBuilder<ID, T>,
+                        idExtractor
+                    )
                 ),
                 idExtractor
             )
@@ -286,9 +284,11 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
             return CachedR2DBCRepository(
                 repository,
-                InMemoryNestedStorage(
-                    cacheBuilder as () -> CacheBuilder<ID, T>,
-                    idExtractor
+                R2DBCStorageManager(
+                    InMemoryNestedStorage(
+                        cacheBuilder as () -> CacheBuilder<ID, T>,
+                        idExtractor
+                    )
                 ),
                 idExtractor
             )
