@@ -124,7 +124,7 @@ class InMemoryStorage<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun clear() {
+    override fun clear() {
         cache.invalidateAll()
         indexes.forEach { (_, index) -> index.run { clear() } }
     }

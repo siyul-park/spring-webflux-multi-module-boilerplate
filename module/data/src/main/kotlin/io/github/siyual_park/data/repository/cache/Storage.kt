@@ -20,5 +20,5 @@ interface Storage<T : Any, ID : Any> {
     fun delete(entity: T)
     fun put(entity: T)
 
-    suspend fun clear()
+    fun clear()
 }
