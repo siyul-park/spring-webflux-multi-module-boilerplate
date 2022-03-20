@@ -57,35 +57,35 @@ class InMemoryNestedStorageTest : R2DBCTest() {
         child2.put(person)
 
         assertEquals(person, child2.getIfPresent(person.id!!))
-        assertEquals(person, child2.getIfPresent(person.name, "name"))
+        assertEquals(person, child2.getIfPresent("name", person.name))
 
         assertEquals(null, child1.getIfPresent(person.id!!))
-        assertEquals(null, child1.getIfPresent(person.name, "name"))
+        assertEquals(null, child1.getIfPresent("name", person.name))
 
         assertEquals(null, storage.getIfPresent(person.id!!))
-        assertEquals(null, storage.getIfPresent(person.name, "name"))
+        assertEquals(null, storage.getIfPresent("name", person.name))
 
         child1.join(child2)
 
         assertEquals(person, child2.getIfPresent(person.id!!))
-        assertEquals(person, child2.getIfPresent(person.name, "name"))
+        assertEquals(person, child2.getIfPresent("name", person.name))
 
         assertEquals(person, child1.getIfPresent(person.id!!))
-        assertEquals(person, child1.getIfPresent(person.name, "name"))
+        assertEquals(person, child1.getIfPresent("name", person.name))
 
         assertEquals(null, storage.getIfPresent(person.id!!))
-        assertEquals(null, storage.getIfPresent(person.name, "name"))
+        assertEquals(null, storage.getIfPresent("name", person.name))
 
         storage.join(child1)
 
         assertEquals(person, child2.getIfPresent(person.id!!))
-        assertEquals(person, child2.getIfPresent(person.name, "name"))
+        assertEquals(person, child2.getIfPresent("name", person.name))
 
         assertEquals(person, child1.getIfPresent(person.id!!))
-        assertEquals(person, child1.getIfPresent(person.name, "name"))
+        assertEquals(person, child1.getIfPresent("name", person.name))
 
         assertEquals(person, storage.getIfPresent(person.id!!))
-        assertEquals(person, storage.getIfPresent(person.name, "name"))
+        assertEquals(person, storage.getIfPresent("name", person.name))
     }
 
     @Test
@@ -99,45 +99,45 @@ class InMemoryNestedStorageTest : R2DBCTest() {
         storage.put(person)
 
         assertEquals(person, child2.getIfPresent(person.id!!))
-        assertEquals(person, child2.getIfPresent(person.name, "name"))
+        assertEquals(person, child2.getIfPresent("name", person.name))
 
         assertEquals(person, child1.getIfPresent(person.id!!))
-        assertEquals(person, child1.getIfPresent(person.name, "name"))
+        assertEquals(person, child1.getIfPresent("name", person.name))
 
         assertEquals(person, storage.getIfPresent(person.id!!))
-        assertEquals(person, storage.getIfPresent(person.name, "name"))
+        assertEquals(person, storage.getIfPresent("name", person.name))
 
         child2.remove(person.id!!)
 
         assertEquals(null, child2.getIfPresent(person.id!!))
-        assertEquals(null, child2.getIfPresent(person.name, "name"))
+        assertEquals(null, child2.getIfPresent("name", person.name))
 
         assertEquals(person, child1.getIfPresent(person.id!!))
-        assertEquals(person, child1.getIfPresent(person.name, "name"))
+        assertEquals(person, child1.getIfPresent("name", person.name))
 
         assertEquals(person, storage.getIfPresent(person.id!!))
-        assertEquals(person, storage.getIfPresent(person.name, "name"))
+        assertEquals(person, storage.getIfPresent("name", person.name))
 
         child1.join(child2)
 
         assertEquals(null, child2.getIfPresent(person.id!!))
-        assertEquals(null, child2.getIfPresent(person.name, "name"))
+        assertEquals(null, child2.getIfPresent("name", person.name))
 
         assertEquals(null, child1.getIfPresent(person.id!!))
-        assertEquals(null, child1.getIfPresent(person.name, "name"))
+        assertEquals(null, child1.getIfPresent("name", person.name))
 
         assertEquals(person, storage.getIfPresent(person.id!!))
-        assertEquals(person, storage.getIfPresent(person.name, "name"))
+        assertEquals(person, storage.getIfPresent("name", person.name))
 
         storage.join(child1)
 
         assertEquals(null, child2.getIfPresent(person.id!!))
-        assertEquals(null, child2.getIfPresent(person.name, "name"))
+        assertEquals(null, child2.getIfPresent("name", person.name))
 
         assertEquals(null, child1.getIfPresent(person.id!!))
-        assertEquals(null, child1.getIfPresent(person.name, "name"))
+        assertEquals(null, child1.getIfPresent("name", person.name))
 
         assertEquals(null, storage.getIfPresent(person.id!!))
-        assertEquals(null, storage.getIfPresent(person.name, "name"))
+        assertEquals(null, storage.getIfPresent("name", person.name))
     }
 }

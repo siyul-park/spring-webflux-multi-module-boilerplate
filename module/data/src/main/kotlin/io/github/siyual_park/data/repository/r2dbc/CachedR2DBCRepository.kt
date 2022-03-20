@@ -73,7 +73,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         val fallback = suspend { delegator.exists(criteria) }
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
 
-        return if (storage.getIfPresent(value, indexName) != null) {
+        return if (storage.getIfPresent(indexName, value) != null) {
             true
         } else {
             fallback()
@@ -89,7 +89,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         }
 
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
-        return storage.getIfPresentAsync(value, indexName) { delegator.findOne(criteria) }
+        return storage.getIfPresentAsync(indexName, value) { delegator.findOne(criteria) }
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -105,7 +105,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                 val indexNameAndValue = getIndexNameAndValue(criteria)
                 if (indexNameAndValue != null) {
                     val (indexName, value) = indexNameAndValue
-                    storage.getIfPresentAsync(value, indexName) { delegator.findOne(criteria) }
+                    storage.getIfPresentAsync(indexName, value) { delegator.findOne(criteria) }
                         ?.let { emit(it) }
                     return@flow
                 }
@@ -123,7 +123,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
                         value.forEach { key ->
-                            val cached = key?.let { storage.getIfPresent(it, indexName) }
+                            val cached = key?.let { storage.getIfPresent(indexName, it) }
                             if (cached == null) {
                                 notCachedKey.add(key)
                             } else {

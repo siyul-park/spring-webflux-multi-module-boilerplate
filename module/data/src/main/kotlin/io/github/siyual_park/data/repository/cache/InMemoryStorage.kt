@@ -40,14 +40,14 @@ class InMemoryStorage<T : Any, ID : Any>(
         return indexes.keys.contains(name)
     }
 
-    override fun <KEY : Any> getIfPresent(key: KEY, index: String): T? {
+    override fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
         val indexMap = indexes[index] ?: return null
         val id = indexMap[key] ?: return null
 
         return getIfPresent(id)
     }
 
-    override fun <KEY : Any> getIfPresent(key: KEY, index: String, loader: () -> T?): T? {
+    override fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: () -> T?): T? {
         val indexMap = getIndex(index)
         val id = indexMap[key]
 
@@ -65,7 +65,7 @@ class InMemoryStorage<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun <KEY : Any> getIfPresentAsync(key: KEY, index: String, loader: suspend () -> T?): T? {
+    override suspend fun <KEY : Any> getIfPresentAsync(index: String, key: KEY, loader: suspend () -> T?): T? {
         val indexMap = getIndex(index)
         val id = indexMap[key]
 

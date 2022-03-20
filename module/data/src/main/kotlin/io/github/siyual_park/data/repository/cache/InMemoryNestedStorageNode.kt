@@ -60,9 +60,9 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         return indexes.keys.contains(name)
     }
 
-    override fun <KEY : Any> getIfPresent(key: KEY, index: String): T? {
+    override fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
         val fallback = {
-            parent.getIfPresent(key, index)
+            parent.getIfPresent(index, key)
                 ?.let {
                     val id = idExtractor.getKey(it)
                     if (!forceRemoved.contains(id)) {
@@ -79,12 +79,12 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         return getIfPresent(id)
     }
 
-    override fun <KEY : Any> getIfPresent(key: KEY, index: String, loader: () -> T?): T? {
+    override fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: () -> T?): T? {
         val indexMap = getIndex(index)
         val id = indexMap[key]
 
         return if (id == null) {
-            parent.getIfPresent(key, index)
+            parent.getIfPresent(index, key)
                 ?.let {
                     val id = idExtractor.getKey(it)
                     if (!forceRemoved.contains(id)) {
@@ -92,18 +92,18 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
                     } else {
                         null
                     }
-                } ?: parent.getIfPresent(key, index, loader)
+                } ?: parent.getIfPresent(index, key, loader)
         } else {
             getIfPresent(id, loader)
         }
     }
 
-    override suspend fun <KEY : Any> getIfPresentAsync(key: KEY, index: String, loader: suspend () -> T?): T? {
+    override suspend fun <KEY : Any> getIfPresentAsync(index: String, key: KEY, loader: suspend () -> T?): T? {
         val indexMap = getIndex(index)
         val id = indexMap[key]
 
         return if (id == null) {
-            parent.getIfPresent(key, index)
+            parent.getIfPresent(index, key)
                 ?.let {
                     val id = idExtractor.getKey(it)
                     if (!forceRemoved.contains(id)) {
@@ -111,7 +111,7 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
                     } else {
                         null
                     }
-                } ?: parent.getIfPresentAsync(key, index, loader)
+                } ?: parent.getIfPresentAsync(index, key, loader)
         } else {
             getIfPresentAsync(id, loader)
         }

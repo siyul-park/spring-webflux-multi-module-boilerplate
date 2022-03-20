@@ -7,9 +7,9 @@ interface Storage<T : Any, ID : Any> {
 
     fun getExtractors(): Map<String, Extractor<T, *>>
 
-    fun <KEY : Any> getIfPresent(key: KEY, index: String): T?
-    fun <KEY : Any> getIfPresent(key: KEY, index: String, loader: () -> T?): T?
-    suspend fun <KEY : Any> getIfPresentAsync(key: KEY, index: String, loader: suspend () -> T?): T?
+    fun <KEY : Any> getIfPresent(index: String, key: KEY): T?
+    fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: () -> T?): T?
+    suspend fun <KEY : Any> getIfPresentAsync(index: String, key: KEY, loader: suspend () -> T?): T?
 
     fun getIfPresent(id: ID): T?
     fun getIfPresent(id: ID, loader: () -> T?): T?
