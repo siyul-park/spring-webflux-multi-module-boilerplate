@@ -8,17 +8,24 @@ import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.cache.CachedRepository
 import io.github.siyual_park.data.repository.cache.Extractor
+import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
+import io.github.siyual_park.data.repository.cache.NestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
+import io.github.siyual_park.data.repository.cache.Storage
+import io.github.siyual_park.data.repository.cache.root
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria
 import org.springframework.data.relational.core.query.CriteriaDefinition
+import org.springframework.transaction.NoTransactionException
+import org.springframework.transaction.reactive.TransactionContextManager
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import java.time.Duration
@@ -29,17 +36,16 @@ import kotlin.reflect.full.memberProperties
 @Suppress("UNCHECKED_CAST")
 class CachedR2DBCRepository<T : Any, ID : Any>(
     private val repository: R2DBCRepository<T, ID>,
-    cacheBuilder: CacheBuilder<ID, T>,
+    override val storage: Storage<T, ID>,
+    private val idExtractor: Extractor<T, ID>
 ) : R2DBCRepository<T, ID>,
     CachedRepository<T, ID> by SimpleCachedRepository(
         repository,
-        cacheBuilder,
-        object : Extractor<T, ID> {
-            override fun getKey(entity: T): ID {
-                return repository.entityManager.getId(entity)
-            }
-        }
+        storage,
+        idExtractor
     ) {
+
+    private val nestedStorage = storage as NestedStorage<T, ID>
 
     override val entityManager: EntityManager<T, ID>
         get() = repository.entityManager
@@ -71,6 +77,8 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
+        val storage = getCurrentStorage()
+
         val fallback = suspend { repository.exists(criteria) }
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
 
@@ -82,6 +90,8 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
+        val storage = getCurrentStorage()
+
         val fallback = suspend {
             repository.findOne(criteria)
                 ?.also { storage.put(it) }
@@ -92,32 +102,31 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
-        val fallback = {
-            repository.findAll(criteria, limit, offset, sort)
-                .onEach { storage.put(it) }
-        }
-
-        if (criteria != null && limit == null && offset == null && sort == null) {
-            val indexNameAndValue = getIndexNameAndValue(criteria)
-            if (indexNameAndValue != null) {
-                val (indexName, value) = indexNameAndValue
-                return flow {
-                    storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
-                        ?.let { emit(it) }
-                }
+        return flow {
+            val fallback = {
+                repository.findAll(criteria, limit, offset, sort)
+                    .onEach { storage.put(it) }
             }
 
-            if (isSingleCriteria(criteria)) {
-                val column = criteria.column
-                val value = criteria.value ?: return fallback()
-                val indexName = column?.reference ?: return fallback()
+            if (criteria != null && limit == null && offset == null && sort == null) {
+                val indexNameAndValue = getIndexNameAndValue(criteria)
+                if (indexNameAndValue != null) {
+                    val (indexName, value) = indexNameAndValue
+                    storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+                        ?.let { emit(it) }
+                    return@flow
+                }
 
-                if (
-                    storage.containsIndex(indexName) &&
-                    criteria.comparator == CriteriaDefinition.Comparator.IN &&
-                    value is Collection<*>
-                ) {
-                    return flow {
+                if (isSingleCriteria(criteria)) {
+                    val column = criteria.column
+                    val value = criteria.value ?: return@flow emitAll(fallback())
+                    val indexName = column?.reference ?: return@flow emitAll(fallback())
+
+                    if (
+                        storage.containsIndex(indexName) &&
+                        criteria.comparator == CriteriaDefinition.Comparator.IN &&
+                        value is Collection<*>
+                    ) {
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
                         value.forEach { key ->
@@ -138,15 +147,18 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                         }
 
                         emitAll(result.asFlow())
+                        return@flow
                     }
                 }
             }
-        }
 
-        return fallback()
+            return@flow emitAll(fallback())
+        }
     }
 
-    private fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+    private suspend fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+        val storage = getCurrentStorage()
+
         if (criteria == null) return null
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
@@ -211,6 +223,8 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
+        val storage = getCurrentStorage()
+
         return repository.update(criteria, patch)
             ?.also { storage.put(it) }
     }
@@ -220,8 +234,14 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
-        return repository.updateAll(criteria, patch)
-            .onEach { storage.put(it) }
+        return flow {
+            val storage = getCurrentStorage()
+
+            emitAll(
+                repository.updateAll(criteria, patch)
+                    .onEach { storage.put(it) }
+            )
+        }
     }
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
@@ -229,33 +249,79 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?) {
+        val storage = getCurrentStorage()
+
         if (criteria == null) {
             storage.clear()
         } else {
             findAll(criteria)
-                .collect { storage.remove(it) }
+                .collect { storage.delete(it) }
         }
 
         repository.deleteAll(criteria)
     }
 
+    private suspend fun getCurrentStorage(): NestedStorage<T, ID> {
+        try {
+            val context = TransactionContextManager.currentContext().awaitSingleOrNull() ?: return nestedStorage
+            val synchronizations = context.synchronizations ?: return nestedStorage
+            val cacheTransactionSynchronizations = synchronizations.filterIsInstance(CacheTransactionSynchronization::class.java)
+
+            if (cacheTransactionSynchronizations.find { it.storage.root() == nestedStorage } == null) {
+                val child = nestedStorage.fork()
+                synchronizations.add(CacheTransactionSynchronization(child))
+                return child
+            }
+
+            return nestedStorage
+        } catch (e: NoTransactionException) {
+            return nestedStorage
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
     companion object {
         fun <T : Any, ID : Any> of(
             repository: R2DBCRepository<T, ID>,
-            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder()
+            cacheBuilder: () -> CacheBuilder<Any, Any> = { defaultCacheBuilder() }
         ): CachedR2DBCRepository<T, ID> {
-            return CachedR2DBCRepository(repository, cacheBuilder as CacheBuilder<ID, T>)
+            val idExtractor = object : Extractor<T, ID> {
+                override fun getKey(entity: T): ID {
+                    return repository.entityManager.getId(entity)
+                }
+            }
+
+            return CachedR2DBCRepository(
+                repository,
+                InMemoryNestedStorage(
+                    cacheBuilder as () -> CacheBuilder<ID, T>,
+                    idExtractor
+                ),
+                idExtractor
+            )
         }
 
         fun <T : Any, ID : Any> of(
             entityOperations: R2dbcEntityOperations,
             clazz: KClass<T>,
-            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
+            cacheBuilder: () -> CacheBuilder<Any, Any> = { defaultCacheBuilder() },
             scheduler: Scheduler = Schedulers.boundedElastic()
         ): CachedR2DBCRepository<T, ID> {
+            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, scheduler)
+            val idExtractor = object : Extractor<T, ID> {
+                override fun getKey(entity: T): ID {
+                    return repository.entityManager.getId(entity)
+                }
+            }
+
             return CachedR2DBCRepository(
-                SimpleR2DBCRepository(entityOperations, clazz, scheduler),
-                cacheBuilder as CacheBuilder<ID, T>
+                repository,
+                InMemoryNestedStorage(
+                    cacheBuilder as () -> CacheBuilder<ID, T>,
+                    idExtractor
+                ),
+                idExtractor
             )
         }
 

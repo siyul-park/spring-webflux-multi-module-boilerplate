@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.repository.cache
 
-import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.Repository
@@ -13,10 +12,9 @@ import kotlinx.coroutines.flow.onEach
 
 class SimpleCachedRepository<T : Any, ID : Any>(
     private val repository: Repository<T, ID>,
-    cacheBuilder: CacheBuilder<ID, T>,
+    override val storage: Storage<T, ID>,
     private val idExtractor: Extractor<T, ID>
 ) : CachedRepository<T, ID> {
-    override val storage: Storage<T, ID> = Storage(cacheBuilder, idExtractor)
 
     override suspend fun create(entity: T): T {
         return repository.create(entity)
@@ -41,7 +39,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         return repository.existsById(id)
             .also {
                 if (!it) {
-                    storage.removeBy(id)
+                    storage.remove(id)
                 }
             }
     }
@@ -141,22 +139,22 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteById(id: ID) {
-        storage.removeBy(id)
+        storage.remove(id)
         repository.deleteById(id)
     }
 
     override suspend fun delete(entity: T) {
-        storage.remove(entity)
+        storage.delete(entity)
         repository.delete(entity)
     }
 
     override suspend fun deleteAllById(ids: Iterable<ID>) {
-        ids.forEach { storage.removeBy(it) }
+        ids.forEach { storage.remove(it) }
         repository.deleteAllById(ids)
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
-        entities.forEach { storage.remove(it) }
+        entities.forEach { storage.delete(it) }
         repository.deleteAll(entities)
     }
 
