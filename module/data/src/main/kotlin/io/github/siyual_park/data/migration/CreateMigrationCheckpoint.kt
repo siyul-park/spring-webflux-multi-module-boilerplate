@@ -15,6 +15,7 @@ class CreateMigrationCheckpoint : Migration {
                     "id SERIAL PRIMARY KEY, " +
 
                     "version BIGINT NOT NULL, " +
+                    "status VARCHAR(64) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
@@ -28,6 +29,7 @@ class CreateMigrationCheckpoint : Migration {
                     "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 
                     "version BIGINT NOT NULL, " +
+                    "status VARCHAR(64) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +

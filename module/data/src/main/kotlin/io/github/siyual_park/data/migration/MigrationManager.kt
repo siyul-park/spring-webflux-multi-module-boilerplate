@@ -1,7 +1,9 @@
 package io.github.siyual_park.data.migration
 
 import io.github.siyual_park.data.expansion.columnName
+import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
+import io.github.siyual_park.data.repository.update
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
@@ -44,7 +46,12 @@ class MigrationManager(
             createMigrationCheckpoint.up(entityOperations)
         }
 
+        migrationCheckpointRepository.deleteAll(
+            where(MigrationCheckpoint::status).`is`(MigrationStatus.REJECT)
+        )
+
         val migrationCheckpoints = migrationCheckpointRepository.findAll(
+            criteria = where(MigrationCheckpoint::status).`is`(MigrationStatus.COMPLETE),
             sort = Sort.by(columnName(MigrationCheckpoint::version)).descending(),
             limit = 1
         )
@@ -55,11 +62,20 @@ class MigrationManager(
 
         for (i in (lastVersion + 1) until migrations.size) {
             val migration = migrations[i]
-
-            migration.up(entityOperations)
-
-            MigrationCheckpoint(version = i)
+            val checkpoint = MigrationCheckpoint(version = i, status = MigrationStatus.PENDING)
                 .let { migrationCheckpointRepository.create(it) }
+
+            try {
+                migration.up(entityOperations)
+                migrationCheckpointRepository.update(checkpoint) {
+                    it.status = MigrationStatus.COMPLETE
+                }
+            } catch (e: Exception) {
+                migrationCheckpointRepository.update(checkpoint) {
+                    it.status = MigrationStatus.REJECT
+                }
+                throw e
+            }
         }
     }
 
