@@ -6,7 +6,7 @@ import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
-import io.github.siyual_park.data.repository.cache.CachedRepository
+import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
@@ -30,10 +30,10 @@ import kotlin.reflect.full.memberProperties
 @Suppress("UNCHECKED_CAST")
 class CachedR2DBCRepository<T : Any, ID : Any>(
     private val repository: R2DBCRepository<T, ID>,
-    override val storageManager: R2DBCStorageManager<T, ID>,
+    private val storageManager: R2DBCStorageManager<T, ID>,
     private val idExtractor: Extractor<T, ID>
 ) : R2DBCRepository<T, ID>,
-    CachedRepository<T, ID> by SimpleCachedRepository(
+    Repository<T, ID> by SimpleCachedRepository(
         repository,
         storageManager,
         idExtractor

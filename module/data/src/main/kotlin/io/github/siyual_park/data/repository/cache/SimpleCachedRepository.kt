@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.onEach
 
 class SimpleCachedRepository<T : Any, ID : Any>(
     private val repository: Repository<T, ID>,
-    override val storageManager: StorageManager<T, ID>,
+    private val storageManager: StorageManager<T, ID>,
     private val idExtractor: Extractor<T, ID>
-) : CachedRepository<T, ID> {
+) : Repository<T, ID> {
 
     override suspend fun create(entity: T): T {
         val storage = storageManager.getCurrent()
