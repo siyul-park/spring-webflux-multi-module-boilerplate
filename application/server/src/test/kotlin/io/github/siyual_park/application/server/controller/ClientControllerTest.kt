@@ -225,15 +225,12 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH clients_self, status = 200`() = blocking {
+    fun `PATCH clients_self, status = 403`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
         val principal = clientPrincipalExchanger.exchange(client)
 
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("clients[self]:update")
-        )
+        gatewayAuthorization.setPrincipal(principal)
 
         val request = MutableClientData(
             name = RandomNameFactory.create(10),
@@ -241,16 +238,7 @@ class ClientControllerTest @Autowired constructor(
         )
         val response = clientControllerGateway.updateSelf(request)
 
-        assertEquals(HttpStatus.OK, response.status)
-
-        val responseClient = response.responseBody.awaitSingle()
-
-        assertEquals(client.id, responseClient.id)
-        assertEquals(request.name, responseClient.name)
-        assertEquals(client.type, responseClient.type)
-        assertEquals(request.origin, responseClient.origin)
-        assertNotNull(responseClient.createdAt)
-        assertNotNull(responseClient.updatedAt)
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
     @Test
@@ -270,6 +258,19 @@ class ClientControllerTest @Autowired constructor(
 
         val clientScope = clientScopeFinder.findAllWithResolvedByClient(client).toSet()
         assertEquals(0, clientScope.size)
+    }
+
+    @Test
+    fun `DELETE clients_self, status = 403`() = blocking {
+        val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = clientPrincipalExchanger.exchange(client)
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val response = clientControllerGateway.deleteSelf()
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
     @Test
@@ -295,6 +296,25 @@ class ClientControllerTest @Autowired constructor(
         assertEquals(otherClient.origin, responseClient.origin)
         assertNotNull(responseClient.createdAt)
         assertNotNull(responseClient.updatedAt)
+    }
+
+    @Test
+    fun `GET clients_{client_id}, status = 403`() = blocking {
+        val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = clientPrincipalExchanger.exchange(client)
+
+        val otherPayload = DummyCreateClientPayload.create()
+        val otherClient = clientFactory.create(otherPayload)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("clients:read")
+        )
+
+        val response = clientControllerGateway.read(otherClient.id!!)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
     @Test
@@ -330,6 +350,26 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
+    fun `PATCH clients_{client_id}, status = 403`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+            .let { clientPrincipalExchanger.exchange(it) }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val request = MutableClientData(
+            name = RandomNameFactory.create(10),
+            origin = otherClient.origin
+        )
+        val response = clientControllerGateway.update(otherClient.id!!, request)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
     fun `DELEATE clients_{client_id}, status = 200`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
@@ -349,5 +389,21 @@ class ClientControllerTest @Autowired constructor(
 
         val clientScope = clientScopeFinder.findAllWithResolvedByClient(otherClient).toSet()
         assertEquals(0, clientScope.size)
+    }
+
+    @Test
+    fun `DELEATE clients_{client_id}, status = 403`() = blocking {
+        val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = clientPrincipalExchanger.exchange(client)
+
+        val otherPayload = DummyCreateClientPayload.create()
+        val otherClient = clientFactory.create(otherPayload)
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val response = clientControllerGateway.delete(otherClient.id!!)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 }
