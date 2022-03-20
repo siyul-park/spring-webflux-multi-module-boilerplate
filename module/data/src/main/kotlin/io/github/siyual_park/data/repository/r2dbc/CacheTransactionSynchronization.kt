@@ -47,9 +47,8 @@ class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchroniz
                         val diff = storage.diff()
                         val parent = storage.parent
                         logger.debug("Removing Cache Storage [parent: $parent, child: $storage, diff: $diff]")
+                        storage.clear()
                     }
-
-                    storages[it]?.clear()
                     storages.remove(it)
                 }.then()
             }
