@@ -6,8 +6,9 @@ import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
-import io.github.siyual_park.data.repository.cache.CachedRepository
+import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.cache.Extractor
+import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -28,25 +29,21 @@ import kotlin.reflect.full.memberProperties
 
 @Suppress("UNCHECKED_CAST")
 class CachedR2DBCRepository<T : Any, ID : Any>(
-    private val repository: R2DBCRepository<T, ID>,
-    cacheBuilder: CacheBuilder<ID, T>,
+    private val delegator: R2DBCRepository<T, ID>,
+    private val storageManager: R2DBCStorageManager<T, ID>,
+    private val idExtractor: Extractor<T, ID>
 ) : R2DBCRepository<T, ID>,
-    CachedRepository<T, ID> by SimpleCachedRepository(
-        repository,
-        cacheBuilder,
-        object : Extractor<T, ID> {
-            override fun getKey(entity: T): ID {
-                return repository.entityManager.getId(entity)
-            }
-        }
+    Repository<T, ID> by SimpleCachedRepository(
+        delegator,
+        storageManager,
+        idExtractor
     ) {
 
     override val entityManager: EntityManager<T, ID>
-        get() = repository.entityManager
+        get() = delegator.entityManager
 
     init {
         val clazz = entityManager.clazz
-
         val indexes = mutableMapOf<String, MutableList<KProperty1<T, *>>>()
 
         clazz.memberProperties.forEach {
@@ -57,7 +54,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
         indexes.forEach { (_, properties) ->
             val sortedProperties = properties.map { it to columnName(it) }.sortedBy { (_, columnName) -> columnName }
-            storage.createIndex(
+            storageManager.root.createIndex(
                 sortedProperties.joinToString(" ") { (_, columnName) -> columnName },
                 object : Extractor<T, Any> {
                     override fun getKey(entity: T): Any {
@@ -71,7 +68,9 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        val fallback = suspend { repository.exists(criteria) }
+        val storage = storageManager.getCurrent()
+
+        val fallback = suspend { delegator.exists(criteria) }
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
 
         return if (storage.getIfPresent(value, indexName) != null) {
@@ -82,42 +81,45 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
+        val storage = storageManager.getCurrent()
+
         val fallback = suspend {
-            repository.findOne(criteria)
+            delegator.findOne(criteria)
                 ?.also { storage.put(it) }
         }
 
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
-        return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+        return storage.getIfPresentAsync(value, indexName) { delegator.findOne(criteria) }
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
-        val fallback = {
-            repository.findAll(criteria, limit, offset, sort)
-                .onEach { storage.put(it) }
-        }
+        return flow {
+            val storage = storageManager.getCurrent()
 
-        if (criteria != null && limit == null && offset == null && sort == null) {
-            val indexNameAndValue = getIndexNameAndValue(criteria)
-            if (indexNameAndValue != null) {
-                val (indexName, value) = indexNameAndValue
-                return flow {
-                    storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
-                        ?.let { emit(it) }
-                }
+            val fallback = {
+                delegator.findAll(criteria, limit, offset, sort)
+                    .onEach { storage.put(it) }
             }
 
-            if (isSingleCriteria(criteria)) {
-                val column = criteria.column
-                val value = criteria.value ?: return fallback()
-                val indexName = column?.reference ?: return fallback()
+            if (criteria != null && limit == null && offset == null && sort == null) {
+                val indexNameAndValue = getIndexNameAndValue(criteria)
+                if (indexNameAndValue != null) {
+                    val (indexName, value) = indexNameAndValue
+                    storage.getIfPresentAsync(value, indexName) { delegator.findOne(criteria) }
+                        ?.let { emit(it) }
+                    return@flow
+                }
 
-                if (
-                    storage.containsIndex(indexName) &&
-                    criteria.comparator == CriteriaDefinition.Comparator.IN &&
-                    value is Collection<*>
-                ) {
-                    return flow {
+                if (isSingleCriteria(criteria)) {
+                    val column = criteria.column
+                    val value = criteria.value ?: return@flow emitAll(fallback())
+                    val indexName = column?.reference ?: return@flow emitAll(fallback())
+
+                    if (
+                        storage.containsIndex(indexName) &&
+                        criteria.comparator == CriteriaDefinition.Comparator.IN &&
+                        value is Collection<*>
+                    ) {
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
                         value.forEach { key ->
@@ -130,23 +132,25 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                         }
 
                         if (notCachedKey.isNotEmpty()) {
-                            repository.findAll(Criteria.where(indexName).`in`(notCachedKey))
+                            delegator.findAll(Criteria.where(indexName).`in`(notCachedKey))
                                 .collect { entity ->
                                     storage.put(entity)
                                     result.add(entity)
                                 }
                         }
 
-                        emitAll(result.asFlow())
+                        return@flow emitAll(result.asFlow())
                     }
                 }
             }
-        }
 
-        return fallback()
+            return@flow emitAll(fallback())
+        }
     }
 
-    private fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+    private suspend fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+        val storage = storageManager.getCurrent()
+
         if (criteria == null) return null
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
@@ -211,7 +215,9 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
-        return repository.update(criteria, patch)
+        val storage = storageManager.getCurrent()
+
+        return delegator.update(criteria, patch)
             ?.also { storage.put(it) }
     }
 
@@ -220,42 +226,70 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
-        return repository.updateAll(criteria, patch)
-            .onEach { storage.put(it) }
+        return flow {
+            val storage = storageManager.getCurrent()
+
+            emitAll(
+                delegator.updateAll(criteria, patch)
+                    .onEach { storage.put(it) }
+            )
+        }
     }
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
-        return repository.count(criteria)
+        return delegator.count(criteria)
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?) {
+        val storage = storageManager.getCurrent()
+
         if (criteria == null) {
             storage.clear()
         } else {
             findAll(criteria)
-                .collect { storage.remove(it) }
+                .collect { storage.delete(it) }
         }
 
-        repository.deleteAll(criteria)
+        delegator.deleteAll(criteria)
     }
 
     companion object {
         fun <T : Any, ID : Any> of(
             repository: R2DBCRepository<T, ID>,
-            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder()
+            cacheBuilder: () -> CacheBuilder<Any, Any> = { defaultCacheBuilder() }
         ): CachedR2DBCRepository<T, ID> {
-            return CachedR2DBCRepository(repository, cacheBuilder as CacheBuilder<ID, T>)
+            val idExtractor = createIdExtractor(repository)
+
+            return CachedR2DBCRepository(
+                repository,
+                R2DBCStorageManager(
+                    InMemoryNestedStorage(
+                        cacheBuilder as () -> CacheBuilder<ID, T>,
+                        idExtractor
+                    )
+                ),
+                idExtractor
+            )
         }
 
         fun <T : Any, ID : Any> of(
             entityOperations: R2dbcEntityOperations,
             clazz: KClass<T>,
-            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
+            cacheBuilder: () -> CacheBuilder<Any, Any> = { defaultCacheBuilder() },
             scheduler: Scheduler = Schedulers.boundedElastic()
         ): CachedR2DBCRepository<T, ID> {
+            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, scheduler)
+            val idExtractor = createIdExtractor(repository)
+
             return CachedR2DBCRepository(
-                SimpleR2DBCRepository(entityOperations, clazz, scheduler),
-                cacheBuilder as CacheBuilder<ID, T>
+                repository,
+                R2DBCStorageManager(
+                    InMemoryNestedStorage(
+                        cacheBuilder as () -> CacheBuilder<ID, T>,
+                        idExtractor
+                    )
+                ),
+                idExtractor
             )
         }
 
@@ -264,5 +298,11 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             .expireAfterAccess(Duration.ofMinutes(2))
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
+
+        private fun <T : Any, ID : Any> createIdExtractor(repository: R2DBCRepository<T, ID>) = object : Extractor<T, ID> {
+            override fun getKey(entity: T): ID {
+                return repository.entityManager.getId(entity)
+            }
+        }
     }
 }
