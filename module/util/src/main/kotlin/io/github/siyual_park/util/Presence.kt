@@ -1,4 +1,4 @@
-package io.github.siyual_park.application.server.dummy
+package io.github.siyual_park.util
 
 sealed class Presence<T : Any?> {
     data class Exist<T : Any?>(val value: T) : Presence<T>()

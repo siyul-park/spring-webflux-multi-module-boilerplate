@@ -4,7 +4,6 @@ import io.github.siyual_park.application.server.dto.request.MutableClientData
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
-import io.github.siyual_park.application.server.dummy.Presence
 import io.github.siyual_park.application.server.dummy.RandomNameFactory
 import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
@@ -22,6 +21,7 @@ import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
+import io.github.siyual_park.util.Presence
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet

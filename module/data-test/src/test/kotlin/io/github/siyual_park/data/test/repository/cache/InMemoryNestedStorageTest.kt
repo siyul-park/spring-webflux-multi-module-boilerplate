@@ -5,8 +5,8 @@ import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.test.R2DBCTest
+import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
-import io.github.siyual_park.data.test.factory.PersonFactory
 import io.github.siyual_park.data.test.migration.CreatePerson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test
 
 @Suppress("UNCHECKED_CAST")
 class InMemoryNestedStorageTest : R2DBCTest() {
-    private val personFactory = PersonFactory()
     private val personRepository = SimpleR2DBCRepository<Person, Long>(entityOperations, Person::class)
 
     private val storage = InMemoryNestedStorage(
@@ -51,7 +50,7 @@ class InMemoryNestedStorageTest : R2DBCTest() {
         val child1 = storage.fork()
         val child2 = child1.fork()
 
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
 
         child2.put(person)
@@ -93,7 +92,7 @@ class InMemoryNestedStorageTest : R2DBCTest() {
         val child1 = storage.fork()
         val child2 = child1.fork()
 
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
 
         storage.put(person)

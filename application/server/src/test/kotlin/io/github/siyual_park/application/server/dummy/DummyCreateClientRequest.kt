@@ -2,6 +2,7 @@ package io.github.siyual_park.application.server.dummy
 
 import io.github.siyual_park.application.server.dto.request.CreateClientRequest
 import io.github.siyual_park.client.entity.ClientType
+import io.github.siyual_park.util.Presence
 import java.net.URL
 
 object DummyCreateClientRequest {

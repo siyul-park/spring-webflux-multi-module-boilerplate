@@ -8,6 +8,8 @@ dependencies {
 
     implementation(project(":module:data"))
     testImplementation(project(":dependency:guava"))
+
+    testImplementation(project(":module:util"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

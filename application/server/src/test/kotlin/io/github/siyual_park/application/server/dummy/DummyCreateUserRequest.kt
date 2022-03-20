@@ -1,6 +1,7 @@
 package io.github.siyual_park.application.server.dummy
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
+import io.github.siyual_park.util.Presence
 
 object DummyCreateUserRequest {
     data class CreateUserRequestTemplate(

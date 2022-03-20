@@ -8,8 +8,8 @@ import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.test.R2DBCTest
+import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
-import io.github.siyual_park.data.test.factory.PersonFactory
 import io.github.siyual_park.data.test.migration.CreatePerson
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -24,8 +24,6 @@ import org.junit.jupiter.params.provider.MethodSource
 
 @TestInstance(PER_CLASS)
 class R2DBCRepositoryTest : R2DBCTest() {
-    private val personFactory = PersonFactory()
-
     init {
         migrationManager.register(CreatePerson())
     }
@@ -38,7 +36,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun create(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
         val savedPerson = personRepository.create(person)
 
         assertNotNull(savedPerson.id)
@@ -54,7 +52,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     fun createAll(personRepository: R2DBCRepository<Person, Long>) = transactional {
         val numOfPerson = 10
 
-        val persons = (0 until numOfPerson).map { personFactory.create() }
+        val persons = (0 until numOfPerson).map { DummyPerson.create() }
         val savedPersons = personRepository.createAll(persons).toList()
 
         assertEquals(persons.size, savedPersons.size)
@@ -74,7 +72,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun existsById(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
 
         assertTrue(personRepository.existsById(person.id!!))
@@ -83,7 +81,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun findById(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
         val foundPerson = personRepository.findById(person.id!!)!!
 
@@ -98,7 +96,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun findAll(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
         val foundPersons = personRepository.findAll().toList()
 
@@ -114,7 +112,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun findAllCustomQuery(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
         val foundPersons = personRepository.findAll(where(Person::id).`is`(person.id!!)).toList()
 
@@ -130,7 +128,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun findAllByNameIs(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
         val foundPersons = personRepository.findAll(where(Person::name).`is`(person.name)).toList()
 
@@ -146,7 +144,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun findAllByNameIn(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
         val foundPersons = personRepository.findAll(where(Person::name).`in`(person.name)).toList()
 
@@ -162,7 +160,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun findOneByName(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
         val foundPerson = personRepository.findOneOrFail(where(Person::name).`is`(person.name))
 
@@ -179,7 +177,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     fun findAllById(personRepository: R2DBCRepository<Person, Long>) = transactional {
         val numOfPerson = 10
 
-        val persons = (0 until numOfPerson).map { personFactory.create() }
+        val persons = (0 until numOfPerson).map { DummyPerson.create() }
             .let { personRepository.createAll(it) }
             .toList()
         val ids = persons.map { it.id!! }
@@ -203,9 +201,9 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun update(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
-        val person2 = personFactory.create()
+        val person2 = DummyPerson.create()
 
         val originPerson = person.copy()
 
@@ -225,9 +223,9 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun updateByPatch(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
-        val person2 = personFactory.create()
+        val person2 = DummyPerson.create()
 
         val updatedPerson = personRepository.update(
             person,
@@ -248,9 +246,9 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun updateByAsyncPatch(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
-        val person2 = personFactory.create()
+        val person2 = DummyPerson.create()
 
         val updatedPerson = personRepository.update(
             person,
@@ -274,13 +272,13 @@ class R2DBCRepositoryTest : R2DBCTest() {
         val numOfPerson = 10
 
         var persons = (0 until numOfPerson)
-            .map { personFactory.create() }
+            .map { DummyPerson.create() }
             .let { personRepository.createAll(it) }
             .toList()
 
         val originPersons = persons.map { it.copy() }
 
-        val person2 = personFactory.create()
+        val person2 = DummyPerson.create()
         persons = persons.map {
             it.name = person2.name
             it.age = person2.age
@@ -309,9 +307,9 @@ class R2DBCRepositoryTest : R2DBCTest() {
     fun updateAllByPatch(personRepository: R2DBCRepository<Person, Long>) = transactional {
         val numOfPerson = 10
 
-        val person2 = personFactory.create()
+        val person2 = DummyPerson.create()
         val persons = (0 until numOfPerson)
-            .map { personFactory.create() }
+            .map { DummyPerson.create() }
             .let { personRepository.createAll(it) }
             .toList()
 
@@ -342,9 +340,9 @@ class R2DBCRepositoryTest : R2DBCTest() {
     fun updateAllByAsyncPatch(personRepository: R2DBCRepository<Person, Long>) = transactional {
         val numOfPerson = 10
 
-        val person2 = personFactory.create()
+        val person2 = DummyPerson.create()
         val persons = (0 until numOfPerson)
-            .map { personFactory.create() }
+            .map { DummyPerson.create() }
             .let { personRepository.createAll(it) }
             .toList()
 
@@ -377,7 +375,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         val numOfPerson = 10
         val persons = (0 until numOfPerson)
-            .map { personFactory.create() }
+            .map { DummyPerson.create() }
             .let { personRepository.createAll(it) }
             .toList()
 
@@ -387,7 +385,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun delete(personRepository: R2DBCRepository<Person, Long>) = blocking {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
 
         personRepository.delete(person)
@@ -398,7 +396,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun deleteById(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        val person = personFactory.create()
+        val person = DummyPerson.create()
             .let { personRepository.create(it) }
 
         personRepository.deleteById(person.id!!)
@@ -409,7 +407,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     @ParameterizedTest
     @MethodSource("personRepositories")
     fun deleteAll(personRepository: R2DBCRepository<Person, Long>) = transactional {
-        personFactory.create()
+        DummyPerson.create()
             .let { personRepository.create(it) }
 
         personRepository.deleteAll()
@@ -423,7 +421,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         val numOfPerson = 10
 
         val persons = (0 until numOfPerson)
-            .map { personFactory.create() }
+            .map { DummyPerson.create() }
             .let { personRepository.createAll(it) }
             .toList()
         val ids = persons.map { it.id!! }
@@ -439,7 +437,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         val numOfPerson = 10
 
         val persons = (0 until numOfPerson)
-            .map { personFactory.create() }
+            .map { DummyPerson.create() }
             .let { personRepository.createAll(it) }
             .toList()
 
@@ -454,7 +452,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         var person: Person? = null
 
         transactional {
-            person = personFactory.create()
+            person = DummyPerson.create()
                 .let { personRepository.create(it) }
         }
 
@@ -468,7 +466,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertThrows<RuntimeException> {
             transactional {
-                person = personFactory.create()
+                person = DummyPerson.create()
                     .let { personRepository.create(it) }
                 throw RuntimeException()
             }

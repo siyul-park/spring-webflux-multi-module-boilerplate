@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":module:reader"))
     implementation(project(":module:updater"))
     implementation(project(":module:validation"))
+    implementation(project(":module:util"))
 
     implementation(project(":domain:user"))
     implementation(project(":domain:client"))
