@@ -12,7 +12,7 @@ class PingControllerTest @Autowired constructor(
 ) {
 
     @Test
-    fun testPing() {
+    fun `GET ping`() {
         client.get()
             .uri("/ping")
             .exchange()
