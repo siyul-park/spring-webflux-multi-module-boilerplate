@@ -93,7 +93,7 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
         if (local != null) {
             localStorage.delete(local)
         }
-        addRemoved(id)
+        validRemoved(id)
     }
 
     override fun delete(entity: T) {
@@ -118,7 +118,7 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
         }
     }
 
-    private fun addRemoved(id: ID) {
+    private fun validRemoved(id: ID) {
         if (parent != null) {
             additionalRemoved.add(id)
         }
