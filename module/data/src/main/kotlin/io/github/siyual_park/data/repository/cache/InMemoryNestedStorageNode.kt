@@ -108,12 +108,6 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
     }
 
     override fun remove(id: ID) {
-        data[id]?.let { entity ->
-            indexes.forEach { (name, index) ->
-                val extractor = extractors[name] ?: return@forEach
-                index.remove(extractor.getKey(entity))
-            }
-        }
         data.remove(id)
         forceRemoved.add(id)
     }
