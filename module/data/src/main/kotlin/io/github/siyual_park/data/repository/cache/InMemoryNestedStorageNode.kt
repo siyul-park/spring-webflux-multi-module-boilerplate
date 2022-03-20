@@ -4,7 +4,7 @@ import com.google.common.collect.Maps
 import com.google.common.collect.Sets
 import java.util.concurrent.ConcurrentHashMap
 
-@Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class InMemoryNestedStorageNode<T : Any, ID : Any>(
     private val idExtractor: Extractor<T, ID>,
     override val parent: NestedStorage<T, ID>
@@ -84,7 +84,19 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         val id = indexMap[key]
 
         return if (id == null) {
-            parent.getIfPresent(key, index, loader)
+            val fallback = {
+                parent.getIfPresent(key, index)
+                    ?.let {
+                        val id = idExtractor.getKey(it)
+                        if (!forceRemoved.contains(id)) {
+                            it
+                        } else {
+                            null
+                        }
+                    }
+            }
+
+            fallback() ?: parent.getIfPresent(key, index, loader)
         } else {
             getIfPresent(id, loader)
         }
@@ -95,7 +107,19 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         val id = indexMap[key]
 
         return if (id == null) {
-            parent.getIfPresentAsync(key, index, loader)
+            val fallback = {
+                parent.getIfPresent(key, index)
+                    ?.let {
+                        val id = idExtractor.getKey(it)
+                        if (!forceRemoved.contains(id)) {
+                            it
+                        } else {
+                            null
+                        }
+                    }
+            }
+
+            fallback() ?: parent.getIfPresentAsync(key, index, loader)
         } else {
             getIfPresentAsync(id, loader)
         }
@@ -120,6 +144,12 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
     }
 
     override fun remove(id: ID) {
+        data[id]?.let { entity ->
+            indexes.forEach { (name, index) ->
+                val extractor = extractors[name] ?: return@forEach
+                index.remove(extractor.getKey(entity))
+            }
+        }
         data.remove(id)
         forceRemoved.add(id)
     }
