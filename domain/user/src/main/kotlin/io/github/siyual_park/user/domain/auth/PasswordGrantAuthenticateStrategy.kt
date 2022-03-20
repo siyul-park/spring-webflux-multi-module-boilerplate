@@ -1,7 +1,7 @@
 package io.github.siyual_park.user.domain.auth
 
 import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
-import io.github.siyual_park.auth.domain.authentication.AuthenticateProcessor
+import io.github.siyual_park.auth.domain.authentication.AuthenticateStrategy
 import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.client.domain.ClientFinder
 import io.github.siyual_park.reader.finder.findByIdOrFail
@@ -13,12 +13,12 @@ import java.security.MessageDigest
 
 @Component
 @AuthenticateMapping(filterBy = PasswordGrantPayload::class)
-class PasswordGrantAuthenticateProcessor(
+class PasswordGrantAuthenticateStrategy(
     private val userFinder: UserFinder,
     private val clientFinder: ClientFinder,
     private val userCredentialRepository: UserCredentialRepository,
     private val userPrincipalExchanger: UserPrincipalExchanger,
-) : AuthenticateProcessor<PasswordGrantPayload, UserPrincipal> {
+) : AuthenticateStrategy<PasswordGrantPayload, UserPrincipal> {
     override suspend fun authenticate(payload: PasswordGrantPayload): UserPrincipal? {
         val user = userFinder.findByNameOrFail(payload.username)
         val client = payload.clientId?.let { clientFinder.findByIdOrFail(it) }

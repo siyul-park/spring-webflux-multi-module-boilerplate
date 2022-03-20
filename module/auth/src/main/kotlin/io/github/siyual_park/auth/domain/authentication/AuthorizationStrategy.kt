@@ -2,9 +2,9 @@ package io.github.siyual_park.auth.domain.authentication
 
 import io.github.siyual_park.auth.domain.Principal
 
-abstract class AuthorizationProcessor<PRINCIPAL : Principal>(
+abstract class AuthorizationStrategy<PRINCIPAL : Principal>(
     private val type: String
-) : AuthenticateProcessor<AuthorizationPayload, PRINCIPAL> {
+) : AuthenticateStrategy<AuthorizationPayload, PRINCIPAL> {
     override suspend fun authenticate(payload: AuthorizationPayload): PRINCIPAL? {
         if (payload.type.lowercase() != type.lowercase()) {
             return null

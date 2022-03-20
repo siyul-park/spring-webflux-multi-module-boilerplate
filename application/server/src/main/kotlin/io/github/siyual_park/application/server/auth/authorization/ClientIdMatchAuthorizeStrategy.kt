@@ -2,7 +2,7 @@ package io.github.siyual_park.application.server.auth.authorization
 
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authorization.AuthorizeMapping
-import io.github.siyual_park.auth.domain.authorization.AuthorizeProcessor
+import io.github.siyual_park.auth.domain.authorization.AuthorizeStrategy
 import io.github.siyual_park.auth.domain.authorization.ScopeMapping
 import io.github.siyual_park.auth.domain.authorization.ScopeMatchAuthorizeFilter
 import io.github.siyual_park.auth.entity.ScopeToken
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 @AuthorizeMapping(ScopeMatchAuthorizeFilter::class)
 @ScopeMapping("clients[self]:read clients[self]:update clients[self]:delete")
-class ClientIdMatchAuthorizeProcessor : AuthorizeProcessor {
+class ClientIdMatchAuthorizeStrategy : AuthorizeStrategy {
     override suspend fun authorize(
         principal: Principal,
         scopeToken: ScopeToken,

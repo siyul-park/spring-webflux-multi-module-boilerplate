@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component
 class Authorizator(
     private val scopeTokenFinder: ScopeTokenFinder,
 ) {
-    private val authorizators = mutableListOf<Pair<AuthorizeFilter, AuthorizeProcessor>>()
+    private val strategies = mutableListOf<Pair<AuthorizeFilter, AuthorizeStrategy>>()
 
-    fun register(filter: AuthorizeFilter, processor: AuthorizeProcessor): Authorizator {
-        authorizators.add(filter to processor)
+    fun register(filter: AuthorizeFilter, strategy: AuthorizeStrategy): Authorizator {
+        strategies.add(filter to strategy)
         return this
     }
 
@@ -94,7 +94,7 @@ class Authorizator(
         scopeToken: ScopeToken,
         targetDomainObject: Any? = null
     ): Boolean {
-        return authorizators.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
+        return strategies.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
             .map { (_, evaluator) -> evaluator }
             .all { it.authorize(principal, scopeToken, targetDomainObject) }
     }

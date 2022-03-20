@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @AuthorizeMapping(AllowAllAuthorizeFilter::class)
-class PrincipalHasScopeAuthorizeProcessor : AuthorizeProcessor {
+class PrincipalHasScopeAuthorizeStrategy : AuthorizeStrategy {
     override suspend fun authorize(principal: Principal, scopeToken: ScopeToken, targetDomainObject: Any?): Boolean {
         return principal.hasScope(scopeToken)
     }

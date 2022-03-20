@@ -7,23 +7,23 @@ import org.springframework.stereotype.Component
 @Suppress("UNCHECKED_CAST")
 @Component
 class Authenticator {
-    private val authenticators = mutableListOf<Pair<AuthenticateFilter, AuthenticateProcessor<*, *>>>()
+    private val strategies = mutableListOf<Pair<AuthenticateFilter, AuthenticateStrategy<*, *>>>()
 
-    fun register(filter: AuthenticateFilter, processor: AuthenticateProcessor<*, *>): Authenticator {
-        authenticators.add(filter to processor)
+    fun register(filter: AuthenticateFilter, strategy: AuthenticateStrategy<*, *>): Authenticator {
+        strategies.add(filter to strategy)
         return this
     }
 
     suspend fun <PAYLOAD : Any> authenticate(payload: PAYLOAD): Principal {
-        val processors = authenticators
+        val strategies = strategies
             .filter { (filter, _) -> filter.isSubscribe(payload) }
-            .map { (_, processor) -> processor }
+            .map { (_, strategy) -> strategy }
 
         var exception: RuntimeException? = null
-        for (processor in processors) {
-            processor as AuthenticateProcessor<PAYLOAD, *>
+        for (strategy in strategies) {
+            strategy as AuthenticateStrategy<PAYLOAD, *>
             try {
-                val principal = processor.authenticate(payload)
+                val principal = strategy.authenticate(payload)
                 if (principal != null) {
                     return principal
                 }

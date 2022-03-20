@@ -1,25 +1,24 @@
-package io.github.siyual_park.user.domain.auth
+package io.github.siyual_park.client.domain.auth
 
 import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
-import io.github.siyual_park.auth.domain.authentication.AuthorizationProcessor
+import io.github.siyual_park.auth.domain.authentication.AuthorizationStrategy
 import io.github.siyual_park.auth.domain.token.TokenDecoder
 import org.springframework.stereotype.Component
 
 @Component
 @AuthenticateMapping(filterBy = AuthorizationPayload::class)
-class BearerAuthorizationProcessor(
+class BearerAuthorizationStrategy(
     private val tokenDecoder: TokenDecoder
-) : AuthorizationProcessor<UserPrincipal>("bearer") {
-    override suspend fun authenticate(credentials: String): UserPrincipal? {
+) : AuthorizationStrategy<ClientPrincipal>("bearer") {
+    override suspend fun authenticate(credentials: String): ClientPrincipal? {
         val claims = tokenDecoder.decode(credentials)
-        if (claims["uid"] == null) {
+        if (claims["cid"] == null || claims["uid"] != null) {
             return null
         }
 
-        return UserPrincipal(
-            id = claims["uid"].toString(),
-            clientId = claims["cid"]?.toString()?.toLongOrNull(),
+        return ClientPrincipal(
+            id = claims["cid"].toString(),
             scope = claims.scope.toSet()
         )
     }
