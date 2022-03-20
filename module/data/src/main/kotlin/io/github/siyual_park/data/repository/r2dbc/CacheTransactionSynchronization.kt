@@ -5,6 +5,7 @@ import kotlinx.coroutines.reactor.mono
 import org.springframework.transaction.reactive.TransactionContext
 import org.springframework.transaction.reactive.TransactionContextManager
 import org.springframework.transaction.reactive.TransactionSynchronization
+import org.springframework.transaction.reactive.TransactionSynchronization.STATUS_COMMITTED
 import reactor.core.publisher.Mono
 import java.util.WeakHashMap
 
@@ -23,15 +24,21 @@ class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchroniz
         return storages.getOrPut(context, defaultValue)
     }
 
-    override fun afterCommit(): Mono<Void> {
+    override fun afterCompletion(status: Int): Mono<Void> {
         return TransactionContextManager.currentContext().flatMap {
-            mono {
-                val storage = storages[it]
-                if (storage != null) {
-                    val parent = storage.parent
-                    parent?.join(storage)
-                }
+            if (status == STATUS_COMMITTED) {
+                mono {
+                    val storage = storages[it]
+                    if (storage != null) {
+                        val parent = storage.parent
+                        parent?.join(storage)
+                    }
+                }.then()
+            } else {
+                mono {
+                    storages.remove(it)
+                }.then()
             }
-        }.then()
+        }
     }
 }
