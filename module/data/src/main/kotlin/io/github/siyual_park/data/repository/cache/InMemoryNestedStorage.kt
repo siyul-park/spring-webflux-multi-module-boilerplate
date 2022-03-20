@@ -89,10 +89,7 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
     }
 
     override fun remove(id: ID) {
-        val local = localStorage.getIfPresent(id)
-        if (local != null) {
-            localStorage.delete(local)
-        }
+        localStorage.remove(id)
         validRemoved(id)
     }
 
