@@ -18,18 +18,13 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria
 import org.springframework.data.relational.core.query.CriteriaDefinition
-import org.springframework.transaction.NoTransactionException
-import org.springframework.transaction.reactive.TransactionContext
-import org.springframework.transaction.reactive.TransactionContextManager
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import java.time.Duration
-import java.util.Stack
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
@@ -46,8 +41,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         idExtractor
     ) {
 
-    private val nestedStorage = storage as NestedStorage<T, ID>
-    private val cacheTransactionSynchronization = CacheTransactionSynchronization<T, ID>()
+    private val cachedTransactionStorageManager = CachedTransactionStorageManager<T, ID>(storage as NestedStorage<T, ID>)
 
     override val entityManager: EntityManager<T, ID>
         get() = repository.entityManager
@@ -79,7 +73,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        val storage = getCurrentStorage()
+        val storage = cachedTransactionStorageManager.getCurrent()
 
         val fallback = suspend { repository.exists(criteria) }
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
@@ -92,7 +86,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        val storage = getCurrentStorage()
+        val storage = cachedTransactionStorageManager.getCurrent()
 
         val fallback = suspend {
             repository.findOne(criteria)
@@ -148,8 +142,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                                 }
                         }
 
-                        emitAll(result.asFlow())
-                        return@flow
+                        return@flow emitAll(result.asFlow())
                     }
                 }
             }
@@ -159,7 +152,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     private suspend fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
-        val storage = getCurrentStorage()
+        val storage = cachedTransactionStorageManager.getCurrent()
 
         if (criteria == null) return null
 
@@ -225,7 +218,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
-        val storage = getCurrentStorage()
+        val storage = cachedTransactionStorageManager.getCurrent()
 
         return repository.update(criteria, patch)
             ?.also { storage.put(it) }
@@ -237,7 +230,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
     override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
         return flow {
-            val storage = getCurrentStorage()
+            val storage = cachedTransactionStorageManager.getCurrent()
 
             emitAll(
                 repository.updateAll(criteria, patch)
@@ -251,7 +244,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?) {
-        val storage = getCurrentStorage()
+        val storage = cachedTransactionStorageManager.getCurrent()
 
         if (criteria == null) {
             storage.clear()
@@ -261,40 +254,6 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         }
 
         repository.deleteAll(criteria)
-    }
-
-    private suspend fun getCurrentStorage(): NestedStorage<T, ID> {
-        try {
-            val context = TransactionContextManager.currentContext().awaitSingleOrNull() ?: return nestedStorage
-            val synchronizations = context.synchronizations ?: return nestedStorage
-            synchronizations.add(cacheTransactionSynchronization)
-
-            val chains = chains(context)
-
-            var current: TransactionContext?
-            var storage = nestedStorage
-            while (chains.isNotEmpty()) {
-                current = chains.pop()
-                storage = cacheTransactionSynchronization.getOrPut(current) { storage.fork() }
-            }
-
-            return nestedStorage
-        } catch (e: NoTransactionException) {
-            return nestedStorage
-        } catch (e: Exception) {
-            throw e
-        }
-    }
-
-    private fun chains(context: TransactionContext): Stack<TransactionContext> {
-        val stack = Stack<TransactionContext>()
-        var current: TransactionContext? = context
-        while (current != null) {
-            stack.add(current)
-            current = current.parent
-        }
-
-        return stack
     }
 
     companion object {
