@@ -44,7 +44,6 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
     init {
         val clazz = entityManager.clazz
-
         val indexes = mutableMapOf<String, MutableList<KProperty1<T, *>>>()
 
         clazz.memberProperties.forEach {
