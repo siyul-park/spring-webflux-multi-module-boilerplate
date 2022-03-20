@@ -98,6 +98,15 @@ class InMemoryNestedStorageTest : R2DBCTest() {
 
         storage.put(person)
 
+        assertEquals(person, child2.getIfPresent(person.id!!))
+        assertEquals(person, child2.getIfPresent(person.name, "name"))
+
+        assertEquals(person, child1.getIfPresent(person.id!!))
+        assertEquals(person, child1.getIfPresent(person.name, "name"))
+
+        assertEquals(person, storage.getIfPresent(person.id!!))
+        assertEquals(person, storage.getIfPresent(person.name, "name"))
+
         child2.remove(person.id!!)
 
         assertEquals(null, child2.getIfPresent(person.id!!))
