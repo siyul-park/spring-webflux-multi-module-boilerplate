@@ -5,19 +5,19 @@ import io.github.siyual_park.auth.domain.authorization.AuthorizeProcessor
 import io.github.siyual_park.auth.domain.authorization.ScopeMapping
 import io.github.siyual_park.auth.domain.authorization.ScopeMatchAuthorizeFilter
 import io.github.siyual_park.auth.entity.ScopeToken
-import io.github.siyual_park.user.domain.auth.UserPrincipal
+import io.github.siyual_park.client.domain.auth.ClientPrincipal
 import org.springframework.stereotype.Component
 
 @Component
-@AuthorizeMapping(UserPrincipal::class, ScopeMatchAuthorizeFilter::class)
-@ScopeMapping("users[self]:read users[self]:update users[self]:delete")
-class UserIdMatchAuthorizeProcessor : AuthorizeProcessor<UserPrincipal> {
+@AuthorizeMapping(ClientPrincipal::class, ScopeMatchAuthorizeFilter::class)
+@ScopeMapping("clients[self]:read clients[self]:update clients[self]:delete")
+class ClientIdMatchAuthorizeProcessor : AuthorizeProcessor<ClientPrincipal> {
     override suspend fun authorize(
-        principal: UserPrincipal,
+        principal: ClientPrincipal,
         scopeToken: ScopeToken,
         targetDomainObject: Any?
     ): Boolean {
         val id = targetDomainObject as? Long ?: return true
-        return principal.userId == id
+        return principal.clientId == id
     }
 }

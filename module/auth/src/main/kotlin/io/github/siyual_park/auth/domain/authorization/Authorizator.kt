@@ -94,9 +94,10 @@ class Authorizator(
         scopeToken: ScopeToken,
         targetDomainObject: Any? = null
     ): Boolean {
-        return authorizators.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
+        val authorizators = authorizators.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
             .map { (_, evaluator) -> evaluator as? AuthorizeProcessor<PRINCIPAL> }
             .filterNotNull()
-            .all { it.authorize(principal, scopeToken, targetDomainObject) }
+
+        return authorizators.all { it.authorize(principal, scopeToken, targetDomainObject) }
     }
 }

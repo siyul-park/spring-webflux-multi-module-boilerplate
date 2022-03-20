@@ -6,3 +6,12 @@ import io.github.siyual_park.auth.entity.ScopeToken
 interface AuthorizeFilter {
     fun isSubscribe(principal: Principal, scopeToken: ScopeToken): Boolean
 }
+
+fun AuthorizeFilter.then(filter: AuthorizeFilter): AuthorizeFilter {
+    val self = this
+    return object : AuthorizeFilter {
+        override fun isSubscribe(principal: Principal, scopeToken: ScopeToken): Boolean {
+            return self.isSubscribe(principal, scopeToken) && filter.isSubscribe(principal, scopeToken)
+        }
+    }
+}

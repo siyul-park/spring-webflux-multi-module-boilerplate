@@ -4,8 +4,10 @@ import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.authorization.AuthorizeFilter
 import io.github.siyual_park.auth.domain.authorization.AuthorizeMapping
 import io.github.siyual_park.auth.domain.authorization.AuthorizeProcessor
+import io.github.siyual_park.auth.domain.authorization.PrincipalMathAuthorizeFilter
 import io.github.siyual_park.auth.domain.authorization.ScopeMapping
 import io.github.siyual_park.auth.domain.authorization.ScopeMatchAuthorizeFilter
+import io.github.siyual_park.auth.domain.authorization.then
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -25,10 +27,14 @@ class AuthorizationConfiguration(
 
     private fun getFilter(processor: AuthorizeProcessor<*>): AuthorizeFilter? {
         val authMapping = processor.javaClass.annotations.filterIsInstance<AuthorizeMapping>().firstOrNull() ?: return null
+        val principalMatchFilter = PrincipalMathAuthorizeFilter(authMapping.principal)
+
         if (authMapping.filterBy == ScopeMatchAuthorizeFilter::class) {
             val scopeMapping = processor.javaClass.annotations.filterIsInstance<ScopeMapping>().firstOrNull() ?: return null
-            return ScopeMatchAuthorizeFilter(
-                scopeTokens = scopeMapping.scope.split(" ").toSet()
+            return principalMatchFilter.then(
+                ScopeMatchAuthorizeFilter(
+                    scopeTokens = scopeMapping.scope.split(" ").toSet()
+                )
             )
         }
 
@@ -39,7 +45,7 @@ class AuthorizationConfiguration(
         }
 
         return if (filterBeen is AuthorizeFilter) {
-            filterBeen
+            principalMatchFilter.then(filterBeen)
         } else {
             null
         }

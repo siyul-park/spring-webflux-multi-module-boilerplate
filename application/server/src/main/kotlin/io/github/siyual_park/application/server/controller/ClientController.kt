@@ -138,7 +138,7 @@ class ClientController(
 
     @GetMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'clients:read')")
+    @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
     suspend fun read(@PathVariable("client-id") clientId: Long): ClientInfo {
         val client = clientFinder.findByIdOrFail(clientId)
         return mapperManager.map(client)
@@ -146,7 +146,7 @@ class ClientController(
 
     @PatchMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'clients:read')")
+    @PreAuthorize("hasPermission({null, #clientId}, {'clients:update', 'clients[self]:update'})")
     suspend fun update(
         @PathVariable("client-id") clientId: Long,
         @Valid @RequestBody patch: JsonMergePatch<MutableClientData>
@@ -160,7 +160,7 @@ class ClientController(
 
     @DeleteMapping("/{client-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'clients:delete')")
+    @PreAuthorize("hasPermission({null, #clientId}, {'clients:delete', 'clients[self]:delete'})")
     suspend fun delete(
         @PathVariable("client-id") clientId: Long,
     ) {
