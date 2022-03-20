@@ -64,8 +64,10 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     override fun findAll(): Flow<T> {
         return flow {
             val storage = storageManager.getCurrent()
-            delegator.findAll()
-                .onEach { storage.put(it) }
+            emitAll(
+                delegator.findAll()
+                    .onEach { storage.put(it) }
+            )
         }
     }
 
@@ -142,32 +144,40 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
         return flow {
             val storage = storageManager.getCurrent()
-            delegator.updateAllById(ids, patch)
-                .onEach { it?.let { storage.put(it) } }
+            emitAll(
+                delegator.updateAllById(ids, patch)
+                    .onEach { it?.let { storage.put(it) } }
+            )
         }
     }
 
     override fun updateAll(entity: Iterable<T>): Flow<T?> {
         return flow {
             val storage = storageManager.getCurrent()
-            delegator.updateAll(entity)
-                .onEach { it?.let { storage.put(it) } }
+            emitAll(
+                delegator.updateAll(entity)
+                    .onEach { it?.let { storage.put(it) } }
+            )
         }
     }
 
     override fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
         return flow {
             val storage = storageManager.getCurrent()
-            delegator.updateAll(entity, patch)
-                .onEach { it?.let { storage.put(it) } }
+            emitAll(
+                delegator.updateAll(entity, patch)
+                    .onEach { it?.let { storage.put(it) } }
+            )
         }
     }
 
     override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
         return flow {
             val storage = storageManager.getCurrent()
-            delegator.updateAll(entity, patch)
-                .onEach { it?.let { storage.put(it) } }
+            emitAll(
+                delegator.updateAll(entity, patch)
+                    .onEach { it?.let { storage.put(it) } }
+            )
         }
     }
 
