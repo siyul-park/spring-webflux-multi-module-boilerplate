@@ -24,7 +24,7 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
         }
     }
 
-    override fun join(storage: NestedStorage<T, ID>) {
+    override fun merge(storage: NestedStorage<T, ID>) {
         val (created, removed) = storage.diff()
         storage.clear()
 

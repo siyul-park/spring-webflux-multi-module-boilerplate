@@ -35,9 +35,9 @@ class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchroniz
                         val diff = storage.diff()
                         val parent = storage.parent
 
-                        logger.debug("Joining Cache Storage [parent: $parent, child: $storage, diff: $diff]")
+                        logger.debug("Merging Cache Storage [parent: $parent, child: $storage, diff: $diff]")
 
-                        parent?.join(storage)
+                        parent?.merge(storage)
                     }
                 }.then()
             } else {

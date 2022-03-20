@@ -65,7 +65,7 @@ class InMemoryNestedStorageTest : R2DBCTest() {
         assertEquals(null, storage.getIfPresent(person.id!!))
         assertEquals(null, storage.getIfPresent("name", person.name))
 
-        child1.join(child2)
+        child1.merge(child2)
 
         assertEquals(person, child2.getIfPresent(person.id!!))
         assertEquals(person, child2.getIfPresent("name", person.name))
@@ -76,7 +76,7 @@ class InMemoryNestedStorageTest : R2DBCTest() {
         assertEquals(null, storage.getIfPresent(person.id!!))
         assertEquals(null, storage.getIfPresent("name", person.name))
 
-        storage.join(child1)
+        storage.merge(child1)
 
         assertEquals(person, child2.getIfPresent(person.id!!))
         assertEquals(person, child2.getIfPresent("name", person.name))
@@ -118,7 +118,7 @@ class InMemoryNestedStorageTest : R2DBCTest() {
         assertEquals(person, storage.getIfPresent(person.id!!))
         assertEquals(person, storage.getIfPresent("name", person.name))
 
-        child1.join(child2)
+        child1.merge(child2)
 
         assertEquals(null, child2.getIfPresent(person.id!!))
         assertEquals(null, child2.getIfPresent("name", person.name))
@@ -129,7 +129,7 @@ class InMemoryNestedStorageTest : R2DBCTest() {
         assertEquals(person, storage.getIfPresent(person.id!!))
         assertEquals(person, storage.getIfPresent("name", person.name))
 
-        storage.join(child1)
+        storage.merge(child1)
 
         assertEquals(null, child2.getIfPresent(person.id!!))
         assertEquals(null, child2.getIfPresent("name", person.name))
