@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
@@ -445,5 +446,34 @@ class R2DBCRepositoryTest : R2DBCTest() {
         personRepository.deleteAll(persons)
 
         assertEquals(0, personRepository.count())
+    }
+
+    @ParameterizedTest
+    @MethodSource("personRepositories")
+    fun transactionCommit(personRepository: R2DBCRepository<Person, Long>) = blocking {
+        var person: Person? = null
+
+        transactional {
+            person = personFactory.create()
+                .let { personRepository.create(it) }
+        }
+
+        assertTrue(personRepository.existsById(person?.id!!))
+    }
+
+    @ParameterizedTest
+    @MethodSource("personRepositories")
+    fun transactionRollback(personRepository: R2DBCRepository<Person, Long>) = blocking {
+        var person: Person? = null
+
+        assertThrows<RuntimeException> {
+            transactional {
+                person = personFactory.create()
+                    .let { personRepository.create(it) }
+                throw RuntimeException()
+            }
+        }
+
+        assertFalse(personRepository.existsById(person?.id!!))
     }
 }
