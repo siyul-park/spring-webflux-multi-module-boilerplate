@@ -99,6 +99,8 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return flow {
+            val storage = cachedTransactionStorageManager.getCurrent()
+
             val fallback = {
                 repository.findAll(criteria, limit, offset, sort)
                     .onEach { storage.put(it) }
@@ -261,11 +263,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             repository: R2DBCRepository<T, ID>,
             cacheBuilder: () -> CacheBuilder<Any, Any> = { defaultCacheBuilder() }
         ): CachedR2DBCRepository<T, ID> {
-            val idExtractor = object : Extractor<T, ID> {
-                override fun getKey(entity: T): ID {
-                    return repository.entityManager.getId(entity)
-                }
-            }
+            val idExtractor = createIdExtractor(repository)
 
             return CachedR2DBCRepository(
                 repository,
@@ -284,11 +282,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             scheduler: Scheduler = Schedulers.boundedElastic()
         ): CachedR2DBCRepository<T, ID> {
             val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, scheduler)
-            val idExtractor = object : Extractor<T, ID> {
-                override fun getKey(entity: T): ID {
-                    return repository.entityManager.getId(entity)
-                }
-            }
+            val idExtractor = createIdExtractor(repository)
 
             return CachedR2DBCRepository(
                 repository,
@@ -305,5 +299,11 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             .expireAfterAccess(Duration.ofMinutes(2))
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
+
+        private fun <T : Any, ID : Any> createIdExtractor(repository: R2DBCRepository<T, ID>) = object : Extractor<T, ID> {
+            override fun getKey(entity: T): ID {
+                return repository.entityManager.getId(entity)
+            }
+        }
     }
 }
