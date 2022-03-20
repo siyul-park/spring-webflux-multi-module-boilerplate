@@ -76,14 +76,7 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         val id = indexMap[key]
 
         return if (id == null) {
-            val entity = loader()
-            if (entity == null) {
-                null
-            } else {
-                idExtractor.getKey(entity)?.let {
-                    getIfPresent(it) { entity }
-                }
-            }
+            parent.getIfPresent(key, index, loader)
         } else {
             getIfPresent(id, loader)
         }
@@ -94,34 +87,37 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         val id = indexMap[key]
 
         return if (id == null) {
-            val entity = loader()
-            if (entity == null) {
-                null
-            } else {
-                idExtractor.getKey(entity)?.let {
-                    this.getIfPresentAsync(it) { entity }
-                }
-            }
+            parent.getIfPresentAsync(key, index, loader)
         } else {
             getIfPresentAsync(id, loader)
         }
     }
 
-    override fun getIfPresent(id: ID): T? {
-        return data[id]
-    }
-
     override fun getIfPresent(id: ID, loader: () -> T?): T? {
-        return data[id]
+        return getIfPresent(id)
             ?: loader()?.also { put(it) }
     }
 
     override suspend fun getIfPresentAsync(id: ID, loader: suspend () -> T?): T? {
-        return data[id]
+        return getIfPresent(id)
             ?: loader()?.also { put(it) }
     }
 
+    override fun getIfPresent(id: ID): T? {
+        return data[id] ?: if (!forceRemoved.contains(id)) {
+            parent.getIfPresent(id)
+        } else {
+            null
+        }
+    }
+
     override fun remove(id: ID) {
+        data[id]?.let { entity ->
+            indexes.forEach { (name, index) ->
+                val extractor = extractors[name] ?: return@forEach
+                index.remove(extractor.getKey(entity))
+            }
+        }
         data.remove(id)
         forceRemoved.add(id)
     }
