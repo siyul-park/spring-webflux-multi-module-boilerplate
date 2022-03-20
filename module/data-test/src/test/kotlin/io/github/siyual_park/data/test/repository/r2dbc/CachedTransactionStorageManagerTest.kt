@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.transaction.reactive.TransactionContextManager
-import java.lang.Thread.sleep
 
 @Suppress("UNCHECKED_CAST")
 class CachedTransactionStorageManagerTest : R2DBCTest() {
