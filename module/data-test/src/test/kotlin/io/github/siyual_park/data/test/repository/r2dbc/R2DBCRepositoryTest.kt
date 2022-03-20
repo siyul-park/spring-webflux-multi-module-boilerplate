@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.test.repository
+package io.github.siyual_park.data.test.repository.r2dbc
 
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.patch.AsyncPatch

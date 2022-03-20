@@ -16,7 +16,7 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
     private val forceRemoved = Sets.newConcurrentHashSet<ID>()
 
     override fun diff(): Pair<Set<T>, Set<ID>> {
-        return data.values.toSet() to forceRemoved
+        return data.values.toSet() to forceRemoved.toSet()
     }
 
     override fun fork(): NestedStorage<T, ID> {
@@ -61,8 +61,20 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
     }
 
     override fun <KEY : Any> getIfPresent(key: KEY, index: String): T? {
-        val indexMap = indexes[index] ?: return null
-        val id = indexMap[key] ?: return null
+        val fallback = {
+            parent.getIfPresent(key, index)
+                ?.let {
+                    val id = idExtractor.getKey(it)
+                    if (!forceRemoved.contains(id)) {
+                        it
+                    } else {
+                        null
+                    }
+                }
+        }
+
+        val indexMap = indexes[index] ?: return fallback()
+        val id = indexMap[key] ?: return fallback()
 
         return getIfPresent(id)
     }

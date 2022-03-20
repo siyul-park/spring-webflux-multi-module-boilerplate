@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.test.repository
+package io.github.siyual_park.data.test.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.repository.cache.Extractor
