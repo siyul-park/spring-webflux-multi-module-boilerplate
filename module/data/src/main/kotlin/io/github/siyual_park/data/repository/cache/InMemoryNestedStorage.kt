@@ -57,65 +57,34 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
     }
 
     override fun <KEY : Any> getIfPresent(key: KEY, index: String): T? {
-        return localStorage.getIfPresent(key, index) {
-            val value = parent?.getIfPresent(key, index)
-            if (value != null && additionalRemoved.contains(idExtractor.getKey(value))) {
-                null
-            } else {
-                value
-            }
-        }
+        return localStorage.getIfPresent(key, index)
     }
 
     override fun <KEY : Any> getIfPresent(key: KEY, index: String, loader: () -> T?): T? {
         return localStorage.getIfPresent(key, index) {
-            val value = parent?.getIfPresent(key, index)
-            if (value != null && additionalRemoved.contains(idExtractor.getKey(value))) {
-                null
-            } else {
-                value ?: loader()
-            }
+            loader()?.also { invalidRemoved(it) }
         }
     }
 
     override suspend fun <KEY : Any> getIfPresentAsync(key: KEY, index: String, loader: suspend () -> T?): T? {
         return localStorage.getIfPresentAsync(key, index) {
-            val value = parent?.getIfPresent(key, index)
-            if (value != null && additionalRemoved.contains(idExtractor.getKey(value))) {
-                null
-            } else {
-                value ?: loader()
-            }
+            loader()?.also { invalidRemoved(it) }
         }
     }
 
     override fun getIfPresent(id: ID): T? {
-        return localStorage.getIfPresent(id) {
-            if (additionalRemoved.contains(id)) {
-                null
-            } else {
-                parent?.getIfPresent(id)
-            }
-        }
+        return localStorage.getIfPresent(id)
     }
 
     override fun getIfPresent(id: ID, loader: () -> T?): T? {
         return localStorage.getIfPresent(id) {
-            if (additionalRemoved.contains(id)) {
-                null
-            } else {
-                parent?.getIfPresent(id)
-            }
+            loader()?.also { invalidRemoved(it) }
         }
     }
 
     override suspend fun getIfPresentAsync(id: ID, loader: suspend () -> T?): T? {
         return localStorage.getIfPresentAsync(id) {
-            if (additionalRemoved.contains(id)) {
-                null
-            } else {
-                parent?.getIfPresentAsync(id, loader)
-            }
+            loader()?.also { invalidRemoved(it) }
         }
     }
 
@@ -124,9 +93,7 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
         if (local != null) {
             localStorage.delete(local)
         }
-        if (parent != null) {
-            additionalRemoved.add(id)
-        }
+        addRemoved(id)
     }
 
     override fun delete(entity: T) {
@@ -135,15 +102,25 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
     }
 
     override fun put(entity: T) {
-        val id = idExtractor.getKey(entity) ?: return
-        if (parent != null) {
-            additionalRemoved.remove(id)
-        }
+        invalidRemoved(entity)
         localStorage.put(entity)
     }
 
     override fun clear() {
         localStorage.clear()
         additionalRemoved.clear()
+    }
+
+    private fun invalidRemoved(entity: T) {
+        if (parent != null) {
+            val id = idExtractor.getKey(entity) ?: return
+            additionalRemoved.remove(id)
+        }
+    }
+
+    private fun addRemoved(id: ID) {
+        if (parent != null) {
+            additionalRemoved.add(id)
+        }
     }
 }
