@@ -10,10 +10,10 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
     override val parent: NestedStorage<T, ID>? = null
 ) : NestedStorage<T, ID> {
     private val localStorage = InMemoryStorage(cacheBuilder(), idExtractor)
-    private val additionalRemoved = Sets.newConcurrentHashSet<ID>()
+    private val forceRemoved = Sets.newConcurrentHashSet<ID>()
 
     override fun diff(): Pair<Set<T>, Set<ID>> {
-        return localStorage.entries().values.toSet() to additionalRemoved
+        return localStorage.entries().values.toSet() to forceRemoved
     }
 
     override fun fork(): NestedStorage<T, ID> {
@@ -105,19 +105,19 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
 
     override fun clear() {
         localStorage.clear()
-        additionalRemoved.clear()
+        forceRemoved.clear()
     }
 
     private fun invalidRemoved(entity: T) {
         if (parent != null) {
             val id = idExtractor.getKey(entity) ?: return
-            additionalRemoved.remove(id)
+            forceRemoved.remove(id)
         }
     }
 
     private fun validRemoved(id: ID) {
         if (parent != null) {
-            additionalRemoved.add(id)
+            forceRemoved.add(id)
         }
     }
 }
