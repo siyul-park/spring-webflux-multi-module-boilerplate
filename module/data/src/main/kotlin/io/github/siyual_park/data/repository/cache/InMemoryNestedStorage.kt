@@ -123,7 +123,8 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
         val local = localStorage.getIfPresent(id)
         if (local != null) {
             localStorage.delete(local)
-        } else {
+        }
+        if (parent != null) {
             additionalRemoved.add(id)
         }
     }
@@ -135,7 +136,9 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
 
     override fun put(entity: T) {
         val id = idExtractor.getKey(entity) ?: return
-        additionalRemoved.remove(id)
+        if (parent != null) {
+            additionalRemoved.remove(id)
+        }
         localStorage.put(entity)
     }
 
