@@ -84,19 +84,15 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         val id = indexMap[key]
 
         return if (id == null) {
-            val fallback = {
-                parent.getIfPresent(key, index)
-                    ?.let {
-                        val id = idExtractor.getKey(it)
-                        if (!forceRemoved.contains(id)) {
-                            it
-                        } else {
-                            null
-                        }
+            parent.getIfPresent(key, index)
+                ?.let {
+                    val id = idExtractor.getKey(it)
+                    if (!forceRemoved.contains(id)) {
+                        it
+                    } else {
+                        null
                     }
-            }
-
-            fallback() ?: parent.getIfPresent(key, index, loader)
+                } ?: parent.getIfPresent(key, index, loader)
         } else {
             getIfPresent(id, loader)
         }
@@ -107,19 +103,15 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         val id = indexMap[key]
 
         return if (id == null) {
-            val fallback = {
-                parent.getIfPresent(key, index)
-                    ?.let {
-                        val id = idExtractor.getKey(it)
-                        if (!forceRemoved.contains(id)) {
-                            it
-                        } else {
-                            null
-                        }
+            parent.getIfPresent(key, index)
+                ?.let {
+                    val id = idExtractor.getKey(it)
+                    if (!forceRemoved.contains(id)) {
+                        it
+                    } else {
+                        null
                     }
-            }
-
-            fallback() ?: parent.getIfPresentAsync(key, index, loader)
+                } ?: parent.getIfPresentAsync(key, index, loader)
         } else {
             getIfPresentAsync(id, loader)
         }
