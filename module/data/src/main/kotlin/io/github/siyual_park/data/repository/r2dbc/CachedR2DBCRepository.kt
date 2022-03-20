@@ -41,7 +41,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         idExtractor
     ) {
 
-    private val cachedTransactionStorageManager = CachedTransactionStorageManager<T, ID>(storage as NestedStorage<T, ID>)
+    private val cachedTransactionStorageManager = CachedTransactionStorageManager(storage as NestedStorage<T, ID>)
 
     override val entityManager: EntityManager<T, ID>
         get() = repository.entityManager
