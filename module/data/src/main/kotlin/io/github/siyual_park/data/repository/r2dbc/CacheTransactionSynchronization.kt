@@ -11,8 +11,12 @@ import java.util.WeakHashMap
 class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchronization {
     private val storages = WeakHashMap<TransactionContext, NestedStorage<T, ID>>()
 
-    fun getOrPut(context: TransactionContext, defaultValue: () -> NestedStorage<T, ID>) {
-        storages.getOrPut(context, defaultValue)
+    fun get(context: TransactionContext): NestedStorage<T, ID>? {
+        return storages[context]
+    }
+
+    fun getOrPut(context: TransactionContext, defaultValue: () -> NestedStorage<T, ID>): NestedStorage<T, ID> {
+        return storages.getOrPut(context, defaultValue)
     }
 
     override fun afterCommit(): Mono<Void> {

@@ -24,10 +24,12 @@ import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria
 import org.springframework.data.relational.core.query.CriteriaDefinition
 import org.springframework.transaction.NoTransactionException
+import org.springframework.transaction.reactive.TransactionContext
 import org.springframework.transaction.reactive.TransactionContextManager
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import java.time.Duration
+import java.util.Stack
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
@@ -267,7 +269,14 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             val synchronizations = context.synchronizations ?: return nestedStorage
             synchronizations.add(cacheTransactionSynchronization)
 
-            cacheTransactionSynchronization.getOrPut(context) { nestedStorage.fork() }
+            val chains = chains(context)
+
+            var current: TransactionContext?
+            var storage = nestedStorage
+            while (chains.isNotEmpty()) {
+                current = chains.pop()
+                storage = cacheTransactionSynchronization.getOrPut(current) { storage.fork() }
+            }
 
             return nestedStorage
         } catch (e: NoTransactionException) {
@@ -275,6 +284,17 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         } catch (e: Exception) {
             throw e
         }
+    }
+
+    private fun chains(context: TransactionContext): Stack<TransactionContext> {
+        val stack = Stack<TransactionContext>()
+        var current: TransactionContext? = context
+        while (current != null) {
+            stack.add(current)
+            current = current.parent
+        }
+
+        return stack
     }
 
     companion object {
