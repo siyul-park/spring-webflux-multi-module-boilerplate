@@ -29,18 +29,18 @@ import kotlin.reflect.full.memberProperties
 
 @Suppress("UNCHECKED_CAST")
 class CachedR2DBCRepository<T : Any, ID : Any>(
-    private val repository: R2DBCRepository<T, ID>,
+    private val delegator: R2DBCRepository<T, ID>,
     private val storageManager: R2DBCStorageManager<T, ID>,
     private val idExtractor: Extractor<T, ID>
 ) : R2DBCRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(
-        repository,
+        delegator,
         storageManager,
         idExtractor
     ) {
 
     override val entityManager: EntityManager<T, ID>
-        get() = repository.entityManager
+        get() = delegator.entityManager
 
     init {
         val clazz = entityManager.clazz
@@ -71,7 +71,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
         val storage = storageManager.getCurrent()
 
-        val fallback = suspend { repository.exists(criteria) }
+        val fallback = suspend { delegator.exists(criteria) }
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
 
         return if (storage.getIfPresent(value, indexName) != null) {
@@ -85,12 +85,12 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         val storage = storageManager.getCurrent()
 
         val fallback = suspend {
-            repository.findOne(criteria)
+            delegator.findOne(criteria)
                 ?.also { storage.put(it) }
         }
 
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
-        return storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+        return storage.getIfPresentAsync(value, indexName) { delegator.findOne(criteria) }
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -98,7 +98,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             val storage = storageManager.getCurrent()
 
             val fallback = {
-                repository.findAll(criteria, limit, offset, sort)
+                delegator.findAll(criteria, limit, offset, sort)
                     .onEach { storage.put(it) }
             }
 
@@ -106,7 +106,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                 val indexNameAndValue = getIndexNameAndValue(criteria)
                 if (indexNameAndValue != null) {
                     val (indexName, value) = indexNameAndValue
-                    storage.getIfPresentAsync(value, indexName) { repository.findOne(criteria) }
+                    storage.getIfPresentAsync(value, indexName) { delegator.findOne(criteria) }
                         ?.let { emit(it) }
                     return@flow
                 }
@@ -133,7 +133,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                         }
 
                         if (notCachedKey.isNotEmpty()) {
-                            repository.findAll(Criteria.where(indexName).`in`(notCachedKey))
+                            delegator.findAll(Criteria.where(indexName).`in`(notCachedKey))
                                 .collect { entity ->
                                     storage.put(entity)
                                     result.add(entity)
@@ -218,7 +218,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
         val storage = storageManager.getCurrent()
 
-        return repository.update(criteria, patch)
+        return delegator.update(criteria, patch)
             ?.also { storage.put(it) }
     }
 
@@ -231,14 +231,14 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             val storage = storageManager.getCurrent()
 
             emitAll(
-                repository.updateAll(criteria, patch)
+                delegator.updateAll(criteria, patch)
                     .onEach { storage.put(it) }
             )
         }
     }
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
-        return repository.count(criteria)
+        return delegator.count(criteria)
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?) {
@@ -251,7 +251,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                 .collect { storage.delete(it) }
         }
 
-        repository.deleteAll(criteria)
+        delegator.deleteAll(criteria)
     }
 
     companion object {
