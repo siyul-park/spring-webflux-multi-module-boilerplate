@@ -12,7 +12,6 @@ import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.NestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import io.github.siyual_park.data.repository.cache.Storage
-import io.github.siyual_park.data.repository.cache.root
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -46,6 +45,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     ) {
 
     private val nestedStorage = storage as NestedStorage<T, ID>
+    private val cacheTransactionSynchronization = CacheTransactionSynchronization<T, ID>()
 
     override val entityManager: EntityManager<T, ID>
         get() = repository.entityManager
@@ -265,13 +265,9 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         try {
             val context = TransactionContextManager.currentContext().awaitSingleOrNull() ?: return nestedStorage
             val synchronizations = context.synchronizations ?: return nestedStorage
-            val cacheTransactionSynchronizations = synchronizations.filterIsInstance(CacheTransactionSynchronization::class.java)
+            synchronizations.add(cacheTransactionSynchronization)
 
-            if (cacheTransactionSynchronizations.find { it.storage.root() == nestedStorage } == null) {
-                val child = nestedStorage.fork()
-                synchronizations.add(CacheTransactionSynchronization(child))
-                return child
-            }
+            cacheTransactionSynchronization.getOrPut(context) { nestedStorage.fork() }
 
             return nestedStorage
         } catch (e: NoTransactionException) {
