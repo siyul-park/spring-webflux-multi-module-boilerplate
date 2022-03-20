@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import java.util.Random
 
 @IntegrationTest
 class AuthControllerTest @Autowired constructor(
@@ -25,8 +24,9 @@ class AuthControllerTest @Autowired constructor(
     private val userFactory: UserFactory,
     private val clientFactory: ClientFactory,
 ) : CoroutineTest() {
+
     @Test
-    fun testCreateGrantTypePasswordSuccess() = blocking {
+    fun `POST token, status = 201, when grant_type = password`() = blocking {
         val client = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
         val createUserPayload = DummyCreateUserPayload.create()
@@ -52,7 +52,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testCreateGrantTypePasswordFailByIncorrectPassword() = blocking {
+    fun `POST token, status = 401, when grant_type = password`() = blocking {
         val client = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
         val createUserPayload = DummyCreateUserPayload.create()
@@ -73,7 +73,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testCreateGrantTypePasswordFailByInvalidRequest() = blocking {
+    fun `POST token, status = 400, when grant_type = password`() = blocking {
         val client = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
         val createUserPayload = DummyCreateUserPayload.create()
@@ -106,24 +106,15 @@ class AuthControllerTest @Autowired constructor(
                 clientId = client.id!!
             )
         )
-        val case5 = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.PASSWORD,
-                username = createUserPayload.name,
-                password = createUserPayload.password,
-                clientId = Random().nextLong()
-            )
-        )
 
         assertEquals(HttpStatus.BAD_REQUEST, case1.status)
         assertEquals(HttpStatus.BAD_REQUEST, case2.status)
         assertEquals(HttpStatus.BAD_REQUEST, case3.status)
         assertEquals(HttpStatus.BAD_REQUEST, case4.status)
-        assertEquals(HttpStatus.UNAUTHORIZED, case5.status)
     }
 
     @Test
-    fun testCreateGrantTypeClientCredentialsSuccess() = blocking {
+    fun `POST token, status = 201, when grant_type = client_credentials`() = blocking {
         val client = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
 
@@ -145,7 +136,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testCreateGrantTypeRefreshTokenSuccessByUser() = blocking {
+    fun `POST token, status = 201, when grant_type = refresh_token`() = blocking {
         val client = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
         val createUserPayload = DummyCreateUserPayload.create()
@@ -179,7 +170,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testCreateGrantTypeRefreshTokenFailInvalidToken() = blocking {
+    fun `POST token, status = 401, when grant_type = refresh_token`() = blocking {
         val client = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
 
@@ -195,7 +186,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testCreateGrantTypeRefreshTokenFailInvalidRequest() = blocking {
+    fun `POST token, status = 400, when grant_type = refresh_token`() = blocking {
         val client = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
         val createUserPayload = DummyCreateUserPayload.create()
