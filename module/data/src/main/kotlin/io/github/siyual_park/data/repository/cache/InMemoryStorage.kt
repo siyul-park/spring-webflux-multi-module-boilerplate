@@ -22,10 +22,6 @@ class InMemoryStorage<T : Any, ID : Any>(
             }
         }.build()
 
-    fun entries(): Map<ID, T> {
-        return cache.asMap()
-    }
-
     override fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
         indexes[name] = ConcurrentHashMap<KEY, ID>()
         extractors[name] = extractor

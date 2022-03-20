@@ -42,10 +42,6 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         }
     }
 
-    fun entries(): Map<ID, T> {
-        return data
-    }
-
     override fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
         indexes[name] = ConcurrentHashMap<KEY, ID>()
         extractors[name] = extractor
