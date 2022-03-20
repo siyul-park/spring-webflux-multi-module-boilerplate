@@ -1,4 +1,4 @@
-package io.github.siyual_park.persistency
+package io.github.siyual_park.persistence
 
 import io.github.siyual_park.data.patch.Patch
 import java.util.concurrent.Semaphore

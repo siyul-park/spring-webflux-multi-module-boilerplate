@@ -1,6 +1,6 @@
-package io.github.siyual_park.persistency.dummy
+package io.github.siyual_park.persistence.dummy
 
-import io.github.siyual_park.persistency.entity.Person
+import io.github.siyual_park.persistence.entity.Person
 import io.github.siyual_park.util.Presence
 import java.util.UUID
 import kotlin.random.Random

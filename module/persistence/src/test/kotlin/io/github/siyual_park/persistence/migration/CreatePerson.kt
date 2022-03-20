@@ -1,4 +1,4 @@
-package io.github.siyual_park.persistency.migration
+package io.github.siyual_park.persistence.migration
 
 import io.github.siyual_park.data.migration.Migration
 import io.github.siyual_park.data.migration.createUniqueIndex

@@ -1,8 +1,8 @@
-package io.github.siyual_park.persistency.domain
+package io.github.siyual_park.persistence.domain
 
 import io.github.siyual_park.data.repository.Repository
-import io.github.siyual_park.persistency.Aggregate
-import io.github.siyual_park.persistency.entity.Person
+import io.github.siyual_park.persistence.Aggregate
+import io.github.siyual_park.persistence.entity.Person
 
 class PersonAggregate(
     root: Person,

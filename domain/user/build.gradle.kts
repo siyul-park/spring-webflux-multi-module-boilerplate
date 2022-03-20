@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":module:event"))
     implementation(project(":module:reader"))
     implementation(project(":module:updater"))
+    implementation(project(":module:persistence"))
 
     implementation(project(":domain:client"))
 }

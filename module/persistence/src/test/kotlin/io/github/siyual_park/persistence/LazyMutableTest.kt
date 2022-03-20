@@ -1,7 +1,7 @@
-package io.github.siyual_park.persistency
+package io.github.siyual_park.persistence
 
-import io.github.siyual_park.persistency.dummy.DummyPerson
-import io.github.siyual_park.persistency.entity.Person
+import io.github.siyual_park.persistence.dummy.DummyPerson
+import io.github.siyual_park.persistence.entity.Person
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test

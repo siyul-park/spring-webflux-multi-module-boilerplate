@@ -1,4 +1,4 @@
-package io.github.siyual_park.persistency
+package io.github.siyual_park.persistence
 
 import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono
 
 open class Aggregate<T : Any, ID : Any>(
     value: T,
-    protected val repository: Repository<T, ID>
+    private val repository: Repository<T, ID>
 ) {
     protected val root = LazyMutable.from(value)
 

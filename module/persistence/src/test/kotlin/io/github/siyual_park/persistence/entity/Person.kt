@@ -1,4 +1,4 @@
-package io.github.siyual_park.persistency.entity
+package io.github.siyual_park.persistence.entity
 
 import io.github.siyual_park.data.TimeableEntity
 import io.github.siyual_park.data.annotation.Key

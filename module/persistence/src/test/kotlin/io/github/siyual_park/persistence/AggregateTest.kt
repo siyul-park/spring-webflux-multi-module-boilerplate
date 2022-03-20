@@ -1,14 +1,14 @@
-package io.github.siyual_park.persistency
+package io.github.siyual_park.persistence
 
 import io.github.siyual_park.data.repository.findByIdOrFail
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.test.R2DBCTest
-import io.github.siyual_park.persistency.domain.PersonAggregate
-import io.github.siyual_park.persistency.dummy.DummyPerson
-import io.github.siyual_park.persistency.entity.Person
-import io.github.siyual_park.persistency.migration.CreatePerson
+import io.github.siyual_park.persistence.domain.PersonAggregate
+import io.github.siyual_park.persistence.dummy.DummyPerson
+import io.github.siyual_park.persistence.entity.Person
+import io.github.siyual_park.persistence.migration.CreatePerson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
