@@ -33,10 +33,10 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
         storage.clear()
 
         removed.forEach {
-            localStorage.remove(it)
+            remove(it)
         }
         created.forEach {
-            localStorage.put(it)
+            put(it)
         }
     }
 
