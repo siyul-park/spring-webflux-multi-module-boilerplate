@@ -8,9 +8,9 @@ import org.springframework.transaction.reactive.TransactionContextManager
 import java.util.Stack
 
 class CachedTransactionStorageManager<T : Any, ID : Any>(
-    private val storage: NestedStorage<T, ID>
+    private val storage: NestedStorage<T, ID>,
+    private val cacheTransactionSynchronization: CacheTransactionSynchronization<T, ID> = CacheTransactionSynchronization()
 ) {
-    private val cacheTransactionSynchronization = CacheTransactionSynchronization<T, ID>()
 
     suspend fun getCurrent(): NestedStorage<T, ID> {
         try {

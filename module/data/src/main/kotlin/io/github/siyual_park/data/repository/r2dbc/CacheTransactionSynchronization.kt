@@ -11,6 +11,10 @@ import java.util.WeakHashMap
 class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchronization {
     private val storages = WeakHashMap<TransactionContext, NestedStorage<T, ID>>()
 
+    fun size(): Int {
+        return storages.size
+    }
+
     fun get(context: TransactionContext): NestedStorage<T, ID>? {
         return storages[context]
     }
