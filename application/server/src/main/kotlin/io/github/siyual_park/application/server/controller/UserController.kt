@@ -133,7 +133,7 @@ class UserController(
 
     @GetMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'users:read')")
+    @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
     suspend fun read(@PathVariable("user-id") userId: Long): UserInfo {
         val user = userFinder.findByIdOrFail(userId)
         return mapperManager.map(user)
@@ -141,7 +141,7 @@ class UserController(
 
     @PatchMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'users:read')")
+    @PreAuthorize("hasPermission({null, #userId}, {'users:update', 'users[self]:update'})")
     suspend fun update(
         @PathVariable("user-id") userId: Long,
         @Valid @RequestBody patch: JsonMergePatch<MutableUserData>
@@ -155,7 +155,7 @@ class UserController(
 
     @DeleteMapping("/{user-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'users:delete')")
+    @PreAuthorize("hasPermission({null, #userId}, {'users:delete', 'users[self]:delete'})")
     suspend fun delete(@PathVariable("user-id") userId: Long) {
         val user = userFinder.findByIdOrFail(userId)
         userRemover.remove(user, soft = true)

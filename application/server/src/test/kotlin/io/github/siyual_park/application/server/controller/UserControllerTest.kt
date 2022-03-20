@@ -7,19 +7,13 @@ import io.github.siyual_park.application.server.dummy.DummyCreateUserRequest
 import io.github.siyual_park.application.server.dummy.RandomNameFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.UserControllerGateway
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
-import io.github.siyual_park.auth.entity.ScopeToken
-import io.github.siyual_park.auth.entity.ids
-import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.auth.ClientPrincipalExchanger
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserScopeFinder
-import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
@@ -39,12 +33,10 @@ class UserControllerTest @Autowired constructor(
     private val userPrincipalExchanger: UserPrincipalExchanger,
     private val clientPrincipalExchanger: ClientPrincipalExchanger,
     private val userScopeFinder: UserScopeFinder,
-    private val scopeTokenFinder: ScopeTokenFinder,
-    private val scopeTokenRepository: ScopeTokenRepository
 ) : CoroutineTest() {
 
     @Test
-    fun testCreateSuccess() = blocking {
+    fun `POST users, status = 201`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
             .let { clientPrincipalExchanger.exchange(it) }
@@ -65,7 +57,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testCreateFail() = blocking {
+    fun `POST users, status = 409`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
             .let { clientPrincipalExchanger.exchange(it) }
@@ -80,7 +72,25 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testReadAllSuccess() = blocking {
+    fun `POST users, status = 403`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+            .let { clientPrincipalExchanger.exchange(it) }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users:create")
+        )
+
+        val request = DummyCreateUserRequest.create()
+        userControllerGateway.create(request)
+
+        val response = userControllerGateway.create(request)
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `GET users, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
@@ -107,20 +117,14 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testReadAllFail() = blocking {
+    fun `GET users, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val removeScope = scopeTokenRepository.findByNameOrFail("users:read")
-
         gatewayAuthorization.setPrincipal(
-            UserPrincipal(
-                id = principal.id,
-                scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())
-                    .filter { it.id != removeScope.id }
-                    .toSet()
-            )
+            principal,
+            pop = listOf("users:read")
         )
 
         val response = userControllerGateway.readAll(
@@ -133,7 +137,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testReadSelfSuccess() = blocking {
+    fun `GET users_self, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
@@ -153,29 +157,57 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testReadSelfFail() = blocking {
+    fun `GET users_self, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val removeScope = scopeTokenRepository.findByNameOrFail("users[self]:read")
-
         gatewayAuthorization.setPrincipal(
-            UserPrincipal(
-                id = principal.id,
-                scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())
-                    .filter { it.id != removeScope.id }
-                    .toSet()
-            )
+            principal,
+            pop = listOf("users[self]:read")
         )
 
         val response = userControllerGateway.readSelf()
-
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
     @Test
-    fun testUpdateSelfSuccess() = blocking {
+    fun `GET users_{self_id}, status = 200`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val response = userControllerGateway.read(user.id!!)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseUser = response.responseBody.awaitSingle()
+
+        assertEquals(user.id, responseUser.id)
+        assertEquals(user.name, responseUser.name)
+        assertNotNull(responseUser.createdAt)
+        assertNotNull(responseUser.updatedAt)
+    }
+
+    @Test
+    fun `GET users_{self_id}, status = 403`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users[self]:read", "users:read")
+        )
+
+        val response = userControllerGateway.read(user.id!!)
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `PATCH users_self, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
@@ -198,7 +230,68 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testDeleteSelfSuccess() = blocking {
+    fun `PATCH users_self, status = 403`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users[self]:update")
+        )
+
+        val request = MutableUserData(
+            name = RandomNameFactory.create(10)
+        )
+        val response = userControllerGateway.updateSelf(request)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `PATCH users_{self_id}, status = 200`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val request = MutableUserData(
+            name = RandomNameFactory.create(10)
+        )
+        val response = userControllerGateway.update(user.id!!, request)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseUser = response.responseBody.awaitSingle()
+
+        assertEquals(user.id, responseUser.id)
+        assertEquals(request.name, responseUser.name)
+        assertNotNull(responseUser.createdAt)
+        assertNotNull(responseUser.updatedAt)
+    }
+
+    @Test
+    fun `PATCH users_{self_id}, status = 403`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users[self]:update", "users:update")
+        )
+
+        val request = MutableUserData(
+            name = RandomNameFactory.create(10)
+        )
+        val response = userControllerGateway.update(user.id!!, request)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `DELEATE users_self, status = 204`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
@@ -214,20 +307,14 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testDeleterSelfFail() = blocking {
+    fun `DELEATE users_self, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val removeScope = scopeTokenRepository.findByNameOrFail("users[self]:delete")
-
         gatewayAuthorization.setPrincipal(
-            UserPrincipal(
-                id = principal.id,
-                scope = scopeTokenFinder.findAllWithResolved(principal.scope.ids())
-                    .filter { it.id != removeScope.id }
-                    .toSet()
-            )
+            principal,
+            pop = listOf("users[self]:delete", "users:delete")
         )
 
         val response = userControllerGateway.deleteSelf()
@@ -236,25 +323,90 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testUpdateSuccess() = blocking {
+    fun `DELEATE users_{self_id}, status = 204`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = userPrincipalExchanger.exchange(user)
 
-        val otherPayload = DummyCreateUserPayload.create()
-        val otherUser = userFactory.create(otherPayload)
+        gatewayAuthorization.setPrincipal(principal)
 
-        val additionalScope = scopeTokenRepository.findByNameOrFail("users:update")
+        val response = userControllerGateway.delete(user.id!!)
 
-        val scope = mutableSetOf<ScopeToken>()
-        scope.add(additionalScope)
-        scope.addAll(principal.scope)
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+
+        val scope = userScopeFinder.findAllWithResolvedByUser(user).toSet()
+        assertEquals(0, scope.size)
+    }
+
+    @Test
+    fun `DELEATE users_{self_id}, status = 403`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = userPrincipalExchanger.exchange(user)
 
         gatewayAuthorization.setPrincipal(
-            UserPrincipal(
-                id = principal.id,
-                scope = scope
-            )
+            principal,
+            pop = listOf("users[self]:delete", "users:delete")
+        )
+
+        val response = userControllerGateway.delete(user.id!!)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `GET users_{user_id}, status = 200`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+            .let { userPrincipalExchanger.exchange(it) }
+
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val response = userControllerGateway.read(otherUser.id!!)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseUser = response.responseBody.awaitSingle()
+
+        assertEquals(otherUser.id, responseUser.id)
+        assertEquals(otherUser.name, responseUser.name)
+        assertNotNull(responseUser.createdAt)
+        assertNotNull(responseUser.updatedAt)
+    }
+
+    @Test
+    fun `GET users_{user_id}, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+            .let { userPrincipalExchanger.exchange(it) }
+
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users:read")
+        )
+
+        val response = userControllerGateway.read(otherUser.id!!)
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `PATCH users_{user_id}, status = 200`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+            .let { userPrincipalExchanger.exchange(it) }
+
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users:update")
         )
 
         val request = MutableUserData(
@@ -273,25 +425,36 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testDeleteSuccess() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = userPrincipalExchanger.exchange(user)
+    fun `PATCH users_{user_id}, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+            .let { userPrincipalExchanger.exchange(it) }
 
-        val otherPayload = DummyCreateUserPayload.create()
-        val otherUser = userFactory.create(otherPayload)
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
 
-        val additionalScope = scopeTokenRepository.findByNameOrFail("users:delete")
+        gatewayAuthorization.setPrincipal(principal)
 
-        val scope = mutableSetOf<ScopeToken>()
-        scope.add(additionalScope)
-        scope.addAll(principal.scope)
+        val request = MutableUserData(
+            name = RandomNameFactory.create(10)
+        )
+        val response = userControllerGateway.update(otherUser.id!!, request)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `DELEATE users_{user_id}, status = 204`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+            .let { userPrincipalExchanger.exchange(it) }
+
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
-            UserPrincipal(
-                id = principal.id,
-                scope = scope
-            )
+            principal,
+            push = listOf("users:delete")
         )
 
         val response = userControllerGateway.delete(otherUser.id!!)
@@ -300,13 +463,13 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun testDeleterFail() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = userPrincipalExchanger.exchange(user)
+    fun `DELEATE users_{user_id}, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+            .let { userPrincipalExchanger.exchange(it) }
 
-        val otherPayload = DummyCreateUserPayload.create()
-        val otherUser = userFactory.create(otherPayload)
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(principal)
 

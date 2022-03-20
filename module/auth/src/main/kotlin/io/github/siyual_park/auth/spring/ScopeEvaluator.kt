@@ -3,6 +3,7 @@ package io.github.siyual_park.auth.spring
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
+import io.github.siyual_park.auth.entity.ScopeToken
 import kotlinx.coroutines.runBlocking
 import org.springframework.security.access.PermissionEvaluator
 import org.springframework.security.core.Authentication
@@ -22,7 +23,13 @@ class ScopeEvaluator(
             }
 
             try {
-                val scope = getScope(permission) ?: return@runBlocking false
+                val scope: List<*> = getScope(permission)?.let {
+                    when (it) {
+                        is Collection<*> -> it
+                        is ScopeToken -> listOf(it)
+                        else -> null
+                    }
+                }?.toList() ?: return@runBlocking false
                 val adjustTargetDomainObject = (
                     if (targetDomainObject == null) {
                         null
@@ -51,13 +58,13 @@ class ScopeEvaluator(
         return false
     }
 
-    private suspend fun getScope(permission: Any): List<*>? {
+    private suspend fun getScope(permission: Any?): Any? {
         return when (permission) {
             is String -> {
-                listOf(scopeTokenFinder.findByNameOrFail(permission))
+                scopeTokenFinder.findByNameOrFail(permission)
             }
             is Collection<*> -> {
-                permission.filterNotNull().mapNotNull { getScope(it) }.toList()
+                permission.map { getScope(it) }.toList()
             }
             else -> {
                 null

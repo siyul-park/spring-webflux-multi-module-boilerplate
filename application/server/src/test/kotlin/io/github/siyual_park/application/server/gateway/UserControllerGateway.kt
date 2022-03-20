@@ -75,6 +75,14 @@ class UserControllerGateway(
             .returnResult()
     }
 
+    suspend fun read(userId: Long): FluxExchangeResult<UserInfo> {
+        return client.get()
+            .uri("/users/$userId")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(UserInfo::class.java)
+    }
+
     suspend fun update(userId: Long, request: MutableUserData): FluxExchangeResult<UserInfo> {
         return client.patch()
             .uri("/users/$userId")
