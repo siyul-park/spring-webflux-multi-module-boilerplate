@@ -1,29 +1,49 @@
 package io.github.siyual_park.data.repository.cache
 
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
+import com.google.common.collect.Maps
+import com.google.common.collect.Sets
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
-class InMemoryStorage<T : Any, ID : Any>(
-    cacheBuilder: CacheBuilder<ID, T>,
-    private val idExtractor: Extractor<T, ID>
-) : Storage<T, ID> {
+class InMemoryNestedStorageNode<T : Any, ID : Any>(
+    private val idExtractor: Extractor<T, ID>,
+    override val parent: NestedStorage<T, ID>
+) : NestedStorage<T, ID> {
     private val indexes = mutableMapOf<String, MutableMap<*, ID>>()
     private val extractors = mutableMapOf<String, Extractor<T, *>>()
 
-    private val cache: Cache<ID, T> = cacheBuilder
-        .removalListener<ID, T> {
-            it.value?.let { entity ->
-                indexes.forEach { (name, index) ->
-                    val extractor = extractors[name] ?: return@forEach
-                    index.remove(extractor.getKey(entity))
-                }
+    private val data = Maps.newConcurrentMap<ID, T>()
+    private val forceRemoved = Sets.newConcurrentHashSet<ID>()
+
+    override fun diff(): Pair<Set<T>, Set<ID>> {
+        return data.values.toSet() to forceRemoved
+    }
+
+    override fun fork(): NestedStorage<T, ID> {
+        return InMemoryNestedStorageNode(
+            idExtractor,
+            this
+        ).also {
+            getExtractors().forEach { (name, extractor) ->
+                it.createIndex(name, extractor as Extractor<T, Any>)
             }
-        }.build()
+        }
+    }
+
+    override fun join(storage: NestedStorage<T, ID>) {
+        val (created, removed) = storage.diff()
+        storage.clear()
+
+        removed.forEach {
+            remove(it)
+        }
+        created.forEach {
+            put(it)
+        }
+    }
 
     fun entries(): Map<ID, T> {
-        return cache.asMap()
+        return data
     }
 
     override fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
@@ -88,21 +108,22 @@ class InMemoryStorage<T : Any, ID : Any>(
     }
 
     override fun getIfPresent(id: ID): T? {
-        return cache.getIfPresent(id)
+        return data[id]
     }
 
     override fun getIfPresent(id: ID, loader: () -> T?): T? {
-        return cache.getIfPresent(id)
+        return data[id]
             ?: loader()?.also { put(it) }
     }
 
     override suspend fun getIfPresentAsync(id: ID, loader: suspend () -> T?): T? {
-        return cache.getIfPresent(id)
+        return data[id]
             ?: loader()?.also { put(it) }
     }
 
     override fun remove(id: ID) {
-        cache.invalidate(id)
+        data.remove(id)
+        forceRemoved.add(id)
     }
 
     override fun delete(entity: T) {
@@ -111,7 +132,8 @@ class InMemoryStorage<T : Any, ID : Any>(
 
     override fun put(entity: T) {
         val id = idExtractor.getKey(entity) ?: return
-        cache.put(id, entity)
+        data[id] = entity
+        forceRemoved.remove(id)
 
         indexes.forEach { (name, index) ->
             val extractor = extractors[name] ?: return@forEach
@@ -125,7 +147,8 @@ class InMemoryStorage<T : Any, ID : Any>(
     }
 
     override fun clear() {
-        cache.invalidateAll()
+        data.clear()
+        forceRemoved.clear()
         indexes.forEach { (_, index) -> index.run { clear() } }
     }
 

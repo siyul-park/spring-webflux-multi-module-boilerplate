@@ -19,13 +19,11 @@ class ScopeRelationRepository(
 ) : R2DBCRepository<ScopeRelation, Long> by CachedR2DBCRepository.of(
     entityOperations,
     ScopeRelation::class,
-    {
-        CacheBuilder.newBuilder()
-            .softValues()
-            .expireAfterAccess(Duration.ofMinutes(10))
-            .expireAfterWrite(Duration.ofMinutes(30))
-            .maximumSize(1_000)
-    }
+    CacheBuilder.newBuilder()
+        .softValues()
+        .expireAfterAccess(Duration.ofMinutes(10))
+        .expireAfterWrite(Duration.ofMinutes(30))
+        .maximumSize(1_000)
 ) {
     suspend fun findByOrFail(parent: ScopeToken, child: ScopeToken): ScopeRelation {
         return findBy(parent, child) ?: throw EmptyResultDataAccessException(1)

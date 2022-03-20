@@ -17,7 +17,7 @@ import java.lang.Thread.sleep
 @Suppress("UNCHECKED_CAST")
 class CachedTransactionStorageManagerTest : R2DBCTest() {
     private val storage = InMemoryNestedStorage(
-        { CacheBuilder.newBuilder() as CacheBuilder<Long, Person> },
+        CacheBuilder.newBuilder() as CacheBuilder<Long, Person>,
         object : Extractor<Person, Long> {
             override fun getKey(entity: Person): Long? {
                 return entity.id

@@ -256,7 +256,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     companion object {
         fun <T : Any, ID : Any> of(
             repository: R2DBCRepository<T, ID>,
-            cacheBuilder: () -> CacheBuilder<Any, Any> = { defaultCacheBuilder() }
+            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder()
         ): CachedR2DBCRepository<T, ID> {
             val idExtractor = createIdExtractor(repository)
 
@@ -264,7 +264,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                 repository,
                 R2DBCStorageManager(
                     InMemoryNestedStorage(
-                        cacheBuilder as () -> CacheBuilder<ID, T>,
+                        cacheBuilder as CacheBuilder<ID, T>,
                         idExtractor
                     )
                 ),
@@ -275,7 +275,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         fun <T : Any, ID : Any> of(
             entityOperations: R2dbcEntityOperations,
             clazz: KClass<T>,
-            cacheBuilder: () -> CacheBuilder<Any, Any> = { defaultCacheBuilder() },
+            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
             scheduler: Scheduler = Schedulers.boundedElastic()
         ): CachedR2DBCRepository<T, ID> {
             val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, scheduler)
@@ -285,7 +285,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                 repository,
                 R2DBCStorageManager(
                     InMemoryNestedStorage(
-                        cacheBuilder as () -> CacheBuilder<ID, T>,
+                        cacheBuilder as CacheBuilder<ID, T>,
                         idExtractor
                     )
                 ),

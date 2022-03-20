@@ -17,13 +17,11 @@ class ScopeTokenRepository(
 ) : R2DBCRepository<ScopeToken, Long> by CachedR2DBCRepository.of(
     entityOperations,
     ScopeToken::class,
-    {
-        CacheBuilder.newBuilder()
-            .softValues()
-            .expireAfterAccess(Duration.ofMinutes(10))
-            .expireAfterWrite(Duration.ofMinutes(30))
-            .maximumSize(1_000)
-    }
+    CacheBuilder.newBuilder()
+        .softValues()
+        .expireAfterAccess(Duration.ofMinutes(10))
+        .expireAfterWrite(Duration.ofMinutes(30))
+        .maximumSize(1_000)
 ) {
     suspend fun findByNameOrFail(name: String): ScopeToken {
         return findByName(name) ?: throw EmptyResultDataAccessException(1)
