@@ -10,7 +10,7 @@ class LazyMutableTest {
     @Test
     fun testGet() {
         val person = DummyPerson.create()
-        val lazyMutable = LazyMutable(person)
+        val lazyMutable = LazyMutable.from(person)
 
         assertEquals(person.id, lazyMutable[Person::id])
         assertEquals(person.name, lazyMutable[Person::name])
@@ -22,7 +22,7 @@ class LazyMutableTest {
     @Test
     fun testSet() {
         val person = DummyPerson.create()
-        val persistenceContainer = LazyMutable(person)
+        val persistenceContainer = LazyMutable.from(person)
 
         val person2 = DummyPerson.create()
 

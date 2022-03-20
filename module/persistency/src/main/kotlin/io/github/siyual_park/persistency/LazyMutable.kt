@@ -4,37 +4,15 @@ import io.github.siyual_park.data.patch.Patch
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 
-@Suppress("UNCHECKED_CAST")
-class LazyMutable<T : Any>(
-    private var value: T
-) {
-    private var commands = mutableMapOf<KMutableProperty1<T, Any?>, Any?>()
+interface LazyMutable<T : Any> {
+    operator fun <V : Any?> get(property: KProperty1<T, V>): V
+    operator fun <V : Any?> set(property: KMutableProperty1<T, V>, value: V)
 
-    operator fun <V : Any?> get(property: KProperty1<T, V>): V {
-        if (property is KMutableProperty1<T, V>) {
-            val command = commands[property as KMutableProperty1<T, Any?>]
-            if (commands.contains(property) || command != null) {
-                return command as V
-            }
-        }
+    fun getValue(): T
+    fun isUpdated(): Boolean
 
-        return property.get(value)
-    }
+    fun clear()
+    fun toPatch(): Patch<T>
 
-    operator fun <V : Any?> set(property: KMutableProperty1<T, V>, value: V) {
-        commands[property as KMutableProperty1<T, Any?>] = value
-    }
-
-    fun toPatch(): Patch<T> {
-        return Patch.with { newone ->
-            val updateCommands = commands
-            commands = mutableMapOf()
-
-            updateCommands.forEach { (property, command) ->
-                property.set(newone, command)
-            }
-
-            value = newone
-        }
-    }
+    companion object
 }
