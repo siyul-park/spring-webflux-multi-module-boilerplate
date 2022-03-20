@@ -457,6 +457,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         }
 
         assertTrue(personRepository.existsById(person?.id!!))
+        assertTrue(personRepository.findById(person?.id!!) != null)
     }
 
     @ParameterizedTest
@@ -473,5 +474,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
         }
 
         assertFalse(personRepository.existsById(person?.id!!))
+        assertTrue(personRepository.findById(person?.id!!) == null)
     }
 }
