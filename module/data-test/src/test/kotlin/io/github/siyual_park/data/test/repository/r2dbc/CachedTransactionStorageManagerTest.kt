@@ -36,16 +36,4 @@ class CachedTransactionStorageManagerTest : R2DBCTest() {
         assertEquals(storage, current.parent)
         assertEquals(current, cacheTransactionSynchronization.get(transaction))
     }
-
-    @Test
-    fun releaseResource() {
-        transactional {
-            manager.getCurrent()
-        }
-
-        System.gc()
-        sleep(1000)
-
-        assertEquals(0, cacheTransactionSynchronization.size())
-    }
 }
