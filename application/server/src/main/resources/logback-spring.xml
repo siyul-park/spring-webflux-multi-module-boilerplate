@@ -20,7 +20,7 @@
 
     <!-- Enable the Console and Sentry appenders, Console is provided as an example
  of a non-Sentry logger that is set to a different logging threshold -->
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="Console"/>
         <appender-ref ref="Sentry"/>
     </root>

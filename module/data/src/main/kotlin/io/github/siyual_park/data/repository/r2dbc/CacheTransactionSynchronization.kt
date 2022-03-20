@@ -2,6 +2,7 @@ package io.github.siyual_park.data.repository.r2dbc
 
 import io.github.siyual_park.data.repository.cache.NestedStorage
 import kotlinx.coroutines.reactor.mono
+import org.slf4j.LoggerFactory
 import org.springframework.transaction.reactive.TransactionContext
 import org.springframework.transaction.reactive.TransactionContextManager
 import org.springframework.transaction.reactive.TransactionSynchronization
@@ -11,6 +12,7 @@ import java.util.WeakHashMap
 
 class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchronization {
     private val storages = WeakHashMap<TransactionContext, NestedStorage<T, ID>>()
+    private val logger = LoggerFactory.getLogger(CacheTransactionSynchronization::class.java)
 
     fun size(): Int {
         return storages.size
@@ -30,12 +32,23 @@ class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchroniz
                 mono {
                     val storage = storages[it]
                     if (storage != null) {
+                        val diff = storage.diff()
                         val parent = storage.parent
+
+                        logger.debug("Joining Cache Storage [parent: $parent, child: $storage, diff: $diff]")
+
                         parent?.join(storage)
                     }
                 }.then()
             } else {
                 mono {
+                    val storage = storages[it]
+                    if (storage != null) {
+                        val diff = storage.diff()
+                        val parent = storage.parent
+                        logger.debug("Removing Cache Storage [parent: $parent, child: $storage, diff: $diff]")
+                    }
+
                     storages[it]?.clear()
                     storages.remove(it)
                 }.then()
