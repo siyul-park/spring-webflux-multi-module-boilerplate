@@ -101,6 +101,7 @@ class MigrationManager(
 
     suspend fun revert() {
         val migrationCheckpoints = migrationCheckpointRepository.findAll(
+            criteria = where(MigrationCheckpoint::status).`is`(MigrationStatus.COMPLETE),
             sort = Sort.by(columnName(MigrationCheckpoint::version)).descending()
         )
             .toList()
