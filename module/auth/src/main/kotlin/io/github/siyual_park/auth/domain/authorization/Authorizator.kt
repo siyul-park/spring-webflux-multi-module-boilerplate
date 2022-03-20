@@ -10,23 +10,23 @@ import org.springframework.stereotype.Component
 class Authorizator(
     private val scopeTokenFinder: ScopeTokenFinder,
 ) {
-    private val authorizators = mutableListOf<Pair<AuthorizeFilter, AuthorizeProcessor<*>>>()
+    private val authorizators = mutableListOf<Pair<AuthorizeFilter, AuthorizeProcessor>>()
 
-    fun register(filter: AuthorizeFilter, processor: AuthorizeProcessor<*>): Authorizator {
+    fun register(filter: AuthorizeFilter, processor: AuthorizeProcessor): Authorizator {
         authorizators.add(filter to processor)
         return this
     }
 
-    suspend fun <PRINCIPAL : Principal> authorize(
-        principal: PRINCIPAL,
+    suspend fun authorize(
+        principal: Principal,
         scope: List<*>,
         targetDomainObjects: List<*>? = null
     ): Boolean {
         return authorizeWithOr(principal, scope, targetDomainObjects)
     }
 
-    private suspend fun <PRINCIPAL : Principal> authorizeWithOr(
-        principal: PRINCIPAL,
+    private suspend fun authorizeWithOr(
+        principal: Principal,
         scope: List<*>,
         targetDomainObjects: List<*>? = null
     ): Boolean {
@@ -52,8 +52,8 @@ class Authorizator(
         return false
     }
 
-    private suspend fun <PRINCIPAL : Principal> authorizeWithAnd(
-        principal: PRINCIPAL,
+    private suspend fun authorizeWithAnd(
+        principal: Principal,
         scope: List<*>,
         targetDomainObjects: List<*>? = null
     ): Boolean {
@@ -79,8 +79,8 @@ class Authorizator(
         return true
     }
 
-    suspend fun <PRINCIPAL : Principal> authorize(
-        principal: PRINCIPAL,
+    suspend fun authorize(
+        principal: Principal,
         scopeToken: String,
         targetDomainObject: Any? = null
     ): Boolean {
@@ -89,15 +89,13 @@ class Authorizator(
         } ?: return false
     }
 
-    suspend fun <PRINCIPAL : Principal> authorize(
-        principal: PRINCIPAL,
+    suspend fun authorize(
+        principal: Principal,
         scopeToken: ScopeToken,
         targetDomainObject: Any? = null
     ): Boolean {
-        val authorizators = authorizators.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
-            .map { (_, evaluator) -> evaluator as? AuthorizeProcessor<PRINCIPAL> }
-            .filterNotNull()
-
-        return authorizators.all { it.authorize(principal, scopeToken, targetDomainObject) }
+        return authorizators.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
+            .map { (_, evaluator) -> evaluator }
+            .all { it.authorize(principal, scopeToken, targetDomainObject) }
     }
 }
