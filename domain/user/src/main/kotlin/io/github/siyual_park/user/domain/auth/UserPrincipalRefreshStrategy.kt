@@ -1,7 +1,7 @@
 package io.github.siyual_park.user.domain.auth
 
 import io.github.siyual_park.auth.domain.PrincipalMapping
-import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefreshProcessor
+import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefreshStrategy
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.user.domain.UserStorage
 import kotlinx.coroutines.flow.toSet
@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component
 
 @Component
 @PrincipalMapping(UserPrincipal::class)
-class UserPrincipalRefreshProcessor(
+class UserPrincipalRefreshStrategy(
     private val userStorage: UserStorage,
-) : PrincipalRefreshProcessor<UserPrincipal> {
+) : PrincipalRefreshStrategy<UserPrincipal> {
     override suspend fun refresh(principal: UserPrincipal): UserPrincipal {
         val user = userStorage.loadOrFail(principal.userId)
         val userScope = user.getScope().toSet()
