@@ -4,10 +4,8 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
-import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.property.RootClientProperty
-import io.github.siyual_park.data.expansion.where
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -32,7 +30,7 @@ class RootClientConfiguration(
     @Order(100)
     fun createRootClient() = runBlocking {
         operator.executeAndAwait {
-            var client = clientStorage.load(where(ClientData::name).`is`(property.name))
+            var client = clientStorage.load(property.name)
             if (client == null) {
                 client = CreateClientPayload(
                     property.name,
