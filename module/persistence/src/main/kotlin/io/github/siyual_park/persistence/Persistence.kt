@@ -22,9 +22,7 @@ open class Persistence<T : Any, ID : Any>(
             return if (readOnly) {
                 Mono.empty()
             } else {
-                mono {
-                    sync()
-                }.then()
+                mono { sync() }.then()
             }
         }
     }
