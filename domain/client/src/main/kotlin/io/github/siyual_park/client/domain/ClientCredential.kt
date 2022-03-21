@@ -2,12 +2,14 @@ package io.github.siyual_park.client.domain
 
 import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
+import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 
 class ClientCredential(
     value: ClientCredentialData,
     clientCredentialRepository: ClientCredentialRepository,
-) : Persistence<ClientCredentialData, Long>(value, clientCredentialRepository) {
+    eventPublisher: EventPublisher
+) : Persistence<ClientCredentialData, Long>(value, clientCredentialRepository, eventPublisher) {
     val id: Long?
         get() = root[ClientCredentialData::id]
 

@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":module:event"))
     implementation(project(":module:persistence"))
     implementation(project(":module:mapper"))
+    implementation(project(":module:event"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

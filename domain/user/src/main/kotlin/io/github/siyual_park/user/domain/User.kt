@@ -5,6 +5,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
@@ -32,7 +33,8 @@ class User(
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
-) : Persistence<UserData, Long>(value, userRepository), UserEntity, Authorizable {
+    private val eventPublisher: EventPublisher
+) : Persistence<UserData, Long>(value, userRepository, eventPublisher), UserEntity, Authorizable {
     val id: Long
         get() = root[UserData::id] ?: throw EmptyResultDataAccessException(1)
 
@@ -106,7 +108,7 @@ class User(
         }
 
         return userCredentialRepository.findByUserIdOrFail(id)
-            .let { UserCredential(it, userCredentialRepository) }
+            .let { UserCredential(it, userCredentialRepository, eventPublisher) }
             .also { it.link() }
             .also { this.credential = it }
     }

@@ -5,6 +5,7 @@ import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
+import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
 import org.springframework.stereotype.Component
@@ -17,6 +18,7 @@ class ClientMapper(
     private val clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
+    private val eventPublisher: EventPublisher
 ) : Mapper<ClientData, Client> {
     override val sourceType = object : TypeReference<ClientData>() {}
     override val targetType = object : TypeReference<Client>() {}
@@ -28,7 +30,8 @@ class ClientMapper(
             clientCredentialRepository,
             clientScopeRepository,
             scopeTokenStorage,
-            operator
+            operator,
+            eventPublisher
         )
     }
 }

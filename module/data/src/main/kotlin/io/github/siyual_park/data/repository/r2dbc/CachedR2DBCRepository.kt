@@ -10,6 +10,7 @@ import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
+import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -31,12 +32,12 @@ import kotlin.reflect.full.memberProperties
 class CachedR2DBCRepository<T : Any, ID : Any>(
     private val delegator: R2DBCRepository<T, ID>,
     private val storageManager: R2DBCStorageManager<T, ID>,
-    private val idExtractor: Extractor<T, ID>
+    private val idExtractor: Extractor<T, ID>,
 ) : R2DBCRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(
         delegator,
         storageManager,
-        idExtractor
+        idExtractor,
     ) {
 
     override val entityManager: EntityManager<T, ID>
@@ -256,7 +257,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     companion object {
         fun <T : Any, ID : Any> of(
             repository: R2DBCRepository<T, ID>,
-            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder()
+            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
         ): CachedR2DBCRepository<T, ID> {
             val idExtractor = createIdExtractor(repository)
 
@@ -268,7 +269,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                         idExtractor
                     )
                 ),
-                idExtractor
+                idExtractor,
             )
         }
 
@@ -276,9 +277,10 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             entityOperations: R2dbcEntityOperations,
             clazz: KClass<T>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-            scheduler: Scheduler = Schedulers.boundedElastic()
+            scheduler: Scheduler = Schedulers.boundedElastic(),
+            eventPublisher: EventPublisher? = null
         ): CachedR2DBCRepository<T, ID> {
-            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, scheduler)
+            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, scheduler, eventPublisher)
             val idExtractor = createIdExtractor(repository)
 
             return CachedR2DBCRepository(
@@ -289,7 +291,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                         idExtractor
                     )
                 ),
-                idExtractor
+                idExtractor,
             )
         }
 

@@ -7,6 +7,7 @@ dependencies {
     testImplementation(project(":dependency:async-test"))
 
     implementation(project(":module:been"))
+    implementation(project(":module:event"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

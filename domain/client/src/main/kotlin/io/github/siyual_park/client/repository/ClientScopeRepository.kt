@@ -4,16 +4,19 @@ import io.github.siyual_park.client.entity.ClientScopeData
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 
 @Repository
 class ClientScopeRepository(
-    entityOperations: R2dbcEntityOperations
+    entityOperations: R2dbcEntityOperations,
+    eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ClientScopeData, Long> by CachedR2DBCRepository.of(
     entityOperations,
-    ClientScopeData::class
+    ClientScopeData::class,
+    eventPublisher = eventPublisher
 ) {
     fun findAllByClientId(clientId: Long): Flow<ClientScopeData> {
         return findAll(where(ClientScopeData::clientId).`is`(clientId))

@@ -1,9 +1,11 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import io.github.siyual_park.data.annotation.GeneratedValue
+import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -11,6 +13,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
@@ -33,7 +36,8 @@ import kotlin.reflect.KClass
 class SimpleR2DBCRepository<T : Any, ID : Any>(
     private val entityOperations: R2dbcEntityOperations,
     private val clazz: KClass<T>,
-    private val scheduler: Scheduler = Schedulers.boundedElastic()
+    private val scheduler: Scheduler = Schedulers.boundedElastic(),
+    private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val generatedValueColumn: Set<SqlIdentifier>
 
@@ -54,6 +58,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         )
             .subscribeOn(scheduler)
             .awaitSingle()
+            .also { eventPublisher?.publish(AfterSaveEvent(it)) }
     }
 
     override fun createAll(entities: Flow<T>): Flow<T> {
@@ -71,6 +76,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 )
                     .subscribeOn(scheduler)
                     .asFlow()
+                    .onEach { eventPublisher?.publish(AfterSaveEvent(it)) }
             )
         }
     }
@@ -255,6 +261,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         return findById(entityManager.getId(patchedOutboundRow))
+            .also { eventPublisher?.publish(AfterSaveEvent(it)) }
     }
 
     override suspend fun count(): Long {

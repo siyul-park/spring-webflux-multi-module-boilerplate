@@ -5,7 +5,6 @@ import io.github.siyual_park.auth.entity.ScopeRelationData
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
@@ -21,8 +20,8 @@ class ScopeToken(
     value: ScopeTokenData,
     scopeTokenRepository: ScopeTokenRepository,
     private val scopeRelationRepository: ScopeRelationRepository,
-    private val eventPublisher: EventPublisher,
-) : Persistence<ScopeTokenData, Long>(value, scopeTokenRepository), Authorizable {
+    eventPublisher: EventPublisher,
+) : Persistence<ScopeTokenData, Long>(value, scopeTokenRepository, eventPublisher), Authorizable {
     private val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository, eventPublisher)
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
 
@@ -66,7 +65,6 @@ class ScopeToken(
                 childId = scopeToken.id
             )
         )
-            .also { eventPublisher.publish(AfterSaveEvent(it)) }
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {

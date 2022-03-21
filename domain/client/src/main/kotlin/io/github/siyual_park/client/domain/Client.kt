@@ -12,6 +12,7 @@ import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -34,7 +35,8 @@ class Client(
     private val clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
-) : Persistence<ClientData, Long>(value, clientRepository), ClientEntity, Authorizable {
+    private val eventPublisher: EventPublisher
+) : Persistence<ClientData, Long>(value, clientRepository, eventPublisher), ClientEntity, Authorizable {
     val id: Long
         get() = root[ClientData::id] ?: throw EmptyResultDataAccessException(1)
 
@@ -123,7 +125,7 @@ class Client(
         }
 
         return clientCredentialRepository.findByClientIdOrFail(id)
-            .let { ClientCredential(it, clientCredentialRepository) }
+            .let { ClientCredential(it, clientCredentialRepository, eventPublisher) }
             .also { it.link() }
             .also { this.credential = it }
     }

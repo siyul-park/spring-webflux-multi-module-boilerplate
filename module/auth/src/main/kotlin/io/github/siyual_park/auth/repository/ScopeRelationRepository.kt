@@ -5,6 +5,7 @@ import io.github.siyual_park.auth.entity.ScopeRelationData
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
@@ -12,7 +13,8 @@ import java.time.Duration
 
 @Repository
 class ScopeRelationRepository(
-    entityOperations: R2dbcEntityOperations
+    entityOperations: R2dbcEntityOperations,
+    eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ScopeRelationData, Long> by CachedR2DBCRepository.of(
     entityOperations,
     ScopeRelationData::class,
@@ -20,7 +22,8 @@ class ScopeRelationRepository(
         .softValues()
         .expireAfterAccess(Duration.ofMinutes(10))
         .expireAfterWrite(Duration.ofMinutes(30))
-        .maximumSize(1_000)
+        .maximumSize(1_000),
+    eventPublisher = eventPublisher
 ) {
     fun findAllByChildId(childId: Long): Flow<ScopeRelationData> {
         return findAll(where(ScopeRelationData::childId).`is`(childId))

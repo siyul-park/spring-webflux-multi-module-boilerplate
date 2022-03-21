@@ -5,11 +5,11 @@ dependencies {
     runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 
     api(project(":dependency:async-test"))
-
     implementation(project(":module:data"))
-    testImplementation(project(":dependency:guava"))
 
+    testImplementation(project(":dependency:guava"))
     testImplementation(project(":module:util"))
+    testImplementation(project(":module:event"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

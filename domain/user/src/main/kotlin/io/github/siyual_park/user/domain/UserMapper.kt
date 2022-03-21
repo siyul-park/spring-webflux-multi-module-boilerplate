@@ -1,6 +1,7 @@
 package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
 import io.github.siyual_park.user.entity.UserData
@@ -17,6 +18,7 @@ class UserMapper(
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
+    private val eventPublisher: EventPublisher
 ) : Mapper<UserData, User> {
     override val sourceType = object : TypeReference<UserData>() {}
     override val targetType = object : TypeReference<User>() {}
@@ -28,7 +30,8 @@ class UserMapper(
             userCredentialRepository,
             userScopeRepository,
             scopeTokenStorage,
-            operator
+            operator,
+            eventPublisher
         )
     }
 }

@@ -1,6 +1,8 @@
 package io.github.siyual_park.persistence
 
+import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.data.repository.Repository
+import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
 import org.springframework.transaction.NoTransactionException
@@ -10,7 +12,8 @@ import reactor.core.publisher.Mono
 
 open class Persistence<T : Any, ID : Any>(
     value: T,
-    private val repository: Repository<T, ID>
+    private val repository: Repository<T, ID>,
+    private val eventPublisher: EventPublisher
 ) : Permanentable {
     protected val root = LazyMutable.from(value)
 
@@ -50,7 +53,12 @@ open class Persistence<T : Any, ID : Any>(
 
     override suspend fun sync(): Boolean {
         return if (root.isUpdated()) {
-            repository.update(root.raw(), root.toPatch()) != null
+            val updated = repository.update(root.raw(), root.toPatch())
+            if (updated != null) {
+                eventPublisher.publish(AfterSaveEvent(this))
+            }
+
+            updated != null
         } else {
             false
         }

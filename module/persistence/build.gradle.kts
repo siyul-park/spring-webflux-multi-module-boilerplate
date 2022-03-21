@@ -4,6 +4,8 @@ dependencies {
 
     implementation(project(":dependency:r2dbc"))
 
+    implementation(project(":module:event"))
+
     implementation(project(":module:data"))
     testImplementation(project(":module:data-test"))
 
