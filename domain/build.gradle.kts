@@ -37,8 +37,3 @@ subprojects {
         }
     }
 }
-
-allOpen {
-    annotation("io.github.siyual_park.been.Open")
-    annotation("org.springframework.data.relational.core.mapping.Table")
-}

@@ -14,7 +14,3 @@ kotlin.sourceSets["test"].kotlin.srcDirs("src/test")
 
 sourceSets["main"].resources.srcDirs("src/main/resources")
 sourceSets["test"].resources.srcDirs("src/test/resources")
-
-allOpen {
-    annotation("io.github.siyual_park.been.Open")
-}
