@@ -10,6 +10,7 @@ import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
+import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.persistence.Persistence
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -83,6 +84,22 @@ class Client(
         )
     }
 
+    suspend fun grant(scopeToken: ScopeToken) {
+        clientScopeRepository.create(
+            ClientScopeData(
+                clientId = id,
+                scopeTokenId = scopeToken.id
+            )
+        )
+    }
+
+    suspend fun revoke(scopeToken: ScopeToken) {
+        clientScopeRepository.deleteAll(
+            where(ClientScopeData::clientId).`is`(id)
+                .and(where(ClientScopeData::scopeTokenId).`is`(scopeToken.id))
+        )
+    }
+
     suspend fun getCredential(): ClientCredential {
         val credential = credential
         if (credential != null) {
@@ -112,15 +129,6 @@ class Client(
             scopeTokenStorage.load(scopeTokenIds)
                 .collect { emit(it) }
         }
-    }
-
-    suspend fun grant(scopeToken: ScopeToken) {
-        clientScopeRepository.create(
-            ClientScopeData(
-                clientId = id,
-                scopeTokenId = scopeToken.id
-            )
-        )
     }
 
     fun isConfidential(): Boolean {

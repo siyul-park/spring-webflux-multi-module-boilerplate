@@ -3,10 +3,12 @@ package io.github.siyual_park.user.domain
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
+import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
+import io.github.siyual_park.user.entity.UserScopeData
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
 import io.github.siyual_park.user.repository.UserScopeRepository
@@ -42,19 +44,6 @@ class User(
 
     private var credential: UserCredential? = null
 
-    suspend fun getCredential(): UserCredential {
-        val credential = credential
-        if (credential != null) {
-            credential.link()
-            return credential
-        }
-
-        return userCredentialRepository.findByUserIdOrFail(id)
-            .let { UserCredential(it, userCredentialRepository) }
-            .also { it.link() }
-            .also { this.credential = it }
-    }
-
     override suspend fun clear() {
         root.clear()
 
@@ -85,6 +74,35 @@ class User(
             clientId = clientEntity?.clientId,
             scope = scope.toSet()
         )
+    }
+
+    suspend fun grant(scopeToken: ScopeToken) {
+        userScopeRepository.create(
+            UserScopeData(
+                userId = id,
+                scopeTokenId = scopeToken.id
+            )
+        )
+    }
+
+    suspend fun revoke(scopeToken: ScopeToken) {
+        userScopeRepository.deleteAll(
+            where(UserScopeData::userId).`is`(id)
+                .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
+        )
+    }
+
+    suspend fun getCredential(): UserCredential {
+        val credential = credential
+        if (credential != null) {
+            credential.link()
+            return credential
+        }
+
+        return userCredentialRepository.findByUserIdOrFail(id)
+            .let { UserCredential(it, userCredentialRepository) }
+            .also { it.link() }
+            .also { this.credential = it }
     }
 
     fun getResolvedScope(): Flow<ScopeToken> {
