@@ -12,19 +12,25 @@ class ClientDetailInfoMapper : Mapper<Client, ClientDetailInfo> {
     override val targetType = object : TypeReference<ClientDetailInfo>() {}
 
     override suspend fun map(source: Client): ClientDetailInfo {
-        val secret = if (source.isConfidential()) {
-            source.getCredential().raw().secret
-        } else null
-
+        val secret = getSecret(source)
+        val raw = source.raw()
         return ClientDetailInfo(
-            id = source.id!!,
-            name = source.name,
-            type = source.type,
-            origin = source.origin,
+            id = raw.id!!,
+            name = raw.name,
+            type = raw.type,
+            origin = raw.origin,
             secret = secret,
-            createdAt = source.raw().createdAt!!,
-            updatedAt = source.raw().updatedAt,
-            deletedAt = source.raw().deletedAt
+            createdAt = raw.createdAt!!,
+            updatedAt = raw.updatedAt,
+            deletedAt = raw.deletedAt
         )
+    }
+
+    private suspend fun getSecret(client: Client): String? {
+        return if (client.isConfidential()) {
+            client.getCredential().raw().secret
+        } else {
+            null
+        }
     }
 }

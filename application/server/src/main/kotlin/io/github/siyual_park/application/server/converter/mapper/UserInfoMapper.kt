@@ -11,11 +11,14 @@ class UserInfoMapper : Mapper<User, UserInfo> {
     override val sourceType = object : TypeReference<User>() {}
     override val targetType = object : TypeReference<UserInfo>() {}
 
-    override suspend fun map(source: User) = UserInfo(
-        id = source.id!!,
-        name = source.name,
-        createdAt = source.raw().createdAt!!,
-        updatedAt = source.raw().updatedAt,
-        deletedAt = source.raw().deletedAt
-    )
+    override suspend fun map(source: User): UserInfo {
+        val raw = source.raw()
+        return UserInfo(
+            id = raw.id!!,
+            name = raw.name,
+            createdAt = raw.createdAt!!,
+            updatedAt = raw.updatedAt,
+            deletedAt = raw.deletedAt
+        )
+    }
 }

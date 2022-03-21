@@ -12,14 +12,15 @@ class ClientInfoMapper : Mapper<Client, ClientInfo> {
     override val targetType = object : TypeReference<ClientInfo>() {}
 
     override suspend fun map(source: Client): ClientInfo {
+        val raw = source.raw()
         return ClientInfo(
-            id = source.id!!,
-            name = source.name,
-            type = source.type,
-            origin = source.origin,
-            createdAt = source.raw().createdAt!!,
-            updatedAt = source.raw().updatedAt,
-            deletedAt = source.raw().deletedAt
+            id = raw.id!!,
+            name = raw.name,
+            type = raw.type,
+            origin = raw.origin,
+            createdAt = raw.createdAt!!,
+            updatedAt = raw.updatedAt,
+            deletedAt = raw.deletedAt
         )
     }
 }
