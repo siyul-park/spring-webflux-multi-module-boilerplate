@@ -8,6 +8,7 @@ import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
+import io.github.siyual_park.persistence.proxy
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
@@ -27,14 +28,8 @@ class ScopeToken(
 
     val id: Long
         get() = root[ScopeTokenData::id] ?: throw EmptyResultDataAccessException(1)
-
-    var name: String
-        get() = root[ScopeTokenData::name]
-        set(value) { root[ScopeTokenData::name] = value }
-
-    var description: String?
-        get() = root[ScopeTokenData::description]
-        set(value) { root[ScopeTokenData::description] = value }
+    var name by proxy(root, ScopeTokenData::name)
+    var description by proxy(root, ScopeTokenData::description)
 
     fun isPacked(): Boolean {
         return name.endsWith(":pack")

@@ -14,6 +14,7 @@ import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
+import io.github.siyual_park.persistence.proxy
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.toSet
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
-import java.net.URL
 import java.time.Instant
 
 class Client(
@@ -39,20 +39,10 @@ class Client(
 ) : Persistence<ClientData, Long>(value, clientRepository, eventPublisher), ClientEntity, Authorizable {
     val id: Long
         get() = root[ClientData::id] ?: throw EmptyResultDataAccessException(1)
-
-    override val clientId
-        get() = root[ClientData::id]
-
-    var name: String
-        get() = root[ClientData::name]
-        set(value) { root[ClientData::name] = value }
-
-    val type: ClientType
-        get() = root[ClientData::type]
-
-    var origin: URL
-        get() = root[ClientData::origin]
-        set(value) { root[ClientData::origin] = value }
+    override val clientId by proxy(root, ClientData::id)
+    var name by proxy(root, ClientData::name)
+    val type by proxy(root, ClientData::type)
+    var origin by proxy(root, ClientData::origin)
 
     private var credential: ClientCredential? = null
 

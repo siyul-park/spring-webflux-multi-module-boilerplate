@@ -7,6 +7,7 @@ import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
+import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
@@ -37,13 +38,8 @@ class User(
 ) : Persistence<UserData, Long>(value, userRepository, eventPublisher), UserEntity, Authorizable {
     val id: Long
         get() = root[UserData::id] ?: throw EmptyResultDataAccessException(1)
-
-    override val userId
-        get() = root[UserData::id]
-
-    var name: String
-        get() = root[UserData::name]
-        set(value) { root[UserData::name] = value }
+    override val userId by proxy(root, UserData::id)
+    var name by proxy(root, UserData::name)
 
     private var credential: UserCredential? = null
 
