@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono
 open class Persistence<T : Any, ID : Any>(
     value: T,
     private val repository: Repository<T, ID>
-) {
+) : Permanentable {
     protected val root = LazyMutable.from(value)
 
     private val synchronization = object : TransactionSynchronization {
@@ -30,7 +30,7 @@ open class Persistence<T : Any, ID : Any>(
         return root.raw()
     }
 
-    open suspend fun link(): Boolean {
+    override suspend fun link(): Boolean {
         try {
             val context = TransactionContextManager.currentContext().awaitSingleOrNull() ?: return false
             val synchronizations = context.synchronizations ?: return false
@@ -43,12 +43,12 @@ open class Persistence<T : Any, ID : Any>(
         }
     }
 
-    open suspend fun clear() {
+    override suspend fun clear() {
         repository.delete(root.raw())
         root.clear()
     }
 
-    open suspend fun sync(): Boolean {
+    override suspend fun sync(): Boolean {
         return if (root.isUpdated()) {
             repository.update(root.raw(), root.toPatch()) != null
         } else {

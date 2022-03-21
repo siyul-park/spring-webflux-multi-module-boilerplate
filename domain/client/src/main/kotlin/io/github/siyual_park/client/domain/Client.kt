@@ -1,5 +1,6 @@
 package io.github.siyual_park.client.domain
 
+import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.auth.ClientPrincipal
@@ -32,7 +33,7 @@ class Client(
     private val clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
-) : Persistence<ClientData, Long>(value, clientRepository), ClientEntity {
+) : Persistence<ClientData, Long>(value, clientRepository), ClientEntity, Authorizable {
     val id: Long
         get() = root[ClientData::id] ?: throw EmptyResultDataAccessException(1)
 
@@ -84,7 +85,7 @@ class Client(
         )
     }
 
-    suspend fun grant(scopeToken: ScopeToken) {
+    override suspend fun grant(scopeToken: ScopeToken) {
         clientScopeRepository.create(
             ClientScopeData(
                 clientId = id,
@@ -93,7 +94,7 @@ class Client(
         )
     }
 
-    suspend fun revoke(scopeToken: ScopeToken) {
+    override suspend fun revoke(scopeToken: ScopeToken) {
         clientScopeRepository.deleteAll(
             where(ClientScopeData::clientId).`is`(id)
                 .and(where(ClientScopeData::scopeTokenId).`is`(scopeToken.id))

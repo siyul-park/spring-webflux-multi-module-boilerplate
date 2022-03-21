@@ -1,5 +1,6 @@
 package io.github.siyual_park.auth.domain.scope_token
 
+import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.entity.ScopeRelationData
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
@@ -21,7 +22,7 @@ class ScopeToken(
     scopeTokenRepository: ScopeTokenRepository,
     private val scopeRelationRepository: ScopeRelationRepository,
     private val eventPublisher: EventPublisher,
-) : Persistence<ScopeTokenData, Long>(value, scopeTokenRepository) {
+) : Persistence<ScopeTokenData, Long>(value, scopeTokenRepository), Authorizable {
     private val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository, eventPublisher)
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
 
@@ -54,7 +55,7 @@ class ScopeToken(
         )
     }
 
-    suspend fun grant(scopeToken: ScopeToken) {
+    override suspend fun grant(scopeToken: ScopeToken) {
         if (!isPacked()) {
             return
         }
@@ -66,6 +67,17 @@ class ScopeToken(
             )
         )
             .also { eventPublisher.publish(AfterSaveEvent(it)) }
+    }
+
+    override suspend fun revoke(scopeToken: ScopeToken) {
+        if (!isPacked()) {
+            return
+        }
+
+        scopeRelationRepository.deleteAll(
+            where(ScopeRelationData::parentId).`is`(id)
+                .and(where(ScopeRelationData::childId).`is`(scopeToken.id))
+        )
     }
 
     fun resolve(): Flow<ScopeToken> {
