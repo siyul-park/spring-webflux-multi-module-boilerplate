@@ -1,4 +1,4 @@
-package io.github.siyual_park.error.domain
+package io.github.siyual_park.application.server.dto.response
 
 data class ErrorInfo(
     val path: String,

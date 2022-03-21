@@ -1,5 +1,6 @@
-package io.github.siyual_park.error.domain
+package io.github.siyual_park.application.server.handler
 
+import io.github.siyual_park.application.server.dto.response.ErrorInfo
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.web.WebProperties

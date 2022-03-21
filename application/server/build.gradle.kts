@@ -22,7 +22,6 @@ dependencies {
     implementation(project(":module:been"))
     implementation(project(":module:mapper"))
     implementation(project(":module:json"))
-    implementation(project(":module:error"))
     implementation(project(":module:swagger"))
     implementation(project(":module:auth"))
     implementation(project(":module:event"))
