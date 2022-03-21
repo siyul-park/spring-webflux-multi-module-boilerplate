@@ -16,10 +16,10 @@ import io.github.siyual_park.user.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -62,7 +62,7 @@ class User(
         push: List<ScopeToken> = emptyList(),
         pop: List<ScopeToken> = emptyList()
     ): UserPrincipal {
-        val myScope = getResolvedScope().toList()
+        val myScope = getScope().toList()
         val scope = mutableSetOf<ScopeToken>()
 
         scope.addAll(
@@ -75,6 +75,11 @@ class User(
             clientId = clientEntity?.clientId,
             scope = scope.toSet()
         )
+    }
+
+    override suspend fun has(scopeToken: ScopeToken): Boolean {
+        val scope = getScope().toSet()
+        return scope.contains(scopeToken)
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {
@@ -106,13 +111,6 @@ class User(
             .also { this.credential = it }
     }
 
-    fun getResolvedScope(): Flow<ScopeToken> {
-        return flow {
-            getScope()
-                .collect { emitAll(it.resolve()) }
-        }
-    }
-
     fun getScope(): Flow<ScopeToken> {
         return flow {
             val scopeTokenIds = userScopeRepository.findAllByUserId(id)
@@ -120,7 +118,7 @@ class User(
                 .toList()
 
             scopeTokenStorage.load(scopeTokenIds)
-                .collect { emit(it) }
+                .collect { emitAll(it.resolve()) }
         }
     }
 }

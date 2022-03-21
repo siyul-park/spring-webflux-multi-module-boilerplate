@@ -41,7 +41,7 @@ class ScopeToken(
         return name.endsWith(":pack")
     }
 
-    suspend fun has(scopeToken: ScopeToken): Boolean {
+    override suspend fun has(scopeToken: ScopeToken): Boolean {
         if (id == scopeToken.id) {
             return true
         }

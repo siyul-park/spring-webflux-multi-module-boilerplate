@@ -245,7 +245,7 @@ class ClientControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
-        val clientScope = client.getResolvedScope().toSet()
+        val clientScope = client.getScope().toSet()
         assertEquals(0, clientScope.size)
     }
 
@@ -374,7 +374,7 @@ class ClientControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
-        val clientScope = otherClient.getResolvedScope().toSet()
+        val clientScope = otherClient.getScope().toSet()
         assertEquals(0, clientScope.size)
     }
 

@@ -296,7 +296,7 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
-        val scope = user.getResolvedScope().toSet()
+        val scope = user.getScope().toSet()
         assertEquals(0, scope.size)
     }
 
@@ -328,7 +328,7 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
-        val scope = user.getResolvedScope().toSet()
+        val scope = user.getScope().toSet()
         assertEquals(0, scope.size)
     }
 

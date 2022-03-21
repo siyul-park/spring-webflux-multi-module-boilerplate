@@ -14,7 +14,7 @@ class UserPrincipalRefreshProcessor(
 ) : PrincipalRefreshProcessor<UserPrincipal> {
     override suspend fun refresh(principal: UserPrincipal): UserPrincipal {
         val user = userStorage.loadOrFail(principal.userId)
-        val userScope = user.getResolvedScope().toSet()
+        val userScope = user.getScope().toSet()
 
         return UserPrincipal(
             id = principal.id,

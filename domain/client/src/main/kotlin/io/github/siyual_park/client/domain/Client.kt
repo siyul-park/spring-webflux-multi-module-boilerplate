@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -53,6 +54,14 @@ class Client(
 
     private var credential: ClientCredential? = null
 
+    fun isConfidential(): Boolean {
+        return type == ClientType.CONFIDENTIAL
+    }
+
+    fun isPublic(): Boolean {
+        return type == ClientType.PUBLIC
+    }
+
     override suspend fun clear() {
         root.clear()
 
@@ -69,7 +78,7 @@ class Client(
         push: List<ScopeToken> = emptyList(),
         pop: List<ScopeToken> = emptyList()
     ): ClientPrincipal {
-        val myScope = getResolvedScope()
+        val myScope = getScope()
         val scope = mutableSetOf<ScopeToken>()
 
         scope.addAll(
@@ -83,6 +92,11 @@ class Client(
             id = clientId.toString(),
             scope = scope.toSet()
         )
+    }
+
+    override suspend fun has(scopeToken: ScopeToken): Boolean {
+        val scope = getScope().toSet()
+        return scope.contains(scopeToken)
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {
@@ -114,13 +128,6 @@ class Client(
             .also { this.credential = it }
     }
 
-    fun getResolvedScope(): Flow<ScopeToken> {
-        return flow {
-            getScope()
-                .collect { emitAll(it.resolve()) }
-        }
-    }
-
     fun getScope(): Flow<ScopeToken> {
         return flow {
             val scopeTokenIds = clientScopeRepository.findAllByClientId(id)
@@ -128,15 +135,7 @@ class Client(
                 .toList()
 
             scopeTokenStorage.load(scopeTokenIds)
-                .collect { emit(it) }
+                .collect { emitAll(it.resolve()) }
         }
-    }
-
-    fun isConfidential(): Boolean {
-        return type == ClientType.CONFIDENTIAL
-    }
-
-    fun isPublic(): Boolean {
-        return type == ClientType.PUBLIC
     }
 }
