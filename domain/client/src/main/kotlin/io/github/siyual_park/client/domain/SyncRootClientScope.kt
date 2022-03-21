@@ -5,6 +5,7 @@ import io.github.siyual_park.client.property.RootClientProperty
 import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.event.EventConsumer
 import io.github.siyual_park.event.Subscribe
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Component
 
 @Component
@@ -17,6 +18,9 @@ class SyncRootClientScope(
         val entity = event.entity as? ScopeToken ?: return
         val client = clientStorage.load(property.name) ?: return
 
-        client.grant(entity)
+        try {
+            client.grant(entity)
+        } catch (_: DuplicateKeyException) {
+        }
     }
 }
