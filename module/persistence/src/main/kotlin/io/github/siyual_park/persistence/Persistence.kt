@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono
 open class Persistence<T : Any, ID : Any>(
     value: T,
     private val repository: Repository<T, ID>,
-    private val eventPublisher: EventPublisher
+    private val eventPublisher: EventPublisher? = null
 ) : Permanentable {
     protected val root = LazyMutable.from(value)
 
@@ -55,7 +55,7 @@ open class Persistence<T : Any, ID : Any>(
         return if (root.isUpdated()) {
             val updated = repository.update(root.raw(), root.toPatch())
             if (updated != null) {
-                eventPublisher.publish(AfterSaveEvent(this))
+                eventPublisher?.publish(AfterSaveEvent(this))
             }
 
             updated != null
