@@ -120,15 +120,12 @@ class Client(
     }
 
     override suspend fun clear() {
-        root.clear()
-        credential = null
-
         operator.executeAndAwait {
             clientScopeRepository.deleteAllByClientId(id)
             clientCredentialRepository.deleteByClientId(id)
             root[ClientData::deletedAt] = Instant.now()
-
             sync()
         }
+        credential = null
     }
 }

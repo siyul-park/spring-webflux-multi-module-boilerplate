@@ -109,15 +109,12 @@ class User(
     }
 
     override suspend fun clear() {
-        root.clear()
-        credential = null
-
         operator.executeAndAwait {
             userScopeRepository.deleteAllByUserId(id)
             userCredentialRepository.deleteByUserId(id)
             root[UserData::deletedAt] = Instant.now()
-
             sync()
         }
+        credential = null
     }
 }
