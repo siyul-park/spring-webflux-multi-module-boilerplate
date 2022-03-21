@@ -12,10 +12,10 @@ import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail
-import io.github.siyual_park.reader.filter.RHSFilterParserFactory
-import io.github.siyual_park.reader.pagination.OffsetPage
-import io.github.siyual_park.reader.pagination.OffsetPaginator
-import io.github.siyual_park.reader.sort.SortParserFactory
+import io.github.siyual_park.search.filter.RHSFilterParserFactory
+import io.github.siyual_park.search.pagination.OffsetPage
+import io.github.siyual_park.search.pagination.OffsetPaginator
+import io.github.siyual_park.search.sort.SortParserFactory
 import io.swagger.annotations.Api
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus

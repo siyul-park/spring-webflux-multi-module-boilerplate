@@ -1,7 +1,7 @@
 package io.github.siyual_park.application.server.handler
 
 import io.github.siyual_park.application.server.exception.BadRequestException
-import io.github.siyual_park.reader.exception.InvalidRequestException
+import io.github.siyual_park.search.exception.InvalidRequestException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.web.bind.annotation.ExceptionHandler
