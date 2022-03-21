@@ -19,7 +19,7 @@ class ScopeTokenConfiguration(
         val userScope = scopeTokenFactory.upsert(name = "user:pack")
         val clientScope = scopeTokenFactory.upsert(name = "client:pack")
 
-        scopeTokenFactory.upsert(name = "token:create").also { grant(it, listOf(userScope)) }
+        scopeTokenFactory.upsert(name = "token:create").also { grant(it, listOf(clientScope)) }
         scopeTokenFactory.upsert(name = "access-token:create").also { grant(it, listOf(userScope, clientScope)) }
         scopeTokenFactory.upsert(name = "refresh-token:create").also { grant(it, listOf(userScope)) }
 

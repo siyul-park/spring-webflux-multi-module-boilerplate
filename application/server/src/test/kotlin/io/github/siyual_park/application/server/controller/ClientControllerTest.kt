@@ -322,7 +322,6 @@ class ClientControllerTest @Autowired constructor(
         val name = RandomNameFactory.create(10)
         val request = UpdateClientRequest(
             name = Optional.of(name),
-            origin = Optional.of(otherClient.origin)
         )
         val response = clientControllerGateway.update(otherClient.id, request)
 
