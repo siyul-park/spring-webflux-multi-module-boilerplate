@@ -64,39 +64,6 @@ class Client(
         return type == ClientType.PUBLIC
     }
 
-    override suspend fun clear() {
-        root.clear()
-        credential = null
-
-        operator.executeAndAwait {
-            clientScopeRepository.deleteAllByClientId(id)
-            clientCredentialRepository.deleteByClientId(id)
-            root[ClientData::deletedAt] = Instant.now()
-
-            sync()
-        }
-    }
-
-    suspend fun toPrincipal(
-        push: List<ScopeToken> = emptyList(),
-        pop: List<ScopeToken> = emptyList()
-    ): ClientPrincipal {
-        val myScope = getScope()
-        val scope = mutableSetOf<ScopeToken>()
-
-        scope.addAll(
-            myScope
-                .filter { token -> pop.firstOrNull { it.id == token.id } == null }
-                .toList()
-        )
-        scope.addAll(push.toList())
-
-        return ClientPrincipal(
-            id = clientId.toString(),
-            scope = scope.toSet()
-        )
-    }
-
     override suspend fun has(scopeToken: ScopeToken): Boolean {
         val scope = getScope().toSet()
         return scope.contains(scopeToken)
@@ -139,6 +106,39 @@ class Client(
 
             scopeTokenStorage.load(scopeTokenIds)
                 .collect { emitAll(it.resolve()) }
+        }
+    }
+
+    suspend fun toPrincipal(
+        push: List<ScopeToken> = emptyList(),
+        pop: List<ScopeToken> = emptyList()
+    ): ClientPrincipal {
+        val myScope = getScope()
+        val scope = mutableSetOf<ScopeToken>()
+
+        scope.addAll(
+            myScope
+                .filter { token -> pop.firstOrNull { it.id == token.id } == null }
+                .toList()
+        )
+        scope.addAll(push.toList())
+
+        return ClientPrincipal(
+            id = clientId.toString(),
+            scope = scope.toSet()
+        )
+    }
+
+    override suspend fun clear() {
+        root.clear()
+        credential = null
+
+        operator.executeAndAwait {
+            clientScopeRepository.deleteAllByClientId(id)
+            clientCredentialRepository.deleteByClientId(id)
+            root[ClientData::deletedAt] = Instant.now()
+
+            sync()
         }
     }
 }

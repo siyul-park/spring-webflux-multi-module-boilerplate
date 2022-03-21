@@ -47,39 +47,6 @@ class User(
 
     private var credential: UserCredential? = null
 
-    override suspend fun clear() {
-        root.clear()
-        credential = null
-
-        operator.executeAndAwait {
-            userScopeRepository.deleteAllByUserId(id)
-            userCredentialRepository.deleteByUserId(id)
-            root[UserData::deletedAt] = Instant.now()
-
-            sync()
-        }
-    }
-
-    suspend fun toPrincipal(
-        clientEntity: ClientEntity? = null,
-        push: List<ScopeToken> = emptyList(),
-        pop: List<ScopeToken> = emptyList()
-    ): UserPrincipal {
-        val myScope = getScope().toList()
-        val scope = mutableSetOf<ScopeToken>()
-
-        scope.addAll(
-            myScope.filter { token -> pop.firstOrNull { it.id == token.id } == null }
-        )
-        scope.addAll(push.toList())
-
-        return UserPrincipal(
-            id = userId.toString(),
-            clientId = clientEntity?.clientId,
-            scope = scope.toSet()
-        )
-    }
-
     override suspend fun has(scopeToken: ScopeToken): Boolean {
         val scope = getScope().toSet()
         return scope.contains(scopeToken)
@@ -122,6 +89,39 @@ class User(
 
             scopeTokenStorage.load(scopeTokenIds)
                 .collect { emitAll(it.resolve()) }
+        }
+    }
+
+    suspend fun toPrincipal(
+        clientEntity: ClientEntity? = null,
+        push: List<ScopeToken> = emptyList(),
+        pop: List<ScopeToken> = emptyList()
+    ): UserPrincipal {
+        val myScope = getScope().toList()
+        val scope = mutableSetOf<ScopeToken>()
+
+        scope.addAll(
+            myScope.filter { token -> pop.firstOrNull { it.id == token.id } == null }
+        )
+        scope.addAll(push.toList())
+
+        return UserPrincipal(
+            id = userId.toString(),
+            clientId = clientEntity?.clientId,
+            scope = scope.toSet()
+        )
+    }
+
+    override suspend fun clear() {
+        root.clear()
+        credential = null
+
+        operator.executeAndAwait {
+            userScopeRepository.deleteAllByUserId(id)
+            userCredentialRepository.deleteByUserId(id)
+            root[UserData::deletedAt] = Instant.now()
+
+            sync()
         }
     }
 }
