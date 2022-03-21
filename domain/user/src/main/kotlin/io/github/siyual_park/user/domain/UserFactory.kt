@@ -10,14 +10,8 @@ import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.entity.UserData
-import io.github.siyual_park.user.entity.UserScopeData
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
-import io.github.siyual_park.user.repository.UserScopeRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -27,7 +21,6 @@ import java.security.MessageDigest
 class UserFactory(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
-    private val userScopeRepository: UserScopeRepository,
     private val userMapper: UserMapper,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
@@ -36,52 +29,43 @@ class UserFactory(
 ) {
     suspend fun create(payload: CreateUserPayload): User =
         operator.executeAndAwait {
-            createUser(payload).also {
-                createCredential(it, payload)
-                if (payload.scope == null) {
-                    createDefaultScope(it).collect()
-                } else {
-                    createScope(it, payload.scope).collect()
+            val user = createUser(payload)
+
+            user.link()
+            createCredential(user, payload)
+
+            if (payload.scope == null) {
+                val scope = getDefaultScope()
+                user.grant(scope)
+            } else {
+                payload.scope.forEach {
+                    user.grant(it)
                 }
             }
-                .let { userMapper.map(it) }
-                .also { it.link() }
-                .also { eventPublisher.publish(AfterSaveEvent(it)) }
+
+            eventPublisher.publish(AfterSaveEvent(user))
+
+            user
         }!!
 
-    private suspend fun createUser(payload: CreateUserPayload): UserData {
-        return userRepository.create(UserData(payload.name))
+    private suspend fun createUser(payload: CreateUserPayload): User {
+        return userMapper.map(userRepository.create(UserData(payload.name)))
     }
 
-    private suspend fun createCredential(user: UserData, payload: CreateUserPayload): UserCredentialData {
+    private suspend fun createCredential(user: User, payload: CreateUserPayload): UserCredentialData {
         val messageDigest = MessageDigest.getInstance(hashAlgorithm)
         val password = messageDigest.hash(payload.password)
 
         return userCredentialRepository.create(
             UserCredentialData(
-                userId = user.id!!,
+                userId = user.id,
                 password = password,
                 hashAlgorithm = hashAlgorithm
             )
         )
     }
 
-    private fun createDefaultScope(user: UserData): Flow<UserScopeData> {
-        return flow {
-            val pack = listOf(scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("user:pack")))
-
-            emitAll(createScope(user, pack))
-        }
-    }
-
-    private fun createScope(user: UserData, scope: Collection<ScopeToken>): Flow<UserScopeData> {
-        return userScopeRepository.createAll(
-            scope.map {
-                UserScopeData(
-                    userId = user.id!!,
-                    scopeTokenId = it.id
-                )
-            }
-        )
+    private suspend fun getDefaultScope(): ScopeToken {
+        return scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("user:pack"))
     }
 }
