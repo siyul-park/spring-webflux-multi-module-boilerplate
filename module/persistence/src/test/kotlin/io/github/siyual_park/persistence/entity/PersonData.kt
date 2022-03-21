@@ -5,8 +5,8 @@ import io.github.siyual_park.data.annotation.Key
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("persons")
-data class Person(
+data class PersonData(
     @Key
     var name: String,
     var age: Int
-) : TimeableEntity<Person, Long>()
+) : TimeableEntity<PersonData, Long>()

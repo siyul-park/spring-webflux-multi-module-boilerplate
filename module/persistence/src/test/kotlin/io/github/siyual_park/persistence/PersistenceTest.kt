@@ -5,9 +5,9 @@ import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.test.R2DBCTest
-import io.github.siyual_park.persistence.domain.PersonAggregate
+import io.github.siyual_park.persistence.domain.Person
 import io.github.siyual_park.persistence.dummy.DummyPerson
-import io.github.siyual_park.persistence.entity.Person
+import io.github.siyual_park.persistence.entity.PersonData
 import io.github.siyual_park.persistence.migration.CreatePerson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -23,7 +23,7 @@ class PersistenceTest : R2DBCTest() {
     fun testSync() = parameterized { personRepository ->
         val originPerson = DummyPerson.create()
         val person = personRepository.create(originPerson)
-            .let { PersonAggregate(it, personRepository) }
+            .let { Person(it, personRepository) }
 
         val updatedPerson = DummyPerson.create()
 
@@ -59,7 +59,7 @@ class PersistenceTest : R2DBCTest() {
         repositories().forEach { personRepository ->
             val person = DummyPerson.create()
                 .let { personRepository.create(it) }
-                .let { PersonAggregate(it, personRepository) }
+                .let { Person(it, personRepository) }
             val updatedPerson = DummyPerson.create()
 
             transactionalOperator.executeAndAwait {
@@ -76,7 +76,7 @@ class PersistenceTest : R2DBCTest() {
         }
     }
 
-    private fun parameterized(func: suspend (R2DBCRepository<Person, Long>) -> Unit) {
+    private fun parameterized(func: suspend (R2DBCRepository<PersonData, Long>) -> Unit) {
         transactional {
             repositories().forEach {
                 func(it)
@@ -93,10 +93,10 @@ class PersistenceTest : R2DBCTest() {
         }
     }
 
-    private fun repositories(): List<R2DBCRepository<Person, Long>> {
+    private fun repositories(): List<R2DBCRepository<PersonData, Long>> {
         return listOf(
-            SimpleR2DBCRepository(entityOperations, Person::class),
-            CachedR2DBCRepository.of(entityOperations, Person::class)
+            SimpleR2DBCRepository(entityOperations, PersonData::class),
+            CachedR2DBCRepository.of(entityOperations, PersonData::class)
         )
     }
 }
