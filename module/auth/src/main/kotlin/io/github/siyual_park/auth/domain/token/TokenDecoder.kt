@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.token
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
-import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +13,7 @@ import javax.crypto.SecretKey
 @Component
 class TokenDecoder(
     @Value("\${application.auth.secret}") private val secret: String,
-    private val scopeTokenFinder: ScopeTokenFinder
+    private val scopeTokenStorage: ScopeTokenStorage
 ) {
     private val secretKey: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
@@ -39,8 +39,8 @@ class TokenDecoder(
     }
 
     private fun decodeScope(scope: String): Flow<ScopeToken> {
-        return scopeTokenFinder.findAllWithResolved(
-            scope.split(" ").mapNotNull { it.toLongOrNull() },
-        )
+        return scope.split(" ")
+            .mapNotNull { it.toLongOrNull() }
+            .let { scopeTokenStorage.load(it) }
     }
 }

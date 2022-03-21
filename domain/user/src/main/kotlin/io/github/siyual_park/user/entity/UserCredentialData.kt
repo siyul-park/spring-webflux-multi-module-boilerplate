@@ -5,9 +5,9 @@ import io.github.siyual_park.data.annotation.Key
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("user_credentials")
-data class UserCredential(
+data class UserCredentialData(
     @Key
     val userId: Long,
     var password: String,
     var hashAlgorithm: String,
-) : TimeableEntity<UserCredential, Long>()
+) : TimeableEntity<UserCredentialData, Long>()

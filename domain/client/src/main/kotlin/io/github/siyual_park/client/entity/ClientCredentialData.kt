@@ -5,8 +5,8 @@ import io.github.siyual_park.data.annotation.Key
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("client_credentials")
-data class ClientCredential(
+data class ClientCredentialData(
     @Key
     val clientId: Long,
     var secret: String,
-) : TimeableEntity<ClientCredential, Long>()
+) : TimeableEntity<ClientCredentialData, Long>()

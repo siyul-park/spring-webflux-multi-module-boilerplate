@@ -22,14 +22,14 @@ class LazyLoadedLoadedLazyMutable<T : Any>(
             }
         }
 
-        return property.get(getValue())
+        return property.get(raw())
     }
 
     override operator fun <V : Any?> set(property: KMutableProperty1<T, V>, value: V) {
         commands[property as KMutableProperty1<T, Any?>] = value
     }
 
-    override fun getValue(): T {
+    override fun raw(): T {
         return if (cachedValue == null) {
             semaphore.acquire()
             val value = loader()

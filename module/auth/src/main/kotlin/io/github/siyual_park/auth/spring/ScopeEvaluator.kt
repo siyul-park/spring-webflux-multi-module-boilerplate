@@ -2,8 +2,11 @@ package io.github.siyual_park.auth.spring
 
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authorization.Authorizator
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
-import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.entity.ScopeTokenData
+import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.persistence.loadOrFail
 import kotlinx.coroutines.runBlocking
 import org.springframework.security.access.PermissionEvaluator
 import org.springframework.security.core.Authentication
@@ -12,7 +15,7 @@ import java.io.Serializable
 
 @Component
 class ScopeEvaluator(
-    private val scopeTokenFinder: ScopeTokenFinder,
+    private val scopeTokenStorage: ScopeTokenStorage,
     private val authorizator: Authorizator,
 ) : PermissionEvaluator {
     override fun hasPermission(authentication: Authentication, targetDomainObject: Any?, permission: Any): Boolean {
@@ -61,7 +64,7 @@ class ScopeEvaluator(
     private suspend fun getScope(permission: Any?): Any? {
         return when (permission) {
             is String -> {
-                scopeTokenFinder.findByNameOrFail(permission)
+                scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`(permission))
             }
             is Collection<*> -> {
                 permission.map { getScope(it) }.toList()

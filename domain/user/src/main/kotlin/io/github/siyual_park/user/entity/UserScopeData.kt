@@ -1,13 +1,13 @@
-package io.github.siyual_park.auth.entity
+package io.github.siyual_park.user.entity
 
 import io.github.siyual_park.data.TimeableEntity
 import io.github.siyual_park.data.annotation.Key
 import org.springframework.data.relational.core.mapping.Table
 
-@Table("scope_relations")
-data class ScopeRelation(
+@Table("user_scopes")
+data class UserScopeData(
     @Key("business_keys")
-    val parentId: Long,
+    val userId: Long,
     @Key("business_keys")
-    val childId: Long,
-) : TimeableEntity<ScopeRelation, Long>()
+    val scopeTokenId: Long,
+) : TimeableEntity<UserScopeData, Long>()

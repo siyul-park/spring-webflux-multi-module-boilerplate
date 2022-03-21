@@ -1,17 +1,22 @@
 package io.github.siyual_park.client.domain
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
-import io.github.siyual_park.auth.entity.ScopeToken
-import io.github.siyual_park.client.entity.Client
-import io.github.siyual_park.client.entity.ClientCredential
-import io.github.siyual_park.client.entity.ClientScope
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.entity.ScopeTokenData
+import io.github.siyual_park.client.entity.ClientCredentialData
+import io.github.siyual_park.client.entity.ClientData
+import io.github.siyual_park.client.entity.ClientScopeData
+import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.event.AfterSaveEvent
+import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.persistence.loadOrFail
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -22,7 +27,8 @@ class ClientFactory(
     private val clientRepository: ClientRepository,
     private val clientCredentialRepository: ClientCredentialRepository,
     private val clientScopeRepository: ClientScopeRepository,
-    private val scopeTokenFinder: ScopeTokenFinder,
+    private val clientMapper: ClientMapper,
+    private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
 ) {
@@ -35,35 +41,42 @@ class ClientFactory(
                 } else {
                     createScope(it, payload.scope).collect()
                 }
-            }.also { eventPublisher.publish(AfterSaveEvent(it)) }
+            }
+                .let { clientMapper.map(it) }
+                .also { eventPublisher.publish(AfterSaveEvent(it)) }
         }!!
 
-    private suspend fun createClient(payload: CreateClientPayload): Client {
-        return clientRepository.create(Client(payload.name, payload.type, payload.origin))
+    private suspend fun createClient(payload: CreateClientPayload): ClientData {
+        return clientRepository.create(ClientData(payload.name, payload.type, payload.origin))
     }
 
-    private suspend fun createCredential(client: Client): ClientCredential? {
-        if (client.isPublic()) {
+    private suspend fun createCredential(client: ClientData): ClientCredentialData? {
+        if (client.type == ClientType.PUBLIC) {
             return null
         }
 
         return clientCredentialRepository.create(
-            ClientCredential(
+            ClientCredentialData(
                 clientId = client.id!!,
                 secret = generateRandomSecret(64)
             )
         )
     }
 
-    private suspend fun createDefaultScope(client: Client): Flow<ClientScope> {
-        return createScope(client, listOf(scopeTokenFinder.findByNameOrFail("client:pack")))
+    private suspend fun createDefaultScope(client: ClientData): Flow<ClientScopeData> {
+        return flow {
+            createScope(
+                client,
+                listOf(scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("client:pack")))
+            )
+        }
     }
 
-    private fun createScope(client: Client, scope: Collection<ScopeToken>): Flow<ClientScope> {
+    private fun createScope(client: ClientData, scope: Collection<ScopeToken>): Flow<ClientScopeData> {
         return clientScopeRepository.createAll(
             scope.filter { it.id != null }
                 .map {
-                    ClientScope(
+                    ClientScopeData(
                         clientId = client.id!!,
                         scopeTokenId = it.id!!
                     )

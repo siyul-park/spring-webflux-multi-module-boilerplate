@@ -1,6 +1,6 @@
 package io.github.siyual_park.auth.domain.token
 
-import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 
 @Suppress("UNCHECKED_CAST")
 class Claims : MutableMap<String, Any> by mutableMapOf() {

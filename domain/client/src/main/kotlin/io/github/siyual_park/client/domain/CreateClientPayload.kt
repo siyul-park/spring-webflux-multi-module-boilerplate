@@ -1,6 +1,6 @@
 package io.github.siyual_park.client.domain
 
-import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.client.entity.ClientType
 import java.net.URL
 

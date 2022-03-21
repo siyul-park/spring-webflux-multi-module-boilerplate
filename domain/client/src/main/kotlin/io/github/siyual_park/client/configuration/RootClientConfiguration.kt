@@ -1,15 +1,13 @@
 package io.github.siyual_park.client.configuration
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
-import io.github.siyual_park.client.domain.ClientCredentialFinder
-import io.github.siyual_park.client.domain.ClientCredentialUpdater
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.ClientFactory
-import io.github.siyual_park.client.domain.ClientFinder
-import io.github.siyual_park.client.domain.ClientUpdater
+import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
+import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.property.RootClientProperty
-import io.github.siyual_park.data.patch.AsyncPatch
+import io.github.siyual_park.data.expansion.where
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -24,11 +22,8 @@ import org.springframework.transaction.reactive.executeAndAwait
 class RootClientConfiguration(
     private val property: RootClientProperty,
     private val clientFactory: ClientFactory,
-    private val clientFinder: ClientFinder,
-    private val clientCredentialFinder: ClientCredentialFinder,
-    private val clientUpdater: ClientUpdater,
-    private val clientCredentialUpdater: ClientCredentialUpdater,
-    private val scopeTokenFinder: ScopeTokenFinder,
+    private val clientStorage: ClientStorage,
+    private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
 ) {
     private val logger = LoggerFactory.getLogger(RootClientConfiguration::class.java)
@@ -37,37 +32,27 @@ class RootClientConfiguration(
     @Order(100)
     fun createRootClient() = runBlocking {
         operator.executeAndAwait {
-            var client = clientFinder.findByName(property.name)
+            var client = clientStorage.load(where(ClientData::name).`is`(property.name))
             if (client == null) {
                 client = CreateClientPayload(
                     property.name,
                     ClientType.CONFIDENTIAL,
                     origin = property.origin,
-                    scope = scopeTokenFinder.findAll().toList()
+                    scope = scopeTokenStorage.load().toList()
                 )
                     .let { clientFactory.create(it) }
                     .also {
-                        val credential = clientCredentialFinder.findByClientOrFail(it)
-                        logger.info("Creating root client [id: ${it.id}, name: ${it.name}, secret: ${credential.secret}]")
+                        val credential = it.getCredential()
+                        logger.info("Creating root client [id: ${it.id}, name: ${it.name}, secret: ${credential.raw().secret}]")
                     }
             }
 
-            clientUpdater.update(
-                client,
-                AsyncPatch.with {
-                    it.origin = property.origin
-                }
-            )
+            client.origin = property.origin
 
             if (property.secret.isNotEmpty()) {
-                clientCredentialUpdater.updateByClient(
-                    client,
-                    AsyncPatch.with {
-                        it.secret = property.secret
-                    }
-                ).also {
-                    logger.info("Updating root client [secret: ${it?.secret}]")
-                }
+                val credential = client.getCredential()
+                credential.setSecret(property.secret)
+                logger.info("Updating root client [secret: ${property.secret}]")
             }
         }
     }

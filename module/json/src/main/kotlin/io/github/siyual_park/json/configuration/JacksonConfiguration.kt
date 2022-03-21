@@ -1,5 +1,6 @@
 package io.github.siyual_park.json.configuration
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
@@ -17,11 +18,11 @@ class JacksonConfiguration(
         val modules = applicationContext.getBeansOfType(Module::class.java)
 
         objectMapper.apply {
+            setSerializationInclusion(JsonInclude.Include.NON_NULL)
             registerModule(Jdk8Module())
             modules.values.forEach {
                 registerModule(it)
             }
-
             propertyNamingStrategy = PropertyNamingStrategies.SNAKE_CASE
         }
     }

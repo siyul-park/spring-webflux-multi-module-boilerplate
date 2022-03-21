@@ -25,7 +25,7 @@ class FastLoadedLazyMutable<T : Any>(
         commands[property as KMutableProperty1<T, Any?>] = value
     }
 
-    override fun getValue(): T {
+    override fun raw(): T {
         return value
     }
 
@@ -38,15 +38,15 @@ class FastLoadedLazyMutable<T : Any>(
     }
 
     override fun toPatch(): Patch<T> {
-        return Patch.with { newone ->
+        return Patch.with {
             val updateCommands = commands
             commands = mutableMapOf()
 
             updateCommands.forEach { (property, command) ->
-                property.set(newone, command)
+                property.set(it, command)
             }
 
-            value = newone
+            value = it
         }
     }
 }

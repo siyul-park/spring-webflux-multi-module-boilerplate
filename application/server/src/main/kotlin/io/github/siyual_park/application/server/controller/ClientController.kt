@@ -1,26 +1,20 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateClientRequest
-import io.github.siyual_park.application.server.dto.request.MutableClientData
+import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.client.domain.ClientFactory
-import io.github.siyual_park.client.domain.ClientFinder
-import io.github.siyual_park.client.domain.ClientPaginatorFactory
-import io.github.siyual_park.client.domain.ClientRemover
-import io.github.siyual_park.client.domain.ClientUpdater
+import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
-import io.github.siyual_park.client.entity.Client
+import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientEntity
-import io.github.siyual_park.json.patch.JsonMergePatch
-import io.github.siyual_park.json.patch.PatchConverter
-import io.github.siyual_park.json.patch.convert
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
+import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.reader.filter.RHSFilterParserFactory
-import io.github.siyual_park.reader.finder.findByIdOrFail
 import io.github.siyual_park.reader.pagination.OffsetPage
-import io.github.siyual_park.reader.pagination.OffsetPageQuery
+import io.github.siyual_park.reader.pagination.OffsetPaginator
 import io.github.siyual_park.reader.sort.SortParserFactory
 import io.swagger.annotations.Api
 import org.springframework.dao.EmptyResultDataAccessException
@@ -44,17 +38,15 @@ import javax.validation.Valid
 @RequestMapping("/clients")
 class ClientController(
     private val clientFactory: ClientFactory,
-    private val clientRemover: ClientRemover,
-    private val clientFinder: ClientFinder,
-    private val clientUpdater: ClientUpdater,
-    private val clientPaginatorFactory: ClientPaginatorFactory,
-    private val patchConverter: PatchConverter,
+    private val clientStorage: ClientStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
     private val mapperManager: MapperManager
 ) {
-    private val rhsFilterParser = rhsFilterParserFactory.create(Client::class)
-    private val sortParser = sortParserFactory.create(Client::class)
+    private val rhsFilterParser = rhsFilterParserFactory.create(ClientData::class)
+    private val sortParser = sortParserFactory.create(ClientData::class)
+
+    private val offsetPaginator = OffsetPaginator(clientStorage)
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
@@ -85,24 +77,21 @@ class ClientController(
     ): OffsetPage<ClientInfo> {
         val criteria = rhsFilterParser.parseFromProperty(
             mapOf(
-                Client::id to listOf(id),
-                Client::name to listOf(name),
-                Client::type to listOf(type),
-                Client::origin to listOf(origin),
-                Client::createdAt to listOf(createdAt),
-                Client::updatedAt to listOf(updatedAt)
+                ClientData::id to listOf(id),
+                ClientData::name to listOf(name),
+                ClientData::type to listOf(type),
+                ClientData::origin to listOf(origin),
+                ClientData::createdAt to listOf(createdAt),
+                ClientData::updatedAt to listOf(updatedAt)
             )
         )
-        val paginator = clientPaginatorFactory.create(
+        val offsetPage = offsetPaginator.paginate(
             criteria = criteria,
-            sort = sort?.let { sortParser.parse(it) }
+            sort = sort?.let { sortParser.parse(it) },
+            perPage = perPage ?: 15,
+            page = page ?: 0
         )
-        val offsetPage = paginator.paginate(
-            OffsetPageQuery(
-                page = page ?: 0,
-                perPage = perPage ?: 15,
-            )
-        )
+
         return offsetPage.mapDataAsync { mapperManager.map(it) }
     }
 
@@ -110,8 +99,8 @@ class ClientController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'clients[self]:read')")
     suspend fun readSelf(@AuthenticationPrincipal principal: ClientEntity): ClientInfo {
-        val client = principal.clientId?.let { clientFinder.findById(it) }
-            ?: throw EmptyResultDataAccessException(1)
+        val clientId = principal.clientId ?: throw EmptyResultDataAccessException(1)
+        val client = clientStorage.loadOrFail(clientId)
         return mapperManager.map(client)
     }
 
@@ -120,27 +109,32 @@ class ClientController(
     @PreAuthorize("hasPermission(null, 'clients[self]:update')")
     suspend fun updateSelf(
         @AuthenticationPrincipal principal: ClientEntity,
-        @Valid @RequestBody patch: JsonMergePatch<MutableClientData>
+        @Valid @RequestBody request: UpdateClientRequest
     ): ClientInfo {
-        return clientUpdater.updateById(
-            principal.clientId ?: throw EmptyResultDataAccessException(1),
-            patchConverter.convert(patch)
-        )
-            .let { mapperManager.map(it) }
+        val clientId = principal.clientId ?: throw EmptyResultDataAccessException(1)
+        val client = clientStorage.loadOrFail(clientId)
+
+        request.name?.ifPresent { client.name = it }
+        request.origin?.ifPresent { client.origin = it }
+
+        client.sync()
+        return mapperManager.map(client)
     }
 
     @DeleteMapping("/self")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'clients[self]:delete')")
     suspend fun deleteSelf(@AuthenticationPrincipal principal: ClientEntity) {
-        clientRemover.remove(principal.clientId ?: throw EmptyResultDataAccessException(1), soft = true)
+        val clientId = principal.clientId ?: throw EmptyResultDataAccessException(1)
+        val client = clientStorage.loadOrFail(clientId)
+        client.clear()
     }
 
     @GetMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
     suspend fun read(@PathVariable("client-id") clientId: Long): ClientInfo {
-        val client = clientFinder.findByIdOrFail(clientId)
+        val client = clientStorage.loadOrFail(clientId)
         return mapperManager.map(client)
     }
 
@@ -149,13 +143,16 @@ class ClientController(
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:update', 'clients[self]:update'})")
     suspend fun update(
         @PathVariable("client-id") clientId: Long,
-        @Valid @RequestBody patch: JsonMergePatch<MutableClientData>
+        @Valid @RequestBody request: UpdateClientRequest
     ): ClientInfo {
-        return clientUpdater.updateById(
-            clientId,
-            patchConverter.convert(patch)
-        )
-            .let { mapperManager.map(it) }
+        val client = clientStorage.loadOrFail(clientId)
+
+        request.name?.ifPresent { client.name = it }
+        request.origin?.ifPresent { client.origin = it }
+
+        client.sync()
+
+        return mapperManager.map(client)
     }
 
     @DeleteMapping("/{client-id}")
@@ -164,6 +161,7 @@ class ClientController(
     suspend fun delete(
         @PathVariable("client-id") clientId: Long,
     ) {
-        clientRemover.remove(clientId, soft = true)
+        val client = clientStorage.loadOrFail(clientId)
+        client.clear()
     }
 }

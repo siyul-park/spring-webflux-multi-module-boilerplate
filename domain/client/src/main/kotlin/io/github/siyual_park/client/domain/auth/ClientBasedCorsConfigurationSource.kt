@@ -2,7 +2,7 @@ package io.github.siyual_park.client.domain.auth
 
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
-import io.github.siyual_park.client.domain.ClientFinder
+import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.entity.ClientEntity
 import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpHeaders
@@ -14,7 +14,7 @@ import org.springframework.web.server.ServerWebExchange
 @Component
 class ClientBasedCorsConfigurationSource(
     private val authenticator: Authenticator,
-    private val clientFinder: ClientFinder
+    private val clientStorage: ClientStorage,
 ) : CorsConfigurationSource {
     override fun getCorsConfiguration(exchange: ServerWebExchange): CorsConfiguration? {
         return runBlocking {
@@ -31,7 +31,7 @@ class ClientBasedCorsConfigurationSource(
                 val principal = authenticator.authenticate(payload)
 
                 if (principal is ClientEntity) {
-                    val client = principal.clientId?.let { clientFinder.findById(it) } ?: return@runBlocking null
+                    val client = principal.clientId?.let { clientStorage.load(it) } ?: return@runBlocking null
                     return@runBlocking CorsConfiguration()
                         .apply {
                             addAllowedOriginPattern(client.origin.toString())

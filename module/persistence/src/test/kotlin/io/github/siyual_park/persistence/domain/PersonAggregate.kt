@@ -1,13 +1,13 @@
 package io.github.siyual_park.persistence.domain
 
 import io.github.siyual_park.data.repository.Repository
-import io.github.siyual_park.persistence.Aggregate
+import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.entity.Person
 
 class PersonAggregate(
     root: Person,
     repository: Repository<Person, Long>
-) : Aggregate<Person, Long>(root, repository) {
+) : Persistence<Person, Long>(root, repository) {
     val id: Long?
         get() = root[Person::id]
 

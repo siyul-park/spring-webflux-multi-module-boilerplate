@@ -8,21 +8,10 @@ import java.net.URL
 import java.time.Instant
 
 @Table("clients")
-data class Client(
+data class ClientData(
     @Key
-    val name: String,
+    var name: String,
     val type: ClientType,
     var origin: URL,
     override var deletedAt: Instant? = null
-) : TimeableEntity<Client, Long>(), SoftDeletable, ClientEntity {
-    override val clientId: Long
-        get() = id!!
-
-    fun isConfidential(): Boolean {
-        return type == ClientType.CONFIDENTIAL
-    }
-
-    fun isPublic(): Boolean {
-        return type == ClientType.PUBLIC
-    }
-}
+) : TimeableEntity<ClientData, Long>(), SoftDeletable

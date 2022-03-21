@@ -1,7 +1,7 @@
 package io.github.siyual_park.application.server.gateway
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
-import io.github.siyual_park.application.server.dto.request.MutableUserData
+import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
@@ -58,7 +58,7 @@ class UserControllerGateway(
             .returnResult(UserInfo::class.java)
     }
 
-    suspend fun updateSelf(request: MutableUserData): FluxExchangeResult<UserInfo> {
+    suspend fun updateSelf(request: UpdateUserRequest): FluxExchangeResult<UserInfo> {
         return client.patch()
             .uri("/users/self")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -83,7 +83,7 @@ class UserControllerGateway(
             .returnResult(UserInfo::class.java)
     }
 
-    suspend fun update(userId: Long, request: MutableUserData): FluxExchangeResult<UserInfo> {
+    suspend fun update(userId: Long, request: UpdateUserRequest): FluxExchangeResult<UserInfo> {
         return client.patch()
             .uri("/users/$userId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())

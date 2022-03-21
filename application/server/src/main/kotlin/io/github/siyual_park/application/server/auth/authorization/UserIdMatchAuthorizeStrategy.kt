@@ -5,7 +5,8 @@ import io.github.siyual_park.auth.domain.authorization.AuthorizeMapping
 import io.github.siyual_park.auth.domain.authorization.AuthorizeStrategy
 import io.github.siyual_park.auth.domain.authorization.ScopeMapping
 import io.github.siyual_park.auth.domain.authorization.ScopeMatchAuthorizeFilter
-import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.user.entity.UserEntity
 import org.springframework.stereotype.Component
 

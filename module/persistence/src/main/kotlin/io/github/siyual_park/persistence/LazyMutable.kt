@@ -8,7 +8,7 @@ interface LazyMutable<T : Any> {
     operator fun <V : Any?> get(property: KProperty1<T, V>): V
     operator fun <V : Any?> set(property: KMutableProperty1<T, V>, value: V)
 
-    fun getValue(): T
+    fun raw(): T
     fun isUpdated(): Boolean
 
     fun clear()

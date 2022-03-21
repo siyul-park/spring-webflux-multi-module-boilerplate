@@ -2,28 +2,25 @@ package io.github.siyual_park.client.domain.auth
 
 import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
 import io.github.siyual_park.auth.domain.authentication.AuthenticateStrategy
-import io.github.siyual_park.client.domain.ClientFinder
+import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.exception.SecretIncorrectException
-import io.github.siyual_park.client.repository.ClientCredentialRepository
-import io.github.siyual_park.reader.finder.findByIdOrFail
+import io.github.siyual_park.persistence.loadOrFail
 import org.springframework.stereotype.Component
 
 @Component
 @AuthenticateMapping(filterBy = ClientCredentialsGrantPayload::class)
 class ClientCredentialsGrantAuthenticateStrategy(
-    private val clientFinder: ClientFinder,
-    private val clientCredentialRepository: ClientCredentialRepository,
-    private val clientPrincipalExchanger: ClientPrincipalExchanger,
+    private val clientStorage: ClientStorage,
 ) : AuthenticateStrategy<ClientCredentialsGrantPayload, ClientPrincipal> {
     override suspend fun authenticate(payload: ClientCredentialsGrantPayload): ClientPrincipal? {
-        val client = clientFinder.findByIdOrFail(payload.id)
+        val client = clientStorage.loadOrFail(payload.id)
         if (client.isConfidential()) {
-            val clientCredential = clientCredentialRepository.findByClientOrFail(client)
-            if (clientCredential.secret != payload.secret) {
+            val credential = client.getCredential()
+            if (payload.secret == null || credential.checkSecret(payload.secret)) {
                 throw SecretIncorrectException()
             }
         }
 
-        return clientPrincipalExchanger.exchange(client)
+        return client.toPrincipal()
     }
 }

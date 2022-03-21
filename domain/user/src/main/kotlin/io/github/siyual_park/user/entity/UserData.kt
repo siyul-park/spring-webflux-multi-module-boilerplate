@@ -7,11 +7,8 @@ import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant
 
 @Table("users")
-data class User(
+data class UserData(
     @Key
     var name: String,
     override var deletedAt: Instant? = null
-) : TimeableEntity<User, Long>(), SoftDeletable, UserEntity {
-    override val userId: Long?
-        get() = id
-}
+) : TimeableEntity<UserData, Long>(), SoftDeletable
