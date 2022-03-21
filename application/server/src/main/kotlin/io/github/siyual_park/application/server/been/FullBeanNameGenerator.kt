@@ -1,4 +1,4 @@
-package io.github.siyual_park.been
+package io.github.siyual_park.application.server.been
 
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition
 import org.springframework.beans.factory.config.BeanDefinition

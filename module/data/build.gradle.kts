@@ -6,7 +6,6 @@ dependencies {
 
     testImplementation(project(":dependency:async-test"))
 
-    implementation(project(":module:been"))
     implementation(project(":module:event"))
 }
 

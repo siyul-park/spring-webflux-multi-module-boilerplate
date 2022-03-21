@@ -1,6 +1,6 @@
 package io.github.siyual_park
 
-import io.github.siyual_park.been.FullBeanNameGenerator
+import io.github.siyual_park.application.server.been.FullBeanNameGenerator
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication

@@ -19,7 +19,6 @@ dependencies {
     implementation(project(":dependency:jackson"))
 
     implementation(project(":module:data"))
-    implementation(project(":module:been"))
     implementation(project(":module:mapper"))
     implementation(project(":module:json"))
     implementation(project(":module:swagger"))
