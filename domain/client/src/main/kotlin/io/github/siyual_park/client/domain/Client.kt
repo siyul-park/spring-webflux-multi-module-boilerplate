@@ -66,6 +66,7 @@ class Client(
 
     override suspend fun clear() {
         root.clear()
+        credential = null
 
         operator.executeAndAwait {
             clientScopeRepository.deleteAllByClientId(id)
