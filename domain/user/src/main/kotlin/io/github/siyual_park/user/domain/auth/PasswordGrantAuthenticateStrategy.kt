@@ -5,7 +5,6 @@ import io.github.siyual_park.auth.domain.authentication.AuthenticateStrategy
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.persistence.loadOrFail
-import io.github.siyual_park.reader.finder.findByIdOrFail
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.exception.PasswordIncorrectException

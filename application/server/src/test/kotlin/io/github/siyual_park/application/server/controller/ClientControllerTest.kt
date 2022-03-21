@@ -273,7 +273,7 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val response = clientControllerGateway.read(otherClient.id!!)
+        val response = clientControllerGateway.read(otherClient.id)
 
         assertEquals(HttpStatus.OK, response.status)
 
@@ -301,7 +301,7 @@ class ClientControllerTest @Autowired constructor(
             pop = listOf("clients:read")
         )
 
-        val response = clientControllerGateway.read(otherClient.id!!)
+        val response = clientControllerGateway.read(otherClient.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -319,20 +319,21 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:update")
         )
 
+        val name = RandomNameFactory.create(10)
         val request = UpdateClientRequest(
-            name = Optional.of(RandomNameFactory.create(10)),
+            name = Optional.of(name),
             origin = Optional.of(otherClient.origin)
         )
-        val response = clientControllerGateway.update(otherClient.id!!, request)
+        val response = clientControllerGateway.update(otherClient.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
 
         val responseClient = response.responseBody.awaitSingle()
 
         assertEquals(otherClient.id, responseClient.id)
-        assertEquals(request.name, responseClient.name)
+        assertEquals(name, responseClient.name)
         assertEquals(otherClient.type, responseClient.type)
-        assertEquals(request.origin, responseClient.origin)
+        assertEquals(otherClient.origin, responseClient.origin)
         assertNotNull(responseClient.createdAt)
         assertNotNull(responseClient.updatedAt)
     }
@@ -351,7 +352,7 @@ class ClientControllerTest @Autowired constructor(
             name = Optional.of(RandomNameFactory.create(10)),
             origin = Optional.of(otherClient.origin)
         )
-        val response = clientControllerGateway.update(otherClient.id!!, request)
+        val response = clientControllerGateway.update(otherClient.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -370,11 +371,11 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:delete")
         )
 
-        val response = clientControllerGateway.delete(otherClient.id!!)
+        val response = clientControllerGateway.delete(otherClient.id)
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
-        val clientScope = client.getResolvedScope().toSet()
+        val clientScope = otherClient.getResolvedScope().toSet()
         assertEquals(0, clientScope.size)
     }
 
@@ -389,7 +390,7 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val response = clientControllerGateway.delete(otherClient.id!!)
+        val response = clientControllerGateway.delete(otherClient.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

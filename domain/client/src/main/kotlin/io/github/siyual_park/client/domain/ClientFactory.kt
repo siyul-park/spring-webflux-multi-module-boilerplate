@@ -16,6 +16,7 @@ import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.loadOrFail
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
@@ -65,22 +66,20 @@ class ClientFactory(
 
     private suspend fun createDefaultScope(client: ClientData): Flow<ClientScopeData> {
         return flow {
-            createScope(
-                client,
-                listOf(scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("client:pack")))
-            )
+            val pack = listOf(scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("client:pack")))
+
+            emitAll(createScope(client, pack))
         }
     }
 
     private fun createScope(client: ClientData, scope: Collection<ScopeToken>): Flow<ClientScopeData> {
         return clientScopeRepository.createAll(
-            scope.filter { it.id != null }
-                .map {
-                    ClientScopeData(
-                        clientId = client.id!!,
-                        scopeTokenId = it.id!!
-                    )
-                }
+            scope.map {
+                ClientScopeData(
+                    clientId = client.id!!,
+                    scopeTokenId = it.id!!
+                )
+            }
         )
     }
 

@@ -1,7 +1,6 @@
 package io.github.siyual_park.application.server.dummy
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.util.Presence
 

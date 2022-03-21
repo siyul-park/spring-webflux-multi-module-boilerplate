@@ -30,8 +30,8 @@ class User(
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
 ) : Persistence<UserData, Long>(value, userRepository), UserEntity {
-    val id: Long?
-        get() = root[UserData::id]
+    val id: Long
+        get() = root[UserData::id] ?: throw EmptyResultDataAccessException(1)
 
     override val userId
         get() = root[UserData::id]
@@ -49,8 +49,6 @@ class User(
             return credential
         }
 
-        val id = id ?: throw EmptyResultDataAccessException(1)
-
         return userCredentialRepository.findByUserIdOrFail(id)
             .let { UserCredential(it, userCredentialRepository) }
             .also { it.link() }
@@ -59,7 +57,7 @@ class User(
 
     override suspend fun clear() {
         root.clear()
-        val id = id ?: return
+
         operator.executeAndAwait {
             userScopeRepository.deleteAllByUserId(id)
             userCredentialRepository.deleteByUserId(id)
@@ -74,13 +72,11 @@ class User(
         push: List<ScopeToken> = emptyList(),
         pop: List<ScopeToken> = emptyList()
     ): UserPrincipal {
-        val myScope = getResolvedScope()
+        val myScope = getResolvedScope().toList()
         val scope = mutableSetOf<ScopeToken>()
 
         scope.addAll(
-            myScope
-                .filter { token -> pop.firstOrNull { it.id == token.id } == null }
-                .toList()
+            myScope.filter { token -> pop.firstOrNull { it.id == token.id } == null }
         )
         scope.addAll(push.toList())
 
@@ -100,15 +96,12 @@ class User(
 
     fun getScope(): Flow<ScopeToken> {
         return flow {
-            val id = id
-            if (id != null) {
-                val scopeTokenIds = userScopeRepository.findAllByUserId(id)
-                    .map { it.scopeTokenId }
-                    .toList()
+            val scopeTokenIds = userScopeRepository.findAllByUserId(id)
+                .map { it.scopeTokenId }
+                .toList()
 
-                scopeTokenStorage.load(scopeTokenIds)
-                    .collect { emit(it) }
-            }
+            scopeTokenStorage.load(scopeTokenIds)
+                .collect { emit(it) }
         }
     }
 }

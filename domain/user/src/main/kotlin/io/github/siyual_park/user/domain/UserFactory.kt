@@ -16,6 +16,7 @@ import io.github.siyual_park.user.repository.UserRepository
 import io.github.siyual_park.user.repository.UserScopeRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
@@ -67,22 +68,20 @@ class UserFactory(
 
     private fun createDefaultScope(user: UserData): Flow<UserScopeData> {
         return flow {
-            createScope(
-                user,
-                listOf(scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("user:pack")))
-            )
+            val pack = listOf(scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("user:pack")))
+
+            emitAll(createScope(user, pack))
         }
     }
 
     private fun createScope(user: UserData, scope: Collection<ScopeToken>): Flow<UserScopeData> {
         return userScopeRepository.createAll(
-            scope.filter { it.id != null }
-                .map {
-                    UserScopeData(
-                        userId = user.id!!,
-                        scopeTokenId = it.id!!
-                    )
-                }
+            scope.map {
+                UserScopeData(
+                    userId = user.id!!,
+                    scopeTokenId = it.id
+                )
+            }
         )
     }
 }

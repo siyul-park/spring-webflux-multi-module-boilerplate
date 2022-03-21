@@ -171,7 +171,7 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val response = userControllerGateway.read(user.id!!)
+        val response = userControllerGateway.read(user.id)
 
         assertEquals(HttpStatus.OK, response.status)
 
@@ -194,7 +194,7 @@ class UserControllerTest @Autowired constructor(
             pop = listOf("users[self]:read", "users:read")
         )
 
-        val response = userControllerGateway.read(user.id!!)
+        val response = userControllerGateway.read(user.id)
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
@@ -206,8 +206,9 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(principal)
 
+        val name = RandomNameFactory.create(10)
         val request = UpdateUserRequest(
-            name = Optional.of(RandomNameFactory.create(10))
+            name = Optional.of(name)
         )
         val response = userControllerGateway.updateSelf(request)
 
@@ -216,7 +217,7 @@ class UserControllerTest @Autowired constructor(
         val responseUser = response.responseBody.awaitSingle()
 
         assertEquals(user.id, responseUser.id)
-        assertEquals(request.name, responseUser.name)
+        assertEquals(name, responseUser.name)
         assertNotNull(responseUser.createdAt)
         assertNotNull(responseUser.updatedAt)
     }
@@ -248,17 +249,18 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(principal)
 
+        val name = RandomNameFactory.create(10)
         val request = UpdateUserRequest(
-            name = Optional.of(RandomNameFactory.create(10))
+            name = Optional.of(name)
         )
-        val response = userControllerGateway.update(user.id!!, request)
+        val response = userControllerGateway.update(user.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
 
         val responseUser = response.responseBody.awaitSingle()
 
         assertEquals(user.id, responseUser.id)
-        assertEquals(request.name, responseUser.name)
+        assertEquals(name, responseUser.name)
         assertNotNull(responseUser.createdAt)
         assertNotNull(responseUser.updatedAt)
     }
@@ -273,11 +275,11 @@ class UserControllerTest @Autowired constructor(
             principal,
             pop = listOf("users[self]:update", "users:update")
         )
-
+        val name = RandomNameFactory.create(10)
         val request = UpdateUserRequest(
-            name = Optional.of(RandomNameFactory.create(10))
+            name = Optional.of(name)
         )
-        val response = userControllerGateway.update(user.id!!, request)
+        val response = userControllerGateway.update(user.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -322,7 +324,7 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val response = userControllerGateway.delete(user.id!!)
+        val response = userControllerGateway.delete(user.id)
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
@@ -341,7 +343,7 @@ class UserControllerTest @Autowired constructor(
             pop = listOf("users[self]:delete", "users:delete")
         )
 
-        val response = userControllerGateway.delete(user.id!!)
+        val response = userControllerGateway.delete(user.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -356,7 +358,7 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val response = userControllerGateway.read(otherUser.id!!)
+        val response = userControllerGateway.read(otherUser.id)
 
         assertEquals(HttpStatus.OK, response.status)
 
@@ -381,7 +383,7 @@ class UserControllerTest @Autowired constructor(
             pop = listOf("users:read")
         )
 
-        val response = userControllerGateway.read(otherUser.id!!)
+        val response = userControllerGateway.read(otherUser.id)
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
@@ -398,17 +400,18 @@ class UserControllerTest @Autowired constructor(
             push = listOf("users:update")
         )
 
+        val name = RandomNameFactory.create(10)
         val request = UpdateUserRequest(
-            name = Optional.of(RandomNameFactory.create(10))
+            name = Optional.of(name)
         )
-        val response = userControllerGateway.update(otherUser.id!!, request)
+        val response = userControllerGateway.update(otherUser.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
 
         val responseUser = response.responseBody.awaitSingle()
 
         assertEquals(otherUser.id, responseUser.id)
-        assertEquals(request.name, responseUser.name)
+        assertEquals(name, responseUser.name)
         assertNotNull(responseUser.createdAt)
         assertNotNull(responseUser.updatedAt)
     }
@@ -426,7 +429,7 @@ class UserControllerTest @Autowired constructor(
         val request = UpdateUserRequest(
             name = Optional.of(RandomNameFactory.create(10))
         )
-        val response = userControllerGateway.update(otherUser.id!!, request)
+        val response = userControllerGateway.update(otherUser.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -444,7 +447,7 @@ class UserControllerTest @Autowired constructor(
             push = listOf("users:delete")
         )
 
-        val response = userControllerGateway.delete(otherUser.id!!)
+        val response = userControllerGateway.delete(otherUser.id)
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
     }
@@ -459,7 +462,7 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val response = userControllerGateway.delete(otherUser.id!!)
+        val response = userControllerGateway.delete(otherUser.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

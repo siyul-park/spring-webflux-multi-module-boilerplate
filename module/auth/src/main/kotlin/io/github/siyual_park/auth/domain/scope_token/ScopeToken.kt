@@ -71,7 +71,7 @@ class ScopeToken(
     fun resolve(): Flow<ScopeToken> {
         val self = this
         return flow {
-            if (isPacked()) {
+            if (!isPacked()) {
                 emit(self)
             } else {
                 children()

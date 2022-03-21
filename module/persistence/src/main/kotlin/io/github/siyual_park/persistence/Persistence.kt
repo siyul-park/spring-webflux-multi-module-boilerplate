@@ -65,7 +65,7 @@ open class Persistence<T : Any, ID : Any>(
             return false
         }
 
-        return hashCode() == other.hashCode()
+        return raw() == other.raw()
     }
 
     override fun toString(): String {

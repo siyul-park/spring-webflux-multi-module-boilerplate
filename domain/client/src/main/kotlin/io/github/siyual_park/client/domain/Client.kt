@@ -32,8 +32,8 @@ class Client(
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
 ) : Persistence<ClientData, Long>(value, clientRepository), ClientEntity {
-    val id: Long?
-        get() = root[ClientData::id]
+    val id: Long
+        get() = root[ClientData::id] ?: throw EmptyResultDataAccessException(1)
 
     override val clientId
         get() = root[ClientData::id]
@@ -53,7 +53,7 @@ class Client(
 
     override suspend fun clear() {
         root.clear()
-        val id = id ?: return
+
         operator.executeAndAwait {
             clientScopeRepository.deleteAllByClientId(id)
             clientCredentialRepository.deleteByClientId(id)
@@ -90,8 +90,6 @@ class Client(
             return credential
         }
 
-        val id = id ?: throw EmptyResultDataAccessException(1)
-
         return clientCredentialRepository.findByClientIdOrFail(id)
             .let { ClientCredential(it, clientCredentialRepository) }
             .also { it.link() }
@@ -107,26 +105,20 @@ class Client(
 
     fun getScope(): Flow<ScopeToken> {
         return flow {
-            val id = id
-            if (id != null) {
-                val scopeTokenIds = clientScopeRepository.findAllByClientId(id)
-                    .map { it.scopeTokenId }
-                    .toList()
+            val scopeTokenIds = clientScopeRepository.findAllByClientId(id)
+                .map { it.scopeTokenId }
+                .toList()
 
-                scopeTokenStorage.load(scopeTokenIds)
-                    .collect { emit(it) }
-            }
+            scopeTokenStorage.load(scopeTokenIds)
+                .collect { emit(it) }
         }
     }
 
     suspend fun grant(scopeToken: ScopeToken) {
-        val clientId = id ?: throw EmptyResultDataAccessException(1)
-        val scopeTokenId = scopeToken.id ?: throw EmptyResultDataAccessException(1)
-
         clientScopeRepository.create(
             ClientScopeData(
-                clientId = clientId,
-                scopeTokenId = scopeTokenId
+                clientId = id,
+                scopeTokenId = scopeToken.id
             )
         )
     }
