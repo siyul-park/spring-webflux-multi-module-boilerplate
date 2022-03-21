@@ -6,7 +6,6 @@ dependencies {
 
     implementation(project(":module:data"))
     testImplementation(project(":module:data-test"))
-    implementation(project(":module:viewer"))
     implementation(project(":module:persistence"))
 }
 

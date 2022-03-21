@@ -1,4 +1,4 @@
-package io.github.siyual_park.viewer
+package io.github.siyual_park.search
 
 import kotlinx.coroutines.reactor.mono
 import org.springframework.http.codec.HttpMessageWriter
