@@ -9,10 +9,8 @@ import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.token.TokenIssuer
-import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.json.bind.RequestForm
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
@@ -62,7 +60,7 @@ class AuthController(
         }
 
         val scope = request.scope?.split(" ")
-            ?.let { scopeTokenStorage.load(where(ScopeTokenData::name).`in`(it), limit = null) }
+            ?.let { scopeTokenStorage.load(it) }
             ?.toSet()
         val tokens = tokenIssuer.issue(principal, scope)
 

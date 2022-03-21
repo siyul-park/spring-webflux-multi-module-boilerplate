@@ -91,7 +91,7 @@ class UserControllerTest @Autowired constructor(
 
         val response = userControllerGateway.readAll(
             name = "eq:${user.name}",
-            sort = "asc(created_at)",
+            sort = "asc:created_at",
             page = 0,
             perPage = 1
         )
@@ -121,7 +121,7 @@ class UserControllerTest @Autowired constructor(
 
         val response = userControllerGateway.readAll(
             name = "eq:${user.name}",
-            sort = "asc(created_at)",
+            sort = "asc:created_at",
             page = 0,
             perPage = 1
         )

@@ -3,9 +3,8 @@ package io.github.siyual_park.user.domain
 import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.entity.ScopeTokenData
+import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.data.event.AfterSaveEvent
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.user.entity.UserCredentialData
@@ -49,7 +48,9 @@ class UserFactory(
         }!!
 
     private suspend fun createUser(payload: CreateUserPayload): User {
-        return userMapper.map(userRepository.create(UserData(payload.name)))
+        return UserData(payload.name)
+            .let { userRepository.create(it) }
+            .let { userMapper.map(it) }
     }
 
     private suspend fun createCredential(user: User, payload: CreateUserPayload): UserCredentialData {
@@ -66,6 +67,6 @@ class UserFactory(
     }
 
     private suspend fun getDefaultScope(): ScopeToken {
-        return scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("user:pack"))
+        return scopeTokenStorage.loadOrFail("user:pack")
     }
 }

@@ -2,13 +2,12 @@ package io.github.siyual_park.client.domain
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.entity.ScopeTokenData
+import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.data.event.AfterSaveEvent
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.loadOrFail
 import org.springframework.stereotype.Component
@@ -47,7 +46,9 @@ class ClientFactory(
         }!!
 
     private suspend fun createClient(payload: CreateClientPayload): Client {
-        return clientMapper.map(clientRepository.create(ClientData(payload.name, payload.type, payload.origin)))
+        return ClientData(payload.name, payload.type, payload.origin)
+            .let { clientRepository.create(it) }
+            .let { clientMapper.map(it) }
     }
 
     private suspend fun createCredential(client: Client): ClientCredentialData? {
@@ -64,7 +65,7 @@ class ClientFactory(
     }
 
     private suspend fun getDefaultScope(): ScopeToken {
-        return scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("client:pack"))
+        return scopeTokenStorage.loadOrFail("client:pack")
     }
 
     private fun generateRandomSecret(length: Int): String {

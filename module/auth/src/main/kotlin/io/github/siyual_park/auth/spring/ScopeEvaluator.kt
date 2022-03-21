@@ -4,8 +4,7 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.entity.ScopeTokenData
-import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.persistence.loadOrFail
 import kotlinx.coroutines.runBlocking
 import org.springframework.security.access.PermissionEvaluator
@@ -64,7 +63,7 @@ class ScopeEvaluator(
     private suspend fun getScope(permission: Any?): Any? {
         return when (permission) {
             is String -> {
-                scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`(permission))
+                scopeTokenStorage.loadOrFail(permission)
             }
             is Collection<*> -> {
                 permission.map { getScope(it) }.toList()

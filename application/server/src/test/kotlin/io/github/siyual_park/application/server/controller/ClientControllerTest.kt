@@ -110,7 +110,7 @@ class ClientControllerTest @Autowired constructor(
 
         val response = clientControllerGateway.readAll(
             name = "eq:${client.name}",
-            sort = "asc(created_at)",
+            sort = "asc:created_at",
             page = 0,
             perPage = 1
         )
@@ -144,7 +144,7 @@ class ClientControllerTest @Autowired constructor(
 
         val response = clientControllerGateway.readAll(
             name = "eq:${client.name}",
-            sort = "asc(created_at)",
+            sort = "asc:created_at",
             page = 0,
             perPage = 1
         )

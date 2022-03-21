@@ -4,8 +4,6 @@ import io.github.siyual_park.application.server.helper.AuthorizationHeaderGenera
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.entity.ScopeTokenData
-import io.github.siyual_park.data.expansion.where
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 
@@ -21,8 +19,8 @@ class GatewayAuthorization(
         push: List<String> = emptyList(),
         pop: List<String> = emptyList()
     ) {
-        val push = scopeTokenStorage.load(where(ScopeTokenData::name).`in`(push), limit = null).toList()
-        val pop = scopeTokenStorage.load(where(ScopeTokenData::name).`in`(pop), limit = null).toList()
+        val push = scopeTokenStorage.load(push).toList()
+        val pop = scopeTokenStorage.load(pop).toList()
 
         val scope = mutableSetOf<ScopeToken>()
 

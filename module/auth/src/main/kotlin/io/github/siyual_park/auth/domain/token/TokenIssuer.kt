@@ -4,9 +4,8 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.entity.ScopeTokenData
+import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.exception.RequiredPermissionException
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.persistence.loadOrFail
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -24,8 +23,8 @@ class TokenIssuer(
     private val refreshTokenAge: Duration = Duration.ofDays(30)
 ) {
     suspend fun issue(principal: Principal, scope: Set<ScopeToken>? = null): TokenContainer {
-        val accessTokenCreateScope = scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("access-token:create"))
-        val refreshTokenCreateScope = scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("refresh-token:create"))
+        val accessTokenCreateScope = scopeTokenStorage.loadOrFail("access-token:create")
+        val refreshTokenCreateScope = scopeTokenStorage.loadOrFail("refresh-token:create")
 
         if (!authorizator.authorize(principal, accessTokenCreateScope)) {
             throw RequiredPermissionException()

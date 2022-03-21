@@ -15,7 +15,7 @@ class SortParser<T : Any>(
     private val clazz: KClass<T>,
     private val objectMapper: ObjectMapper
 ) {
-    private val regex = Regex("(\\w+)\\((\\w+)\\)")
+    private val regex = Regex("(\\w+):(\\w+)")
 
     fun parseFromEncoded(sort: String): Sort {
         return parse(URLDecoder.decode(sort, "UTF-8"))

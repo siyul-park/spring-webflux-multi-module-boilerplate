@@ -3,8 +3,6 @@ package io.github.siyual_park.auth.domain.authorization
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.entity.ScopeTokenData
-import io.github.siyual_park.data.expansion.where
 import org.springframework.stereotype.Component
 
 @Suppress("UNCHECKED_CAST")
@@ -86,7 +84,7 @@ class Authorizator(
         scopeToken: String,
         targetDomainObject: Any? = null
     ): Boolean {
-        return scopeTokenStorage.load(where(ScopeTokenData::name).`is`(scopeToken))?.let {
+        return scopeTokenStorage.load(scopeToken)?.let {
             authorize(principal, it, targetDomainObject)
         } ?: return false
     }
