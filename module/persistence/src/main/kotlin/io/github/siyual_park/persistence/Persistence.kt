@@ -61,6 +61,7 @@ open class Persistence<T : Any, ID : Any>(
             }
 
             if (updated != null) {
+                root.raw(updated)
                 eventPublisher?.publish(AfterSaveEvent(this))
             }
 
