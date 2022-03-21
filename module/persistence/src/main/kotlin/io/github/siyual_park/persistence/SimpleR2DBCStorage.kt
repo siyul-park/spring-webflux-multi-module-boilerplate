@@ -12,7 +12,7 @@ import org.springframework.data.relational.core.query.CriteriaDefinition
 class SimpleR2DBCStorage<T : Any, ID : Any, P : Persistence<T, ID>>(
     private val repository: R2DBCRepository<T, ID>,
     private val mapper: suspend (T) -> P
-) : R2DBCStorage<T, ID, P> {
+) : R2DBCStorage<P, ID> {
     override suspend fun load(id: ID): P? {
         return repository.findById(id)
             ?.let { mapper(it) }

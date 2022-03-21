@@ -96,7 +96,7 @@ class ScopeToken(
         }
     }
 
-    fun children(): Flow<ScopeToken> {
+    private fun children(): Flow<ScopeToken> {
         return flow {
             val relations = scopeRelationRepository.findAllByParentId(id)
             scopeTokenStorage.load(relations.map { it.childId }.toList())

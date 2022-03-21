@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 class UserStorage(
     private val userRepository: UserRepository,
     private val userMapper: UserMapper
-) : R2DBCStorage<UserData, Long, User> by SimpleR2DBCStorage(
+) : R2DBCStorage<User, Long> by SimpleR2DBCStorage(
     userRepository,
     { userMapper.map(it) }
 ) {

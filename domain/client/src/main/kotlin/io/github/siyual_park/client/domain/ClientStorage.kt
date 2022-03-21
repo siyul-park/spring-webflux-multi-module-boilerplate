@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 class ClientStorage(
     private val clientRepository: ClientRepository,
     private val clientMapper: ClientMapper
-) : R2DBCStorage<ClientData, Long, Client> by SimpleR2DBCStorage(
+) : R2DBCStorage<Client, Long> by SimpleR2DBCStorage(
     clientRepository,
     { clientMapper.map(it) }
 ) {
