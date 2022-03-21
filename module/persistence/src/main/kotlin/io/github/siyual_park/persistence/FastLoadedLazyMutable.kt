@@ -1,6 +1,5 @@
 package io.github.siyual_park.persistence
 
-import io.github.siyual_park.data.patch.Patch
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 
@@ -25,6 +24,10 @@ class FastLoadedLazyMutable<T : Any>(
         commands[property as KMutableProperty1<T, Any?>] = value
     }
 
+    fun raw(value: T) {
+        this.value = value
+    }
+
     override fun raw(): T {
         return value
     }
@@ -37,17 +40,10 @@ class FastLoadedLazyMutable<T : Any>(
         commands = mutableMapOf()
     }
 
-    override fun toPatch(): Patch<T> {
-        return Patch.with {
-            val updateCommands = commands
-            commands = mutableMapOf()
-
-            updateCommands.forEach { (property, command) ->
-                property.set(it, command)
-            }
-
-            value = it
-        }
+    override fun checkout(): Map<KMutableProperty1<T, Any?>, Any?> {
+        val updateCommands = commands
+        commands = mutableMapOf()
+        return updateCommands
     }
 }
 

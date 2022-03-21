@@ -1,6 +1,5 @@
 package io.github.siyual_park.persistence
 
-import io.github.siyual_park.data.patch.Patch
 import java.util.concurrent.Semaphore
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
@@ -49,17 +48,10 @@ class LazyLoadedLoadedLazyMutable<T : Any>(
         commands = mutableMapOf()
     }
 
-    override fun toPatch(): Patch<T> {
-        return Patch.with { newone ->
-            val updateCommands = commands
-            commands = mutableMapOf()
-
-            updateCommands.forEach { (property, command) ->
-                property.set(newone, command)
-            }
-
-            cachedValue = newone
-        }
+    override fun checkout(): Map<KMutableProperty1<T, Any?>, Any?> {
+        val updateCommands = commands
+        commands = mutableMapOf()
+        return updateCommands
     }
 }
 

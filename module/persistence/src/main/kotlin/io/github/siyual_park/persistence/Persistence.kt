@@ -2,6 +2,7 @@ package io.github.siyual_park.persistence
 
 import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.data.repository.Repository
+import io.github.siyual_park.data.repository.update
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
@@ -51,7 +52,14 @@ open class Persistence<T : Any, ID : Any>(
 
     override suspend fun sync(): Boolean {
         return if (root.isUpdated()) {
-            val updated = repository.update(root.raw(), root.toPatch())
+            val updated = repository.update(root.raw()) {
+                val commands = root.checkout()
+                commands.forEach { (property, command) ->
+                    property.set(it, command)
+                }
+                root.raw(it)
+            }
+
             if (updated != null) {
                 eventPublisher?.publish(AfterSaveEvent(this))
             }

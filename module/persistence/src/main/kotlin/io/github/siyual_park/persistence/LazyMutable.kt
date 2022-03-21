@@ -1,6 +1,5 @@
 package io.github.siyual_park.persistence
 
-import io.github.siyual_park.data.patch.Patch
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 
@@ -9,10 +8,12 @@ interface LazyMutable<T : Any> {
     operator fun <V : Any?> set(property: KMutableProperty1<T, V>, value: V)
 
     fun raw(): T
+
     fun isUpdated(): Boolean
 
     fun clear()
-    fun toPatch(): Patch<T>
+
+    fun checkout(): Map<KMutableProperty1<T, Any?>, Any?>
 
     companion object
 }
