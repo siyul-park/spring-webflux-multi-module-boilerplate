@@ -1,7 +1,7 @@
 package io.github.siyual_park.application.server.gateway
 
 import io.github.siyual_park.application.server.dto.request.CreateClientRequest
-import io.github.siyual_park.application.server.dto.request.MutableClientData
+import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
 import org.springframework.http.HttpHeaders
@@ -63,7 +63,7 @@ class ClientControllerGateway(
             .returnResult(ClientInfo::class.java)
     }
 
-    suspend fun updateSelf(request: MutableClientData): FluxExchangeResult<ClientInfo> {
+    suspend fun updateSelf(request: UpdateClientRequest): FluxExchangeResult<ClientInfo> {
         return client.patch()
             .uri("/clients/self")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -88,7 +88,7 @@ class ClientControllerGateway(
             .returnResult(ClientInfo::class.java)
     }
 
-    suspend fun update(clientId: Long, request: MutableClientData): FluxExchangeResult<ClientInfo> {
+    suspend fun update(clientId: Long, request: UpdateClientRequest): FluxExchangeResult<ClientInfo> {
         return client.patch()
             .uri("/clients/$clientId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())

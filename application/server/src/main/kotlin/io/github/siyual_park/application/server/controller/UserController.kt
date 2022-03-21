@@ -1,27 +1,20 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
-import io.github.siyual_park.application.server.dto.request.MutableUserData
+import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.UserInfo
-import io.github.siyual_park.json.patch.JsonMergePatch
-import io.github.siyual_park.json.patch.PatchConverter
-import io.github.siyual_park.json.patch.convert
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.reader.filter.RHSFilterParserFactory
-import io.github.siyual_park.reader.finder.findByIdOrFail
-import io.github.siyual_park.reader.pagination.OffsetPage
-import io.github.siyual_park.reader.pagination.OffsetPageQuery
-import io.github.siyual_park.reader.sort.SortParserFactory
+import io.github.siyual_park.persistence.loadOrFail
+import io.github.siyual_park.search.filter.RHSFilterParserFactory
+import io.github.siyual_park.search.pagination.OffsetPage
+import io.github.siyual_park.search.pagination.OffsetPaginator
+import io.github.siyual_park.search.sort.SortParserFactory
 import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.UserFactory
-import io.github.siyual_park.user.domain.UserFinder
-import io.github.siyual_park.user.domain.UserPaginatorFactory
-import io.github.siyual_park.user.domain.UserRemover
-import io.github.siyual_park.user.domain.UserUpdater
+import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.auth.UserPrincipal
-import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
-import io.github.siyual_park.user.entity.User
+import io.github.siyual_park.user.entity.UserData
 import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -43,18 +36,15 @@ import javax.validation.Valid
 @RequestMapping("/users")
 class UserController(
     private val userFactory: UserFactory,
-    private val userRemover: UserRemover,
-    private val userFinder: UserFinder,
-    private val userUpdater: UserUpdater,
-    private val userPaginatorFactory: UserPaginatorFactory,
-    private val userPrincipalExchanger: UserPrincipalExchanger,
-    private val patchConverter: PatchConverter,
+    private val userStorage: UserStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
     private val mapperManager: MapperManager
 ) {
-    private val rhsFilterParser = rhsFilterParserFactory.create(User::class)
-    private val sortParser = sortParserFactory.create(User::class)
+    private val rhsFilterParser = rhsFilterParserFactory.create(UserData::class)
+    private val sortParser = sortParserFactory.create(UserData::class)
+
+    private val offsetPaginator = OffsetPaginator(userStorage)
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
@@ -82,22 +72,19 @@ class UserController(
     ): OffsetPage<UserInfo> {
         val criteria = rhsFilterParser.parseFromProperty(
             mapOf(
-                User::id to listOf(id),
-                User::name to listOf(name),
-                User::createdAt to listOf(createdAt),
-                User::updatedAt to listOf(updatedAt)
+                UserData::id to listOf(id),
+                UserData::name to listOf(name),
+                UserData::createdAt to listOf(createdAt),
+                UserData::updatedAt to listOf(updatedAt)
             )
         )
-        val paginator = userPaginatorFactory.create(
+        val offsetPage = offsetPaginator.paginate(
             criteria = criteria,
-            sort = sort?.let { sortParser.parse(it) }
+            sort = sort?.let { sortParser.parse(it) },
+            perPage = perPage ?: 15,
+            page = page ?: 0
         )
-        val offsetPage = paginator.paginate(
-            OffsetPageQuery(
-                page = page ?: 0,
-                perPage = perPage ?: 15
-            )
-        )
+
         return offsetPage.mapDataAsync { mapperManager.map(it) }
     }
 
@@ -105,7 +92,7 @@ class UserController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'users[self]:read')")
     suspend fun readSelf(@AuthenticationPrincipal principal: UserPrincipal): UserInfo {
-        val user = userPrincipalExchanger.exchange(principal)
+        val user = userStorage.loadOrFail(principal.userId)
         return mapperManager.map(user)
     }
 
@@ -114,28 +101,29 @@ class UserController(
     @PreAuthorize("hasPermission(null, 'users[self]:update')")
     suspend fun updateSelf(
         @AuthenticationPrincipal principal: UserPrincipal,
-        @Valid @RequestBody patch: JsonMergePatch<MutableUserData>
+        @Valid @RequestBody request: UpdateUserRequest
     ): UserInfo {
-        return userUpdater.updateById(
-            principal.userId,
-            patchConverter.convert(patch)
-        )
-            .let { mapperManager.map(it) }
+        val user = userStorage.loadOrFail(principal.userId)
+
+        request.name?.ifPresent { user.name = it }
+
+        user.sync()
+        return mapperManager.map(user)
     }
 
     @DeleteMapping("/self")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'users[self]:delete')")
     suspend fun deleteSelf(@AuthenticationPrincipal principal: UserPrincipal) {
-        val user = userPrincipalExchanger.exchange(principal)
-        userRemover.remove(user, soft = true)
+        val user = userStorage.loadOrFail(principal.userId)
+        user.clear()
     }
 
     @GetMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
     suspend fun read(@PathVariable("user-id") userId: Long): UserInfo {
-        val user = userFinder.findByIdOrFail(userId)
+        val user = userStorage.loadOrFail(userId)
         return mapperManager.map(user)
     }
 
@@ -144,20 +132,21 @@ class UserController(
     @PreAuthorize("hasPermission({null, #userId}, {'users:update', 'users[self]:update'})")
     suspend fun update(
         @PathVariable("user-id") userId: Long,
-        @Valid @RequestBody patch: JsonMergePatch<MutableUserData>
+        @Valid @RequestBody request: UpdateUserRequest
     ): UserInfo {
-        return userUpdater.updateById(
-            userId,
-            patchConverter.convert(patch)
-        )
-            .let { mapperManager.map(it) }
+        val user = userStorage.loadOrFail(userId)
+
+        request.name?.ifPresent { user.name = it }
+
+        user.sync()
+        return mapperManager.map(user)
     }
 
     @DeleteMapping("/{user-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #userId}, {'users:delete', 'users[self]:delete'})")
     suspend fun delete(@PathVariable("user-id") userId: Long) {
-        val user = userFinder.findByIdOrFail(userId)
-        userRemover.remove(user, soft = true)
+        val user = userStorage.loadOrFail(userId)
+        user.clear()
     }
 }

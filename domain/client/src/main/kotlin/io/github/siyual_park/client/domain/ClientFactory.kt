@@ -1,17 +1,16 @@
 package io.github.siyual_park.client.domain
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
-import io.github.siyual_park.auth.entity.ScopeToken
-import io.github.siyual_park.client.entity.Client
-import io.github.siyual_park.client.entity.ClientCredential
-import io.github.siyual_park.client.entity.ClientScope
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.entity.ScopeTokenData
+import io.github.siyual_park.client.entity.ClientCredentialData
+import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.event.AfterSaveEvent
+import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
+import io.github.siyual_park.persistence.loadOrFail
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -21,58 +20,55 @@ import java.util.Random
 class ClientFactory(
     private val clientRepository: ClientRepository,
     private val clientCredentialRepository: ClientCredentialRepository,
-    private val clientScopeRepository: ClientScopeRepository,
-    private val scopeTokenFinder: ScopeTokenFinder,
+    private val clientMapper: ClientMapper,
+    private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
 ) {
     suspend fun create(payload: CreateClientPayload): Client =
         operator.executeAndAwait {
-            createClient(payload).also {
-                createCredential(it)
-                if (payload.scope == null) {
-                    createDefaultScope(it).collect()
-                } else {
-                    createScope(it, payload.scope).collect()
+            val client = createClient(payload)
+
+            client.link()
+            createCredential(client)
+
+            if (payload.scope == null) {
+                val scope = getDefaultScope()
+                client.grant(scope)
+            } else {
+                payload.scope.forEach {
+                    client.grant(it)
                 }
-            }.also { eventPublisher.publish(AfterSaveEvent(it)) }
+            }
+
+            eventPublisher.publish(AfterSaveEvent(client))
+
+            client
         }!!
 
     private suspend fun createClient(payload: CreateClientPayload): Client {
-        return clientRepository.create(Client(payload.name, payload.type, payload.origin))
+        return clientMapper.map(clientRepository.create(ClientData(payload.name, payload.type, payload.origin)))
     }
 
-    private suspend fun createCredential(client: Client): ClientCredential? {
+    private suspend fun createCredential(client: Client): ClientCredentialData? {
         if (client.isPublic()) {
             return null
         }
 
         return clientCredentialRepository.create(
-            ClientCredential(
-                clientId = client.id!!,
+            ClientCredentialData(
+                clientId = client.id,
                 secret = generateRandomSecret(64)
             )
         )
     }
 
-    private suspend fun createDefaultScope(client: Client): Flow<ClientScope> {
-        return createScope(client, listOf(scopeTokenFinder.findByNameOrFail("client:pack")))
-    }
-
-    private fun createScope(client: Client, scope: Collection<ScopeToken>): Flow<ClientScope> {
-        return clientScopeRepository.createAll(
-            scope.filter { it.id != null }
-                .map {
-                    ClientScope(
-                        clientId = client.id!!,
-                        scopeTokenId = it.id!!
-                    )
-                }
-        )
+    private suspend fun getDefaultScope(): ScopeToken {
+        return scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("client:pack"))
     }
 
     private fun generateRandomSecret(length: Int): String {
-        val chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%&"
+        val chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         val random = Random()
         val stringBuilder = StringBuilder(length)
         for (i in 0 until length) {

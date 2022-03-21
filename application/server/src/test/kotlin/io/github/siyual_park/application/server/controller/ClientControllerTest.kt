@@ -1,6 +1,6 @@
 package io.github.siyual_park.application.server.controller
 
-import io.github.siyual_park.application.server.dto.request.MutableClientData
+import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
@@ -8,13 +8,10 @@ import io.github.siyual_park.application.server.dummy.RandomNameFactory
 import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.client.domain.ClientFactory
-import io.github.siyual_park.client.domain.ClientScopeFinder
-import io.github.siyual_park.client.domain.auth.ClientPrincipalExchanger
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.spring.test.CoroutineTest
 import io.github.siyual_park.spring.test.IntegrationTest
 import io.github.siyual_park.user.domain.UserFactory
-import io.github.siyual_park.user.domain.auth.UserPrincipalExchanger
 import io.github.siyual_park.util.Presence
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -25,23 +22,20 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import java.util.Optional
 
 @IntegrationTest
 class ClientControllerTest @Autowired constructor(
     private val gatewayAuthorization: GatewayAuthorization,
     private val clientControllerGateway: ClientControllerGateway,
     private val userFactory: UserFactory,
-    private val clientFactory: ClientFactory,
-    private val userPrincipalExchanger: UserPrincipalExchanger,
-    private val clientPrincipalExchanger: ClientPrincipalExchanger,
-    private val clientScopeFinder: ClientScopeFinder
+    private val clientFactory: ClientFactory
 ) : CoroutineTest() {
 
     @Test
     fun `POST clients, status = 201`() = blocking {
         val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-            .let { clientPrincipalExchanger.exchange(it) }
+            .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -77,8 +71,7 @@ class ClientControllerTest @Autowired constructor(
     @Test
     fun `POST clients, status = 409`() = blocking {
         val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-            .let { clientPrincipalExchanger.exchange(it) }
+            .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -95,8 +88,7 @@ class ClientControllerTest @Autowired constructor(
     @Test
     fun `POST clients, status = 403`() = blocking {
         val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-            .let { clientPrincipalExchanger.exchange(it) }
+            .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(principal)
 
@@ -109,8 +101,7 @@ class ClientControllerTest @Autowired constructor(
     @Test
     fun `GET clients, status = 201`() = blocking {
         val principal = DummyCreateUserPayload.create()
-            .let { userFactory.create(it) }
-            .let { userPrincipalExchanger.exchange(it) }
+            .let { userFactory.create(it).toPrincipal() }
 
         val client = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
@@ -141,8 +132,7 @@ class ClientControllerTest @Autowired constructor(
     @Test
     fun `GET clients, status = 403`() = blocking {
         val principal = DummyCreateUserPayload.create()
-            .let { userFactory.create(it) }
-            .let { userPrincipalExchanger.exchange(it) }
+            .let { userFactory.create(it).toPrincipal() }
 
         val client = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
@@ -165,7 +155,7 @@ class ClientControllerTest @Autowired constructor(
     fun `GET clients_self, status = 200, when use client principal`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
-        val principal = clientPrincipalExchanger.exchange(client)
+        val principal = client.toPrincipal()
 
         gatewayAuthorization.setPrincipal(principal)
 
@@ -190,7 +180,7 @@ class ClientControllerTest @Autowired constructor(
         val user = DummyCreateUserPayload.create()
             .let { userFactory.create(it) }
 
-        val principal = userPrincipalExchanger.exchange(user, client)
+        val principal = user.toPrincipal(clientEntity = client)
 
         gatewayAuthorization.setPrincipal(principal)
 
@@ -211,8 +201,7 @@ class ClientControllerTest @Autowired constructor(
     @Test
     fun `GET clients_self, status = 403`() = blocking {
         val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-            .let { clientPrincipalExchanger.exchange(it) }
+            .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -228,13 +217,13 @@ class ClientControllerTest @Autowired constructor(
     fun `PATCH clients_self, status = 403`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
-        val principal = clientPrincipalExchanger.exchange(client)
+        val principal = client.toPrincipal()
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val request = MutableClientData(
-            name = RandomNameFactory.create(10),
-            origin = client.origin
+        val request = UpdateClientRequest(
+            name = Optional.of(RandomNameFactory.create(10)),
+            origin = Optional.of(client.origin)
         )
         val response = clientControllerGateway.updateSelf(request)
 
@@ -245,7 +234,7 @@ class ClientControllerTest @Autowired constructor(
     fun `DELETE clients_self, status = 200`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
-        val principal = clientPrincipalExchanger.exchange(client)
+        val principal = client.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -256,7 +245,7 @@ class ClientControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
-        val clientScope = clientScopeFinder.findAllWithResolvedByClient(client).toSet()
+        val clientScope = client.getScope().toSet()
         assertEquals(0, clientScope.size)
     }
 
@@ -264,7 +253,7 @@ class ClientControllerTest @Autowired constructor(
     fun `DELETE clients_self, status = 403`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
-        val principal = clientPrincipalExchanger.exchange(client)
+        val principal = client.toPrincipal()
 
         gatewayAuthorization.setPrincipal(principal)
 
@@ -277,14 +266,14 @@ class ClientControllerTest @Autowired constructor(
     fun `GET clients_{client_id}, status = 200`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
-        val principal = clientPrincipalExchanger.exchange(client)
+        val principal = client.toPrincipal()
 
         val otherPayload = DummyCreateClientPayload.create()
         val otherClient = clientFactory.create(otherPayload)
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val response = clientControllerGateway.read(otherClient.id!!)
+        val response = clientControllerGateway.read(otherClient.id)
 
         assertEquals(HttpStatus.OK, response.status)
 
@@ -302,7 +291,7 @@ class ClientControllerTest @Autowired constructor(
     fun `GET clients_{client_id}, status = 403`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
-        val principal = clientPrincipalExchanger.exchange(client)
+        val principal = client.toPrincipal()
 
         val otherPayload = DummyCreateClientPayload.create()
         val otherClient = clientFactory.create(otherPayload)
@@ -312,7 +301,7 @@ class ClientControllerTest @Autowired constructor(
             pop = listOf("clients:read")
         )
 
-        val response = clientControllerGateway.read(otherClient.id!!)
+        val response = clientControllerGateway.read(otherClient.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -320,8 +309,7 @@ class ClientControllerTest @Autowired constructor(
     @Test
     fun `PATCH clients_{client_id}, status = 200`() = blocking {
         val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-            .let { clientPrincipalExchanger.exchange(it) }
+            .let { clientFactory.create(it).toPrincipal() }
 
         val otherClient = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
@@ -331,20 +319,20 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:update")
         )
 
-        val request = MutableClientData(
-            name = RandomNameFactory.create(10),
-            origin = otherClient.origin
+        val name = RandomNameFactory.create(10)
+        val request = UpdateClientRequest(
+            name = Optional.of(name),
         )
-        val response = clientControllerGateway.update(otherClient.id!!, request)
+        val response = clientControllerGateway.update(otherClient.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
 
         val responseClient = response.responseBody.awaitSingle()
 
         assertEquals(otherClient.id, responseClient.id)
-        assertEquals(request.name, responseClient.name)
+        assertEquals(name, responseClient.name)
         assertEquals(otherClient.type, responseClient.type)
-        assertEquals(request.origin, responseClient.origin)
+        assertEquals(otherClient.origin, responseClient.origin)
         assertNotNull(responseClient.createdAt)
         assertNotNull(responseClient.updatedAt)
     }
@@ -352,19 +340,18 @@ class ClientControllerTest @Autowired constructor(
     @Test
     fun `PATCH clients_{client_id}, status = 403`() = blocking {
         val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-            .let { clientPrincipalExchanger.exchange(it) }
+            .let { clientFactory.create(it).toPrincipal() }
 
         val otherClient = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val request = MutableClientData(
-            name = RandomNameFactory.create(10),
-            origin = otherClient.origin
+        val request = UpdateClientRequest(
+            name = Optional.of(RandomNameFactory.create(10)),
+            origin = Optional.of(otherClient.origin)
         )
-        val response = clientControllerGateway.update(otherClient.id!!, request)
+        val response = clientControllerGateway.update(otherClient.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -373,7 +360,7 @@ class ClientControllerTest @Autowired constructor(
     fun `DELEATE clients_{client_id}, status = 200`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
-        val principal = clientPrincipalExchanger.exchange(client)
+        val principal = client.toPrincipal()
 
         val otherPayload = DummyCreateClientPayload.create()
         val otherClient = clientFactory.create(otherPayload)
@@ -383,11 +370,11 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:delete")
         )
 
-        val response = clientControllerGateway.delete(otherClient.id!!)
+        val response = clientControllerGateway.delete(otherClient.id)
 
         assertEquals(HttpStatus.NO_CONTENT, response.status)
 
-        val clientScope = clientScopeFinder.findAllWithResolvedByClient(otherClient).toSet()
+        val clientScope = otherClient.getScope().toSet()
         assertEquals(0, clientScope.size)
     }
 
@@ -395,14 +382,14 @@ class ClientControllerTest @Autowired constructor(
     fun `DELEATE clients_{client_id}, status = 403`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
-        val principal = clientPrincipalExchanger.exchange(client)
+        val principal = client.toPrincipal()
 
         val otherPayload = DummyCreateClientPayload.create()
         val otherClient = clientFactory.create(otherPayload)
 
         gatewayAuthorization.setPrincipal(principal)
 
-        val response = clientControllerGateway.delete(otherClient.id!!)
+        val response = clientControllerGateway.delete(otherClient.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

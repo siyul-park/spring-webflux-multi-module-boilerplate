@@ -1,7 +1,6 @@
 package io.github.siyual_park.auth.domain.token
 
-import io.github.siyual_park.auth.entity.ScopeToken
-import io.github.siyual_park.auth.entity.ids
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
@@ -29,7 +28,7 @@ class TokenEncoder(
 
         return Jwts.builder().apply {
             claim("jti", UUID.randomUUID().toString())
-            claim("scope", filteredScope.ids().joinToString(" "))
+            claim("scope", filteredScope.mapNotNull { it.id }.joinToString(" "))
             setIssuedAt(Date.from(now))
             setExpiration(Date.from(now.plus(age)))
             signWith(secretKey, SignatureAlgorithm.HS256)

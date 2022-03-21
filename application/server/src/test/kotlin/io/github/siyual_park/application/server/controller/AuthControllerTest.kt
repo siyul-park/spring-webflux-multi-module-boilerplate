@@ -37,7 +37,7 @@ class AuthControllerTest @Autowired constructor(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.name,
                 password = createUserPayload.password,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
 
@@ -65,7 +65,7 @@ class AuthControllerTest @Autowired constructor(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.name,
                 password = otherUserRequest.password,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
 
@@ -83,27 +83,27 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.name,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
         val case2 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 password = createUserPayload.password,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
         val case3 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
         val case4 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.PASSWORD,
                 refreshToken = "dummy_token",
-                clientId = client.id!!
+                clientId = client.id
             )
         )
 
@@ -121,7 +121,7 @@ class AuthControllerTest @Autowired constructor(
         val tokenResponse = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.CLIENT_CREDENTIALS,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
 
@@ -147,7 +147,7 @@ class AuthControllerTest @Autowired constructor(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.name,
                 password = createUserPayload.password,
-                clientId = client.id!!
+                clientId = client.id
             )
         ).responseBody.awaitSingle()
 
@@ -155,7 +155,7 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 refreshToken = tokensByPassword.refreshToken,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
 
@@ -178,7 +178,7 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 refreshToken = "invalid_token",
-                clientId = client.id!!
+                clientId = client.id
             )
         )
 
@@ -196,20 +196,20 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 username = createUserPayload.name,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
         val case2 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 password = createUserPayload.password,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
         val case3 = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
-                clientId = client.id!!
+                clientId = client.id
             )
         )
 

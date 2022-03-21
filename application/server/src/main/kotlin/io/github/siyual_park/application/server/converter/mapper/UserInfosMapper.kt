@@ -3,7 +3,7 @@ package io.github.siyual_park.application.server.converter.mapper
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
-import io.github.siyual_park.user.entity.User
+import io.github.siyual_park.user.domain.User
 import org.springframework.stereotype.Component
 
 @Component

@@ -1,8 +1,6 @@
-plugins {
-    application
-}
-
 dependencies {
+    implementation(project(":dependency:jackson"))
+    implementation(project(":dependency:json-tools"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

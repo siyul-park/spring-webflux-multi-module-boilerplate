@@ -1,6 +1,6 @@
 package io.github.siyual_park.auth.spring
 
-import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import org.springframework.security.core.GrantedAuthority
 
 class GrantedAuthorityAdapter(

@@ -1,7 +1,7 @@
 package io.github.siyual_park.user.domain.auth
 
 import io.github.siyual_park.auth.domain.Principal
-import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.user.entity.UserEntity
 

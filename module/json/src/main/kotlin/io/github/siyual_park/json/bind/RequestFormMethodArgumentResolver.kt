@@ -5,6 +5,7 @@ import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.BindingContext
 import org.springframework.web.server.ServerWebExchange
+import org.springframework.web.server.ServerWebInputException
 import reactor.core.publisher.Mono
 
 @Component
@@ -22,11 +23,15 @@ class RequestFormMethodArgumentResolver(
     ): Mono<Any> {
         return exchange.formData
             .map {
-                val map = mutableMapOf<String, String?>()
-                it.map { (key, value) ->
-                    map[key] = value.firstOrNull()
+                try {
+                    val map = mutableMapOf<String, String?>()
+                    it.map { (key, value) ->
+                        map[key] = value.firstOrNull()
+                    }
+                    objectMapper.convertValue(map, parameter.parameterType)
+                } catch (e: Exception) {
+                    throw ServerWebInputException(e.message ?: "")
                 }
-                objectMapper.convertValue(map, parameter.parameterType)
             }.doOnNext {
                 val hints = extractValidationHints(parameter)
                 if (hints != null) {

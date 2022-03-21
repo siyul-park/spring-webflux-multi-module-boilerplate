@@ -21,6 +21,12 @@ sealed class Presence<T : Any?> {
         }
     }
 
+    fun ifPresent(action: (T) -> Unit) {
+        if (this is Exist) {
+            action(this.value)
+        }
+    }
+
     fun orElseGet(func: () -> T): T {
         return when (this) {
             is Exist -> this.value

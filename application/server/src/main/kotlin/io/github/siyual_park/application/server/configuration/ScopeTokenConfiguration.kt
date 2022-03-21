@@ -1,39 +1,50 @@
 package io.github.siyual_park.application.server.configuration
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenGenerator
-import io.github.siyual_park.auth.entity.ScopeToken
-import org.springframework.beans.factory.annotation.Autowired
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
+import kotlinx.coroutines.runBlocking
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.event.EventListener
+import org.springframework.core.annotation.Order
 
 @Configuration
-class ScopeTokenConfiguration {
-    @Autowired(required = true)
-    fun configScopeToken(scopeTokenGenerator: ScopeTokenGenerator) {
-        val userScope = ScopeToken(name = "user:pack")
-        val clientScope = ScopeToken(name = "client:pack")
+class ScopeTokenConfiguration(
+    private val scopeTokenFactory: ScopeTokenFactory
+) {
 
-        scopeTokenGenerator
-            .register(userScope)
-            .register(clientScope)
+    @EventListener(ApplicationReadyEvent::class)
+    @Order(11)
+    fun generate() = runBlocking {
+        val userScope = scopeTokenFactory.upsert(name = "user:pack")
+        val clientScope = scopeTokenFactory.upsert(name = "client:pack")
 
-            .register(ScopeToken(name = "token:create"), listOf(clientScope))
-            .register(ScopeToken(name = "access-token:create"), listOf(userScope, clientScope))
-            .register(ScopeToken(name = "refresh-token:create"), listOf(userScope))
+        scopeTokenFactory.upsert(name = "token:create").also { grant(it, listOf(clientScope)) }
+        scopeTokenFactory.upsert(name = "access-token:create").also { grant(it, listOf(userScope, clientScope)) }
+        scopeTokenFactory.upsert(name = "refresh-token:create").also { grant(it, listOf(userScope)) }
 
-            .register(ScopeToken(name = "users:create"), listOf(clientScope))
-            .register(ScopeToken(name = "users:read"), listOf(userScope, clientScope))
-            .register(ScopeToken(name = "users:update"))
-            .register(ScopeToken(name = "users:delete"))
-            .register(ScopeToken(name = "users[self]:read"), listOf(userScope))
-            .register(ScopeToken(name = "users[self]:update"), listOf(userScope))
-            .register(ScopeToken(name = "users[self]:delete"), listOf(userScope))
+        scopeTokenFactory.upsert(name = "users:create").also { grant(it, listOf(clientScope)) }
+        scopeTokenFactory.upsert(name = "users:read").also { grant(it, listOf(userScope, clientScope)) }
+        scopeTokenFactory.upsert(name = "users:update")
+        scopeTokenFactory.upsert(name = "users:delete")
+        scopeTokenFactory.upsert(name = "users[self]:read").also { grant(it, listOf(userScope)) }
+        scopeTokenFactory.upsert(name = "users[self]:update").also { grant(it, listOf(userScope)) }
+        scopeTokenFactory.upsert(name = "users[self]:delete").also { grant(it, listOf(userScope)) }
 
-            .register(ScopeToken(name = "clients:create"))
-            .register(ScopeToken(name = "clients:read"), listOf(userScope, clientScope))
-            .register(ScopeToken(name = "clients:update"))
-            .register(ScopeToken(name = "clients:delete"))
-            .register(ScopeToken(name = "clients[self]:read"), listOf(userScope, clientScope))
-            .register(ScopeToken(name = "clients[self]:update"))
-            .register(ScopeToken(name = "clients[self]:delete"))
+        scopeTokenFactory.upsert(name = "clients:create")
+        scopeTokenFactory.upsert(name = "clients:read").also { grant(it, listOf(userScope, clientScope)) }
+        scopeTokenFactory.upsert(name = "clients:update")
+        scopeTokenFactory.upsert(name = "clients:delete")
+        scopeTokenFactory.upsert(name = "clients[self]:read").also { grant(it, listOf(userScope, clientScope)) }
+        scopeTokenFactory.upsert(name = "clients[self]:update")
+        scopeTokenFactory.upsert(name = "clients[self]:delete")
+    }
+
+    private suspend fun grant(child: ScopeToken, parents: List<ScopeToken>) {
+        parents.forEach {
+            if (!it.has(child)) {
+                it.grant(child)
+            }
+        }
     }
 }

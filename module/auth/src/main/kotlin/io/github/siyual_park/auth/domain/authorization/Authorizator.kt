@@ -1,14 +1,16 @@
 package io.github.siyual_park.auth.domain.authorization
 
 import io.github.siyual_park.auth.domain.Principal
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
-import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.entity.ScopeTokenData
+import io.github.siyual_park.data.expansion.where
 import org.springframework.stereotype.Component
 
 @Suppress("UNCHECKED_CAST")
 @Component
 class Authorizator(
-    private val scopeTokenFinder: ScopeTokenFinder,
+    private val scopeTokenStorage: ScopeTokenStorage,
 ) {
     private val strategies = mutableListOf<Pair<AuthorizeFilter, AuthorizeStrategy>>()
 
@@ -84,7 +86,7 @@ class Authorizator(
         scopeToken: String,
         targetDomainObject: Any? = null
     ): Boolean {
-        return scopeTokenFinder.findByName(scopeToken)?.let {
+        return scopeTokenStorage.load(where(ScopeTokenData::name).`is`(scopeToken))?.let {
             authorize(principal, it, targetDomainObject)
         } ?: return false
     }

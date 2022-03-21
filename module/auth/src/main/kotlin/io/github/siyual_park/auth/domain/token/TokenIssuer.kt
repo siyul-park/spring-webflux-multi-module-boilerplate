@@ -2,9 +2,12 @@ package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authorization.Authorizator
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFinder
-import io.github.siyual_park.auth.entity.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.exception.RequiredPermissionException
+import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.persistence.loadOrFail
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -12,7 +15,7 @@ import java.time.Duration
 @Component
 class TokenIssuer(
     private val authorizator: Authorizator,
-    private val scopeTokenFinder: ScopeTokenFinder,
+    private val scopeTokenStorage: ScopeTokenStorage,
     private val tokenEncoder: TokenEncoder,
     private val claimEmbedder: ClaimEmbedder,
     @Value("#{T(java.time.Duration).ofSeconds(\${application.auth.access-token.age})}")
@@ -21,8 +24,8 @@ class TokenIssuer(
     private val refreshTokenAge: Duration = Duration.ofDays(30)
 ) {
     suspend fun issue(principal: Principal, scope: Set<ScopeToken>? = null): TokenContainer {
-        val accessTokenCreateScope = scopeTokenFinder.findByNameOrFail("access-token:create")
-        val refreshTokenCreateScope = scopeTokenFinder.findByNameOrFail("refresh-token:create")
+        val accessTokenCreateScope = scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("access-token:create"))
+        val refreshTokenCreateScope = scopeTokenStorage.loadOrFail(where(ScopeTokenData::name).`is`("refresh-token:create"))
 
         if (!authorizator.authorize(principal, accessTokenCreateScope)) {
             throw RequiredPermissionException()

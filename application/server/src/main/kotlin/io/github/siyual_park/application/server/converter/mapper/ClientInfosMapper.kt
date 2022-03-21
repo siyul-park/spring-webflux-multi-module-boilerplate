@@ -1,7 +1,7 @@
 package io.github.siyual_park.application.server.converter.mapper
 
 import io.github.siyual_park.application.server.dto.response.ClientInfo
-import io.github.siyual_park.client.entity.Client
+import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
 import org.springframework.stereotype.Component

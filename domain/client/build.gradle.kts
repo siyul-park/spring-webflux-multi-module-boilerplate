@@ -13,8 +13,9 @@ dependencies {
     testImplementation(project(":module:data-test"))
     implementation(project(":module:auth"))
     implementation(project(":module:event"))
-    implementation(project(":module:reader"))
-    implementation(project(":module:updater"))
+    implementation(project(":module:search"))
+    implementation(project(":module:persistence"))
+    implementation(project(":module:mapper"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
