@@ -1,17 +1,4 @@
-plugins {
-}
-
-tasks {
-    bootJar {
-        enabled = false
-    }
-
-    jar {
-        enabled = true
-    }
-}
-
-subprojects {
+allprojects {
     dependencies {
     }
 

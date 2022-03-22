@@ -39,6 +39,16 @@ plugins {
 group = "io.github.siyual-park"
 version = "0.0.0-SNAPSHOT"
 
+tasks {
+    bootJar {
+        enabled = false
+    }
+
+    jar {
+        enabled = true
+    }
+}
+
 allprojects {
     apply(plugin = "kotlin")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
