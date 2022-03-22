@@ -9,4 +9,5 @@ data class ScopeTokenData(
     @Key
     var name: String,
     var description: String? = null,
+    val system: Boolean = true
 ) : TimeableEntity<ScopeTokenData, Long>()

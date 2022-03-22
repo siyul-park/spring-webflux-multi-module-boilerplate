@@ -34,7 +34,8 @@ class ScopeTokenFactory(
         return scopeTokenRepository.create(
             ScopeTokenData(
                 name = payload.name,
-                description = payload.description
+                description = payload.description,
+                system = payload.system
             )
         ).let { ScopeToken(it, scopeTokenRepository, scopeRelationRepository, eventPublisher) }
             .also { eventPublisher.publish(AfterSaveEvent(it)) }

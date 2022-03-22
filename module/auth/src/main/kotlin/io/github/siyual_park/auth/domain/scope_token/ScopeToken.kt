@@ -35,6 +35,10 @@ class ScopeToken(
         return name.endsWith(":pack")
     }
 
+    fun isSystem(): Boolean {
+        return root[ScopeTokenData::system]
+    }
+
     override suspend fun has(scopeToken: ScopeToken): Boolean {
         if (id == scopeToken.id) {
             return true

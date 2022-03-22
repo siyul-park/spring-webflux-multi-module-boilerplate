@@ -20,6 +20,7 @@ class CreateScopeToken : Migration {
 
                     "name VARCHAR(64) NOT NULL, " +
                     "description VARCHAR(128), " +
+                    "system BOOLEAN, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
@@ -34,6 +35,7 @@ class CreateScopeToken : Migration {
 
                     "name VARCHAR(64) NOT NULL, " +
                     "description VARCHAR(128), " +
+                    "system BOOLEAN, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
