@@ -13,7 +13,7 @@ class FormDataEncoder(
         val jsonEncode = objectMapper.writeValueAsString(data)
         val value = objectMapper.readValue(jsonEncode, Map::class.java)
 
-        val fromData = LinkedMultiValueMap<String, String>()
+        val formData = LinkedMultiValueMap<String, String>()
         value.forEach { (key, value) ->
             if (value == null) {
                 return@forEach
@@ -21,13 +21,13 @@ class FormDataEncoder(
 
             if (value is Collection<*>) {
                 value.forEach {
-                    fromData[key.toString()] = it.toString()
+                    formData[key.toString()] = it.toString()
                 }
             } else {
-                fromData[key.toString()] = value.toString()
+                formData[key.toString()] = value.toString()
             }
         }
 
-        return BodyInserters.fromFormData(fromData)
+        return BodyInserters.fromFormData(formData)
     }
 }
