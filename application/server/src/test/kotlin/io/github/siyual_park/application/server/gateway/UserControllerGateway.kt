@@ -2,6 +2,7 @@ package io.github.siyual_park.application.server.gateway
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
+import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
@@ -98,5 +99,17 @@ class UserControllerGateway(
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult()
+    }
+
+    suspend fun readSelfScope(deep: Boolean? = null): FluxExchangeResult<ScopeTokenInfo> {
+        return client.get()
+            .uri {
+                it.path("/users/self/scope")
+                    .queryParamIfPresent("deep", Optional.ofNullable(deep))
+                    .build()
+            }
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(ScopeTokenInfo::class.java)
     }
 }

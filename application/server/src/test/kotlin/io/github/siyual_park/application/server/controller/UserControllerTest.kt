@@ -466,4 +466,40 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
+
+    @Test
+    fun `GET users_{self_id}_scope, status = 200`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = user.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        listOf(false, true).forEach { deep ->
+            val response = userControllerGateway.readSelfScope(deep = deep)
+
+            assertEquals(HttpStatus.OK, response.status)
+
+            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+            val scope = user.getScope(deep = deep).toList().sortedBy { it.id }
+
+            assertEquals(scope.map { it.id }, responseScope.map { it.id })
+        }
+    }
+
+    @Test
+    fun `GET users_{self_id}_scope, status = 403`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = user.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users[self].scope:read")
+        )
+
+        val response = userControllerGateway.readSelfScope()
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
 }

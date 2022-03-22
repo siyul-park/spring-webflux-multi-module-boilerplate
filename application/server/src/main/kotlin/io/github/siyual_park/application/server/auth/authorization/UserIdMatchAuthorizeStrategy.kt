@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @AuthorizeMapping(ScopeMatchAuthorizeFilter::class)
-@ScopeMapping("users[self]:read users[self]:update users[self]:delete")
+@ScopeMapping("users[self]:read users[self]:update users[self]:delete users[self].scope:read")
 class UserIdMatchAuthorizeStrategy : AuthorizeStrategy {
     override suspend fun authorize(
         principal: Principal,

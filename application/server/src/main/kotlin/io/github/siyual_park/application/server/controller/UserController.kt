@@ -2,6 +2,7 @@ package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
+import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
@@ -16,6 +17,10 @@ import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
 import io.swagger.annotations.Api
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -148,5 +153,18 @@ class UserController(
     suspend fun delete(@PathVariable("user-id") userId: Long) {
         val user = userStorage.loadOrFail(userId)
         user.clear()
+    }
+
+    @GetMapping("/self/scope")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'users[self].scope:read')")
+    fun readSelfScope(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @RequestParam("deep", required = false) deep: Boolean? = null,
+    ): Flow<ScopeTokenInfo> {
+        return flow {
+            val user = userStorage.loadOrFail(principal.userId)
+            emitAll(user.getScope(deep = deep ?: false))
+        }.map { mapperManager.map(it) }
     }
 }
