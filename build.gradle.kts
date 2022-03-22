@@ -3,7 +3,7 @@ val junit_version: String by project
 
 buildscript {
     val kotlin_version: String by project
-    val klint_version: String by project
+    val ktlint_version: String by project
 
     repositories {
         maven { url = uri("https://plugins.gradle.org/m2/") }
@@ -12,7 +12,7 @@ buildscript {
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-allopen:$kotlin_version")
         classpath("org.jetbrains.kotlin:kotlin-noarg:$kotlin_version")
-        classpath("org.jlleitschuh.gradle:ktlint-gradle:$klint_version")
+        classpath("org.jlleitschuh.gradle:ktlint-gradle:$ktlint_version")
     }
 }
 

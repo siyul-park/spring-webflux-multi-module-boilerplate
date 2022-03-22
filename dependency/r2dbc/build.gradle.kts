@@ -1,5 +1,3 @@
-val jasync_mysql_version: String by project
-
 plugins {
     application
 
