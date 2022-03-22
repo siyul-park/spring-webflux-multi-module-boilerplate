@@ -1,14 +1,7 @@
 dependencies {
-    implementation(project(":dependency:async"))
-    testImplementation(project(":dependency:async-test"))
-
-    implementation(project(":dependency:r2dbc"))
-
     implementation(project(":module:event"))
-
     implementation(project(":module:data"))
     testImplementation(project(":module:data-test"))
-
     testImplementation(project(":module:util"))
 }
 

@@ -1,5 +1,6 @@
 package io.github.siyual_park.application.server.controller
 
+import io.github.siyual_park.IntegrationTest
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
@@ -9,8 +10,7 @@ import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.entity.ClientType
-import io.github.siyual_park.spring.test.CoroutineTest
-import io.github.siyual_park.spring.test.IntegrationTest
+import io.github.siyual_park.coroutine.test.CoroutineTest
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.util.Presence
 import kotlinx.coroutines.flow.toList

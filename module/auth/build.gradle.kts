@@ -1,16 +1,6 @@
-plugins {
-    application
-}
-
 dependencies {
-    api(project(":module:data"))
+    implementation(project(":module:data"))
     testImplementation(project(":module:data-test"))
-
-    implementation(project(":dependency:async"))
-    implementation(project(":dependency:r2dbc"))
-    implementation(project(":dependency:jwt"))
-
-    testImplementation(project(":dependency:async-test"))
 
     implementation(project(":module:event"))
     implementation(project(":module:persistence"))

@@ -1,4 +1,4 @@
-package io.github.siyual_park.spring.test
+package io.github.siyual_park
 
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.test.context.ActiveProfiles

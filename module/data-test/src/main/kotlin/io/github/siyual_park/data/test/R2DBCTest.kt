@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.test
 
+import io.github.siyual_park.coroutine.test.CoroutineTest
 import io.github.siyual_park.data.migration.MigrationManager
-import io.github.siyual_park.spring.test.CoroutineTest
 import io.r2dbc.h2.H2ConnectionFactory
 import kotlinx.coroutines.CoroutineScope
 import org.junit.jupiter.api.AfterEach

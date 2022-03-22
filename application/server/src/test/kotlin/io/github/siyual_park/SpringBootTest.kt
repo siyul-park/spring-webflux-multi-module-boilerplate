@@ -1,4 +1,4 @@
-package io.github.siyual_park.spring.test
+package io.github.siyual_park
 
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles

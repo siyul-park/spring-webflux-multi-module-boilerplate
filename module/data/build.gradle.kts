@@ -1,10 +1,4 @@
 dependencies {
-    api(project(":dependency:r2dbc"))
-    api(project(":dependency:guava"))
-    api(project(":dependency:async"))
-
-    testImplementation(project(":dependency:async-test"))
-
     implementation(project(":module:event"))
 }
 

@@ -1,13 +1,13 @@
 package io.github.siyual_park.application.server.controller
 
+import io.github.siyual_park.IntegrationTest
 import io.github.siyual_park.application.server.dto.GrantType
 import io.github.siyual_park.application.server.dto.request.CreateTokenRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.gateway.AuthControllerGateway
 import io.github.siyual_park.client.domain.ClientFactory
-import io.github.siyual_park.spring.test.CoroutineTest
-import io.github.siyual_park.spring.test.IntegrationTest
+import io.github.siyual_park.coroutine.test.CoroutineTest
 import io.github.siyual_park.user.domain.UserFactory
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
