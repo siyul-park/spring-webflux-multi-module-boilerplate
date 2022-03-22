@@ -139,4 +139,12 @@ class ClientControllerGateway(
             .exchange()
             .returnResult(ScopeTokenInfo::class.java)
     }
+
+    suspend fun revokeScope(clientId: Long, scopeId: Long): FluxExchangeResult<Unit> {
+        return client.delete()
+            .uri("/clients/$clientId/scope/$scopeId")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult()
+    }
 }

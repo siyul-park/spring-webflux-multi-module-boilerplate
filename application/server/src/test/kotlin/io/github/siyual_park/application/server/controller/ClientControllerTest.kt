@@ -19,9 +19,10 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -599,7 +600,7 @@ class ClientControllerTest @Autowired constructor(
         val responseScope = response.responseBody.awaitSingle()
 
         assertEquals(scope.id, responseScope.id)
-        Assertions.assertTrue(otherClient.has(scope))
+        assertTrue(otherClient.has(scope))
     }
 
     @Test
@@ -619,6 +620,51 @@ class ClientControllerTest @Autowired constructor(
 
         val request = GrantScopeRequest(id = scope.id)
         val response = clientControllerGateway.grantScope(otherClient.id, request)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `DELETE clients_{client-id}_scope, status = 204`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        otherClient.grant(scope)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients.scope:delete")
+        )
+
+        val response = clientControllerGateway.revokeScope(otherClient.id, scope.id)
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+        assertFalse(otherClient.has(scope))
+    }
+
+    @Test
+    fun `DELETE clients_{client-id}_scope, status = 403`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        otherClient.grant(scope)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("clients.scope:delete")
+        )
+
+        val response = clientControllerGateway.revokeScope(otherClient.id, scope.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

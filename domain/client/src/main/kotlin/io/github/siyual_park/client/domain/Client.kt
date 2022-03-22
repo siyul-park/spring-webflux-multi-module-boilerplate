@@ -12,6 +12,7 @@ import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
@@ -69,10 +70,11 @@ class Client(
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
-        clientScopeRepository.deleteAll(
+        val clientScope = clientScopeRepository.findOneOrFail(
             where(ClientScopeData::clientId).`is`(id)
                 .and(where(ClientScopeData::scopeTokenId).`is`(scopeToken.id))
         )
+        clientScopeRepository.delete(clientScope)
     }
 
     suspend fun getCredential(): ClientCredential {

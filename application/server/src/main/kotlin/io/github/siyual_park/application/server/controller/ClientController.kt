@@ -211,4 +211,17 @@ class ClientController(
 
         return mapperManager.map(scopeToken)
     }
+
+    @DeleteMapping("/{client-id}/scope/{scope-id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'clients.scope:delete')")
+    suspend fun revokeScope(
+        @PathVariable("client-id") clientId: Long,
+        @PathVariable("scope-id") scopeId: Long
+    ) {
+        val client = clientStorage.loadOrFail(clientId)
+        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+
+        client.revoke(scopeToken)
+    }
 }

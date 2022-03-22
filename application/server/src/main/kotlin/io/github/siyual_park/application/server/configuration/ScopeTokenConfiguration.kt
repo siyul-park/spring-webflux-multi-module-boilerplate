@@ -46,6 +46,7 @@ class ScopeTokenConfiguration(
 
         scopeTokenFactory.upsert(name = "clients.scope:read")
         scopeTokenFactory.upsert(name = "clients.scope:create")
+        scopeTokenFactory.upsert(name = "clients.scope:delete")
         scopeTokenFactory.upsert(name = "clients[self].scope:read").also { grant(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
     }
 
