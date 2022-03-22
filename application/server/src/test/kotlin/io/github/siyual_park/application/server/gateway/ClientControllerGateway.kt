@@ -117,4 +117,16 @@ class ClientControllerGateway(
             .exchange()
             .returnResult(ScopeTokenInfo::class.java)
     }
+
+    suspend fun readScope(clientId: Long, deep: Boolean? = null): FluxExchangeResult<ScopeTokenInfo> {
+        return client.get()
+            .uri {
+                it.path("/clients/$clientId/scope")
+                    .queryParamIfPresent("deep", Optional.ofNullable(deep))
+                    .build()
+            }
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(ScopeTokenInfo::class.java)
+    }
 }

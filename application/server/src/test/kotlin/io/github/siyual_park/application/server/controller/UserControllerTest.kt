@@ -176,7 +176,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET users_{self_id}, status = 200`() = blocking {
+    fun `GET users_{self-id}, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -199,7 +199,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET users_{self_id}, status = 403`() = blocking {
+    fun `GET users_{self-id}, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -260,7 +260,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH users_{self_id}, status = 200`() = blocking {
+    fun `PATCH users_{self-id}, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -287,7 +287,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH users_{self_id}, status = 403`() = blocking {
+    fun `PATCH users_{self-id}, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -341,7 +341,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `DELEATE users_{self_id}, status = 204`() = blocking {
+    fun `DELEATE users_{self-id}, status = 204`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -360,7 +360,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `DELEATE users_{self_id}, status = 403`() = blocking {
+    fun `DELEATE users_{self-id}, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -376,7 +376,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET users_{user_id}, status = 200`() = blocking {
+    fun `GET users_{user-id}, status = 200`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -401,7 +401,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET users_{user_id}, status = 403`() = blocking {
+    fun `GET users_{user-id}, status = 403`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -418,7 +418,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH users_{user_id}, status = 200`() = blocking {
+    fun `PATCH users_{user-id}, status = 200`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -447,7 +447,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH users_{user_id}, status = 403`() = blocking {
+    fun `PATCH users_{user-id}, status = 403`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -468,7 +468,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `DELEATE users_{user_id}, status = 204`() = blocking {
+    fun `DELEATE users_{user-id}, status = 204`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -486,7 +486,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `DELEATE users_{user_id}, status = 403`() = blocking {
+    fun `DELEATE users_{user-id}, status = 403`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -504,7 +504,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET users_{self_id}_scope, status = 200`() = blocking {
+    fun `GET users_{self-id}_scope, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -527,7 +527,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET users_{self_id}_scope, status = 403`() = blocking {
+    fun `GET users_{self-id}_scope, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -538,6 +538,49 @@ class UserControllerTest @Autowired constructor(
         )
 
         val response = userControllerGateway.readSelfScope()
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `GET users_{user-id}_scope, status = 200`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users.scope:read")
+        )
+
+        listOf(false, true).forEach { deep ->
+            val response = userControllerGateway.readScope(otherUser.id, deep = deep)
+
+            assertEquals(HttpStatus.OK, response.status)
+
+            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+            val scope = otherUser.getScope(deep = deep).toList().sortedBy { it.id }
+
+            assertEquals(scope.map { it.id }, responseScope.map { it.id })
+        }
+    }
+
+    @Test
+    fun `GET users_{user-id}_scope, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users.scope:read")
+        )
+
+        val response = userControllerGateway.readScope(otherUser.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

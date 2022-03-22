@@ -97,7 +97,14 @@ class UserController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'users[self]:read')")
     suspend fun readSelf(@AuthenticationPrincipal principal: UserPrincipal): UserInfo {
-        val user = userStorage.loadOrFail(principal.userId)
+        return read(principal.userId)
+    }
+
+    @GetMapping("/{user-id}")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
+    suspend fun read(@PathVariable("user-id") userId: Long): UserInfo {
+        val user = userStorage.loadOrFail(userId)
         return mapperManager.map(user)
     }
 
@@ -108,28 +115,7 @@ class UserController(
         @AuthenticationPrincipal principal: UserPrincipal,
         @Valid @RequestBody request: UpdateUserRequest
     ): UserInfo {
-        val user = userStorage.loadOrFail(principal.userId)
-
-        request.name?.ifPresent { user.name = it }
-
-        user.sync()
-        return mapperManager.map(user)
-    }
-
-    @DeleteMapping("/self")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'users[self]:delete')")
-    suspend fun deleteSelf(@AuthenticationPrincipal principal: UserPrincipal) {
-        val user = userStorage.loadOrFail(principal.userId)
-        user.clear()
-    }
-
-    @GetMapping("/{user-id}")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
-    suspend fun read(@PathVariable("user-id") userId: Long): UserInfo {
-        val user = userStorage.loadOrFail(userId)
-        return mapperManager.map(user)
+        return update(principal.userId, request)
     }
 
     @PatchMapping("/{user-id}")
@@ -147,6 +133,13 @@ class UserController(
         return mapperManager.map(user)
     }
 
+    @DeleteMapping("/self")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'users[self]:delete')")
+    suspend fun deleteSelf(@AuthenticationPrincipal principal: UserPrincipal) {
+        return delete(principal.userId)
+    }
+
     @DeleteMapping("/{user-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #userId}, {'users:delete', 'users[self]:delete'})")
@@ -162,8 +155,18 @@ class UserController(
         @AuthenticationPrincipal principal: UserPrincipal,
         @RequestParam("deep", required = false) deep: Boolean? = null,
     ): Flow<ScopeTokenInfo> {
+        return readScope(principal.userId, deep)
+    }
+
+    @GetMapping("/{user-id}/scope")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'users.scope:read')")
+    fun readScope(
+        @PathVariable("user-id") userId: Long,
+        @RequestParam("deep", required = false) deep: Boolean? = null,
+    ): Flow<ScopeTokenInfo> {
         return flow {
-            val user = userStorage.loadOrFail(principal.userId)
+            val user = userStorage.loadOrFail(userId)
             emitAll(user.getScope(deep = deep ?: false))
         }.map { mapperManager.map(it) }
     }

@@ -104,7 +104,13 @@ class ClientController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'clients[self]:read')")
     suspend fun readSelf(@AuthenticationPrincipal principal: ClientEntity): ClientInfo {
-        val clientId = principal.clientId ?: throw EmptyResultDataAccessException(1)
+        return read(principal.clientId ?: throw EmptyResultDataAccessException(1))
+    }
+
+    @GetMapping("/{client-id}")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
+    suspend fun read(@PathVariable("client-id") clientId: Long): ClientInfo {
         val client = clientStorage.loadOrFail(clientId)
         return mapperManager.map(client)
     }
@@ -116,31 +122,7 @@ class ClientController(
         @AuthenticationPrincipal principal: ClientEntity,
         @Valid @RequestBody request: UpdateClientRequest
     ): ClientInfo {
-        val clientId = principal.clientId ?: throw EmptyResultDataAccessException(1)
-        val client = clientStorage.loadOrFail(clientId)
-
-        request.name?.ifPresent { client.name = it }
-        request.origin?.ifPresent { client.origin = it }
-
-        client.sync()
-        return mapperManager.map(client)
-    }
-
-    @DeleteMapping("/self")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'clients[self]:delete')")
-    suspend fun deleteSelf(@AuthenticationPrincipal principal: ClientEntity) {
-        val clientId = principal.clientId ?: throw EmptyResultDataAccessException(1)
-        val client = clientStorage.loadOrFail(clientId)
-        client.clear()
-    }
-
-    @GetMapping("/{client-id}")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
-    suspend fun read(@PathVariable("client-id") clientId: Long): ClientInfo {
-        val client = clientStorage.loadOrFail(clientId)
-        return mapperManager.map(client)
+        return update(principal.clientId ?: throw EmptyResultDataAccessException(1), request)
     }
 
     @PatchMapping("/{client-id}")
@@ -160,6 +142,13 @@ class ClientController(
         return mapperManager.map(client)
     }
 
+    @DeleteMapping("/self")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'clients[self]:delete')")
+    suspend fun deleteSelf(@AuthenticationPrincipal principal: ClientEntity) {
+        delete(principal.clientId ?: throw EmptyResultDataAccessException(1))
+    }
+
     @DeleteMapping("/{client-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:delete', 'clients[self]:delete'})")
@@ -177,8 +166,17 @@ class ClientController(
         @AuthenticationPrincipal principal: ClientEntity,
         @RequestParam("deep", required = false) deep: Boolean? = null,
     ): Flow<ScopeTokenInfo> {
+        return readScope(principal.clientId ?: throw EmptyResultDataAccessException(1), deep)
+    }
+
+    @GetMapping("/{client-id}/scope")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'clients.scope:read')")
+    fun readScope(
+        @PathVariable("client-id") clientId: Long,
+        @RequestParam("deep", required = false) deep: Boolean? = null,
+    ): Flow<ScopeTokenInfo> {
         return flow {
-            val clientId = principal.clientId ?: throw EmptyResultDataAccessException(1)
             val client = clientStorage.loadOrFail(clientId)
             emitAll(client.getScope(deep = deep ?: false))
         }.map { mapperManager.map(it) }

@@ -314,13 +314,12 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET clients_{client_id}, status = 200`() = blocking {
-        val payload = DummyCreateClientPayload.create()
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
+    fun `GET clients_{client-id}, status = 200`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
 
-        val otherPayload = DummyCreateClientPayload.create()
-        val otherClient = clientFactory.create(otherPayload)
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -342,13 +341,12 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET clients_{client_id}, status = 403`() = blocking {
-        val payload = DummyCreateClientPayload.create()
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
+    fun `GET clients_{client-id}, status = 403`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
 
-        val otherPayload = DummyCreateClientPayload.create()
-        val otherClient = clientFactory.create(otherPayload)
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -361,7 +359,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH clients_{client_id}, status = 200`() = blocking {
+    fun `PATCH clients_{client-id}, status = 200`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
@@ -392,7 +390,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH clients_{client_id}, status = 403`() = blocking {
+    fun `PATCH clients_{client-id}, status = 403`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
@@ -414,13 +412,12 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `DELEATE clients_{client_id}, status = 200`() = blocking {
-        val payload = DummyCreateClientPayload.create()
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
+    fun `DELEATE clients_{client-id}, status = 200`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
 
-        val otherPayload = DummyCreateClientPayload.create()
-        val otherClient = clientFactory.create(otherPayload)
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -436,13 +433,12 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `DELEATE clients_{client_id}, status = 403`() = blocking {
-        val payload = DummyCreateClientPayload.create()
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
+    fun `DELEATE clients_{client-id}, status = 403`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
 
-        val otherPayload = DummyCreateClientPayload.create()
-        val otherClient = clientFactory.create(otherPayload)
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -455,7 +451,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET clients_{self_id}_scope, status = 200`() = blocking {
+    fun `GET clients_{self-id}_scope, status = 200`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
         val principal = client.toPrincipal()
@@ -478,7 +474,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET clients_{self_id}_scope, status = 403`() = blocking {
+    fun `GET clients_{self-id}_scope, status = 403`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
         val principal = client.toPrincipal()
@@ -489,6 +485,49 @@ class ClientControllerTest @Autowired constructor(
         )
 
         val response = clientControllerGateway.readSelfScope()
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `GET clients_{client-id}_scope, status = 200`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients.scope:read")
+        )
+
+        listOf(false, true).forEach { deep ->
+            val response = clientControllerGateway.readScope(otherClient.id, deep = deep)
+
+            assertEquals(HttpStatus.OK, response.status)
+
+            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+            val scope = otherClient.getScope(deep = deep).toList().sortedBy { it.id }
+
+            assertEquals(scope.map { it.id }, responseScope.map { it.id })
+        }
+    }
+
+    @Test
+    fun `GET clients_{client-id}_scope, status = 403`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("clients.scope:read")
+        )
+
+        val response = clientControllerGateway.readScope(otherClient.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
