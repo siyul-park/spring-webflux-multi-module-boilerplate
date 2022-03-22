@@ -493,7 +493,6 @@ class ClientControllerTest @Autowired constructor(
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
-
     @Test
     fun `GET clients_{self-id}_scope, status = 200`() = blocking {
         val payload = DummyCreateClientPayload.create()
