@@ -35,7 +35,10 @@ class UserControllerTest @Autowired constructor(
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users:create")
+        )
 
         val request = DummyCreateUserRequest.create()
         val response = userControllerGateway.create(request)
@@ -55,7 +58,10 @@ class UserControllerTest @Autowired constructor(
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users:create")
+        )
 
         val request = DummyCreateUserRequest.create()
         userControllerGateway.create(request)
@@ -87,7 +93,10 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users:read")
+        )
 
         val response = userControllerGateway.readAll(
             name = "eq:${user.name}",
@@ -134,7 +143,10 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self]:read")
+        )
 
         val response = userControllerGateway.readSelf()
 
@@ -169,7 +181,10 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self]:read")
+        )
 
         val response = userControllerGateway.read(user.id)
 
@@ -204,7 +219,10 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self]:update")
+        )
 
         val name = RandomNameFactory.create(10)
         val request = UpdateUserRequest(
@@ -247,7 +265,10 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self]:update")
+        )
 
         val name = RandomNameFactory.create(10)
         val request = UpdateUserRequest(
@@ -290,7 +311,10 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self]:delete")
+        )
 
         val response = userControllerGateway.deleteSelf()
 
@@ -322,7 +346,10 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self]:delete")
+        )
 
         val response = userControllerGateway.delete(user.id)
 
@@ -356,7 +383,10 @@ class UserControllerTest @Autowired constructor(
         val otherUser = DummyCreateUserPayload.create()
             .let { userFactory.create(it) }
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users:read")
+        )
 
         val response = userControllerGateway.read(otherUser.id)
 
@@ -424,7 +454,10 @@ class UserControllerTest @Autowired constructor(
         val otherUser = DummyCreateUserPayload.create()
             .let { userFactory.create(it) }
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users:update")
+        )
 
         val request = UpdateUserRequest(
             name = Optional.of(RandomNameFactory.create(10))
@@ -460,7 +493,10 @@ class UserControllerTest @Autowired constructor(
         val otherUser = DummyCreateUserPayload.create()
             .let { userFactory.create(it) }
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users:delete")
+        )
 
         val response = userControllerGateway.delete(otherUser.id)
 
@@ -473,7 +509,10 @@ class UserControllerTest @Autowired constructor(
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
 
-        gatewayAuthorization.setPrincipal(principal)
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self].scope:read")
+        )
 
         listOf(false, true).forEach { deep ->
             val response = userControllerGateway.readSelfScope(deep = deep)

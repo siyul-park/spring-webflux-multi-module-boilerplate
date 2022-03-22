@@ -33,7 +33,7 @@ class ScopeTokenConfiguration(
         scopeTokenFactory.upsert(name = "users[self]:delete").also { grant(it, listOf(userScope)) }
 
         scopeTokenFactory.upsert(name = "clients:create")
-        scopeTokenFactory.upsert(name = "clients:read").also { grant(it, listOf(userScope, confidentialClientScope)) }
+        scopeTokenFactory.upsert(name = "clients:read")
         scopeTokenFactory.upsert(name = "clients:update")
         scopeTokenFactory.upsert(name = "clients:delete")
         scopeTokenFactory.upsert(name = "clients[self]:read").also { grant(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
@@ -41,6 +41,7 @@ class ScopeTokenConfiguration(
         scopeTokenFactory.upsert(name = "clients[self]:delete").also { grant(it, listOf(confidentialClientScope)) }
 
         scopeTokenFactory.upsert(name = "users[self].scope:read").also { grant(it, listOf(userScope)) }
+        scopeTokenFactory.upsert(name = "clients[self].scope:read").also { grant(it, listOf(confidentialClientScope, publicClientScope)) }
     }
 
     private suspend fun grant(child: ScopeToken, parents: List<ScopeToken>) {

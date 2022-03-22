@@ -4,6 +4,7 @@ import io.github.siyual_park.application.server.dto.request.CreateClientRequest
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
+import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
@@ -17,6 +18,10 @@ import io.github.siyual_park.search.pagination.OffsetPage
 import io.github.siyual_park.search.pagination.OffsetPaginator
 import io.github.siyual_park.search.sort.SortParserFactory
 import io.swagger.annotations.Api
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -163,5 +168,19 @@ class ClientController(
     ) {
         val client = clientStorage.loadOrFail(clientId)
         client.clear()
+    }
+
+    @GetMapping("/self/scope")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'clients[self].scope:read')")
+    fun readSelfScope(
+        @AuthenticationPrincipal principal: ClientEntity,
+        @RequestParam("deep", required = false) deep: Boolean? = null,
+    ): Flow<ScopeTokenInfo> {
+        return flow {
+            val clientId = principal.clientId ?: throw EmptyResultDataAccessException(1)
+            val client = clientStorage.loadOrFail(clientId)
+            emitAll(client.getScope(deep = deep ?: false))
+        }.map { mapperManager.map(it) }
     }
 }

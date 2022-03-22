@@ -4,6 +4,7 @@ import io.github.siyual_park.application.server.dto.request.CreateClientRequest
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
+import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.FluxExchangeResult
@@ -103,5 +104,17 @@ class ClientControllerGateway(
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult()
+    }
+
+    suspend fun readSelfScope(deep: Boolean? = null): FluxExchangeResult<ScopeTokenInfo> {
+        return client.get()
+            .uri {
+                it.path("/clients/self/scope")
+                    .queryParamIfPresent("deep", Optional.ofNullable(deep))
+                    .build()
+            }
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(ScopeTokenInfo::class.java)
     }
 }
