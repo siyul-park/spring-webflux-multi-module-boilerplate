@@ -1,6 +1,7 @@
 package io.github.siyual_park.application.server.gateway
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
+import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
@@ -121,6 +122,15 @@ class UserControllerGateway(
                     .build()
             }
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(ScopeTokenInfo::class.java)
+    }
+
+    suspend fun grantScope(userId: Long, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
+        return client.put()
+            .uri("/users/$userId/scope")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .bodyValue(request)
             .exchange()
             .returnResult(ScopeTokenInfo::class.java)
     }

@@ -1,9 +1,12 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
+import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.mapper.MapperManager
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail
@@ -21,6 +24,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import org.springframework.dao.DuplicateKeyException
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -29,6 +34,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -42,6 +48,7 @@ import javax.validation.Valid
 class UserController(
     private val userFactory: UserFactory,
     private val userStorage: UserStorage,
+    private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
     private val mapperManager: MapperManager
@@ -169,5 +176,29 @@ class UserController(
             val user = userStorage.loadOrFail(userId)
             emitAll(user.getScope(deep = deep ?: false))
         }.map { mapperManager.map(it) }
+    }
+
+    @PutMapping("/{user-id}/scope")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'users.scope:create')")
+    suspend fun grantScope(
+        @PathVariable("user-id") userId: Long,
+        @Valid @RequestBody request: GrantScopeRequest
+    ): ScopeTokenInfo {
+        val user = userStorage.loadOrFail(userId)
+        val scopeToken = if (request.id != null) {
+            scopeTokenStorage.loadOrFail(request.id)
+        } else if (request.name != null) {
+            scopeTokenStorage.loadOrFail(request.name)
+        } else {
+            throw EmptyResultDataAccessException(1)
+        }
+
+        try {
+            user.grant(scopeToken)
+        } catch (_: DuplicateKeyException) {
+        }
+
+        return mapperManager.map(scopeToken)
     }
 }
