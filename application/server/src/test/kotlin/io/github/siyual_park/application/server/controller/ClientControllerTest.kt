@@ -455,7 +455,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET clients_{self-id}_scope, status = 200`() = blocking {
+    fun `GET clients_self_scope, status = 200`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
         val principal = client.toPrincipal()
@@ -478,7 +478,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET clients_{self-id}_scope, status = 403`() = blocking {
+    fun `GET clients_self_scope, status = 403`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
         val principal = client.toPrincipal()

@@ -167,7 +167,7 @@ class UserController(
 
     @GetMapping("/{user-id}/scope")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'users.scope:read')")
+    @PreAuthorize("hasPermission({null, #userId}, {'users.scope:read', 'users[self].scope:read'})")
     fun readScope(
         @PathVariable("user-id") userId: Long,
         @RequestParam("deep", required = false) deep: Boolean? = null,

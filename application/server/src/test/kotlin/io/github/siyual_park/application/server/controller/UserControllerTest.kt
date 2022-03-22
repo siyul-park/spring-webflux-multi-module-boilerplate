@@ -508,7 +508,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET users_{self-id}_scope, status = 200`() = blocking {
+    fun `GET users_self_scope, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -531,7 +531,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET users_{self-id}_scope, status = 403`() = blocking {
+    fun `GET users_self_scope, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -542,6 +542,46 @@ class UserControllerTest @Autowired constructor(
         )
 
         val response = userControllerGateway.readSelfScope()
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `GET users_{self-id}_scope, status = 200`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = user.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self].scope:read"),
+            pop = listOf("users.scope:read")
+        )
+
+        listOf(false, true).forEach { deep ->
+            val response = userControllerGateway.readScope(user.id, deep = deep)
+
+            assertEquals(HttpStatus.OK, response.status)
+
+            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+            val scope = user.getScope(deep = deep).toList().sortedBy { it.id }
+
+            assertEquals(scope.map { it.id }, responseScope.map { it.id })
+        }
+    }
+
+    @Test
+    fun `GET users_{self-id}_scope, status = 403`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = user.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users[self].scope:read", "users.scope:read")
+        )
+
+        val response = userControllerGateway.readScope(user.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
