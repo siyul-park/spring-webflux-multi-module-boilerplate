@@ -77,14 +77,20 @@ class User(
             .also { this.credential = it }
     }
 
-    fun getScope(): Flow<ScopeToken> {
+    fun getScope(deep: Boolean = true): Flow<ScopeToken> {
         return flow {
             val scopeTokenIds = userScopeRepository.findAllByUserId(id)
                 .map { it.scopeTokenId }
                 .toList()
 
             scopeTokenStorage.load(scopeTokenIds)
-                .collect { emitAll(it.resolve()) }
+                .collect {
+                    if (deep) {
+                        emitAll(it.resolve())
+                    } else {
+                        emit(it)
+                    }
+                }
         }
     }
 
