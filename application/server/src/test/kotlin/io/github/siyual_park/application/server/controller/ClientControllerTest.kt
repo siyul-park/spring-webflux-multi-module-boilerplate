@@ -214,16 +214,45 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH clients_self, status = 403`() = blocking {
+    fun `PATCH clients_self, status = 200`() = blocking {
         val payload = DummyCreateClientPayload.create()
         val client = clientFactory.create(payload)
         val principal = client.toPrincipal()
 
         gatewayAuthorization.setPrincipal(principal)
 
+        val name = RandomNameFactory.create(10)
         val request = UpdateClientRequest(
-            name = Optional.of(RandomNameFactory.create(10)),
-            origin = Optional.of(client.origin)
+            name = Optional.of(name)
+        )
+        val response = clientControllerGateway.updateSelf(request)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseClient = response.responseBody.awaitSingle()
+
+        assertEquals(client.id, responseClient.id)
+        assertEquals(name, responseClient.name)
+        assertEquals(client.type, responseClient.type)
+        assertEquals(client.origin, responseClient.origin)
+        assertNotNull(responseClient.createdAt)
+        assertNotNull(responseClient.updatedAt)
+    }
+
+    @Test
+    fun `PATCH clients_self, status = 403`() = blocking {
+        val payload = DummyCreateClientPayload.create(
+            DummyCreateClientPayload.CreateClientPayloadTemplate(
+                type = Presence.ofNullable(ClientType.PUBLIC)
+            )
+        )
+        val client = clientFactory.create(payload)
+        val principal = client.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val request = UpdateClientRequest(
+            name = Optional.of(RandomNameFactory.create(10))
         )
         val response = clientControllerGateway.updateSelf(request)
 
@@ -250,8 +279,25 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `DELETE clients_self, status = 403`() = blocking {
+    fun `DELETE clients_self, status = 204`() = blocking {
         val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = client.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(principal)
+
+        val response = clientControllerGateway.deleteSelf()
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+    }
+
+    @Test
+    fun `DELETE clients_self, status = 403`() = blocking {
+        val payload = DummyCreateClientPayload.create(
+            DummyCreateClientPayload.CreateClientPayloadTemplate(
+                type = Presence.ofNullable(ClientType.PUBLIC)
+            )
+        )
         val client = clientFactory.create(payload)
         val principal = client.toPrincipal()
 

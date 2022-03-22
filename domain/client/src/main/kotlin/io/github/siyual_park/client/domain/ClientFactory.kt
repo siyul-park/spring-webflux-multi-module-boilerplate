@@ -32,7 +32,7 @@ class ClientFactory(
             createCredential(client)
 
             if (payload.scope == null) {
-                val scope = getDefaultScope()
+                val scope = getDefaultScope(client)
                 client.grant(scope)
             } else {
                 payload.scope.forEach {
@@ -64,8 +64,12 @@ class ClientFactory(
         )
     }
 
-    private suspend fun getDefaultScope(): ScopeToken {
-        return scopeTokenStorage.loadOrFail("client:pack")
+    private suspend fun getDefaultScope(client: Client): ScopeToken {
+        return if (client.isConfidential()) {
+            scopeTokenStorage.loadOrFail("confidential(client):pack")
+        } else {
+            scopeTokenStorage.loadOrFail("public(client):pack")
+        }
     }
 
     private fun generateRandomSecret(length: Int): String {
