@@ -18,7 +18,7 @@ object DummyCreateClientPayload {
         val t = Presence.ofNullable(template)
         return CreateClientPayload(
             name = t.flatMap { it.name }.orElseGet { RandomNameFactory.create(10) },
-            type = t.flatMap { it.type }.orElseGet { ClientType.PUBLIC },
+            type = t.flatMap { it.type }.orElseGet { ClientType.CONFIDENTIAL },
             origin = t.flatMap { it.origin }.orElseGet { URL("https://localhost:8080") },
             scope = t.flatMap { it.scope }.orElseGet { null }
         )

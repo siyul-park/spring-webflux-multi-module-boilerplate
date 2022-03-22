@@ -37,7 +37,8 @@ class AuthControllerTest @Autowired constructor(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.name,
                 password = createUserPayload.password,
-                clientId = client.id
+                clientId = client.id,
+                clientSecret = client.getCredential().raw().secret
             )
         )
 
@@ -121,7 +122,8 @@ class AuthControllerTest @Autowired constructor(
         val tokenResponse = authControllerGateway.createToken(
             CreateTokenRequest(
                 grantType = GrantType.CLIENT_CREDENTIALS,
-                clientId = client.id
+                clientId = client.id,
+                clientSecret = client.getCredential().raw().secret
             )
         )
 
@@ -147,7 +149,8 @@ class AuthControllerTest @Autowired constructor(
                 grantType = GrantType.PASSWORD,
                 username = createUserPayload.name,
                 password = createUserPayload.password,
-                clientId = client.id
+                clientId = client.id,
+                clientSecret = client.getCredential().raw().secret
             )
         ).responseBody.awaitSingle()
 
@@ -155,7 +158,8 @@ class AuthControllerTest @Autowired constructor(
             CreateTokenRequest(
                 grantType = GrantType.REFRESH_TOKEN,
                 refreshToken = tokensByPassword.refreshToken,
-                clientId = client.id
+                clientId = client.id,
+                clientSecret = client.getCredential().raw().secret
             )
         )
 
