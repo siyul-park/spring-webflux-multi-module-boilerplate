@@ -201,4 +201,17 @@ class UserController(
 
         return mapperManager.map(scopeToken)
     }
+
+    @DeleteMapping("/{user-id}/scope/{scope-id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'users.scope:delete')")
+    suspend fun revokeScope(
+        @PathVariable("user-id") userId: Long,
+        @PathVariable("scope-id") scopeId: Long
+    ) {
+        val user = userStorage.loadOrFail(userId)
+        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+
+        user.revoke(scopeToken)
+    }
 }

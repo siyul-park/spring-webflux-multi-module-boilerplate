@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -672,6 +673,51 @@ class UserControllerTest @Autowired constructor(
 
         val request = GrantScopeRequest(id = scope.id)
         val response = userControllerGateway.grantScope(otherUser.id, request)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `DELETE users_{user-id}_scope, status = 204`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        otherUser.grant(scope)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users.scope:delete")
+        )
+
+        val response = userControllerGateway.revokeScope(otherUser.id, scope.id)
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+        assertFalse(otherUser.has(scope))
+    }
+
+    @Test
+    fun `DELETE users_{user-id}_scope, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        otherUser.grant(scope)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users.scope:delete")
+        )
+
+        val response = userControllerGateway.revokeScope(otherUser.id, scope.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
