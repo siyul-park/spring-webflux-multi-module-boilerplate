@@ -1,10 +1,13 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateClientRequest
+import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
@@ -22,6 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -31,6 +35,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -44,6 +49,7 @@ import javax.validation.Valid
 class ClientController(
     private val clientFactory: ClientFactory,
     private val clientStorage: ClientStorage,
+    private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
     private val mapperManager: MapperManager
@@ -180,5 +186,29 @@ class ClientController(
             val client = clientStorage.loadOrFail(clientId)
             emitAll(client.getScope(deep = deep ?: false))
         }.map { mapperManager.map(it) }
+    }
+
+    @PutMapping("/{client-id}/scope")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'clients.scope:create')")
+    suspend fun grantScope(
+        @PathVariable("client-id") clientId: Long,
+        @Valid @RequestBody request: GrantScopeRequest
+    ): ScopeTokenInfo {
+        val client = clientStorage.loadOrFail(clientId)
+        val scopeToken = if (request.id != null) {
+            scopeTokenStorage.loadOrFail(request.id)
+        } else if (request.name != null) {
+            scopeTokenStorage.loadOrFail(request.name)
+        } else {
+            throw EmptyResultDataAccessException(1)
+        }
+
+        try {
+            client.grant(scopeToken)
+        } catch (_: DuplicateKeyException) {
+        }
+
+        return mapperManager.map(scopeToken)
     }
 }

@@ -1,6 +1,7 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.IntegrationTest
+import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
@@ -8,6 +9,7 @@ import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.RandomNameFactory
 import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.coroutine.test.CoroutineTest
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -29,7 +32,8 @@ class ClientControllerTest @Autowired constructor(
     private val gatewayAuthorization: GatewayAuthorization,
     private val clientControllerGateway: ClientControllerGateway,
     private val userFactory: UserFactory,
-    private val clientFactory: ClientFactory
+    private val clientFactory: ClientFactory,
+    private val scopeTokenFactory: ScopeTokenFactory
 ) : CoroutineTest() {
 
     @Test
@@ -528,6 +532,53 @@ class ClientControllerTest @Autowired constructor(
         )
 
         val response = clientControllerGateway.readScope(otherClient.id)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `PUT clients_{client-id}_scope, status = 200`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients.scope:create")
+        )
+
+        val request = GrantScopeRequest(id = scope.id)
+        val response = clientControllerGateway.grantScope(otherClient.id, request)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseScope = response.responseBody.awaitSingle()
+
+        assertEquals(scope.id, responseScope.id)
+        Assertions.assertTrue(otherClient.has(scope))
+    }
+
+    @Test
+    fun `PUT clients_{client-id}_scope, status = 403`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("clients.scope:create")
+        )
+
+        val request = GrantScopeRequest(id = scope.id)
+        val response = clientControllerGateway.grantScope(otherClient.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
