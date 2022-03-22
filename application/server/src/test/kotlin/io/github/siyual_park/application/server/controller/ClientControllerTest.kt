@@ -493,6 +493,47 @@ class ClientControllerTest @Autowired constructor(
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
+
+    @Test
+    fun `GET clients_{self-id}_scope, status = 200`() = blocking {
+        val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = client.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients[self].scope:read"),
+            pop = listOf("clients.scope:read")
+        )
+
+        listOf(false, true).forEach { deep ->
+            val response = clientControllerGateway.readScope(client.id, deep = deep)
+
+            assertEquals(HttpStatus.OK, response.status)
+
+            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+            val scope = client.getScope(deep = deep).toList().sortedBy { it.id }
+
+            assertEquals(scope.map { it.id }, responseScope.map { it.id })
+        }
+    }
+
+    @Test
+    fun `GET clients_{self-id}_scope, status = 403`() = blocking {
+        val payload = DummyCreateClientPayload.create()
+        val client = clientFactory.create(payload)
+        val principal = client.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("clients[self].scope:read")
+        )
+
+        val response = clientControllerGateway.readScope(client.id)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
     @Test
     fun `GET clients_{client-id}_scope, status = 200`() = blocking {
         val principal = DummyCreateClientPayload.create()

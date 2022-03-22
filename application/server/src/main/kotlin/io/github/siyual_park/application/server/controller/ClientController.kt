@@ -177,7 +177,7 @@ class ClientController(
 
     @GetMapping("/{client-id}/scope")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'clients.scope:read')")
+    @PreAuthorize("hasPermission({null, #clientId}, {'clients.scope:read', 'clients[self].scope:read'})")
     fun readScope(
         @PathVariable("client-id") clientId: Long,
         @RequestParam("deep", required = false) deep: Boolean? = null,
