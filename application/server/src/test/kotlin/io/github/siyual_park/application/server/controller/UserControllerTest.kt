@@ -519,16 +519,14 @@ class UserControllerTest @Autowired constructor(
             push = listOf("users[self].scope:read")
         )
 
-        listOf(false, true).forEach { deep ->
-            val response = userControllerGateway.readSelfScope(deep = deep)
+        val response = userControllerGateway.readSelfScope()
 
-            assertEquals(HttpStatus.OK, response.status)
+        assertEquals(HttpStatus.OK, response.status)
 
-            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
-            val scope = user.getScope(deep = deep).toList().sortedBy { it.id }
+        val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+        val scope = user.getScope(deep = false).toList().sortedBy { it.id }
 
-            assertEquals(scope.map { it.id }, responseScope.map { it.id })
-        }
+        assertEquals(scope.map { it.id }, responseScope.map { it.id })
     }
 
     @Test
@@ -559,16 +557,14 @@ class UserControllerTest @Autowired constructor(
             pop = listOf("users.scope:read")
         )
 
-        listOf(false, true).forEach { deep ->
-            val response = userControllerGateway.readScope(user.id, deep = deep)
+        val response = userControllerGateway.readScope(user.id)
 
-            assertEquals(HttpStatus.OK, response.status)
+        assertEquals(HttpStatus.OK, response.status)
 
-            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
-            val scope = user.getScope(deep = deep).toList().sortedBy { it.id }
+        val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+        val scope = user.getScope(deep = false).toList().sortedBy { it.id }
 
-            assertEquals(scope.map { it.id }, responseScope.map { it.id })
-        }
+        assertEquals(scope.map { it.id }, responseScope.map { it.id })
     }
 
     @Test
@@ -600,16 +596,14 @@ class UserControllerTest @Autowired constructor(
             push = listOf("users.scope:read")
         )
 
-        listOf(false, true).forEach { deep ->
-            val response = userControllerGateway.readScope(otherUser.id, deep = deep)
+        val response = userControllerGateway.readScope(otherUser.id)
 
-            assertEquals(HttpStatus.OK, response.status)
+        assertEquals(HttpStatus.OK, response.status)
 
-            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
-            val scope = otherUser.getScope(deep = deep).toList().sortedBy { it.id }
+        val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+        val scope = otherUser.getScope(deep = false).toList().sortedBy { it.id }
 
-            assertEquals(scope.map { it.id }, responseScope.map { it.id })
-        }
+        assertEquals(scope.map { it.id }, responseScope.map { it.id })
     }
 
     @Test

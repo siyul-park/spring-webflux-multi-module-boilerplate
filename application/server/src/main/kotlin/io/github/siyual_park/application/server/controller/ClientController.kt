@@ -169,22 +169,20 @@ class ClientController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'clients[self].scope:read')")
     fun readSelfScope(
-        @AuthenticationPrincipal principal: ClientEntity,
-        @RequestParam("deep", required = false) deep: Boolean? = null,
+        @AuthenticationPrincipal principal: ClientEntity
     ): Flow<ScopeTokenInfo> {
-        return readScope(principal.clientId ?: throw EmptyResultDataAccessException(1), deep)
+        return readScope(principal.clientId ?: throw EmptyResultDataAccessException(1))
     }
 
     @GetMapping("/{client-id}/scope")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients.scope:read', 'clients[self].scope:read'})")
     fun readScope(
-        @PathVariable("client-id") clientId: Long,
-        @RequestParam("deep", required = false) deep: Boolean? = null,
+        @PathVariable("client-id") clientId: Long
     ): Flow<ScopeTokenInfo> {
         return flow {
             val client = clientStorage.loadOrFail(clientId)
-            emitAll(client.getScope(deep = deep ?: false))
+            emitAll(client.getScope(deep = false))
         }.map { mapperManager.map(it) }
     }
 

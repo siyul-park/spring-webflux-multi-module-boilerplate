@@ -159,22 +159,20 @@ class UserController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'users[self].scope:read')")
     fun readSelfScope(
-        @AuthenticationPrincipal principal: UserPrincipal,
-        @RequestParam("deep", required = false) deep: Boolean? = null,
+        @AuthenticationPrincipal principal: UserPrincipal
     ): Flow<ScopeTokenInfo> {
-        return readScope(principal.userId, deep)
+        return readScope(principal.userId)
     }
 
     @GetMapping("/{user-id}/scope")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users.scope:read', 'users[self].scope:read'})")
     fun readScope(
-        @PathVariable("user-id") userId: Long,
-        @RequestParam("deep", required = false) deep: Boolean? = null,
+        @PathVariable("user-id") userId: Long
     ): Flow<ScopeTokenInfo> {
         return flow {
             val user = userStorage.loadOrFail(userId)
-            emitAll(user.getScope(deep = deep ?: false))
+            emitAll(user.getScope(deep = false))
         }.map { mapperManager.map(it) }
     }
 

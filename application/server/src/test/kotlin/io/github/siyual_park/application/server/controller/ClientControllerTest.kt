@@ -466,16 +466,14 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients[self].scope:read")
         )
 
-        listOf(false, true).forEach { deep ->
-            val response = clientControllerGateway.readSelfScope(deep = deep)
+        val response = clientControllerGateway.readSelfScope()
 
-            assertEquals(HttpStatus.OK, response.status)
+        assertEquals(HttpStatus.OK, response.status)
 
-            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
-            val scope = client.getScope(deep = deep).toList().sortedBy { it.id }
+        val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+        val scope = client.getScope(deep = false).toList().sortedBy { it.id }
 
-            assertEquals(scope.map { it.id }, responseScope.map { it.id })
-        }
+        assertEquals(scope.map { it.id }, responseScope.map { it.id })
     }
 
     @Test
@@ -506,16 +504,14 @@ class ClientControllerTest @Autowired constructor(
             pop = listOf("clients.scope:read")
         )
 
-        listOf(false, true).forEach { deep ->
-            val response = clientControllerGateway.readScope(client.id, deep = deep)
+        val response = clientControllerGateway.readScope(client.id)
 
-            assertEquals(HttpStatus.OK, response.status)
+        assertEquals(HttpStatus.OK, response.status)
 
-            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
-            val scope = client.getScope(deep = deep).toList().sortedBy { it.id }
+        val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+        val scope = client.getScope(deep = false).toList().sortedBy { it.id }
 
-            assertEquals(scope.map { it.id }, responseScope.map { it.id })
-        }
+        assertEquals(scope.map { it.id }, responseScope.map { it.id })
     }
 
     @Test
@@ -547,16 +543,14 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients.scope:read")
         )
 
-        listOf(false, true).forEach { deep ->
-            val response = clientControllerGateway.readScope(otherClient.id, deep = deep)
+        val response = clientControllerGateway.readScope(otherClient.id)
 
-            assertEquals(HttpStatus.OK, response.status)
+        assertEquals(HttpStatus.OK, response.status)
 
-            val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
-            val scope = otherClient.getScope(deep = deep).toList().sortedBy { it.id }
+        val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
+        val scope = otherClient.getScope(deep = false).toList().sortedBy { it.id }
 
-            assertEquals(scope.map { it.id }, responseScope.map { it.id })
-        }
+        assertEquals(scope.map { it.id }, responseScope.map { it.id })
     }
 
     @Test

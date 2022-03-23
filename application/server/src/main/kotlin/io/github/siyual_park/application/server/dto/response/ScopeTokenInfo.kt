@@ -7,6 +7,7 @@ data class ScopeTokenInfo(
     val name: String,
     val description: String?,
     val system: Boolean,
+    val children: Collection<ScopeTokenInfo>?,
     val createdAt: Instant,
     val updatedAt: Instant?,
 )

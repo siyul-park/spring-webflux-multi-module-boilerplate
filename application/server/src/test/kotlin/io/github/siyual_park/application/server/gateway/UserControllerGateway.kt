@@ -102,25 +102,17 @@ class UserControllerGateway(
             .returnResult()
     }
 
-    suspend fun readSelfScope(deep: Boolean? = null): FluxExchangeResult<ScopeTokenInfo> {
+    suspend fun readSelfScope(): FluxExchangeResult<ScopeTokenInfo> {
         return client.get()
-            .uri {
-                it.path("/users/self/scope")
-                    .queryParamIfPresent("deep", Optional.ofNullable(deep))
-                    .build()
-            }
+            .uri("/users/self/scope")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult(ScopeTokenInfo::class.java)
     }
 
-    suspend fun readScope(userId: Long, deep: Boolean? = null): FluxExchangeResult<ScopeTokenInfo> {
+    suspend fun readScope(userId: Long): FluxExchangeResult<ScopeTokenInfo> {
         return client.get()
-            .uri {
-                it.path("/users/$userId/scope")
-                    .queryParamIfPresent("deep", Optional.ofNullable(deep))
-                    .build()
-            }
+            .uri("/users/$userId/scope")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult(ScopeTokenInfo::class.java)
