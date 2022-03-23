@@ -28,7 +28,7 @@ class AuthorizationConfiguration(
         if (authMapping.filterBy == ScopeMatchAuthorizeFilter::class) {
             val scopeMapping = strategy.javaClass.annotations.filterIsInstance<ScopeMapping>().firstOrNull() ?: return null
             return ScopeMatchAuthorizeFilter(
-                scopeTokens = scopeMapping.scope.split(" ").toSet()
+                scopeTokens = scopeMapping.scope.toSet()
             )
         }
 
