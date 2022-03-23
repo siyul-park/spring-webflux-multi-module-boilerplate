@@ -7,7 +7,7 @@ import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.mapper.MapperManager
+import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.search.filter.RHSFilterParserFactory
@@ -51,7 +51,7 @@ class UserController(
     private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
-    private val mapperManager: MapperManager
+    private val mapperContext: MapperContext
 ) {
     private val rhsFilterParser = rhsFilterParserFactory.create(UserData::class)
     private val sortParser = sortParserFactory.create(UserData::class)
@@ -67,7 +67,7 @@ class UserController(
             password = request.password
         )
         val user = userFactory.create(payload)
-        return mapperManager.map(user)
+        return mapperContext.map(user)
     }
 
     @GetMapping("")
@@ -97,7 +97,7 @@ class UserController(
             page = page ?: 0
         )
 
-        return offsetPage.mapDataAsync { mapperManager.map(it) }
+        return offsetPage.mapDataAsync { mapperContext.map(it) }
     }
 
     @GetMapping("/self")
@@ -112,7 +112,7 @@ class UserController(
     @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
     suspend fun read(@PathVariable("user-id") userId: Long): UserInfo {
         val user = userStorage.loadOrFail(userId)
-        return mapperManager.map(user)
+        return mapperContext.map(user)
     }
 
     @PatchMapping("/self")
@@ -137,7 +137,7 @@ class UserController(
         request.name?.ifPresent { user.name = it }
 
         user.sync()
-        return mapperManager.map(user)
+        return mapperContext.map(user)
     }
 
     @DeleteMapping("/self")
@@ -173,7 +173,7 @@ class UserController(
         return flow {
             val user = userStorage.loadOrFail(userId)
             emitAll(user.getScope(deep = false))
-        }.map { mapperManager.map(it) }
+        }.map { mapperContext.map(it) }
     }
 
     @PutMapping("/{user-id}/scope")
@@ -197,7 +197,7 @@ class UserController(
         } catch (_: DuplicateKeyException) {
         }
 
-        return mapperManager.map(scopeToken)
+        return mapperContext.map(scopeToken)
     }
 
     @DeleteMapping("/{user-id}/scope/{scope-id}")

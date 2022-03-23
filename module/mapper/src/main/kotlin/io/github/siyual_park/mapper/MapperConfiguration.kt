@@ -9,7 +9,7 @@ class MapperConfiguration(
     private val applicationContext: ApplicationContext,
 ) {
     @Autowired(required = true)
-    fun configMapperManager(mapperManger: MapperManager) {
+    fun configMapperManager(mapperManger: MapperContext) {
         val mappers = applicationContext.getBeansOfType(Mapper::class.java)
         mappers.values.forEach {
             mapperManger.register(it)

@@ -12,7 +12,7 @@ import io.github.siyual_park.auth.domain.token.TokenIssuer
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
 import io.github.siyual_park.json.bind.RequestForm
-import io.github.siyual_park.mapper.MapperManager
+import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.user.domain.auth.PasswordGrantPayload
 import io.swagger.annotations.Api
@@ -34,7 +34,7 @@ class AuthController(
     private val tokenIssuer: TokenIssuer,
     private val principalRefresher: PrincipalRefresher,
     private val scopeTokenStorage: ScopeTokenStorage,
-    private val mapperManager: MapperManager
+    private val mapperContext: MapperContext
 ) {
 
     @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
@@ -64,6 +64,6 @@ class AuthController(
             ?.toSet()
         val tokens = tokenIssuer.issue(principal, scope)
 
-        return mapperManager.map(tokens)
+        return mapperContext.map(tokens)
     }
 }

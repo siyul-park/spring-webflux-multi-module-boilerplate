@@ -4,10 +4,10 @@ import org.springframework.stereotype.Component
 
 @Suppress("UNCHECKED_CAST")
 @Component
-class MapperManager {
+class MapperContext {
     private val mappers = mutableMapOf<MappingInfo, Mapper<*, *>>()
 
-    fun <SOURCE : Any, TARGET : Any> register(mapper: Mapper<SOURCE, TARGET>): MapperManager {
+    fun <SOURCE : Any, TARGET : Any> register(mapper: Mapper<SOURCE, TARGET>): MapperContext {
         mappers[MappingInfo(mapper.sourceType.type, mapper.targetType.type)] = mapper
         return this
     }
@@ -24,7 +24,7 @@ class MapperManager {
     }
 }
 
-suspend inline fun <SOURCE : Any, TARGET : Any> MapperManager.map(source: SOURCE): TARGET = map(
+suspend inline fun <SOURCE : Any, TARGET : Any> MapperContext.map(source: SOURCE): TARGET = map(
     source,
     object : TypeReference<SOURCE>() {},
     object : TypeReference<TARGET>() {}

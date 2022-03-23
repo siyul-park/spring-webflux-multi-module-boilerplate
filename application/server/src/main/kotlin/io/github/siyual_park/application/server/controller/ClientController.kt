@@ -13,7 +13,7 @@ import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientEntity
-import io.github.siyual_park.mapper.MapperManager
+import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.search.filter.RHSFilterParserFactory
@@ -52,7 +52,7 @@ class ClientController(
     private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
-    private val mapperManager: MapperManager
+    private val mapperContext: MapperContext
 ) {
     private val rhsFilterParser = rhsFilterParserFactory.create(ClientData::class)
     private val sortParser = sortParserFactory.create(ClientData::class)
@@ -69,7 +69,7 @@ class ClientController(
             origin = request.origin
         )
         val client = clientFactory.create(payload)
-        return mapperManager.map(client)
+        return mapperContext.map(client)
     }
 
     @GetMapping("")
@@ -103,7 +103,7 @@ class ClientController(
             page = page ?: 0
         )
 
-        return offsetPage.mapDataAsync { mapperManager.map(it) }
+        return offsetPage.mapDataAsync { mapperContext.map(it) }
     }
 
     @GetMapping("/self")
@@ -118,7 +118,7 @@ class ClientController(
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
     suspend fun read(@PathVariable("client-id") clientId: Long): ClientInfo {
         val client = clientStorage.loadOrFail(clientId)
-        return mapperManager.map(client)
+        return mapperContext.map(client)
     }
 
     @PatchMapping("/self")
@@ -145,7 +145,7 @@ class ClientController(
 
         client.sync()
 
-        return mapperManager.map(client)
+        return mapperContext.map(client)
     }
 
     @DeleteMapping("/self")
@@ -183,7 +183,7 @@ class ClientController(
         return flow {
             val client = clientStorage.loadOrFail(clientId)
             emitAll(client.getScope(deep = false))
-        }.map { mapperManager.map(it) }
+        }.map { mapperContext.map(it) }
     }
 
     @PutMapping("/{client-id}/scope")
@@ -207,7 +207,7 @@ class ClientController(
         } catch (_: DuplicateKeyException) {
         }
 
-        return mapperManager.map(scopeToken)
+        return mapperContext.map(scopeToken)
     }
 
     @DeleteMapping("/{client-id}/scope/{scope-id}")
