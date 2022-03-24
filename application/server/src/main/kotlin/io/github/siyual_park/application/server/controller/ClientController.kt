@@ -49,11 +49,13 @@ import javax.validation.Valid
 class ClientController(
     private val clientFactory: ClientFactory,
     private val clientStorage: ClientStorage,
-    private val scopeTokenStorage: ScopeTokenStorage,
+    scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
     private val mapperContext: MapperContext
 ) {
+    private val authorizableContoller = AuthorizableContoller(clientStorage, scopeTokenStorage, mapperContext)
+
     private val rhsFilterParser = rhsFilterParserFactory.create(ClientData::class)
     private val sortParser = sortParserFactory.create(ClientData::class)
 
@@ -165,18 +167,7 @@ class ClientController(
         @PathVariable("client-id") clientId: Long,
         @Valid @RequestBody request: GrantScopeRequest
     ): ScopeTokenInfo {
-        val client = clientStorage.loadOrFail(clientId)
-        val scopeToken = if (request.id != null) {
-            scopeTokenStorage.loadOrFail(request.id)
-        } else if (request.name != null) {
-            scopeTokenStorage.loadOrFail(request.name)
-        } else {
-            throw EmptyResultDataAccessException(1)
-        }
-
-        client.grant(scopeToken)
-
-        return mapperContext.map(scopeToken)
+        return authorizableContoller.grantScope(clientId, request)
     }
 
     @DeleteMapping("/{client-id}/scope/{scope-id}")
@@ -186,9 +177,6 @@ class ClientController(
         @PathVariable("client-id") clientId: Long,
         @PathVariable("scope-id") scopeId: Long
     ) {
-        val client = clientStorage.loadOrFail(clientId)
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-
-        client.revoke(scopeToken)
+        return authorizableContoller.revokeScope(clientId, scopeId)
     }
 }

@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -48,11 +47,13 @@ import javax.validation.Valid
 class UserController(
     private val userFactory: UserFactory,
     private val userStorage: UserStorage,
-    private val scopeTokenStorage: ScopeTokenStorage,
+    scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
     private val mapperContext: MapperContext
 ) {
+    private val authorizableContoller = AuthorizableContoller(userStorage, scopeTokenStorage, mapperContext)
+
     private val rhsFilterParser = rhsFilterParserFactory.create(UserData::class)
     private val sortParser = sortParserFactory.create(UserData::class)
 
@@ -157,18 +158,7 @@ class UserController(
         @PathVariable("user-id") userId: Long,
         @Valid @RequestBody request: GrantScopeRequest
     ): ScopeTokenInfo {
-        val user = userStorage.loadOrFail(userId)
-        val scopeToken = if (request.id != null) {
-            scopeTokenStorage.loadOrFail(request.id)
-        } else if (request.name != null) {
-            scopeTokenStorage.loadOrFail(request.name)
-        } else {
-            throw EmptyResultDataAccessException(1)
-        }
-
-        user.grant(scopeToken)
-
-        return mapperContext.map(scopeToken)
+        return authorizableContoller.grantScope(userId, request)
     }
 
     @DeleteMapping("/{user-id}/scope/{scope-id}")
@@ -178,9 +168,6 @@ class UserController(
         @PathVariable("user-id") userId: Long,
         @PathVariable("scope-id") scopeId: Long
     ) {
-        val user = userStorage.loadOrFail(userId)
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-
-        user.revoke(scopeToken)
+        return authorizableContoller.revokeScope(userId, scopeId)
     }
 }

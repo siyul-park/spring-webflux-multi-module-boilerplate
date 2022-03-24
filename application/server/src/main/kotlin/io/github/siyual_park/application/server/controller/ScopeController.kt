@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -40,6 +39,8 @@ class ScopeController(
     sortParserFactory: SortParserFactory,
     private val mapperContext: MapperContext
 ) {
+    private val authorizableContoller = AuthorizableContoller(scopeTokenStorage, scopeTokenStorage, mapperContext)
+
     private val rhsFilterParser = rhsFilterParserFactory.create(ScopeTokenData::class)
     private val sortParser = sortParserFactory.create(ScopeTokenData::class)
 
@@ -100,18 +101,7 @@ class ScopeController(
         @PathVariable("scope-id") scopeId: Long,
         @Valid @RequestBody request: GrantScopeRequest
     ): ScopeTokenInfo {
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        val child = if (request.id != null) {
-            scopeTokenStorage.loadOrFail(request.id)
-        } else if (request.name != null) {
-            scopeTokenStorage.loadOrFail(request.name)
-        } else {
-            throw EmptyResultDataAccessException(1)
-        }
-
-        scopeToken.grant(child)
-
-        return mapperContext.map(child)
+        return authorizableContoller.grantScope(scopeId, request)
     }
 
     @DeleteMapping("/{scope-id}/children/{child-id}")
@@ -121,9 +111,6 @@ class ScopeController(
         @PathVariable("scope-id") scopeId: Long,
         @PathVariable("child-id") childId: Long
     ) {
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        val child = scopeTokenStorage.loadOrFail(childId)
-
-        scopeToken.revoke(child)
+        return authorizableContoller.revokeScope(scopeId, childId)
     }
 }
