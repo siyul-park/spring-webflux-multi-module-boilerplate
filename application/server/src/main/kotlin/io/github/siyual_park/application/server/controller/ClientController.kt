@@ -8,11 +8,13 @@ import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
+import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientEntity
+import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail
@@ -138,12 +140,10 @@ class ClientController(
         @PathVariable("client-id") clientId: Long,
         @Valid @RequestBody request: UpdateClientRequest
     ): ClientInfo {
+        val patch = PropertyOverridePatch.of<Client, UpdateClientRequest>(request)
         val client = clientStorage.loadOrFail(clientId)
-
-        request.name?.ifPresent { client.name = it }
-        request.origin?.ifPresent { client.origin = it }
-
-        client.sync()
+            .let { patch.apply(it) }
+            .also { it.sync() }
 
         return mapperContext.map(client)
     }

@@ -395,6 +395,27 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
+    fun `PATCH clients_{client-id}, status = 400`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients:update")
+        )
+
+        val request = UpdateClientRequest(
+            name = Optional.empty(),
+        )
+        val response = clientControllerGateway.update(otherClient.id, request)
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.status)
+    }
+
+    @Test
     fun `PATCH clients_{client-id}, status = 403`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }

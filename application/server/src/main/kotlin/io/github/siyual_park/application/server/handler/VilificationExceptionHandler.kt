@@ -7,6 +7,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.bind.support.WebExchangeBindException
+import javax.validation.ValidationException
 
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -23,6 +24,11 @@ class VilificationExceptionHandler {
 
     @ExceptionHandler(IllegalStateException::class)
     fun handle(exception: IllegalStateException) {
+        throw BadRequestException(exception.message)
+    }
+
+    @ExceptionHandler(ValidationException::class)
+    fun handle(exception: ValidationException) {
         throw BadRequestException(exception.message)
     }
 }

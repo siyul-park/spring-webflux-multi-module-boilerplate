@@ -7,6 +7,7 @@ import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
+import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail
@@ -15,6 +16,7 @@ import io.github.siyual_park.search.pagination.OffsetPage
 import io.github.siyual_park.search.pagination.OffsetPaginator
 import io.github.siyual_park.search.sort.SortParserFactory
 import io.github.siyual_park.user.domain.CreateUserPayload
+import io.github.siyual_park.user.domain.User
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.auth.UserPrincipal
@@ -132,11 +134,11 @@ class UserController(
         @PathVariable("user-id") userId: Long,
         @Valid @RequestBody request: UpdateUserRequest
     ): UserInfo {
+        val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(request)
         val user = userStorage.loadOrFail(userId)
+            .let { patch.apply(it) }
+            .also { it.sync() }
 
-        request.name?.ifPresent { user.name = it }
-
-        user.sync()
         return mapperContext.map(user)
     }
 

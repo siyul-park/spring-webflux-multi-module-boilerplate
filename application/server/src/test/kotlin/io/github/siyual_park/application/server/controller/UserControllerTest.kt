@@ -292,6 +292,25 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
+    fun `PATCH users_{self-id}, status = 400`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = user.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self]:update")
+        )
+
+        val request = UpdateUserRequest(
+            name = Optional.empty()
+        )
+        val response = userControllerGateway.update(user.id, request)
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.status)
+    }
+
+    @Test
     fun `PATCH users_{self-id}, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
