@@ -12,7 +12,8 @@ Boilerplate of general service implemented using spring webflux and r2dbc
 ## Foundation Function
 - In-memory cache that supports transactions
 - Persistence management of domain objects like JPA
-- Writing/Reading converter auto configuration
+- Writing/reading converter auto configuration
+- Easy configurate custom validation for basic validate annotion
 - Support async event emitter
 - RHS based filte and sort parser
 - Easy conversion between dtos
