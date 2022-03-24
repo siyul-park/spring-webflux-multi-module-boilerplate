@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -111,5 +112,18 @@ class ScopeController(
         scopeToken.grant(child)
 
         return mapperContext.map(child)
+    }
+
+    @DeleteMapping("/{scope-id}/children/{child-id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'scope.children:delete')")
+    suspend fun revokeScope(
+        @PathVariable("scope-id") scopeId: Long,
+        @PathVariable("child-id") childId: Long
+    ) {
+        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+        val child = scopeTokenStorage.loadOrFail(childId)
+
+        scopeToken.revoke(child)
     }
 }

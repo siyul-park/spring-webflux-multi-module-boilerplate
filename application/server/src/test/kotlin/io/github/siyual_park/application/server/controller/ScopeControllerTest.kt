@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -214,6 +215,47 @@ class ScopeControllerTest @Autowired constructor(
         )
 
         val response = scopeControllerGateway.readChildren(parent.id)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `DELETE scope_{scope-id}_children, status = 200`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val parent = scopeTokenFactory.upsert("${RandomNameFactory.create(10)}:pack")
+        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        parent.grant(child)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("scope.children:delete")
+        )
+
+        val response = scopeControllerGateway.revokeScope(parent.id, child.id)
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+        assertFalse(parent.has(child))
+    }
+
+    @Test
+    fun `DELETE scope_{scope-id}_children, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val parent = scopeTokenFactory.upsert("${RandomNameFactory.create(10)}:pack")
+        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        parent.grant(child)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("scope.children:delete")
+        )
+
+        val response = scopeControllerGateway.revokeScope(parent.id, child.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

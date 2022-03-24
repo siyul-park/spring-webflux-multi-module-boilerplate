@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.FluxExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.returnResult
 import java.util.Optional
 
 @Component
@@ -62,5 +63,13 @@ class ScopeControllerGateway(
             .bodyValue(request)
             .exchange()
             .returnResult(ScopeTokenInfo::class.java)
+    }
+
+    suspend fun revokeScope(scopeId: Long, childId: Long): FluxExchangeResult<Unit> {
+        return client.delete()
+            .uri("/scope/$scopeId/children/$childId")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult()
     }
 }

@@ -6,6 +6,7 @@ import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
@@ -63,10 +64,11 @@ class ScopeToken(
             throw UnsupportedOperationException("Scope[$id] is not support pack operator")
         }
 
-        scopeRelationRepository.deleteAll(
+        val scopeTokenRelation = scopeRelationRepository.findOneOrFail(
             where(ScopeRelationData::parentId).`is`(id)
                 .and(where(ScopeRelationData::childId).`is`(scopeToken.id))
         )
+        scopeRelationRepository.delete(scopeTokenRelation)
     }
 
     fun resolve(): Flow<ScopeToken> {
