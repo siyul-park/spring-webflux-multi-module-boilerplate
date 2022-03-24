@@ -12,7 +12,7 @@ class RHSFilterParser<T : Any>(
     private val clazz: KClass<T>,
     private val objectMapper: ObjectMapper
 ) {
-    private val regex = Regex("(.+):(.+)")
+    private val regex = Regex("(.[^:]+):(.+)")
 
     fun parse(query: Map<KProperty1<T, *>, Collection<String?>>): Criteria {
         try {
