@@ -10,6 +10,7 @@ import io.github.siyual_park.coroutine.test.CoroutineTest
 import io.github.siyual_park.user.domain.UserFactory
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -75,6 +76,49 @@ class ScopeControllerTest @Autowired constructor(
             page = 0,
             perPage = 1
         )
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `GET scope_{scope-id}, status = 200`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val name = RandomNameFactory.create(10)
+        val scopeToken = scopeTokenFactory.upsert(name)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("scope:read")
+        )
+
+        val response = scopeControllerGateway.read(scopeToken.id)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseScopeToken = response.responseBody.awaitSingle()
+
+        assertEquals(scopeToken.id, responseScopeToken.id)
+        assertEquals(scopeToken.name, responseScopeToken.name)
+        assertNotNull(responseScopeToken.createdAt)
+        assertNotNull(responseScopeToken.updatedAt)
+    }
+
+    @Test
+    fun `GET scope_{scope-id}, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val name = RandomNameFactory.create(10)
+        val scopeToken = scopeTokenFactory.upsert(name)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("scope:read")
+        )
+
+        val response = scopeControllerGateway.read(scopeToken.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

@@ -5,7 +5,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.FluxExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.test.web.reactive.server.returnResult
 import java.util.Optional
 
 @Component
@@ -34,6 +33,14 @@ class ScopeControllerGateway(
                     .queryParamIfPresent("per-page", Optional.ofNullable(perPage))
                     .build()
             }
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(ScopeTokenInfo::class.java)
+    }
+
+    suspend fun read(scopeId: Long): FluxExchangeResult<ScopeTokenInfo> {
+        return client.get()
+            .uri("/scope/$scopeId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult(ScopeTokenInfo::class.java)

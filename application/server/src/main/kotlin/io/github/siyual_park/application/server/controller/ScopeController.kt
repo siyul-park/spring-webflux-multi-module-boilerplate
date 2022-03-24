@@ -5,6 +5,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
+import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.search.filter.RHSFilterParserFactory
 import io.github.siyual_park.search.pagination.OffsetPage
 import io.github.siyual_park.search.pagination.OffsetPaginator
@@ -13,6 +14,7 @@ import io.swagger.annotations.Api
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -60,5 +62,13 @@ class ScopeController(
         )
 
         return offsetPage.mapDataAsync { mapperContext.map(it) }
+    }
+
+    @GetMapping("/{scope-id}")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'scope:read')")
+    suspend fun read(@PathVariable("scope-id") scopeId: Long): ScopeTokenInfo {
+        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+        return mapperContext.map(scopeToken)
     }
 }
