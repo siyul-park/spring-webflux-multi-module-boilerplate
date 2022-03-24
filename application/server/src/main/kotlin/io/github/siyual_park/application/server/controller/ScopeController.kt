@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
-@Api(tags = ["auth"])
+@Api(tags = ["scope"])
 @RestController
 @RequestMapping("/scope")
 class ScopeController(
