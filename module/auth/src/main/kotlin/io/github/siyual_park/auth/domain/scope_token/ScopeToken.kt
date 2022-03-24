@@ -31,14 +31,6 @@ class ScopeToken(
     var name by proxy(root, ScopeTokenData::name)
     var description by proxy(root, ScopeTokenData::description)
 
-    fun isPacked(): Boolean {
-        return name.endsWith(":pack")
-    }
-
-    fun isSystem(): Boolean {
-        return root[ScopeTokenData::system]
-    }
-
     override suspend fun has(scopeToken: ScopeToken): Boolean {
         if (id == scopeToken.id) {
             return true
@@ -55,7 +47,7 @@ class ScopeToken(
 
     override suspend fun grant(scopeToken: ScopeToken) {
         if (!isPacked()) {
-            return
+            throw UnsupportedOperationException("Scope[$id] is not support pack operator")
         }
 
         scopeRelationRepository.create(
@@ -68,7 +60,7 @@ class ScopeToken(
 
     override suspend fun revoke(scopeToken: ScopeToken) {
         if (!isPacked()) {
-            return
+            throw UnsupportedOperationException("Scope[$id] is not support pack operator")
         }
 
         scopeRelationRepository.deleteAll(
@@ -97,9 +89,21 @@ class ScopeToken(
 
     fun children(): Flow<ScopeToken> {
         return flow {
+            if (!isPacked()) {
+                throw UnsupportedOperationException("Scope[$id] is not support pack operator")
+            }
+
             val relations = scopeRelationRepository.findAllByParentId(id)
             scopeTokenStorage.load(relations.map { it.childId }.toList())
                 .collect { emit(it) }
         }
+    }
+
+    fun isPacked(): Boolean {
+        return name.endsWith(":pack")
+    }
+
+    fun isSystem(): Boolean {
+        return root[ScopeTokenData::system]
     }
 }

@@ -13,6 +13,10 @@ import io.github.siyual_park.search.pagination.OffsetPage
 import io.github.siyual_park.search.pagination.OffsetPaginator
 import io.github.siyual_park.search.sort.SortParserFactory
 import io.swagger.annotations.Api
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -76,6 +80,16 @@ class ScopeController(
     suspend fun read(@PathVariable("scope-id") scopeId: Long): ScopeTokenInfo {
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
         return mapperContext.map(scopeToken)
+    }
+
+    @GetMapping("/{scope-id}/children")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'scope:read')")
+    fun readChildren(@PathVariable("scope-id") scopeId: Long): Flow<ScopeTokenInfo> {
+        return flow {
+            val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+            emitAll(scopeToken.children())
+        }.map { mapperContext.map(it) }
     }
 
     @PostMapping("/{scope-id}/children")

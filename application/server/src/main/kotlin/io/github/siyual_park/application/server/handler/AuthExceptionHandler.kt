@@ -19,6 +19,11 @@ class AuthExceptionHandler {
         throw ForbiddenException(exception.message)
     }
 
+    @ExceptionHandler(UnsupportedOperationException::class)
+    fun handle(exception: UnsupportedOperationException) {
+        throw ForbiddenException(exception.message)
+    }
+
     @ExceptionHandler(JwtException::class)
     fun handle(exception: JwtException) {
         throw UnauthorizedException(exception.message)

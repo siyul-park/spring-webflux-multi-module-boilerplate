@@ -47,6 +47,14 @@ class ScopeControllerGateway(
             .returnResult(ScopeTokenInfo::class.java)
     }
 
+    suspend fun readChildren(scopeId: Long): FluxExchangeResult<ScopeTokenInfo> {
+        return client.get()
+            .uri("/scope/$scopeId/children")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(ScopeTokenInfo::class.java)
+    }
+
     suspend fun grantScope(scopeId: Long, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
         return client.post()
             .uri("/scope/$scopeId/children")
