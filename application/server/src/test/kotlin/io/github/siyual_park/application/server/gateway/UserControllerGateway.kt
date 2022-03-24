@@ -60,23 +60,6 @@ class UserControllerGateway(
             .returnResult(UserInfo::class.java)
     }
 
-    suspend fun updateSelf(request: UpdateUserRequest): FluxExchangeResult<UserInfo> {
-        return client.patch()
-            .uri("/users/self")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .bodyValue(request)
-            .exchange()
-            .returnResult(UserInfo::class.java)
-    }
-
-    suspend fun deleteSelf(): FluxExchangeResult<Unit> {
-        return client.delete()
-            .uri("/users/self")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .exchange()
-            .returnResult()
-    }
-
     suspend fun read(userId: Long): FluxExchangeResult<UserInfo> {
         return client.get()
             .uri("/users/$userId")
@@ -100,14 +83,6 @@ class UserControllerGateway(
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult()
-    }
-
-    suspend fun readSelfScope(): FluxExchangeResult<ScopeTokenInfo> {
-        return client.get()
-            .uri("/users/self/scope")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .exchange()
-            .returnResult(ScopeTokenInfo::class.java)
     }
 
     suspend fun readScope(userId: Long): FluxExchangeResult<ScopeTokenInfo> {

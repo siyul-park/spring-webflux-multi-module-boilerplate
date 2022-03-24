@@ -121,16 +121,6 @@ class ClientController(
         return mapperContext.map(client)
     }
 
-    @PatchMapping("/self")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'clients[self]:update')")
-    suspend fun updateSelf(
-        @AuthenticationPrincipal principal: ClientEntity,
-        @Valid @RequestBody request: UpdateClientRequest
-    ): ClientInfo {
-        return update(principal.clientId ?: throw EmptyResultDataAccessException(1), request)
-    }
-
     @PatchMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:update', 'clients[self]:update'})")
@@ -146,13 +136,6 @@ class ClientController(
         return mapperContext.map(client)
     }
 
-    @DeleteMapping("/self")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'clients[self]:delete')")
-    suspend fun deleteSelf(@AuthenticationPrincipal principal: ClientEntity) {
-        delete(principal.clientId ?: throw EmptyResultDataAccessException(1))
-    }
-
     @DeleteMapping("/{client-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:delete', 'clients[self]:delete'})")
@@ -161,15 +144,6 @@ class ClientController(
     ) {
         val client = clientStorage.loadOrFail(clientId)
         client.clear()
-    }
-
-    @GetMapping("/self/scope")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'clients[self].scope:read')")
-    fun readSelfScope(
-        @AuthenticationPrincipal principal: ClientEntity
-    ): Flow<ScopeTokenInfo> {
-        return readScope(principal.clientId ?: throw EmptyResultDataAccessException(1))
     }
 
     @GetMapping("/{client-id}/scope")

@@ -231,94 +231,6 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH clients_self, status = 200`() = blocking {
-        val payload = DummyCreateClientPayload.create()
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("clients[self]:update")
-        )
-
-        val name = RandomNameFactory.create(10)
-        val request = UpdateClientRequest(
-            name = Optional.of(name)
-        )
-        val response = clientControllerGateway.updateSelf(request)
-
-        assertEquals(HttpStatus.OK, response.status)
-
-        val responseClient = response.responseBody.awaitSingle()
-
-        assertEquals(client.id, responseClient.id)
-        assertEquals(name, responseClient.name)
-        assertEquals(client.type, responseClient.type)
-        assertEquals(client.origin, responseClient.origin)
-        assertNotNull(responseClient.createdAt)
-        assertNotNull(responseClient.updatedAt)
-    }
-
-    @Test
-    fun `PATCH clients_self, status = 403`() = blocking {
-        val payload = DummyCreateClientPayload.create(
-            DummyCreateClientPayload.CreateClientPayloadTemplate(
-                type = Presence.ofNullable(ClientType.PUBLIC)
-            )
-        )
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            pop = listOf("clients[self]:update")
-        )
-
-        val request = UpdateClientRequest(
-            name = Optional.of(RandomNameFactory.create(10))
-        )
-        val response = clientControllerGateway.updateSelf(request)
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
-    fun `DELETE clients_self, status = 204`() = blocking {
-        val payload = DummyCreateClientPayload.create()
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("clients[self]:delete")
-        )
-
-        val response = clientControllerGateway.deleteSelf()
-
-        assertEquals(HttpStatus.NO_CONTENT, response.status)
-    }
-
-    @Test
-    fun `DELETE clients_self, status = 403`() = blocking {
-        val payload = DummyCreateClientPayload.create(
-            DummyCreateClientPayload.CreateClientPayloadTemplate(
-                type = Presence.ofNullable(ClientType.PUBLIC)
-            )
-        )
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            pop = listOf("clients[self]:delete")
-        )
-
-        val response = clientControllerGateway.deleteSelf()
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
     fun `GET clients_{client-id}, status = 200`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
@@ -472,43 +384,6 @@ class ClientControllerTest @Autowired constructor(
         )
 
         val response = clientControllerGateway.delete(otherClient.id)
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
-    fun `GET clients_self_scope, status = 200`() = blocking {
-        val payload = DummyCreateClientPayload.create()
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("clients[self].scope:read")
-        )
-
-        val response = clientControllerGateway.readSelfScope()
-
-        assertEquals(HttpStatus.OK, response.status)
-
-        val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
-        val scope = client.getScope(deep = false).toList().sortedBy { it.id }
-
-        assertEquals(scope.map { it.id }, responseScope.map { it.id })
-    }
-
-    @Test
-    fun `GET clients_self_scope, status = 403`() = blocking {
-        val payload = DummyCreateClientPayload.create()
-        val client = clientFactory.create(payload)
-        val principal = client.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            pop = listOf("clients[self].scope:read")
-        )
-
-        val response = clientControllerGateway.readSelfScope()
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

@@ -219,52 +219,6 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH users_self, status = 200`() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = user.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("users[self]:update")
-        )
-
-        val name = RandomNameFactory.create(10)
-        val request = UpdateUserRequest(
-            name = Optional.of(name)
-        )
-        val response = userControllerGateway.updateSelf(request)
-
-        assertEquals(HttpStatus.OK, response.status)
-
-        val responseUser = response.responseBody.awaitSingle()
-
-        assertEquals(user.id, responseUser.id)
-        assertEquals(name, responseUser.name)
-        assertNotNull(responseUser.createdAt)
-        assertNotNull(responseUser.updatedAt)
-    }
-
-    @Test
-    fun `PATCH users_self, status = 403`() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = user.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            pop = listOf("users[self]:update")
-        )
-
-        val request = UpdateUserRequest(
-            name = Optional.of(RandomNameFactory.create(10))
-        )
-        val response = userControllerGateway.updateSelf(request)
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
     fun `PATCH users_{self-id}, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
@@ -325,41 +279,6 @@ class UserControllerTest @Autowired constructor(
             name = Optional.of(name)
         )
         val response = userControllerGateway.update(user.id, request)
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
-    fun `DELEATE users_self, status = 204`() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = user.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("users[self]:delete")
-        )
-
-        val response = userControllerGateway.deleteSelf()
-
-        assertEquals(HttpStatus.NO_CONTENT, response.status)
-
-        val scope = user.getScope().toSet()
-        assertEquals(0, scope.size)
-    }
-
-    @Test
-    fun `DELEATE users_self, status = 403`() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = user.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            pop = listOf("users[self]:delete", "users:delete")
-        )
-
-        val response = userControllerGateway.deleteSelf()
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
@@ -523,43 +442,6 @@ class UserControllerTest @Autowired constructor(
         )
 
         val response = userControllerGateway.delete(otherUser.id)
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
-    fun `GET users_self_scope, status = 200`() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = user.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("users[self].scope:read")
-        )
-
-        val response = userControllerGateway.readSelfScope()
-
-        assertEquals(HttpStatus.OK, response.status)
-
-        val responseScope = response.responseBody.asFlow().toList().sortedBy { it.id }
-        val scope = user.getScope(deep = false).toList().sortedBy { it.id }
-
-        assertEquals(scope.map { it.id }, responseScope.map { it.id })
-    }
-
-    @Test
-    fun `GET users_self_scope, status = 403`() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = user.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            pop = listOf("users[self].scope:read")
-        )
-
-        val response = userControllerGateway.readSelfScope()
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
