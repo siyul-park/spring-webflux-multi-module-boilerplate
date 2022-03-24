@@ -6,6 +6,7 @@ import io.github.siyual_park.application.server.dto.request.CreateTokenRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.gateway.AuthControllerGateway
+import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.coroutine.test.CoroutineTest
 import io.github.siyual_park.user.domain.UserFactory
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus
 
 @IntegrationTest
 class AuthControllerTest @Autowired constructor(
+    private val gatewayAuthorization: GatewayAuthorization,
     private val authControllerGateway: AuthControllerGateway,
     private val userFactory: UserFactory,
     private val clientFactory: ClientFactory,
@@ -220,5 +222,75 @@ class AuthControllerTest @Autowired constructor(
         assertEquals(HttpStatus.BAD_REQUEST, case1.status)
         assertEquals(HttpStatus.BAD_REQUEST, case2.status)
         assertEquals(HttpStatus.BAD_REQUEST, case3.status)
+    }
+
+    @Test
+    fun `GET principal, status = 200, when type = client_principal`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("principal[self]:read")
+        )
+
+        val response = authControllerGateway.readSelf()
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responsePrincipal = response.responseBody.awaitSingle()
+
+        assertEquals(principal.id, responsePrincipal.id)
+        assertEquals("client_principal", responsePrincipal.type)
+    }
+
+    @Test
+    fun `GET principal, status = 403, when type = client_principal`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("principal[self]:read")
+        )
+
+        val response = authControllerGateway.readSelf()
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `GET principal, status = 200, when type = user_principal`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("principal[self]:read")
+        )
+
+        val response = authControllerGateway.readSelf()
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responsePrincipal = response.responseBody.awaitSingle()
+
+        assertEquals(principal.id, responsePrincipal.id)
+        assertEquals("user_principal", responsePrincipal.type)
+    }
+
+    @Test
+    fun `GET principal, status = 403, when type = user_principal`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("principal[self]:read")
+        )
+
+        val response = authControllerGateway.readSelf()
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 }

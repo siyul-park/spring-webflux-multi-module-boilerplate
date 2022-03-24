@@ -24,6 +24,8 @@ class ScopeTokenConfiguration(
         scopeTokenFactory.upsert(name = "access-token:create").also { grant(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
         scopeTokenFactory.upsert(name = "refresh-token:create").also { grant(it, listOf(userScope)) }
 
+        scopeTokenFactory.upsert(name = "principal[self]:read").also { grant(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
+
         scopeTokenFactory.upsert(name = "users:create").also { grant(it, listOf(confidentialClientScope, publicClientScope)) }
         scopeTokenFactory.upsert(name = "users:read").also { grant(it, listOf(userScope, confidentialClientScope)) }
         scopeTokenFactory.upsert(name = "users:update")

@@ -2,7 +2,9 @@ package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.GrantType
 import io.github.siyual_park.application.server.dto.request.CreateTokenRequest
+import io.github.siyual_park.application.server.dto.response.PrincipalInfo
 import io.github.siyual_park.application.server.dto.response.TokenInfo
+import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import io.github.siyual_park.auth.domain.authorization.Authorizator
@@ -19,6 +21,9 @@ import io.swagger.annotations.Api
 import kotlinx.coroutines.flow.toSet
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -65,5 +70,12 @@ class AuthController(
         val tokens = tokenIssuer.issue(principal, scope)
 
         return mapperContext.map(tokens)
+    }
+
+    @GetMapping("/principal")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'principal[self]:read')")
+    suspend fun readSelf(@AuthenticationPrincipal principal: Principal): PrincipalInfo {
+        return mapperContext.map(principal)
     }
 }
