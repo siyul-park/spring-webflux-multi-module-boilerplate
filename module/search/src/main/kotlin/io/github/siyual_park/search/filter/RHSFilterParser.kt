@@ -56,7 +56,7 @@ class RHSFilterParser<T : Any>(
             try {
                 converted = objectMapper.convertValue(candidate, clazz.java)
                 break
-            } catch (e: RuntimeException) {
+            } catch (_: RuntimeException) {
             }
         }
 
