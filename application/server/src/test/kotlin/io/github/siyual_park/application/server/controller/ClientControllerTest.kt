@@ -593,7 +593,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PUT clients_{client-id}_scope, status = 200`() = blocking {
+    fun `POST clients_{client-id}_scope, status = 201`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
@@ -610,7 +610,7 @@ class ClientControllerTest @Autowired constructor(
         val request = GrantScopeRequest(id = scope.id)
         val response = clientControllerGateway.grantScope(otherClient.id, request)
 
-        assertEquals(HttpStatus.OK, response.status)
+        assertEquals(HttpStatus.CREATED, response.status)
 
         val responseScope = response.responseBody.awaitSingle()
 
@@ -619,7 +619,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PUT clients_{client-id}_scope, status = 403`() = blocking {
+    fun `POST clients_{client-id}_scope, status = 403`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 

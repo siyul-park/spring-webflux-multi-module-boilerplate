@@ -124,7 +124,7 @@ class ClientControllerGateway(
     }
 
     suspend fun grantScope(clientId: Long, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
-        return client.put()
+        return client.post()
             .uri("/clients/$clientId/scope")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .bodyValue(request)

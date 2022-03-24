@@ -644,7 +644,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PUT users_{user-id}_scope, status = 200`() = blocking {
+    fun `POST users_{user-id}_scope, status = 201`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -661,7 +661,7 @@ class UserControllerTest @Autowired constructor(
         val request = GrantScopeRequest(id = scope.id)
         val response = userControllerGateway.grantScope(otherUser.id, request)
 
-        assertEquals(HttpStatus.OK, response.status)
+        assertEquals(HttpStatus.CREATED, response.status)
 
         val responseScope = response.responseBody.awaitSingle()
 
@@ -670,7 +670,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PUT users_{user-id}_scope, status = 403`() = blocking {
+    fun `POST users_{user-id}_scope, status = 403`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 

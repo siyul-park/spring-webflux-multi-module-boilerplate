@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -36,7 +35,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -178,8 +176,8 @@ class UserController(
         }.map { mapperContext.map(it) }
     }
 
-    @PutMapping("/{user-id}/scope")
-    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/{user-id}/scope")
+    @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'users.scope:create')")
     suspend fun grantScope(
         @PathVariable("user-id") userId: Long,
@@ -194,10 +192,7 @@ class UserController(
             throw EmptyResultDataAccessException(1)
         }
 
-        try {
-            user.grant(scopeToken)
-        } catch (_: DuplicateKeyException) {
-        }
+        user.grant(scopeToken)
 
         return mapperContext.map(scopeToken)
     }
