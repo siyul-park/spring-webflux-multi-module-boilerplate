@@ -82,7 +82,7 @@ class UserController(
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per-page", required = false) perPage: Int? = null
     ): OffsetPage<UserInfo> {
-        val criteria = rhsFilterParser.parseFromProperty(
+        val criteria = rhsFilterParser.parse(
             mapOf(
                 UserData::id to listOf(id),
                 UserData::name to listOf(name),

@@ -57,7 +57,7 @@ class ScopeController(
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per-page", required = false) perPage: Int? = null
     ): OffsetPage<ScopeTokenInfo> {
-        val criteria = rhsFilterParser.parseFromProperty(
+        val criteria = rhsFilterParser.parse(
             mapOf(
                 ScopeTokenData::id to listOf(id),
                 ScopeTokenData::name to listOf(name),

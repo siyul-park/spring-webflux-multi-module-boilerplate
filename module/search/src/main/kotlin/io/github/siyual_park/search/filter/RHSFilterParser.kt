@@ -5,7 +5,7 @@ import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.search.exception.FilterInvalidException
 import org.springframework.data.relational.core.query.Criteria
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
 class RHSFilterParser<T : Any>(
@@ -14,16 +14,11 @@ class RHSFilterParser<T : Any>(
 ) {
     private val regex = Regex("(.+):(.+)")
 
-    fun parseFromProperty(query: Map<KProperty<*>, Collection<String?>>): Criteria {
-        return parse(query.mapKeys { it.key.name })
-    }
-
-    fun parse(query: Map<String, Collection<String?>>): Criteria {
+    fun parse(query: Map<KProperty1<T, *>, Collection<String?>>): Criteria {
         try {
             var criteria = Criteria.empty()
-
             query.forEach { (key, values) ->
-                val property = clazz.memberProperties.find { it.name == key } ?: return@forEach
+                val property = clazz.memberProperties.find { it == key } ?: return@forEach
                 val columnName = columnName(property)
                 val clazz = property.returnType.classifier as? KClass<*>
                     ?: throw FilterInvalidException("Can't find operand type.")

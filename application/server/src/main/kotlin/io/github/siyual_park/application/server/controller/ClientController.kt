@@ -86,7 +86,7 @@ class ClientController(
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per-page", required = false) perPage: Int? = null
     ): OffsetPage<ClientInfo> {
-        val criteria = rhsFilterParser.parseFromProperty(
+        val criteria = rhsFilterParser.parse(
             mapOf(
                 ClientData::id to listOf(id),
                 ClientData::name to listOf(name),
