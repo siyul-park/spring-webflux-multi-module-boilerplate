@@ -1,6 +1,7 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.IntegrationTest
+import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.RandomNameFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
@@ -119,6 +120,51 @@ class ScopeControllerTest @Autowired constructor(
         )
 
         val response = scopeControllerGateway.read(scopeToken.id)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `POST scope_{scope-id}_children, status = 201`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val parent = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("scope.children:create")
+        )
+
+        val request = GrantScopeRequest(id = child.id)
+        val response = scopeControllerGateway.grantScope(parent.id, request)
+
+        assertEquals(HttpStatus.CREATED, response.status)
+
+        val responseScopeToken = response.responseBody.awaitSingle()
+
+        assertEquals(child.id, responseScopeToken.id)
+        assertEquals(child.name, responseScopeToken.name)
+        assertNotNull(responseScopeToken.createdAt)
+        assertNotNull(responseScopeToken.updatedAt)
+    }
+
+    @Test
+    fun `POST scope_{scope-id}_children, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val parent = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("scope.children:create")
+        )
+
+        val request = GrantScopeRequest(id = child.id)
+        val response = scopeControllerGateway.grantScope(parent.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

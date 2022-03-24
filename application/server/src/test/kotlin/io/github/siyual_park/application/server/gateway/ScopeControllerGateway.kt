@@ -1,5 +1,6 @@
 package io.github.siyual_park.application.server.gateway
 
+import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
@@ -42,6 +43,15 @@ class ScopeControllerGateway(
         return client.get()
             .uri("/scope/$scopeId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(ScopeTokenInfo::class.java)
+    }
+
+    suspend fun grantScope(scopeId: Long, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
+        return client.post()
+            .uri("/scope/$scopeId/children")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .bodyValue(request)
             .exchange()
             .returnResult(ScopeTokenInfo::class.java)
     }
