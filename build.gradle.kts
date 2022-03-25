@@ -121,7 +121,10 @@ allprojects {
         targetCompatibility = JavaVersion.VERSION_11.toString()
 
         kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
+            freeCompilerArgs = listOf(
+                "-Xjsr305=strict",
+                "-Xemit-jvm-type-annotations"
+            )
             jvmTarget = JavaVersion.VERSION_11.toString()
         }
     }

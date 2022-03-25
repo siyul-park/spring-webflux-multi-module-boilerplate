@@ -22,15 +22,16 @@ class CustomValidatorFactoryBean : LocalValidatorFactoryBean() {
 
     override fun postProcessConfiguration(configuration: Configuration<*>) {
         val hibernateConfiguration = configuration as? HibernateValidatorConfiguration ?: return
-        val constraintMapping = hibernateConfiguration.createConstraintMapping()
 
         validators.forEach { (annotation, validator) ->
+            val constraintMapping = hibernateConfiguration.createConstraintMapping()
+
             constraintMapping
                 .constraintDefinition(annotation.java)
                 .validatedBy(validator.javaClass)
                 .includeExistingValidators(true)
-        }
 
-        hibernateConfiguration.addMapping(constraintMapping)
+            hibernateConfiguration.addMapping(constraintMapping)
+        }
     }
 }

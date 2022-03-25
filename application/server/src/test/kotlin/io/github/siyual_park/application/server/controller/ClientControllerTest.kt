@@ -91,6 +91,26 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
+    fun `POST clients, status = 400`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients:create")
+        )
+
+        val request = DummyCreateClientRequest.create(
+            DummyCreateClientRequest.CreateClientRequestTemplate(
+                name = Presence.ofNullable(RandomNameFactory.create(25))
+            )
+        )
+
+        val response = clientControllerGateway.create(request)
+        assertEquals(HttpStatus.BAD_REQUEST, response.status)
+    }
+
+    @Test
     fun `POST clients, status = 403`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
@@ -307,7 +327,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH clients_{client-id}, status = 400`() = blocking {
+    fun `PATCH clients_{client-id}, status = 400, when name is null`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
@@ -321,6 +341,28 @@ class ClientControllerTest @Autowired constructor(
 
         val request = UpdateClientRequest(
             name = Optional.empty(),
+        )
+        val response = clientControllerGateway.update(otherClient.id, request)
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.status)
+    }
+
+    @Test
+    fun `PATCH clients_{client-id}, status = 400, when name is excess size`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients:update")
+        )
+
+        val name = RandomNameFactory.create(25)
+        val request = UpdateClientRequest(
+            name = Optional.of(name),
         )
         val response = clientControllerGateway.update(otherClient.id, request)
 
