@@ -9,7 +9,6 @@ import io.github.siyual_park.data.repository.update
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
-import kotlinx.coroutines.sync.Semaphore
 import org.springframework.transaction.NoTransactionException
 import org.springframework.transaction.reactive.TransactionContextManager
 import org.springframework.transaction.reactive.TransactionSynchronization
@@ -30,7 +29,6 @@ open class Persistence<T : Any, ID : Any>(
     private val beforeSyncJobs = Collections.synchronizedList(mutableListOf<suspend () -> Unit>())
     private val afterSyncJobs = Collections.synchronizedList(mutableListOf<suspend () -> Unit>())
 
-    private val semaphore = Semaphore(1)
     private var isCleared = false
 
     private val synchronization = object : TransactionSynchronization {
@@ -87,16 +85,8 @@ open class Persistence<T : Any, ID : Any>(
 
     protected suspend fun doClear(job: suspend () -> Unit) {
         if (!isCleared) {
-            semaphore.acquire()
-            try {
-                if (isCleared) {
-                    return
-                }
-                job.invoke()
-                isCleared = true
-            } finally {
-                semaphore.release()
-            }
+            job.invoke()
+            isCleared = true
         }
     }
 
@@ -111,16 +101,7 @@ open class Persistence<T : Any, ID : Any>(
 
         var result = false
         if (root.isUpdated()) {
-            semaphore.acquire()
-            result = try {
-                if (!root.isUpdated()) {
-                    false
-                } else {
-                    job.invoke()
-                }
-            } finally {
-                semaphore.release()
-            }
+            result = job.invoke()
         }
 
         while (afterSyncTmpJobs.isNotEmpty()) {
