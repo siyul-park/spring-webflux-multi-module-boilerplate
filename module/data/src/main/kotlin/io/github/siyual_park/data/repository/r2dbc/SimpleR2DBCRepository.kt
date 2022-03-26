@@ -34,6 +34,7 @@ import org.springframework.data.relational.core.query.CriteriaDefinition
 import org.springframework.data.relational.core.query.Query.query
 import org.springframework.data.relational.core.query.Update
 import org.springframework.data.relational.core.sql.SqlIdentifier
+import org.springframework.r2dbc.core.Parameter
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
@@ -203,7 +204,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     override suspend fun update(entity: T): T? {
         val originOutboundRow = entityManager.getOutboundRow(entity)
 
-        val patch = mutableMapOf<SqlIdentifier, Any>()
+        val patch = mutableMapOf<SqlIdentifier, Parameter>()
         originOutboundRow.forEach { (key, value) ->
             if (!generatedValueColumn.contains(key)) {
                 patch[key] = value
@@ -215,7 +216,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
         val updateCount = this.entityOperations.update(
             query(where(entityManager.idProperty).`is`(entityManager.getId(entity))),
-            Update.from(patch),
+            Update.from(patch as Map<SqlIdentifier, Any>),
             clazz.java
         )
             .subscribeOn(scheduler)
@@ -252,7 +253,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         val patched = patch.apply(entity)
         val patchedOutboundRow = entityManager.getOutboundRow(patched)
 
-        val diff = mutableMapOf<SqlIdentifier, Any?>()
+        val diff = mutableMapOf<SqlIdentifier, Parameter>()
         originOutboundRow.keys.forEach {
             val originValue = originOutboundRow[it]
             val patchedValue = patchedOutboundRow[it]
@@ -271,7 +272,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
         val updateCount = this.entityOperations.update(
             query(where(entityManager.idProperty).`is`(entityManager.getId(originOutboundRow))),
-            Update.from(diff),
+            Update.from(diff as Map<SqlIdentifier, Any>),
             clazz.java
         )
             .subscribeOn(scheduler)
@@ -358,13 +359,13 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         return annotatedValueSqlIdentifier.toSet()
     }
 
-    private fun toProperty(diff: Map<SqlIdentifier, Any?>): Map<KProperty1<T, *>, Any?> {
+    private fun toProperty(diff: Map<SqlIdentifier, Parameter>): Map<KProperty1<T, *>, Any?> {
         val propertyDiff = mutableMapOf<KProperty1<T, *>, Any?>()
 
         diff.forEach { (key, value) ->
             val property = entityManager.getProperty(key)
             if (property != null) {
-                propertyDiff[property] = value
+                propertyDiff[property] = value.value
             }
         }
 
