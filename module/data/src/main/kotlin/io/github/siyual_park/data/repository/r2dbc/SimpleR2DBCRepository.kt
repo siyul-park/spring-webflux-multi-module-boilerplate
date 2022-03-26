@@ -300,8 +300,14 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun delete(entity: T) {
+        eventPublisher?.publish(BeforeDeleteEvent(entity))
+
         val id = entityManager.getId(entity)
-        deleteAll(where(entityManager.idProperty).`is`(id))
+        this.entityOperations.delete(query(where(entityManager.idProperty).`is`(id)), clazz.java)
+            .subscribeOn(scheduler)
+            .awaitSingle()
+
+        eventPublisher?.publish(AfterDeleteEvent(entity))
     }
 
     override suspend fun deleteAllById(ids: Iterable<ID>) {
