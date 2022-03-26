@@ -7,17 +7,17 @@ import io.github.siyual_park.util.Presence
 import java.net.URL
 
 object DummyCreateClientPayload {
-    data class CreateClientPayloadTemplate(
+    data class Template(
         val name: Presence<String> = Presence.Empty(),
         val type: Presence<ClientType> = Presence.Empty(),
         val origin: Presence<URL> = Presence.Empty(),
         val scope: Presence<Collection<ScopeToken>?> = Presence.Empty()
     )
 
-    fun create(template: CreateClientPayloadTemplate? = null): CreateClientPayload {
+    fun create(template: Template? = null): CreateClientPayload {
         val t = Presence.ofNullable(template)
         return CreateClientPayload(
-            name = t.flatMap { it.name }.orElseGet { RandomNameFactory.create(10) },
+            name = t.flatMap { it.name }.orElseGet { DummyNameFactory.create(10) },
             type = t.flatMap { it.type }.orElseGet { ClientType.CONFIDENTIAL },
             origin = t.flatMap { it.origin }.orElseGet { URL("https://localhost:8080") },
             scope = t.flatMap { it.scope }.orElseGet { null }

@@ -6,13 +6,14 @@ import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserRequest
-import io.github.siyual_park.application.server.dummy.RandomNameFactory
+import io.github.siyual_park.application.server.dummy.DummyNameFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.UserControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.coroutine.test.CoroutineTest
 import io.github.siyual_park.user.domain.UserFactory
+import io.github.siyual_park.util.Presence
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
@@ -90,6 +91,27 @@ class UserControllerTest @Autowired constructor(
 
         val response = userControllerGateway.create(request)
         assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `POST users, status = 400`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("users:create")
+        )
+
+        val request = DummyCreateUserRequest.create(
+            DummyCreateUserRequest.Template(
+                name = Presence.ofNullable(DummyNameFactory.create(25))
+            )
+        )
+        userControllerGateway.create(request)
+
+        val response = userControllerGateway.create(request)
+        assertEquals(HttpStatus.BAD_REQUEST, response.status)
     }
 
     @Test
@@ -229,7 +251,7 @@ class UserControllerTest @Autowired constructor(
             push = listOf("users[self]:update")
         )
 
-        val name = RandomNameFactory.create(10)
+        val name = DummyNameFactory.create(10)
         val request = UpdateUserRequest(
             name = Optional.of(name)
         )
@@ -246,7 +268,7 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `PATCH users_{self-id}, status = 400`() = blocking {
+    fun `PATCH users_{self-id}, status = 400, when name is null`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
@@ -265,6 +287,25 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
+    fun `PATCH users_{self-id}, status = 400, when name is excess size`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = user.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self]:update")
+        )
+
+        val request = UpdateUserRequest(
+            name = Optional.of(DummyNameFactory.create(25))
+        )
+        val response = userControllerGateway.update(user.id, request)
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.status)
+    }
+
+    @Test
     fun `PATCH users_{self-id}, status = 403`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)
@@ -274,7 +315,7 @@ class UserControllerTest @Autowired constructor(
             principal,
             pop = listOf("users[self]:update", "users:update")
         )
-        val name = RandomNameFactory.create(10)
+        val name = DummyNameFactory.create(10)
         val request = UpdateUserRequest(
             name = Optional.of(name)
         )
@@ -373,7 +414,7 @@ class UserControllerTest @Autowired constructor(
             push = listOf("users:update")
         )
 
-        val name = RandomNameFactory.create(10)
+        val name = DummyNameFactory.create(10)
         val request = UpdateUserRequest(
             name = Optional.of(name)
         )
@@ -403,7 +444,7 @@ class UserControllerTest @Autowired constructor(
         )
 
         val request = UpdateUserRequest(
-            name = Optional.of(RandomNameFactory.create(10))
+            name = Optional.of(DummyNameFactory.create(10))
         )
         val response = userControllerGateway.update(otherUser.id, request)
 
@@ -533,7 +574,7 @@ class UserControllerTest @Autowired constructor(
         val otherUser = DummyCreateUserPayload.create()
             .let { userFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -559,7 +600,7 @@ class UserControllerTest @Autowired constructor(
         val otherUser = DummyCreateUserPayload.create()
             .let { userFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -580,7 +621,7 @@ class UserControllerTest @Autowired constructor(
         val otherUser = DummyCreateUserPayload.create()
             .let { userFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         otherUser.grant(scope)
 
@@ -603,7 +644,7 @@ class UserControllerTest @Autowired constructor(
         val otherUser = DummyCreateUserPayload.create()
             .let { userFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         otherUser.grant(scope)
 

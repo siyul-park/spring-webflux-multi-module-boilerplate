@@ -3,7 +3,7 @@ package io.github.siyual_park.application.server.controller
 import io.github.siyual_park.IntegrationTest
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
-import io.github.siyual_park.application.server.dummy.RandomNameFactory
+import io.github.siyual_park.application.server.dummy.DummyNameFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.ScopeControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
@@ -32,7 +32,7 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = RandomNameFactory.create(10)
+        val name = DummyNameFactory.create(10)
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -64,7 +64,7 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = RandomNameFactory.create(10)
+        val name = DummyNameFactory.create(10)
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -87,7 +87,7 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = RandomNameFactory.create(10)
+        val name = DummyNameFactory.create(10)
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -112,7 +112,7 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = RandomNameFactory.create(10)
+        val name = DummyNameFactory.create(10)
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -130,8 +130,8 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${RandomNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
+        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -156,8 +156,8 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${RandomNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
+        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -175,8 +175,8 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${RandomNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
+        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         parent.grant(child)
 
@@ -204,8 +204,8 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${RandomNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
+        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         parent.grant(child)
 
@@ -224,8 +224,8 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${RandomNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
+        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         parent.grant(child)
 
@@ -245,8 +245,8 @@ class ScopeControllerTest @Autowired constructor(
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${RandomNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
+        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         parent.grant(child)
 

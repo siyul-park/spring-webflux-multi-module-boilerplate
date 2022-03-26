@@ -6,7 +6,7 @@ import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
-import io.github.siyual_park.application.server.dummy.RandomNameFactory
+import io.github.siyual_park.application.server.dummy.DummyNameFactory
 import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
@@ -49,7 +49,7 @@ class ClientControllerTest @Autowired constructor(
 
         ClientType.values().forEach {
             val request = DummyCreateClientRequest.create(
-                DummyCreateClientRequest.CreateClientRequestTemplate(
+                DummyCreateClientRequest.Template(
                     type = Presence.Exist(it)
                 )
             )
@@ -101,8 +101,8 @@ class ClientControllerTest @Autowired constructor(
         )
 
         val request = DummyCreateClientRequest.create(
-            DummyCreateClientRequest.CreateClientRequestTemplate(
-                name = Presence.ofNullable(RandomNameFactory.create(25))
+            DummyCreateClientRequest.Template(
+                name = Presence.ofNullable(DummyNameFactory.create(25))
             )
         )
 
@@ -308,7 +308,7 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:update")
         )
 
-        val name = RandomNameFactory.create(10)
+        val name = DummyNameFactory.create(10)
         val request = UpdateClientRequest(
             name = Optional.of(name),
         )
@@ -360,7 +360,7 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:update")
         )
 
-        val name = RandomNameFactory.create(25)
+        val name = DummyNameFactory.create(25)
         val request = UpdateClientRequest(
             name = Optional.of(name),
         )
@@ -383,7 +383,7 @@ class ClientControllerTest @Autowired constructor(
         )
 
         val request = UpdateClientRequest(
-            name = Optional.of(RandomNameFactory.create(10)),
+            name = Optional.of(DummyNameFactory.create(10)),
             origin = Optional.of(otherClient.origin)
         )
         val response = clientControllerGateway.update(otherClient.id, request)
@@ -517,7 +517,7 @@ class ClientControllerTest @Autowired constructor(
         val otherClient = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -543,7 +543,7 @@ class ClientControllerTest @Autowired constructor(
         val otherClient = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -564,7 +564,7 @@ class ClientControllerTest @Autowired constructor(
         val otherClient = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         otherClient.grant(scope)
 
@@ -587,7 +587,7 @@ class ClientControllerTest @Autowired constructor(
         val otherClient = DummyCreateClientPayload.create()
             .let { clientFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(RandomNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
 
         otherClient.grant(scope)
 
