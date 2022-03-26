@@ -16,7 +16,8 @@ class UserCredential(
 ) : Persistence<UserCredentialData, Long>(value, userCredentialRepository, eventPublisher) {
     val id by proxyNotNull(root, UserCredentialData::id)
     val userId by proxyNotNull(root, UserCredentialData::userId)
-    var hashAlgorithm by proxy(root, UserCredentialData::hashAlgorithm)
+
+    private val hashAlgorithm by proxy(root, UserCredentialData::hashAlgorithm)
 
     fun checkPassword(password: String): Boolean {
         return root[UserCredentialData::password] == encodePassword(password)
