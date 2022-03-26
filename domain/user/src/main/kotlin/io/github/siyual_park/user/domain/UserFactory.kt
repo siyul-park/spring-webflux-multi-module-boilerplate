@@ -6,7 +6,6 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.data.event.AfterSaveEvent
 import io.github.siyual_park.event.EventPublisher
-import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.repository.UserCredentialRepository
