@@ -8,6 +8,7 @@ import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
+import io.github.siyual_park.persistence.proxyNotNull
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
@@ -22,7 +23,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
-import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 
@@ -35,9 +35,8 @@ class User(
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
 ) : Persistence<UserData, Long>(value, userRepository, eventPublisher), UserEntity, Authorizable {
-    val id: Long
-        get() = root[UserData::id] ?: throw EmptyResultDataAccessException(1)
-    override val userId by proxy(root, UserData::id)
+    val id: Long by proxyNotNull(root, UserData::id)
+    override val userId by proxyNotNull(root, UserData::id)
     var name by proxy(root, UserData::name)
 
     private var credential: UserCredential? = null

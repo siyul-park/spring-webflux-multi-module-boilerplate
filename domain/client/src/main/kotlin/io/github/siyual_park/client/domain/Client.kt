@@ -16,6 +16,7 @@ import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
+import io.github.siyual_park.persistence.proxyNotNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
@@ -24,7 +25,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
-import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 
@@ -37,9 +37,8 @@ class Client(
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
 ) : Persistence<ClientData, Long>(value, clientRepository, eventPublisher), ClientEntity, Authorizable {
-    val id: Long
-        get() = root[ClientData::id] ?: throw EmptyResultDataAccessException(1)
-    override val clientId by proxy(root, ClientData::id)
+    val id: Long by proxyNotNull(root, ClientData::id)
+    override val clientId by proxyNotNull(root, ClientData::id)
     var name by proxy(root, ClientData::name)
     val type by proxy(root, ClientData::type)
     var origin by proxy(root, ClientData::origin)
