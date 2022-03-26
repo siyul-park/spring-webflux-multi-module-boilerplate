@@ -48,7 +48,11 @@ class User(
             userCredentialRepository.findByUserIdOrFail(id),
             userCredentialRepository,
             eventPublisher
-        )
+        ).also {
+            onBeforeSync {
+                it.sync()
+            }
+        }
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {

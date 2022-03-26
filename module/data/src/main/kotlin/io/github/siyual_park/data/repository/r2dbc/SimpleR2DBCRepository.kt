@@ -29,6 +29,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Sort.Order.asc
 import org.springframework.data.domain.Sort.by
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
+import org.springframework.data.r2dbc.mapping.OutboundRow
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.CriteriaDefinition
 import org.springframework.data.relational.core.query.Query.query
@@ -203,7 +204,6 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
     override suspend fun update(entity: T): T? {
         val originOutboundRow = entityManager.getOutboundRow(entity)
-
         val patch = mutableMapOf<SqlIdentifier, Parameter>()
         originOutboundRow.forEach { (key, value) ->
             if (!generatedValueColumn.contains(key)) {
@@ -211,8 +211,19 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             }
         }
 
-        val diff = toProperty(patch)
-        eventPublisher?.publish(BeforeUpdateEvent(entity, diff))
+        if (eventPublisher != null) {
+            val existed = this.entityOperations.selectOne(
+                query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
+                    .limit(1),
+                clazz.java
+            )
+                .subscribeOn(scheduler)
+                .awaitSingleOrNull() ?: return null
+
+            val exitedOutboundRow = entityManager.getOutboundRow(existed)
+            val diff = diff(originOutboundRow, exitedOutboundRow)
+            eventPublisher.publish(BeforeUpdateEvent(entity, toProperty(diff)))
+        }
 
         val updateCount = this.entityOperations.update(
             query(where(entityManager.idProperty).`is`(entityManager.getId(entity))),
@@ -226,7 +237,11 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         return findById(entityManager.getId(originOutboundRow))
-            ?.also { eventPublisher?.publish(AfterUpdateEvent(entity, diff)) }
+            ?.also {
+                val patchedOutboundRow = entityManager.getOutboundRow(it)
+                val diff = diff(originOutboundRow, patchedOutboundRow)
+                eventPublisher?.publish(AfterUpdateEvent(entity, toProperty(diff)))
+            }
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
@@ -253,16 +268,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         val patched = patch.apply(entity)
         val patchedOutboundRow = entityManager.getOutboundRow(patched)
 
-        val diff = mutableMapOf<SqlIdentifier, Parameter>()
-        originOutboundRow.keys.forEach {
-            val originValue = originOutboundRow[it]
-            val patchedValue = patchedOutboundRow[it]
-
-            if (!generatedValueColumn.contains(it) && originValue.value != patchedValue.value) {
-                diff[it] = patchedValue
-            }
-        }
-
+        val diff = diff(originOutboundRow, patchedOutboundRow)
         if (diff.isEmpty()) {
             return null
         }
@@ -363,6 +369,20 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         return annotatedValueSqlIdentifier.toSet()
+    }
+
+    private fun diff(source: OutboundRow, target: OutboundRow): Map<SqlIdentifier, Parameter> {
+        val diff = mutableMapOf<SqlIdentifier, Parameter>()
+        source.keys.forEach {
+            val sourceValue = source[it]
+            val targetValue = target[it]
+
+            if (!generatedValueColumn.contains(it) && sourceValue.value != targetValue.value) {
+                diff[it] = targetValue
+            }
+        }
+
+        return diff
     }
 
     private fun toProperty(diff: Map<SqlIdentifier, Parameter>): Map<KProperty1<T, *>, Any?> {

@@ -9,10 +9,13 @@ import io.github.siyual_park.data.repository.update
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
+import kotlinx.coroutines.sync.Semaphore
 import org.springframework.transaction.NoTransactionException
 import org.springframework.transaction.reactive.TransactionContextManager
 import org.springframework.transaction.reactive.TransactionSynchronization
 import reactor.core.publisher.Mono
+import java.util.Collections
+import java.util.concurrent.ConcurrentLinkedQueue
 
 open class Persistence<T : Any, ID : Any>(
     value: T,
@@ -20,6 +23,14 @@ open class Persistence<T : Any, ID : Any>(
     private val eventPublisher: EventPublisher? = null
 ) : Permanentable {
     protected val root = LazyMutable.from(value)
+
+    private val beforeSyncTmpJobs = ConcurrentLinkedQueue<suspend () -> Unit>()
+    private val afterSyncTmpJobs = ConcurrentLinkedQueue<suspend () -> Unit>()
+
+    private val beforeSyncJobs = Collections.synchronizedList(mutableListOf<suspend () -> Unit>())
+    private val afterSyncJobs = Collections.synchronizedList(mutableListOf<suspend () -> Unit>())
+
+    private val semaphore = Semaphore(1)
 
     private val synchronization = object : TransactionSynchronization {
         override fun beforeCommit(readOnly: Boolean): Mono<Void> {
@@ -56,21 +67,61 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     override suspend fun sync(): Boolean {
-        return if (root.isUpdated()) {
-            eventPublisher?.publish(BeforeUpdateEvent(this))
-            val updated = repository.update(root.raw()) {
-                val commands = root.checkout()
-                commands.forEach { (property, command) ->
-                    property.set(it, command)
-                }
-                root.raw(it)
-            }
-            eventPublisher?.publish(AfterUpdateEvent(this))
+        beforeSyncJobs.forEach {
+            it.invoke()
+        }
 
-            updated != null
+        return if (root.isUpdated() || beforeSyncTmpJobs.isNotEmpty() || afterSyncTmpJobs.isNotEmpty()) {
+            semaphore.acquire()
+            try {
+                while (beforeSyncTmpJobs.isNotEmpty()) {
+                    beforeSyncTmpJobs.poll().invoke()
+                }
+
+                if (!root.isUpdated()) {
+                    return false
+                }
+                eventPublisher?.publish(BeforeUpdateEvent(this))
+                val updated = repository.update(root.raw()) {
+                    val commands = root.checkout()
+                    commands.forEach { (property, command) ->
+                        property.set(it, command)
+                    }
+                    root.raw(it)
+                }
+                eventPublisher?.publish(AfterUpdateEvent(this))
+
+                while (afterSyncTmpJobs.isNotEmpty()) {
+                    afterSyncTmpJobs.poll().invoke()
+                }
+
+                updated != null
+            } finally {
+                semaphore.release()
+            }
         } else {
             false
+        }.also {
+            afterSyncJobs.forEach {
+                it.invoke()
+            }
         }
+    }
+
+    protected fun onBeforeSyncOne(job: suspend () -> Unit) {
+        this.beforeSyncTmpJobs.add(job)
+    }
+
+    protected fun onAfterSyncOne(job: suspend () -> Unit) {
+        this.beforeSyncTmpJobs.add(job)
+    }
+
+    protected fun onBeforeSync(job: suspend () -> Unit) {
+        this.beforeSyncJobs.add(job)
+    }
+
+    protected fun onAfterSync(job: suspend () -> Unit) {
+        this.beforeSyncJobs.add(job)
     }
 
     override fun hashCode(): Int {

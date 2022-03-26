@@ -51,7 +51,11 @@ class Client(
             clientCredentialRepository.findByClientIdOrFail(id),
             clientCredentialRepository,
             eventPublisher
-        )
+        ).also {
+            onBeforeSync {
+                it.sync()
+            }
+        }
     }
 
     fun isConfidential(): Boolean {
