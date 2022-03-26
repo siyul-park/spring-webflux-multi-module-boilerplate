@@ -39,6 +39,7 @@ class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchroniz
 
                         parent?.merge(storage)
                     }
+                    storages.remove(it)
                 }.then()
             } else {
                 mono {
