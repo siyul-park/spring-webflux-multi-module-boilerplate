@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
-import java.time.Instant
 
 class User(
     value: UserData,
@@ -50,18 +49,6 @@ class User(
             userCredentialRepository,
             eventPublisher
         )
-    }
-
-    fun isActivate(): Boolean {
-        return root[UserData::activatedAt] != null
-    }
-
-    fun activate() {
-        root[UserData::activatedAt] = Instant.now()
-    }
-
-    fun inactivate() {
-        root[UserData::activatedAt] = null
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {

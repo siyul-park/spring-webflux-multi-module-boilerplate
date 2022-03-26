@@ -10,7 +10,7 @@ import java.time.Instant
 data class UserData(
     @Key
     var name: String,
+    @Key
     var email: String,
-    var activatedAt: Instant? = null,
     override var deletedAt: Instant? = null
 ) : TimeableEntity<UserData, Long>(), SoftDeletable

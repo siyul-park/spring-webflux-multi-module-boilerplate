@@ -23,8 +23,7 @@ class CreateUser : Migration {
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP," +
-                    "activated_at TIMESTAMP" +
+                    "deleted_at TIMESTAMP" +
                     ")"
             )
             entityOperations.createUpdatedAtTrigger(tableName)
@@ -39,13 +38,13 @@ class CreateUser : Migration {
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP," +
-                    "activated_at TIMESTAMP" +
+                    "deleted_at TIMESTAMP" +
                     ")"
             )
         }
 
         entityOperations.createUniqueIndex(tableName, listOf("name"))
+        entityOperations.createUniqueIndex(tableName, listOf("email"))
     }
 
     override suspend fun down(entityOperations: R2dbcEntityOperations) {

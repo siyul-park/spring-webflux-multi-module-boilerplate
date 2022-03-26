@@ -8,7 +8,6 @@ import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.entity.UserData
-import io.github.siyual_park.user.event.RequestActivateEvent
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
 import org.springframework.stereotype.Component
@@ -43,7 +42,6 @@ class UserFactory(
             }
 
             eventPublisher.publish(AfterCreateEvent(user))
-            eventPublisher.publish(RequestActivateEvent(user))
 
             user
         }!!
