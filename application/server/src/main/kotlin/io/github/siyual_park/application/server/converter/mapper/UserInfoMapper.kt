@@ -17,8 +17,7 @@ class UserInfoMapper : Mapper<User, UserInfo> {
             id = raw.id!!,
             name = raw.name,
             createdAt = raw.createdAt!!,
-            updatedAt = raw.updatedAt,
-            deletedAt = raw.deletedAt
+            updatedAt = raw.updatedAt
         )
     }
 }

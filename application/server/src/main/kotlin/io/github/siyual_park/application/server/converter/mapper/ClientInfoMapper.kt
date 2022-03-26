@@ -19,8 +19,7 @@ class ClientInfoMapper : Mapper<Client, ClientInfo> {
             type = raw.type,
             origin = raw.origin,
             createdAt = raw.createdAt!!,
-            updatedAt = raw.updatedAt,
-            deletedAt = raw.deletedAt
+            updatedAt = raw.updatedAt
         )
     }
 }

@@ -10,6 +10,5 @@ data class ClientInfo(
     val type: ClientType,
     val origin: URL,
     val createdAt: Instant,
-    val updatedAt: Instant?,
-    val deletedAt: Instant?,
+    val updatedAt: Instant?
 )
