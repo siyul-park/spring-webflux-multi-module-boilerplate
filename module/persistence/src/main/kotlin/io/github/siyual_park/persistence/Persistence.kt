@@ -66,12 +66,11 @@ open class Persistence<T : Any, ID : Any>(
             repository.delete(root.raw())
             root.clear()
             eventPublisher?.publish(AfterDeleteEvent(this))
-            isCleared = true
         }
     }
 
     override suspend fun sync(): Boolean {
-        return doSync {
+        return doUpdate {
             eventPublisher?.publish(BeforeUpdateEvent(this))
             val updated = repository.update(root.raw()) {
                 val commands = root.checkout()
@@ -94,13 +93,14 @@ open class Persistence<T : Any, ID : Any>(
                     return
                 }
                 job.invoke()
+                isCleared = true
             } finally {
                 semaphore.release()
             }
         }
     }
 
-    protected suspend fun doSync(job: suspend () -> Boolean): Boolean {
+    protected suspend fun doUpdate(job: suspend () -> Boolean): Boolean {
         beforeSyncJobs.forEach {
             it.invoke()
         }
