@@ -1,5 +1,5 @@
 package io.github.siyual_park.data.event
 
-data class AfterSaveEvent<T>(
+data class AfterCreateEvent<T>(
     val entity: T
 )

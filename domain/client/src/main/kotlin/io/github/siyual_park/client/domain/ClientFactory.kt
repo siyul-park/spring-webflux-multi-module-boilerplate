@@ -7,9 +7,8 @@ import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.data.event.AfterSaveEvent
+import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
-import io.github.siyual_park.persistence.loadOrFail
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -40,7 +39,7 @@ class ClientFactory(
                 }
             }
 
-            eventPublisher.publish(AfterSaveEvent(client))
+            eventPublisher.publish(AfterCreateEvent(client))
 
             client
         }!!

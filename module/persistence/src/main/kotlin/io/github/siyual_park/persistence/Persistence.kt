@@ -1,6 +1,9 @@
 package io.github.siyual_park.persistence
 
-import io.github.siyual_park.data.event.AfterSaveEvent
+import io.github.siyual_park.data.event.AfterDeleteEvent
+import io.github.siyual_park.data.event.AfterUpdateEvent
+import io.github.siyual_park.data.event.BeforeDeleteEvent
+import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.update
 import io.github.siyual_park.event.EventPublisher
@@ -46,12 +49,15 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     override suspend fun clear() {
+        eventPublisher?.publish(BeforeDeleteEvent(this))
         repository.delete(root.raw())
         root.clear()
+        eventPublisher?.publish(AfterDeleteEvent(this))
     }
 
     override suspend fun sync(): Boolean {
         return if (root.isUpdated()) {
+            eventPublisher?.publish(BeforeUpdateEvent(this))
             val updated = repository.update(root.raw()) {
                 val commands = root.checkout()
                 commands.forEach { (property, command) ->
@@ -59,11 +65,7 @@ open class Persistence<T : Any, ID : Any>(
                 }
                 root.raw(it)
             }
-
-            if (updated != null) {
-                root.raw(updated)
-                eventPublisher?.publish(AfterSaveEvent(this))
-            }
+            eventPublisher?.publish(AfterUpdateEvent(this))
 
             updated != null
         } else {

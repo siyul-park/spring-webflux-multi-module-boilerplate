@@ -3,7 +3,7 @@ package io.github.siyual_park.auth.domain.scope_token
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.data.event.AfterSaveEvent
+import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.stereotype.Component
 
@@ -38,6 +38,6 @@ class ScopeTokenFactory(
                 system = payload.system
             )
         ).let { ScopeToken(it, scopeTokenRepository, scopeRelationRepository, eventPublisher) }
-            .also { eventPublisher.publish(AfterSaveEvent(it)) }
+            .also { eventPublisher.publish(AfterCreateEvent(it)) }
     }
 }

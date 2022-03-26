@@ -1,7 +1,12 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import io.github.siyual_park.data.annotation.GeneratedValue
-import io.github.siyual_park.data.event.AfterSaveEvent
+import io.github.siyual_park.data.event.AfterCreateEvent
+import io.github.siyual_park.data.event.AfterDeleteEvent
+import io.github.siyual_park.data.event.AfterUpdateEvent
+import io.github.siyual_park.data.event.BeforeCreateEvent
+import io.github.siyual_park.data.event.BeforeDeleteEvent
+import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
@@ -32,6 +37,7 @@ import org.springframework.data.relational.core.sql.SqlIdentifier
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
 class SimpleR2DBCRepository<T : Any, ID : Any>(
@@ -49,6 +55,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun create(entity: T): T {
+        eventPublisher?.publish(BeforeCreateEvent(entity))
+
         val saved = this.entityOperations.insert(entity)
             .subscribeOn(scheduler)
             .awaitSingle()
@@ -59,11 +67,13 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         )
             .subscribeOn(scheduler)
             .awaitSingle()
-            .also { eventPublisher?.publish(AfterSaveEvent(it)) }
+            .also { eventPublisher?.publish(AfterCreateEvent(it)) }
     }
 
     override fun createAll(entities: Flow<T>): Flow<T> {
         val saved = entities.map {
+            eventPublisher?.publish(BeforeCreateEvent(it))
+
             this.entityOperations.insert(it)
                 .subscribeOn(scheduler)
                 .awaitSingle()
@@ -77,7 +87,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 )
                     .subscribeOn(scheduler)
                     .asFlow()
-                    .onEach { eventPublisher?.publish(AfterSaveEvent(it)) }
+                    .onEach { eventPublisher?.publish(AfterCreateEvent(it)) }
             )
         }
     }
@@ -200,6 +210,9 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             }
         }
 
+        val diff = toProperty(patch)
+        eventPublisher?.publish(BeforeUpdateEvent(entity, diff))
+
         val updateCount = this.entityOperations.update(
             query(where(entityManager.idProperty).`is`(entityManager.getId(entity))),
             Update.from(patch),
@@ -212,6 +225,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         return findById(entityManager.getId(originOutboundRow))
+            ?.also { eventPublisher?.publish(AfterUpdateEvent(entity, diff)) }
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
@@ -252,6 +266,9 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             return null
         }
 
+        val propertyDiff = toProperty(diff)
+        eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
+
         val updateCount = this.entityOperations.update(
             query(where(entityManager.idProperty).`is`(entityManager.getId(originOutboundRow))),
             Update.from(diff),
@@ -264,7 +281,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         return findById(entityManager.getId(patchedOutboundRow))
-            .also { eventPublisher?.publish(AfterSaveEvent(it)) }
+            ?.also { eventPublisher?.publish(AfterUpdateEvent(it, propertyDiff)) }
     }
 
     override suspend fun count(): Long {
@@ -308,9 +325,24 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?) {
-        this.entityOperations.delete(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
-            .subscribeOn(scheduler)
-            .awaitSingle()
+        if (eventPublisher == null) {
+            this.entityOperations.delete(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
+                .subscribeOn(scheduler)
+                .awaitSingle()
+        } else {
+            val entities = findAll(criteria)
+                .onEach { eventPublisher.publish(BeforeDeleteEvent(it)) }
+                .toList()
+            val ids = entities.map { entityManager.getId(it) }
+
+            this.entityOperations.delete(query(where(entityManager.idProperty).`in`(ids.toList())), clazz.java)
+                .subscribeOn(scheduler)
+                .awaitSingle()
+
+            entities.forEach {
+                eventPublisher.publish(AfterDeleteEvent(it))
+            }
+        }
     }
 
     private fun <S : Annotation> getAnnotatedSqlIdentifier(annotationType: KClass<S>): Set<SqlIdentifier> {
@@ -324,5 +356,18 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         return annotatedValueSqlIdentifier.toSet()
+    }
+
+    private fun toProperty(diff: Map<SqlIdentifier, Any?>): Map<KProperty1<T, *>, Any?> {
+        val propertyDiff = mutableMapOf<KProperty1<T, *>, Any?>()
+
+        diff.forEach { (key, value) ->
+            val property = entityManager.getProperty(key)
+            if (property != null) {
+                propertyDiff[property] = value
+            }
+        }
+
+        return propertyDiff
     }
 }

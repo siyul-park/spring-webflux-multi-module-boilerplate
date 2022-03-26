@@ -13,6 +13,9 @@ import org.springframework.data.util.ProxyUtils
 import org.springframework.r2dbc.core.Parameter
 import org.springframework.util.CollectionUtils
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaField
 
 @Suppress("UNCHECKED_CAST")
 class EntityManager<T : Any, ID : Any>(
@@ -112,5 +115,12 @@ class EntityManager<T : Any, ID : Any>(
 
     fun getRequiredEntity(entityClass: Class<*>): RelationalPersistentEntity<*> {
         return mappingContext.getRequiredPersistentEntity(entityClass)
+    }
+
+    fun getProperty(sql: SqlIdentifier): KProperty1<T, *>? {
+        val requiredEntity = mappingContext.getRequiredPersistentEntity(clazz.java)
+        val current = requiredEntity.find { it.columnName == sql } ?: return null
+
+        return clazz.memberProperties.find { it.javaField == current.field }
     }
 }
