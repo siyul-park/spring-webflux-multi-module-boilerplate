@@ -12,7 +12,7 @@ object DummyCreateScopeTokenRequest {
     fun create(template: Template? = null): CreateScopeTokenRequest {
         val t = Presence.ofNullable(template)
         return CreateScopeTokenRequest(
-            name = t.flatMap { it.name }.orElseGet { "${DummyNameFactory.create(5)}:test" },
+            name = t.flatMap { it.name }.orElseGet { DummyScopeNameFactory.create(10) },
             description = t.flatMap { it.description }.orElseGet { DummyStringFactory.create(10) },
         )
     }

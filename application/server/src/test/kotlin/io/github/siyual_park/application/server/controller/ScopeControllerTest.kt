@@ -2,9 +2,11 @@ package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.IntegrationTest
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
+import io.github.siyual_park.application.server.dto.request.UpdateScopeTokenRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateScopeTokenRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.DummyNameFactory
+import io.github.siyual_park.application.server.dummy.DummyScopeNameFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.ScopeControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import java.util.Optional
 
 @IntegrationTest
 class ScopeControllerTest @Autowired constructor(
@@ -164,6 +167,57 @@ class ScopeControllerTest @Autowired constructor(
         )
 
         val response = scopeControllerGateway.read(scopeToken.id)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `PATCH scope_{scope-id}, status = 200`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val name = DummyNameFactory.create(10)
+        val scopeToken = scopeTokenFactory.upsert(name)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("scope:update")
+        )
+
+        val updatedName = DummyScopeNameFactory.create(10)
+        val request = UpdateScopeTokenRequest(
+            name = Optional.of(updatedName)
+        )
+        val response = scopeControllerGateway.update(scopeToken.id, request)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseScopeToken = response.responseBody.awaitSingle()
+
+        assertEquals(scopeToken.id, responseScopeToken.id)
+        assertEquals(updatedName, responseScopeToken.name)
+        assertNotNull(responseScopeToken.createdAt)
+        assertNotNull(responseScopeToken.updatedAt)
+    }
+
+    @Test
+    fun `PATCH scope_{scope-id}, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val name = DummyNameFactory.create(10)
+        val scopeToken = scopeTokenFactory.upsert(name)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("scope:update")
+        )
+
+        val updatedName = DummyScopeNameFactory.create(10)
+        val request = UpdateScopeTokenRequest(
+            name = Optional.of(updatedName)
+        )
+        val response = scopeControllerGateway.update(scopeToken.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

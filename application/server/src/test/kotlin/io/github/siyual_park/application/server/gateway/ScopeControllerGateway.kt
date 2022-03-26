@@ -2,6 +2,7 @@ package io.github.siyual_park.application.server.gateway
 
 import io.github.siyual_park.application.server.dto.request.CreateScopeTokenRequest
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
+import io.github.siyual_park.application.server.dto.request.UpdateScopeTokenRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
@@ -54,6 +55,15 @@ class ScopeControllerGateway(
         return client.get()
             .uri("/scope/$scopeId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(ScopeTokenInfo::class.java)
+    }
+
+    suspend fun update(scopeId: Long, request: UpdateScopeTokenRequest): FluxExchangeResult<ScopeTokenInfo> {
+        return client.patch()
+            .uri("/scope/$scopeId")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .bodyValue(request)
             .exchange()
             .returnResult(ScopeTokenInfo::class.java)
     }

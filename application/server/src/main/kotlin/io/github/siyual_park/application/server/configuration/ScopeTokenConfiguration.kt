@@ -42,18 +42,19 @@ class ScopeTokenConfiguration(
         scopeTokenFactory.upsert(name = "clients[self]:update").also { grant(it, listOf(confidentialClientScope)) }
         scopeTokenFactory.upsert(name = "clients[self]:delete").also { grant(it, listOf(confidentialClientScope)) }
 
-        scopeTokenFactory.upsert(name = "users.scope:read")
         scopeTokenFactory.upsert(name = "users.scope:create")
+        scopeTokenFactory.upsert(name = "users.scope:read")
         scopeTokenFactory.upsert(name = "users.scope:delete")
         scopeTokenFactory.upsert(name = "users[self].scope:read").also { grant(it, listOf(userScope)) }
 
-        scopeTokenFactory.upsert(name = "clients.scope:read")
         scopeTokenFactory.upsert(name = "clients.scope:create")
+        scopeTokenFactory.upsert(name = "clients.scope:read")
         scopeTokenFactory.upsert(name = "clients.scope:delete")
         scopeTokenFactory.upsert(name = "clients[self].scope:read").also { grant(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
 
         scopeTokenFactory.upsert(name = "scope:create")
         scopeTokenFactory.upsert(name = "scope:read").also { grant(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
+        scopeTokenFactory.upsert(name = "scope:update")
         scopeTokenFactory.upsert(name = "scope.children:create")
         scopeTokenFactory.upsert(name = "scope.children:delete")
     }
