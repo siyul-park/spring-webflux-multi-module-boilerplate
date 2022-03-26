@@ -70,7 +70,7 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     override suspend fun sync(): Boolean {
-        return doUpdate {
+        return doSync {
             eventPublisher?.publish(BeforeUpdateEvent(this))
             val updated = repository.update(root.raw()) {
                 val commands = root.checkout()
@@ -100,38 +100,38 @@ open class Persistence<T : Any, ID : Any>(
         }
     }
 
-    protected suspend fun doUpdate(job: suspend () -> Boolean): Boolean {
+    protected suspend fun doSync(job: suspend () -> Boolean): Boolean {
         beforeSyncJobs.forEach {
             it.invoke()
         }
 
-        return if (root.isUpdated() || beforeSyncTmpJobs.isNotEmpty() || afterSyncTmpJobs.isNotEmpty()) {
+        while (beforeSyncTmpJobs.isNotEmpty()) {
+            beforeSyncTmpJobs.poll().invoke()
+        }
+
+        var result = false
+        if (root.isUpdated()) {
             semaphore.acquire()
-            try {
-                while (beforeSyncTmpJobs.isNotEmpty()) {
-                    beforeSyncTmpJobs.poll().invoke()
-                }
-
+            result = try {
                 if (!root.isUpdated()) {
-                    return false
+                    false
+                } else {
+                    job.invoke()
                 }
-                val result = job.invoke()
-
-                while (afterSyncTmpJobs.isNotEmpty()) {
-                    afterSyncTmpJobs.poll().invoke()
-                }
-
-                result
             } finally {
                 semaphore.release()
             }
-        } else {
-            false
-        }.also {
-            afterSyncJobs.forEach {
-                it.invoke()
-            }
         }
+
+        while (afterSyncTmpJobs.isNotEmpty()) {
+            afterSyncTmpJobs.poll().invoke()
+        }
+
+        afterSyncJobs.forEach {
+            it.invoke()
+        }
+
+        return result
     }
 
     protected fun onBeforeSyncOne(job: suspend () -> Unit) {
