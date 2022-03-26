@@ -61,24 +61,46 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     override suspend fun clear() {
+        doClear {
+            eventPublisher?.publish(BeforeDeleteEvent(this))
+            repository.delete(root.raw())
+            root.clear()
+            eventPublisher?.publish(AfterDeleteEvent(this))
+            isCleared = true
+        }
+    }
+
+    override suspend fun sync(): Boolean {
+        return doSync {
+            eventPublisher?.publish(BeforeUpdateEvent(this))
+            val updated = repository.update(root.raw()) {
+                val commands = root.checkout()
+                commands.forEach { (property, command) ->
+                    property.set(it, command)
+                }
+                root.raw(it)
+            }
+            eventPublisher?.publish(AfterUpdateEvent(this))
+
+            updated != null
+        }
+    }
+
+    protected suspend fun doClear(job: suspend () -> Unit) {
         if (!isCleared) {
             semaphore.acquire()
             try {
                 if (isCleared) {
                     return
                 }
-                eventPublisher?.publish(BeforeDeleteEvent(this))
-                repository.delete(root.raw())
-                root.clear()
-                eventPublisher?.publish(AfterDeleteEvent(this))
-                isCleared = true
+                job.invoke()
             } finally {
                 semaphore.release()
             }
         }
     }
 
-    override suspend fun sync(): Boolean {
+    protected suspend fun doSync(job: suspend () -> Boolean): Boolean {
         beforeSyncJobs.forEach {
             it.invoke()
         }
@@ -93,21 +115,13 @@ open class Persistence<T : Any, ID : Any>(
                 if (!root.isUpdated()) {
                     return false
                 }
-                eventPublisher?.publish(BeforeUpdateEvent(this))
-                val updated = repository.update(root.raw()) {
-                    val commands = root.checkout()
-                    commands.forEach { (property, command) ->
-                        property.set(it, command)
-                    }
-                    root.raw(it)
-                }
-                eventPublisher?.publish(AfterUpdateEvent(this))
+                val result = job.invoke()
 
                 while (afterSyncTmpJobs.isNotEmpty()) {
                     afterSyncTmpJobs.poll().invoke()
                 }
 
-                updated != null
+                result
             } finally {
                 semaphore.release()
             }

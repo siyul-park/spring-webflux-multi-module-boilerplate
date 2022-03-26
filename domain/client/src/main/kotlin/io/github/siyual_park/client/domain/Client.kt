@@ -131,16 +131,18 @@ class Client(
     }
 
     override suspend fun clear() {
-        operator.executeAndAwait {
-            eventPublisher.publish(BeforeDeleteEvent(this))
-            clientScopeRepository.deleteAllByClientId(id)
-            if (isConfidential()) {
-                credential.get().clear()
-                credential.clear()
+        doClear {
+            operator.executeAndAwait {
+                eventPublisher.publish(BeforeDeleteEvent(this))
+                clientScopeRepository.deleteAllByClientId(id)
+                if (isConfidential()) {
+                    credential.get().clear()
+                    credential.clear()
+                }
+                clientRepository.delete(root.raw())
+                root.clear()
+                eventPublisher.publish(AfterDeleteEvent(this))
             }
-            clientRepository.delete(root.raw())
-            root.clear()
-            eventPublisher.publish(AfterDeleteEvent(this))
         }
     }
 }

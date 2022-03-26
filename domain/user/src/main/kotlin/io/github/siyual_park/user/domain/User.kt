@@ -119,14 +119,16 @@ class User(
     }
 
     override suspend fun clear() {
-        operator.executeAndAwait {
-            eventPublisher.publish(BeforeDeleteEvent(this))
-            userScopeRepository.deleteAllByUserId(id)
-            credential.get().clear()
-            credential.clear()
-            userRepository.delete(root.raw())
-            root.clear()
-            eventPublisher.publish(AfterDeleteEvent(this))
+        doClear {
+            operator.executeAndAwait {
+                eventPublisher.publish(BeforeDeleteEvent(this))
+                userScopeRepository.deleteAllByUserId(id)
+                credential.get().clear()
+                credential.clear()
+                userRepository.delete(root.raw())
+                root.clear()
+                eventPublisher.publish(AfterDeleteEvent(this))
+            }
         }
     }
 }
