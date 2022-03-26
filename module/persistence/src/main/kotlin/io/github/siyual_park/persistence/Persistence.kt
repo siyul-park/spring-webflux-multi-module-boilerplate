@@ -31,6 +31,7 @@ open class Persistence<T : Any, ID : Any>(
     private val afterSyncJobs = Collections.synchronizedList(mutableListOf<suspend () -> Unit>())
 
     private val semaphore = Semaphore(1)
+    private var isCleared = false
 
     private val synchronization = object : TransactionSynchronization {
         override fun beforeCommit(readOnly: Boolean): Mono<Void> {
@@ -60,10 +61,21 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     override suspend fun clear() {
-        eventPublisher?.publish(BeforeDeleteEvent(this))
-        repository.delete(root.raw())
-        root.clear()
-        eventPublisher?.publish(AfterDeleteEvent(this))
+        if (!isCleared) {
+            semaphore.acquire()
+            try {
+                if (isCleared) {
+                    return
+                }
+                eventPublisher?.publish(BeforeDeleteEvent(this))
+                repository.delete(root.raw())
+                root.clear()
+                eventPublisher?.publish(AfterDeleteEvent(this))
+                isCleared = true
+            } finally {
+                semaphore.release()
+            }
+        }
     }
 
     override suspend fun sync(): Boolean {
