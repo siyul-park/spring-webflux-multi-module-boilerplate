@@ -6,7 +6,7 @@ import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.loadOrFail
-import io.github.siyual_park.user.exception.PasswordIncorrectException
+import io.github.siyual_park.user.exception.IncorrectPasswordException
 import org.springframework.stereotype.Component
 
 @Component
@@ -21,7 +21,7 @@ class PasswordGrantAuthenticateStrategy(
         val client = payload.clientId?.let { clientStorage.loadOrFail(it) }
 
         if (!credential.checkPassword(payload.password)) {
-            throw PasswordIncorrectException()
+            throw IncorrectPasswordException()
         }
 
         return user.toPrincipal(clientEntity = client)
