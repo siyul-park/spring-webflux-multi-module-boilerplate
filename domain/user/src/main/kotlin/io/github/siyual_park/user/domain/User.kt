@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
+import java.time.Instant
 
 class User(
     value: UserData,
@@ -41,6 +42,12 @@ class User(
     val id: Long by proxyNotNull(root, UserData::id)
     override val userId by proxyNotNull(root, UserData::id)
     var name by proxy(root, UserData::name)
+    var email: String
+        get() = root[UserData::email]
+        set(value) {
+            root[UserData::activatedAt] = null
+            root[UserData::email] = value
+        }
 
     private val credential = AsyncLazy {
         UserCredential(
@@ -48,6 +55,14 @@ class User(
             userCredentialRepository,
             eventPublisher
         )
+    }
+
+    fun isActivate(): Boolean {
+        return root[UserData::activatedAt] != null
+    }
+
+    fun activate() {
+        root[UserData::activatedAt] = Instant.now()
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {

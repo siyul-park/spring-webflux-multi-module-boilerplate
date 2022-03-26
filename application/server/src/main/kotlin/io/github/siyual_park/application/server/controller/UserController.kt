@@ -65,6 +65,7 @@ class UserController(
     suspend fun create(@Valid @RequestBody request: CreateUserRequest): UserInfo {
         val payload = CreateUserPayload(
             name = request.name,
+            email = request.email,
             password = request.password
         )
         val user = userFactory.create(payload)

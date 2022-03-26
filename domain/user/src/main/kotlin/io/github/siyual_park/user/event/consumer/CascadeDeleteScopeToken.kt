@@ -1,4 +1,4 @@
-package io.github.siyual_park.user.event
+package io.github.siyual_park.user.event.consumer
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.data.event.BeforeDeleteEvent

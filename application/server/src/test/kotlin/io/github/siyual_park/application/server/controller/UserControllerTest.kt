@@ -6,6 +6,7 @@ import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserRequest
+import io.github.siyual_park.application.server.dummy.DummyEmailFactory
 import io.github.siyual_park.application.server.dummy.DummyNameFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.UserControllerGateway
@@ -435,8 +436,10 @@ class UserControllerTest @Autowired constructor(
         )
 
         val name = DummyNameFactory.create(10)
+        val email = DummyEmailFactory.create(15)
         val request = UpdateUserRequest(
-            name = Optional.of(name)
+            name = Optional.of(name),
+            email = Optional.of(email)
         )
         val response = userControllerGateway.update(otherUser.id, request)
 

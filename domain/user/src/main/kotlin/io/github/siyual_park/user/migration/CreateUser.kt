@@ -19,10 +19,12 @@ class CreateUser : Migration {
                     "id SERIAL PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
+                    "email VARCHAR(64) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
+                    "deleted_at TIMESTAMP," +
+                    "activated_at TIMESTAMP" +
                     ")"
             )
             entityOperations.createUpdatedAtTrigger(tableName)
@@ -33,10 +35,12 @@ class CreateUser : Migration {
                     "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
+                    "email VARCHAR(64) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
+                    "deleted_at TIMESTAMP," +
+                    "activated_at TIMESTAMP" +
                     ")"
             )
         }
