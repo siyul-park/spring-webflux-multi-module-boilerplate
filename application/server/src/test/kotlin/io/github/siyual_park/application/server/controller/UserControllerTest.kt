@@ -402,6 +402,26 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
+    fun `GET users_{user-id}, status = 404`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val otherUser = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+
+        otherUser.clear()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users:read")
+        )
+
+        val response = userControllerGateway.read(otherUser.id)
+
+        assertEquals(HttpStatus.NOT_FOUND, response.status)
+    }
+
+    @Test
     fun `PATCH users_{user-id}, status = 200`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }

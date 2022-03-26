@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.asFlux
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.domain.Sort
@@ -139,12 +140,14 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             return emptyFlow()
         }
 
-        return this.entityOperations.select(
-            query(where(entityManager.idProperty).`in`(ids.toList()))
-                .sort(by(asc(entityManager.idProperty))),
-            clazz.java
-        )
-            .subscribeOn(scheduler)
+        return findAll(where(entityManager.idProperty).`in`(ids.toList()))
+            .asFlux()
+            .sort { p1, p2 ->
+                val p1Id = entityManager.getId(p1)
+                val p2Id = entityManager.getId(p2)
+
+                ids.indexOf(p1Id) - ids.indexOf(p2Id)
+            }
             .asFlow()
     }
 
@@ -275,12 +278,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteById(id: ID) {
-        this.entityOperations.delete(
-            query(where(entityManager.idProperty).`is`(id)),
-            clazz.java
-        )
-            .subscribeOn(scheduler)
-            .awaitSingle()
+        deleteAll(where(entityManager.idProperty).`is`(id))
     }
 
     override suspend fun delete(entity: T) {

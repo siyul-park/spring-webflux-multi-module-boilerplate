@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.toSet
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
-import java.time.Instant
 
 class Client(
     value: ClientData,
@@ -131,8 +130,7 @@ class Client(
         operator.executeAndAwait {
             clientScopeRepository.deleteAllByClientId(id)
             clientCredentialRepository.deleteByClientId(id)
-            root[ClientData::deletedAt] = Instant.now()
-            sync()
+            super.clear()
         }
         credential = null
     }

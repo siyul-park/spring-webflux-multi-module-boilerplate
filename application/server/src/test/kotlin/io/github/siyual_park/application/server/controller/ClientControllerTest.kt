@@ -127,7 +127,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET clients, status = 201`() = blocking {
+    fun `GET clients, status = 200`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -293,6 +293,26 @@ class ClientControllerTest @Autowired constructor(
         val response = clientControllerGateway.read(otherClient.id)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `GET clients_{client-id}, status = 404`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        otherClient.clear()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients:read")
+        )
+
+        val response = clientControllerGateway.read(otherClient.id)
+
+        assertEquals(HttpStatus.NOT_FOUND, response.status)
     }
 
     @Test
