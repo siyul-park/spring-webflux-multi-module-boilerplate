@@ -119,9 +119,17 @@ class ScopeController(
         return mapperContext.map(scopeToken)
     }
 
+    @DeleteMapping("/{scope-id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'scope:delete')")
+    suspend fun delete(@PathVariable("scope-id") scopeId: Long) {
+        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+        scopeToken.clear()
+    }
+
     @GetMapping("/{scope-id}/children")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'scope:read')")
+    @PreAuthorize("hasPermission(null, 'scope.children:read')")
     fun readChildren(@PathVariable("scope-id") scopeId: Long): Flow<ScopeTokenInfo> {
         return flow {
             val scopeToken = scopeTokenStorage.loadOrFail(scopeId)

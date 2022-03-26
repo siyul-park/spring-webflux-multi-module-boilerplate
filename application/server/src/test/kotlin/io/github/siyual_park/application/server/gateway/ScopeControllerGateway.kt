@@ -68,6 +68,14 @@ class ScopeControllerGateway(
             .returnResult(ScopeTokenInfo::class.java)
     }
 
+    suspend fun delete(scopeId: Long): FluxExchangeResult<Unit> {
+        return client.delete()
+            .uri("/scope/$scopeId")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult()
+    }
+
     suspend fun readChildren(scopeId: Long): FluxExchangeResult<ScopeTokenInfo> {
         return client.get()
             .uri("/scope/$scopeId/children")

@@ -10,6 +10,7 @@ import io.github.siyual_park.application.server.dummy.DummyScopeNameFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.ScopeControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.coroutine.test.CoroutineTest
 import io.github.siyual_park.user.domain.UserFactory
 import kotlinx.coroutines.flow.toList
@@ -28,7 +29,8 @@ class ScopeControllerTest @Autowired constructor(
     private val gatewayAuthorization: GatewayAuthorization,
     private val scopeControllerGateway: ScopeControllerGateway,
     private val userFactory: UserFactory,
-    private val scopeTokenFactory: ScopeTokenFactory
+    private val scopeTokenFactory: ScopeTokenFactory,
+    private val scopeTokenStorage: ScopeTokenStorage
 ) : CoroutineTest() {
 
     @Test
@@ -223,6 +225,44 @@ class ScopeControllerTest @Autowired constructor(
     }
 
     @Test
+    fun `DELETE scope_{scope-id}, status = 204`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val name = DummyNameFactory.create(10)
+        val scopeToken = scopeTokenFactory.upsert(name)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("scope:delete")
+        )
+
+        val response = scopeControllerGateway.delete(scopeToken.id)
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+
+        assertEquals(null, scopeTokenStorage.load(scopeToken.id))
+    }
+
+    @Test
+    fun `DELETE scope_{scope-id}, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val name = DummyNameFactory.create(10)
+        val scopeToken = scopeTokenFactory.upsert(name)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("scope:delete")
+        )
+
+        val response = scopeControllerGateway.delete(scopeToken.id)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
     fun `POST scope_{scope-id}_children, status = 201`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
@@ -279,7 +319,7 @@ class ScopeControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("scope:read")
+            push = listOf("scope.children:read")
         )
 
         val response = scopeControllerGateway.readChildren(parent.id)
@@ -308,7 +348,7 @@ class ScopeControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            pop = listOf("scope:read")
+            pop = listOf("scope.children:read")
         )
 
         val response = scopeControllerGateway.readChildren(parent.id)
