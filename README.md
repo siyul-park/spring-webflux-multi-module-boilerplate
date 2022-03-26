@@ -15,7 +15,7 @@ Boilerplate of general service implemented using spring webflux and r2dbc
 - Writing/reading converter auto configuration
 - Easy configurate custom validation for basic validate annotion
 - Support async event emitter
-- RHS based filte and sort parser
+- RHS based filter and sort parser
 - Easy conversion between dtos
 - Update patch that distinguishes between undefined and null
 - Easy addition of new types of authentication principal
