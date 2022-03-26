@@ -32,4 +32,12 @@ class ScopeRelationRepository(
     fun findAllByParentId(parentId: Long): Flow<ScopeRelationData> {
         return findAll(where(ScopeRelationData::parentId).`is`(parentId))
     }
+
+    suspend fun deleteAllByChildId(childId: Long) {
+        return deleteAll(where(ScopeRelationData::childId).`is`(childId))
+    }
+
+    suspend fun deleteAllByParentId(parentId: Long) {
+        return deleteAll(where(ScopeRelationData::parentId).`is`(parentId))
+    }
 }

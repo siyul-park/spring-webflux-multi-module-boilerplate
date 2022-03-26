@@ -5,6 +5,8 @@ import io.github.siyual_park.auth.entity.ScopeRelationData
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
+import io.github.siyual_park.data.event.AfterDeleteEvent
+import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
@@ -17,14 +19,22 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.springframework.dao.EmptyResultDataAccessException
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
 
 class ScopeToken(
     value: ScopeTokenData,
-    scopeTokenRepository: ScopeTokenRepository,
+    private val scopeTokenRepository: ScopeTokenRepository,
     private val scopeRelationRepository: ScopeRelationRepository,
-    eventPublisher: EventPublisher,
+    private val operator: TransactionalOperator,
+    private val eventPublisher: EventPublisher,
 ) : Persistence<ScopeTokenData, Long>(value, scopeTokenRepository, eventPublisher), Authorizable {
-    private val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository, eventPublisher)
+    private val scopeTokenMapper = ScopeTokenMapper(
+        scopeTokenRepository,
+        scopeRelationRepository,
+        operator,
+        eventPublisher
+    )
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
 
     val id: Long
@@ -107,5 +117,16 @@ class ScopeToken(
 
     fun isSystem(): Boolean {
         return root[ScopeTokenData::system]
+    }
+
+    override suspend fun clear() {
+        operator.executeAndAwait {
+            eventPublisher.publish(BeforeDeleteEvent(this))
+            scopeRelationRepository.deleteAllByChildId(id)
+            scopeRelationRepository.deleteAllByParentId(id)
+            scopeTokenRepository.delete(root.raw())
+            root.clear()
+            eventPublisher.publish(AfterDeleteEvent(this))
+        }
     }
 }

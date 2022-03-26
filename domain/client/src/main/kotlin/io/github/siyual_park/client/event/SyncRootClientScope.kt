@@ -1,6 +1,7 @@
-package io.github.siyual_park.client.domain
+package io.github.siyual_park.client.event
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.property.RootClientProperty
 import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventConsumer

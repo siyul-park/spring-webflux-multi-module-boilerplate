@@ -29,4 +29,8 @@ class UserScopeRepository(
     suspend fun deleteAllByUserId(userId: Long) {
         deleteAll(where(UserScopeData::userId).`is`(userId))
     }
+
+    suspend fun deleteAllByScopeTokenId(scopeTokenId: Long) {
+        deleteAll(where(UserScopeData::scopeTokenId).`is`(scopeTokenId))
+    }
 }

@@ -29,4 +29,8 @@ class ClientScopeRepository(
     suspend fun deleteAllByClientId(clientId: Long) {
         deleteAll(where(ClientScopeData::clientId).`is`(clientId))
     }
+
+    suspend fun deleteAllByScopeTokenId(scopeTokenId: Long) {
+        deleteAll(where(ClientScopeData::scopeTokenId).`is`(scopeTokenId))
+    }
 }
