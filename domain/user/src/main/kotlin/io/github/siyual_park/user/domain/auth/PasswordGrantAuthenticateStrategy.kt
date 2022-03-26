@@ -6,7 +6,7 @@ import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.loadOrFail
-import io.github.siyual_park.user.exception.InactiveUserException
+import io.github.siyual_park.user.exception.InactivatedUserException
 import io.github.siyual_park.user.exception.IncorrectPasswordException
 import org.springframework.stereotype.Component
 
@@ -19,7 +19,7 @@ class PasswordGrantAuthenticateStrategy(
     override suspend fun authenticate(payload: PasswordGrantPayload): UserPrincipal? {
         val user = userStorage.loadOrFail(payload.username)
         if (!user.isActivate()) {
-            throw InactiveUserException()
+            throw InactivatedUserException()
         }
 
         val credential = user.getCredential()

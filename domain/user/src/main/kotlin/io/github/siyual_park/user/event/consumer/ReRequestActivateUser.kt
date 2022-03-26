@@ -19,12 +19,15 @@ class ReRequestActivateUser(
         val entity = event.entity as? UserData ?: return
         val diff = event.diff ?: return
 
-        if (!diff.containsKey(UserData::activatedAt) || diff[UserData::activatedAt] != null) {
+        if (!diff.containsKey(UserData::email)) {
             return
         }
 
         val id = entity.id ?: return
         val user = userStorage.load(id) ?: return
+
+        user.inactivate()
+        user.sync()
 
         eventPublisher.publish(RequestActivateEvent(user))
     }

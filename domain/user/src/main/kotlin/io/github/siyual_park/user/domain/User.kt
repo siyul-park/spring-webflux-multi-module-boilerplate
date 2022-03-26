@@ -42,12 +42,7 @@ class User(
     val id: Long by proxyNotNull(root, UserData::id)
     override val userId by proxyNotNull(root, UserData::id)
     var name by proxy(root, UserData::name)
-    var email: String
-        get() = root[UserData::email]
-        set(value) {
-            root[UserData::activatedAt] = null
-            root[UserData::email] = value
-        }
+    var email by proxy(root, UserData::email)
 
     private val credential = AsyncLazy {
         UserCredential(
@@ -63,6 +58,10 @@ class User(
 
     fun activate() {
         root[UserData::activatedAt] = Instant.now()
+    }
+
+    fun inactivate() {
+        root[UserData::activatedAt] = null
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
