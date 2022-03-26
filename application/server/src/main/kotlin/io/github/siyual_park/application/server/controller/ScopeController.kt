@@ -1,7 +1,10 @@
 package io.github.siyual_park.application.server.controller
 
+import io.github.siyual_park.application.server.dto.request.CreateScopeTokenRequest
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
+import io.github.siyual_park.auth.domain.scope_token.CreateScopeTokenPayload
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.entity.ScopeTokenData
@@ -34,6 +37,7 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/scope")
 class ScopeController(
+    private val scopeTokenFactory: ScopeTokenFactory,
     private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
@@ -45,6 +49,19 @@ class ScopeController(
     private val sortParser = sortParserFactory.create(ScopeTokenData::class)
 
     private val offsetPaginator = OffsetPaginator(scopeTokenStorage)
+
+    @PostMapping("")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasPermission(null, 'scope:create')")
+    suspend fun create(@Valid @RequestBody request: CreateScopeTokenRequest): ScopeTokenInfo {
+        val payload = CreateScopeTokenPayload(
+            name = request.name,
+            description = request.description,
+            system = false
+        )
+        val user = scopeTokenFactory.create(payload)
+        return mapperContext.map(user)
+    }
 
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)

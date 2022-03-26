@@ -1,5 +1,6 @@
 package io.github.siyual_park.application.server.gateway
 
+import io.github.siyual_park.application.server.dto.request.CreateScopeTokenRequest
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import org.springframework.http.HttpHeaders
@@ -14,6 +15,15 @@ class ScopeControllerGateway(
     private val client: WebTestClient,
     private val gatewayAuthorization: GatewayAuthorization,
 ) {
+    suspend fun create(request: CreateScopeTokenRequest): FluxExchangeResult<ScopeTokenInfo> {
+        return client.post()
+            .uri("/scope")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .bodyValue(request)
+            .exchange()
+            .returnResult(ScopeTokenInfo::class.java)
+    }
+
     suspend fun readAll(
         id: String? = null,
         name: String? = null,

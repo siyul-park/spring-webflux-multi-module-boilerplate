@@ -2,6 +2,7 @@ package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.IntegrationTest
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
+import io.github.siyual_park.application.server.dummy.DummyCreateScopeTokenRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.DummyNameFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
@@ -26,6 +27,48 @@ class ScopeControllerTest @Autowired constructor(
     private val userFactory: UserFactory,
     private val scopeTokenFactory: ScopeTokenFactory
 ) : CoroutineTest() {
+
+    @Test
+    fun `POST scope, status = 201`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val request = DummyCreateScopeTokenRequest.create()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("scope:create")
+        )
+
+        val response = scopeControllerGateway.create(request)
+
+        assertEquals(HttpStatus.CREATED, response.status)
+
+        val responseScopeToken = response.responseBody.awaitSingle()
+
+        assertEquals(request.name, responseScopeToken.name)
+        assertEquals(request.description, responseScopeToken.description)
+        assertFalse(responseScopeToken.system)
+        assertNotNull(responseScopeToken.createdAt)
+        assertNotNull(responseScopeToken.updatedAt)
+    }
+
+    @Test
+    fun `POST scope, status = 403`() = blocking {
+        val principal = DummyCreateUserPayload.create()
+            .let { userFactory.create(it).toPrincipal() }
+
+        val request = DummyCreateScopeTokenRequest.create()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            pop = listOf("scope:create")
+        )
+
+        val response = scopeControllerGateway.create(request)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
 
     @Test
     fun `GET scope, status = 200`() = blocking {

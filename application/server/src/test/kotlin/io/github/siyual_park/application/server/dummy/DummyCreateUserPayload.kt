@@ -15,7 +15,7 @@ object DummyCreateUserPayload {
         val t = Presence.ofNullable(template)
         return CreateUserPayload(
             name = t.flatMap { it.name }.orElseGet { DummyNameFactory.create(10) },
-            password = t.flatMap { it.password }.orElseGet { DummyNameFactory.create(10) },
+            password = t.flatMap { it.password }.orElseGet { DummyStringFactory.create(10) },
             scope = t.flatMap { it.scope }.orElseGet { null }
         )
     }
