@@ -16,6 +16,7 @@ import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
@@ -45,7 +46,13 @@ class Client(
     val type by proxy(root, ClientData::type)
     var origin by proxy(root, ClientData::origin)
 
-    private var credential: ClientCredential? = null
+    private val credential = AsyncLazy {
+        ClientCredential(
+            clientCredentialRepository.findByClientIdOrFail(id),
+            clientCredentialRepository,
+            eventPublisher
+        )
+    }
 
     fun isConfidential(): Boolean {
         return type == ClientType.CONFIDENTIAL
@@ -78,16 +85,8 @@ class Client(
     }
 
     suspend fun getCredential(): ClientCredential {
-        val credential = credential
-        if (credential != null) {
-            credential.link()
-            return credential
-        }
-
-        return clientCredentialRepository.findByClientIdOrFail(id)
-            .let { ClientCredential(it, clientCredentialRepository, eventPublisher) }
+        return credential.get()
             .also { it.link() }
-            .also { this.credential = it }
     }
 
     fun getScope(deep: Boolean = true): Flow<ScopeToken> {
@@ -131,11 +130,13 @@ class Client(
         operator.executeAndAwait {
             eventPublisher.publish(BeforeDeleteEvent(this))
             clientScopeRepository.deleteAllByClientId(id)
-            clientCredentialRepository.deleteByClientId(id)
+            if (isConfidential()) {
+                credential.get().clear()
+                credential.clear()
+            }
             clientRepository.delete(root.raw())
             root.clear()
             eventPublisher.publish(AfterDeleteEvent(this))
         }
-        credential = null
     }
 }

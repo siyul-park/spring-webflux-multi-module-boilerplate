@@ -8,6 +8,7 @@ import io.github.siyual_park.data.event.AfterDeleteEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
@@ -41,7 +42,13 @@ class User(
     override val userId by proxyNotNull(root, UserData::id)
     var name by proxy(root, UserData::name)
 
-    private var credential: UserCredential? = null
+    private val credential = AsyncLazy {
+        UserCredential(
+            userCredentialRepository.findByUserIdOrFail(id),
+            userCredentialRepository,
+            eventPublisher
+        )
+    }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
         val scope = getScope().toSet()
@@ -65,16 +72,8 @@ class User(
     }
 
     suspend fun getCredential(): UserCredential {
-        val credential = credential
-        if (credential != null) {
-            credential.link()
-            return credential
-        }
-
-        return userCredentialRepository.findByUserIdOrFail(id)
-            .let { UserCredential(it, userCredentialRepository, eventPublisher) }
+        return credential.get()
             .also { it.link() }
-            .also { this.credential = it }
     }
 
     fun getScope(deep: Boolean = true): Flow<ScopeToken> {
@@ -118,11 +117,11 @@ class User(
         operator.executeAndAwait {
             eventPublisher.publish(BeforeDeleteEvent(this))
             userScopeRepository.deleteAllByUserId(id)
-            userCredentialRepository.deleteByUserId(id)
+            credential.get().clear()
+            credential.clear()
             userRepository.delete(root.raw())
             root.clear()
             eventPublisher.publish(AfterDeleteEvent(this))
         }
-        credential = null
     }
 }
