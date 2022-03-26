@@ -85,8 +85,13 @@ open class Persistence<T : Any, ID : Any>(
 
     protected suspend fun doClear(job: suspend () -> Unit) {
         if (!isCleared) {
-            job.invoke()
             isCleared = true
+            try {
+                job.invoke()
+            } catch (exception: Exception) {
+                isCleared = false
+                throw exception
+            }
         }
     }
 
