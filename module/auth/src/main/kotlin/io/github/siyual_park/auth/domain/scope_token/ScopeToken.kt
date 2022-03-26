@@ -12,13 +12,13 @@ import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
+import io.github.siyual_park.persistence.proxyNotNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 
@@ -37,8 +37,7 @@ class ScopeToken(
     )
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
 
-    val id: Long
-        get() = root[ScopeTokenData::id] ?: throw EmptyResultDataAccessException(1)
+    val id by proxyNotNull(root, ScopeTokenData::id)
     var name by proxy(root, ScopeTokenData::name)
     var description by proxy(root, ScopeTokenData::description)
 
