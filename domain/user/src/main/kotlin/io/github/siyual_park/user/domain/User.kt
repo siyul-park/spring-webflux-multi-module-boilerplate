@@ -4,6 +4,8 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
+import io.github.siyual_park.data.event.AfterDeleteEvent
+import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
@@ -28,7 +30,7 @@ import org.springframework.transaction.reactive.executeAndAwait
 
 class User(
     value: UserData,
-    userRepository: UserRepository,
+    private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
@@ -114,9 +116,12 @@ class User(
 
     override suspend fun clear() {
         operator.executeAndAwait {
+            eventPublisher.publish(BeforeDeleteEvent(this))
             userScopeRepository.deleteAllByUserId(id)
             userCredentialRepository.deleteByUserId(id)
-            super.clear()
+            userRepository.delete(root.raw())
+            root.clear()
+            eventPublisher.publish(AfterDeleteEvent(this))
         }
         credential = null
     }

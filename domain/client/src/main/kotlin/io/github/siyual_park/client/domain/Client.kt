@@ -11,6 +11,8 @@ import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
+import io.github.siyual_park.data.event.AfterDeleteEvent
+import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
@@ -30,7 +32,7 @@ import org.springframework.transaction.reactive.executeAndAwait
 
 class Client(
     value: ClientData,
-    clientRepository: ClientRepository,
+    private val clientRepository: ClientRepository,
     private val clientCredentialRepository: ClientCredentialRepository,
     private val clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
@@ -127,9 +129,12 @@ class Client(
 
     override suspend fun clear() {
         operator.executeAndAwait {
+            eventPublisher.publish(BeforeDeleteEvent(this))
             clientScopeRepository.deleteAllByClientId(id)
             clientCredentialRepository.deleteByClientId(id)
-            super.clear()
+            clientRepository.delete(root.raw())
+            root.clear()
+            eventPublisher.publish(AfterDeleteEvent(this))
         }
         credential = null
     }
