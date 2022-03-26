@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Subscribe(filterBy = AfterUpdateEvent::class)
-class UpdateActivatedAt(
+class ReRequestActivateUser(
     private val eventPublisher: EventPublisher,
     private val userStorage: UserStorage
 ) : EventConsumer<AfterUpdateEvent<*>> {
