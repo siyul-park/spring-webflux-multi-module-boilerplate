@@ -1,11 +1,11 @@
 package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.domain.hash
-import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.repository.UserCredentialRepository
@@ -25,6 +25,10 @@ class UserFactory(
     private val eventPublisher: EventPublisher,
     private val hashAlgorithm: String = "SHA-256"
 ) {
+    private val defaultScope = AsyncLazy {
+        scopeTokenStorage.loadOrFail("user:pack")
+    }
+
     suspend fun create(payload: CreateUserPayload): User =
         operator.executeAndAwait {
             val user = createUser(payload)
@@ -33,7 +37,7 @@ class UserFactory(
             createCredential(user, payload)
 
             if (payload.scope == null) {
-                val scope = getDefaultScope()
+                val scope = defaultScope.get()
                 user.grant(scope)
             } else {
                 payload.scope.forEach {
@@ -63,9 +67,5 @@ class UserFactory(
                 hashAlgorithm = hashAlgorithm
             )
         )
-    }
-
-    private suspend fun getDefaultScope(): ScopeToken {
-        return scopeTokenStorage.loadOrFail("user:pack")
     }
 }

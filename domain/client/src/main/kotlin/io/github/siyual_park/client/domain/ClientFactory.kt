@@ -9,6 +9,7 @@ import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.persistence.AsyncLazy
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -23,6 +24,13 @@ class ClientFactory(
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
 ) {
+    private val confidentialClientScope = AsyncLazy {
+        scopeTokenStorage.loadOrFail("confidential(client):pack")
+    }
+    private val publicClientScope = AsyncLazy {
+        scopeTokenStorage.loadOrFail("public(client):pack")
+    }
+
     suspend fun create(payload: CreateClientPayload): Client =
         operator.executeAndAwait {
             val client = createClient(payload)
@@ -65,9 +73,9 @@ class ClientFactory(
 
     private suspend fun getDefaultScope(client: Client): ScopeToken {
         return if (client.isConfidential()) {
-            scopeTokenStorage.loadOrFail("confidential(client):pack")
+            confidentialClientScope.get()
         } else {
-            scopeTokenStorage.loadOrFail("public(client):pack")
+            publicClientScope.get()
         }
     }
 
