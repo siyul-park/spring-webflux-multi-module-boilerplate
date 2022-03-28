@@ -45,6 +45,9 @@ class AuthController(
     private val tokensProperty: TokensProperty,
     private val mapperContext: MapperContext,
 ) {
+    private val tokenScope = AsyncLazy {
+        scopeTokenStorage.loadOrFail("token:create")
+    }
     private val accessTokenScope = AsyncLazy {
         scopeTokenStorage.loadOrFail("access-token:create")
     }
@@ -57,7 +60,7 @@ class AuthController(
     suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
         authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
             .also {
-                if (!authorizator.authorize(it, "token:create")) {
+                if (!authorizator.authorize(it, tokenScope.get())) {
                     throw RequiredPermissionException()
                 }
             }
