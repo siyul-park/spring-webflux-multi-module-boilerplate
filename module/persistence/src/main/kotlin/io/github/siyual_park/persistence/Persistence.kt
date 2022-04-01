@@ -120,19 +120,19 @@ open class Persistence<T : Any, ID : Any>(
         return result
     }
 
-    protected fun onBeforeSyncOne(job: suspend () -> Unit) {
+    protected fun doBeforeSyncOne(job: suspend () -> Unit) {
         this.beforeSyncTmpJobs.add(job)
     }
 
-    protected fun onAfterSyncOne(job: suspend () -> Unit) {
+    protected fun doAfterSyncOne(job: suspend () -> Unit) {
         this.beforeSyncTmpJobs.add(job)
     }
 
-    protected fun onBeforeSync(job: suspend () -> Unit) {
+    protected fun doBeforeSync(job: suspend () -> Unit) {
         this.beforeSyncJobs.add(job)
     }
 
-    protected fun onAfterSync(job: suspend () -> Unit) {
+    protected fun doAfterSync(job: suspend () -> Unit) {
         this.beforeSyncJobs.add(job)
     }
 

@@ -49,7 +49,7 @@ class User(
             userCredentialRepository,
             eventPublisher
         ).also {
-            onBeforeSync {
+            doBeforeSync {
                 it.sync()
             }
         }

@@ -52,7 +52,7 @@ class Client(
             clientCredentialRepository,
             eventPublisher
         ).also {
-            onBeforeSync {
+            doBeforeSync {
                 it.sync()
             }
         }
