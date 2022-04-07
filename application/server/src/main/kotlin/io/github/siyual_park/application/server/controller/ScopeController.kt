@@ -62,8 +62,8 @@ class ScopeController(
             description = request.description,
             system = false
         )
-        val user = scopeTokenFactory.create(payload)
-        return mapperContext.map(user)
+        val scopeToken = scopeTokenFactory.create(payload)
+        return mapperContext.map(scopeToken)
     }
 
     @GetMapping("")
