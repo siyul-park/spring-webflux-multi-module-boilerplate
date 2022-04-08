@@ -1,23 +1,24 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.IntegrationTest
+import io.github.siyual_park.application.server.gateway.PingControllerGateway
+import io.github.siyual_park.coroutine.test.CoroutineTest
+import kotlinx.coroutines.reactive.awaitSingle
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.test.web.reactive.server.expectBody
+import org.springframework.http.HttpStatus
 
 @IntegrationTest
 class PingControllerTest @Autowired constructor(
-    private val client: WebTestClient
-) {
-
+    private val pingControllerGateway: PingControllerGateway,
+) : CoroutineTest() {
     @Test
-    fun `GET ping`() {
-        client.get()
-            .uri("/ping")
-            .exchange()
-            .expectStatus().isOk
-            .expectBody<String>()
-            .isEqualTo("pong")
+    fun `GET ping, status = 201`() = blocking {
+        val response = pingControllerGateway.ping()
+        assertEquals(HttpStatus.OK, response.status)
+
+        val body = response.responseBody.awaitSingle()
+        assertEquals("pong", body)
     }
 }
