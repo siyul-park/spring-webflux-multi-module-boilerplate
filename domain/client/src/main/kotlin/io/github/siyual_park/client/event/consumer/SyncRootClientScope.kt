@@ -6,7 +6,7 @@ import io.github.siyual_park.client.property.RootClientProperty
 import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventConsumer
 import io.github.siyual_park.event.Subscribe
-import org.springframework.dao.DuplicateKeyException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
 
 @Component
@@ -21,7 +21,7 @@ class SyncRootClientScope(
 
         try {
             client.grant(entity)
-        } catch (_: DuplicateKeyException) {
+        } catch (_: DataIntegrityViolationException) {
         }
     }
 }
