@@ -4,11 +4,14 @@ import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.repository.update
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Component
+import java.time.Duration
 
 @Component
 class MigrationManager(
@@ -35,10 +38,16 @@ class MigrationManager(
         run()
     }
 
-    suspend fun run() = logging {
+    suspend fun run(): Unit = logging {
         if (!createMigrationCheckpoint.isApplied(entityOperations)) {
             createUpdatedAtFunction.up(entityOperations)
             createMigrationCheckpoint.up(entityOperations)
+        }
+
+        while (
+            migrationCheckpointRepository.exists(where(MigrationCheckpoint::status).`is`(MigrationStatus.PENDING))
+        ) {
+            delay(Duration.ofSeconds(30).toMillis())
         }
 
         migrationCheckpointRepository.deleteAll(
@@ -57,8 +66,13 @@ class MigrationManager(
 
         for (i in (lastVersion + 1) until migrations.size) {
             val migration = migrations[i]
-            val checkpoint = MigrationCheckpoint(version = i, status = MigrationStatus.PENDING)
-                .let { migrationCheckpointRepository.create(it) }
+            val checkpoint = try {
+                MigrationCheckpoint(version = i, status = MigrationStatus.PENDING)
+                    .let { migrationCheckpointRepository.create(it) }
+            } catch (e: DataIntegrityViolationException) {
+                waitingComplete()
+                return@logging
+            }
 
             try {
                 migration.up(entityOperations)
@@ -110,6 +124,15 @@ class MigrationManager(
         if (createMigrationCheckpoint.isApplied(entityOperations)) {
             createMigrationCheckpoint.down(entityOperations)
             createUpdatedAtFunction.down(entityOperations)
+        }
+    }
+
+    private suspend fun waitingComplete() {
+        while (
+            migrationCheckpointRepository.count(where(MigrationCheckpoint::status).`is`(MigrationStatus.COMPLETE))
+            == migrations.size.toLong()
+        ) {
+            delay(Duration.ofSeconds(30).toMillis())
         }
     }
 
