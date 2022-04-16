@@ -18,7 +18,7 @@ class CreateClientCredential : Migration {
                     "(" +
                     "id BYTEA PRIMARY KEY, " +
 
-                    "client_id INTEGER NOT NULL REFERENCES clients (id), " +
+                    "client_id BYTEA NOT NULL REFERENCES clients (id), " +
 
                     "secret VARCHAR(128) NOT NULL, " +
 

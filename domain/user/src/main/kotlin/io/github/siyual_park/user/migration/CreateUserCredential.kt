@@ -18,7 +18,7 @@ class CreateUserCredential : Migration {
                     "(" +
                     "id BYTEA PRIMARY KEY, " +
 
-                    "user_id INTEGER NOT NULL REFERENCES users (id), " +
+                    "user_id BYTEA NOT NULL REFERENCES users (id), " +
 
                     "password VARCHAR(128) NOT NULL, " +
                     "hash_algorithm VARCHAR(64) NOT NULL, " +
