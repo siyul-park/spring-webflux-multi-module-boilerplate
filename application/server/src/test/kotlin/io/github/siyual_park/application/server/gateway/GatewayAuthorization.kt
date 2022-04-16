@@ -7,6 +7,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 
+@Suppress("NAME_SHADOWING")
 @Component
 class GatewayAuthorization(
     private val authorizationHeaderGenerator: AuthorizationHeaderGenerator,

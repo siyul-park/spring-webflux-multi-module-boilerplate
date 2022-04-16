@@ -14,7 +14,7 @@ class UserInfoMapper : Mapper<User, UserInfo> {
     override suspend fun map(source: User): UserInfo {
         val raw = source.raw()
         return UserInfo(
-            id = raw.id!!,
+            id = raw.id,
             name = raw.name,
             createdAt = raw.createdAt!!,
             updatedAt = raw.updatedAt

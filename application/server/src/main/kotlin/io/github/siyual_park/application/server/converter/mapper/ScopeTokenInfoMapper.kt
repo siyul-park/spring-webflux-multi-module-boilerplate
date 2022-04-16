@@ -22,7 +22,7 @@ class ScopeTokenInfoMapper : Mapper<ScopeToken, ScopeTokenInfo> {
         }
 
         return ScopeTokenInfo(
-            id = raw.id!!,
+            id = raw.id,
             name = raw.name,
             description = raw.description,
             system = raw.system,

@@ -9,7 +9,7 @@ import javax.validation.ConstraintValidator
 import javax.validation.ConstraintValidatorContext
 import javax.validation.constraints.Size
 
-@Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 @Component
 @ValidateMapping(Size::class)
 class URLSizeValidator : ConstraintValidator<Size, URL> {

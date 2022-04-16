@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 
+@Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
 @OptIn(ExperimentalCoroutinesApi::class, ObsoleteCoroutinesApi::class)
 open class CoroutineTest {
     private val mainThreadSurrogate = newSingleThreadContext("Test thread")

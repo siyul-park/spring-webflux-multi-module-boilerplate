@@ -15,7 +15,7 @@ class ClientDetailInfoMapper : Mapper<Client, ClientDetailInfo> {
         val secret = getSecret(source)
         val raw = source.raw()
         return ClientDetailInfo(
-            id = raw.id!!,
+            id = raw.id,
             name = raw.name,
             type = raw.type,
             origin = raw.origin,
