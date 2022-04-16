@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository
 class UserCredentialRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<UserCredentialData, ULID> by CachedR2DBCRepository.of(
+) : R2DBCRepository<UserCredentialData, Long> by CachedR2DBCRepository.of(
     entityOperations,
     UserCredentialData::class,
     eventPublisher = eventPublisher

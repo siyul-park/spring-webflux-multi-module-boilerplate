@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository
 class UserScopeRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<UserScopeData, ULID> by CachedR2DBCRepository.of(
+) : R2DBCRepository<UserScopeData, Long> by CachedR2DBCRepository.of(
     entityOperations,
     UserScopeData::class,
     eventPublisher = eventPublisher

@@ -16,7 +16,7 @@ class CreateUserCredential : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BYTEA PRIMARY KEY, " +
+                    "id SERIAL PRIMARY KEY, " +
 
                     "user_id BYTEA NOT NULL REFERENCES users (id), " +
 
@@ -32,7 +32,7 @@ class CreateUserCredential : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
+                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 
                     "user_id BINARY(16) NOT NULL REFERENCES users (id), " +
 

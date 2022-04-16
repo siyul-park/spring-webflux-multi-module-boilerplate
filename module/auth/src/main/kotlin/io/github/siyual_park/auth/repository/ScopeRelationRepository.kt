@@ -16,7 +16,7 @@ import java.time.Duration
 class ScopeRelationRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<ScopeRelationData, ULID> by CachedR2DBCRepository.of(
+) : R2DBCRepository<ScopeRelationData, Long> by CachedR2DBCRepository.of(
     entityOperations,
     ScopeRelationData::class,
     CacheBuilder.newBuilder()
