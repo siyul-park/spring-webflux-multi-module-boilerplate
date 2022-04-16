@@ -1,5 +1,7 @@
 package io.github.siyual_park.data.migration
 
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
@@ -34,6 +36,20 @@ suspend fun R2dbcEntityOperations.dropIndex(tableName: String, columns: Iterable
         "DROP INDEX index_${tableName}_${columns.joinToString("_") { it }} " +
             "ON $tableName"
     )
+}
+
+suspend fun R2dbcEntityOperations.isExistTable(name: String): Boolean {
+    val result = this.databaseClient.sql(
+        "SELECT * " +
+            "FROM INFORMATION_SCHEMA.TABLES " +
+            "WHERE UPPER(TABLE_NAME) = '${name.uppercase()}'"
+    )
+        .fetch()
+        .all()
+        .asFlow()
+        .toList()
+
+    return result.isNotEmpty()
 }
 
 suspend fun R2dbcEntityOperations.dropTable(name: String) {

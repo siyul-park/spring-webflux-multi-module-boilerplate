@@ -4,12 +4,16 @@ import io.github.siyual_park.data.migration.Migration
 import io.github.siyual_park.data.migration.createUniqueIndex
 import io.github.siyual_park.data.migration.dropTable
 import io.github.siyual_park.data.migration.fetchSQL
+import io.github.siyual_park.data.migration.isExistTable
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
 class CreatePerson : Migration {
     private val tableName = "persons"
 
     override suspend fun up(entityOperations: R2dbcEntityOperations) {
+        if (entityOperations.isExistTable(tableName)) {
+            return
+        }
         entityOperations.fetchSQL(
             "CREATE TABLE $tableName" +
                 "(" +
@@ -27,6 +31,9 @@ class CreatePerson : Migration {
     }
 
     override suspend fun down(entityOperations: R2dbcEntityOperations) {
+        if (!entityOperations.isExistTable(tableName)) {
+            return
+        }
         entityOperations.dropTable(tableName)
     }
 }

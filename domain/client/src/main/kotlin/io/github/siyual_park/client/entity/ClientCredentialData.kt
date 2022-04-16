@@ -1,8 +1,6 @@
 package io.github.siyual_park.client.entity
 
-import io.github.siyual_park.data.AutoModifiable
-import io.github.siyual_park.data.Modifiable
-import io.github.siyual_park.data.ULIDEntity
+import io.github.siyual_park.data.ModifiableULIDEntity
 import io.github.siyual_park.data.annotation.Key
 import io.github.siyual_park.ulid.ULID
 import org.springframework.data.relational.core.mapping.Table
@@ -12,4 +10,4 @@ data class ClientCredentialData(
     @Key
     val clientId: ULID,
     var secret: String,
-) : ULIDEntity(), Modifiable by AutoModifiable()
+) : ModifiableULIDEntity()

@@ -3,7 +3,7 @@ package io.github.siyual_park.data
 import io.github.siyual_park.data.annotation.GeneratedValue
 import java.time.Instant
 
-class AutoModifiable : Modifiable {
+abstract class ModifiableULIDEntity : ULIDEntity(), Modifiable {
     @GeneratedValue
     override var createdAt: Instant? = null
 

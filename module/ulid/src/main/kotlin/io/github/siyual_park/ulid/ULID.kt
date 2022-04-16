@@ -125,10 +125,10 @@ class ULID(
             var mostSignificantBits: Long = 0
             var leastSignificantBits: Long = 0
             for (i in 0..7) {
-                mostSignificantBits = mostSignificantBits shl 8 or (data[i] and 0xff.toByte()).toLong()
+                mostSignificantBits = (mostSignificantBits shl 8) or (data[i].toLong() and 0xFF)
             }
             for (i in 8..15) {
-                leastSignificantBits = leastSignificantBits shl 8 or (data[i] and 0xff.toByte()).toLong()
+                leastSignificantBits = (leastSignificantBits shl 8) or (data[i].toLong() and 0xFF)
             }
             return ULID(mostSignificantBits, leastSignificantBits)
         }
