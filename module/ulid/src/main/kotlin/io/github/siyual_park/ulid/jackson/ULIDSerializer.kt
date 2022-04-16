@@ -1,4 +1,4 @@
-package io.github.siyual_park.ulid.converter.jackson
+package io.github.siyual_park.ulid.jackson
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
