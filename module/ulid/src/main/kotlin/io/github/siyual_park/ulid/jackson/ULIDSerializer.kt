@@ -7,6 +7,6 @@ import io.github.siyual_park.ulid.ULID
 
 class ULIDSerializer : JsonSerializer<ULID>() {
     override fun serialize(value: ULID, gen: JsonGenerator, serializers: SerializerProvider) {
-        gen.writeNumber(value.toString())
+        gen.writeString(value.toString())
     }
 }
