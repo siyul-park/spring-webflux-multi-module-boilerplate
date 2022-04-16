@@ -1,10 +1,8 @@
 package io.github.siyual_park.ulid
 
-import java.io.Serial
 import java.io.Serializable
 import java.security.SecureRandom
 import java.util.Objects
-import kotlin.experimental.and
 
 class ULID(
     private val mostSignificantBits: Long,
@@ -75,8 +73,7 @@ class ULID(
     }
 
     companion object {
-        @Serial
-        private const val serialVersionUID = -3563159514112487717L
+        private const val serialVersionUID: Long = -7631108191830779116L
 
         private val numberGenerator = SecureRandom()
 
