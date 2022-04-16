@@ -16,7 +16,7 @@ class CreateUser : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id SERIAL PRIMARY KEY, " +
+                    "id BYTEA PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
                     "email VARCHAR(64) NOT NULL, " +

@@ -16,7 +16,7 @@ class CreateUserScope : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id SERIAL PRIMARY KEY, " +
+                    "id BYTEA PRIMARY KEY, " +
 
                     "user_id INTEGER NOT NULL REFERENCES users (id), " +
                     "scope_token_id INTEGER NOT NULL REFERENCES scope_tokens (id), " +

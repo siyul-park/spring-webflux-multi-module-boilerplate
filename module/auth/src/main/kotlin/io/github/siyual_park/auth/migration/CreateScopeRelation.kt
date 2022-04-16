@@ -16,7 +16,7 @@ class CreateScopeRelation : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id SERIAL PRIMARY KEY, " +
+                    "id BYTEA PRIMARY KEY, " +
 
                     "parent_id INTEGER NOT NULL REFERENCES scope_tokens (id), " +
                     "child_id INTEGER NOT NULL REFERENCES scope_tokens (id), " +

@@ -16,7 +16,7 @@ class CreateClient : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id SERIAL PRIMARY KEY, " +
+                    "id BYTEA PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
                     "type VARCHAR(64) NOT NULL, " +

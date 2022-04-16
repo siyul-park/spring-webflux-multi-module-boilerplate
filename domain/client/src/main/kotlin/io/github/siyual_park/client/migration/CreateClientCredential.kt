@@ -16,7 +16,7 @@ class CreateClientCredential : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id SERIAL PRIMARY KEY, " +
+                    "id BYTEA PRIMARY KEY, " +
 
                     "client_id INTEGER NOT NULL REFERENCES clients (id), " +
 
