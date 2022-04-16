@@ -65,14 +65,14 @@ class R2DBCRepositoryTest : R2DBCTest() {
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
 
-        assertTrue(personRepository.existsById(person.id!!))
+        assertTrue(personRepository.existsById(person.id))
     }
 
     @Test
     fun findById() = parameterized { personRepository ->
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
-        val foundPerson = personRepository.findById(person.id!!)!!
+        val foundPerson = personRepository.findById(person.id)!!
 
         assertEquals(person.id, foundPerson.id)
         assertEquals(person.createdAt, foundPerson.createdAt)

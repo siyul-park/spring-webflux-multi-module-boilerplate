@@ -10,6 +10,7 @@ import org.springframework.web.reactive.HandlerResult
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
+@Suppress("UNCHECKED_CAST")
 @Component
 class OffsetPagePresenter(
     private val objectMapper: ObjectMapper
