@@ -1,4 +1,4 @@
-package io.github.siyual_park.ulid.converter
+package io.github.siyual_park.ulid.converter.r2dbc
 
 import io.github.siyual_park.ulid.ULID
 import org.springframework.core.convert.converter.Converter
@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component
 
 @Component
 @WritingConverter
-class ULIDToStringConverter : Converter<ULID, String> {
-    override fun convert(source: ULID): String {
-        return source.toString()
+class ULIDToBytesConverter : Converter<ULID, ByteArray> {
+    override fun convert(source: ULID): ByteArray {
+        return source.toBytes()
     }
 }
