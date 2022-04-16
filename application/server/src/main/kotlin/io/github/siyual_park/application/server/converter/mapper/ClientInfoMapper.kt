@@ -14,7 +14,7 @@ class ClientInfoMapper : Mapper<Client, ClientInfo> {
     override suspend fun map(source: Client): ClientInfo {
         val raw = source.raw()
         return ClientInfo(
-            id = raw.id!!,
+            id = raw.id,
             name = raw.name,
             type = raw.type,
             origin = raw.origin,

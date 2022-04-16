@@ -10,7 +10,7 @@ class CreateMigrationCheckpoint : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id SERIAL PRIMARY KEY, " +
+                    "id BYTEA PRIMARY KEY, " +
 
                     "version BIGINT NOT NULL, " +
                     "status VARCHAR(64) NOT NULL, " +

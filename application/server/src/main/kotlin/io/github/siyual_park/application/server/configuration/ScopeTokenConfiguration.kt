@@ -7,7 +7,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
 import org.springframework.core.annotation.Order
-import org.springframework.dao.DuplicateKeyException
+import org.springframework.dao.DataIntegrityViolationException
 
 @Configuration
 class ScopeTokenConfiguration(
@@ -67,7 +67,7 @@ class ScopeTokenConfiguration(
         parents.forEach {
             try {
                 it.grant(child)
-            } catch (_: DuplicateKeyException) {
+            } catch (_: DataIntegrityViolationException) {
             }
         }
     }
