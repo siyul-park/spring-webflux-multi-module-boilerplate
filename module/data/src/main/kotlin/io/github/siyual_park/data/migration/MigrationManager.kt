@@ -32,15 +32,10 @@ class MigrationManager(
     }
 
     suspend fun sync() {
-        try {
-            run()
-        } catch (e: RuntimeException) {
-            logger.error(e.message, e)
-            throw e
-        }
+        run()
     }
 
-    suspend fun run() {
+    suspend fun run() = logging {
         if (!createMigrationCheckpoint.isApplied(entityOperations)) {
             createUpdatedAtFunction.up(entityOperations)
             createMigrationCheckpoint.up(entityOperations)
@@ -79,7 +74,7 @@ class MigrationManager(
         }
     }
 
-    suspend fun clear() {
+    suspend fun clear() = logging {
         migrations.asReversed()
             .forEach {
                 try {
@@ -99,7 +94,7 @@ class MigrationManager(
         }
     }
 
-    suspend fun revert() {
+    suspend fun revert() = logging {
         val migrationCheckpoints = migrationCheckpointRepository.findAll(
             criteria = where(MigrationCheckpoint::status).`is`(MigrationStatus.COMPLETE),
             sort = Sort.by(columnName(MigrationCheckpoint::version)).descending()
@@ -115,6 +110,15 @@ class MigrationManager(
         if (createMigrationCheckpoint.isApplied(entityOperations)) {
             createMigrationCheckpoint.down(entityOperations)
             createUpdatedAtFunction.down(entityOperations)
+        }
+    }
+
+    private suspend fun <T> logging(func: suspend () -> T): T {
+        try {
+            return func()
+        } catch (e: RuntimeException) {
+            logger.error(e.message, e)
+            throw e
         }
     }
 }

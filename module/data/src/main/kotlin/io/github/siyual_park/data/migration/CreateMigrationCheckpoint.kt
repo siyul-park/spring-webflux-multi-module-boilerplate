@@ -1,7 +1,5 @@
 package io.github.siyual_park.data.migration
 
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
 class CreateMigrationCheckpoint : Migration {
@@ -26,7 +24,7 @@ class CreateMigrationCheckpoint : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
                     "version BIGINT NOT NULL, " +
                     "status VARCHAR(64) NOT NULL, " +
@@ -43,16 +41,6 @@ class CreateMigrationCheckpoint : Migration {
     }
 
     suspend fun isApplied(entityOperations: R2dbcEntityOperations): Boolean {
-        val result = entityOperations.databaseClient.sql(
-            "SELECT * " +
-                "FROM INFORMATION_SCHEMA.TABLES " +
-                "WHERE UPPER(TABLE_NAME) = '${tableName.uppercase()}'"
-        )
-            .fetch()
-            .all()
-            .asFlow()
-            .toList()
-
-        return result.isNotEmpty()
+        return entityOperations.isExistTable(tableName)
     }
 }

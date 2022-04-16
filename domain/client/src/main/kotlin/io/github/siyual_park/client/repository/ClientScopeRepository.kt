@@ -5,6 +5,7 @@ import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
@@ -13,24 +14,24 @@ import org.springframework.stereotype.Repository
 class ClientScopeRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<ClientScopeData, Long> by CachedR2DBCRepository.of(
+) : R2DBCRepository<ClientScopeData, ULID> by CachedR2DBCRepository.of(
     entityOperations,
     ClientScopeData::class,
     eventPublisher = eventPublisher
 ) {
-    fun findAllByClientId(clientId: Long): Flow<ClientScopeData> {
+    fun findAllByClientId(clientId: ULID): Flow<ClientScopeData> {
         return findAll(where(ClientScopeData::clientId).`is`(clientId))
     }
 
-    fun findAllByScopeTokenId(scopeTokenId: Long): Flow<ClientScopeData> {
+    fun findAllByScopeTokenId(scopeTokenId: ULID): Flow<ClientScopeData> {
         return findAll(where(ClientScopeData::scopeTokenId).`is`(scopeTokenId))
     }
 
-    suspend fun deleteAllByClientId(clientId: Long) {
+    suspend fun deleteAllByClientId(clientId: ULID) {
         deleteAll(where(ClientScopeData::clientId).`is`(clientId))
     }
 
-    suspend fun deleteAllByScopeTokenId(scopeTokenId: Long) {
+    suspend fun deleteAllByScopeTokenId(scopeTokenId: ULID) {
         deleteAll(where(ClientScopeData::scopeTokenId).`is`(scopeTokenId))
     }
 }

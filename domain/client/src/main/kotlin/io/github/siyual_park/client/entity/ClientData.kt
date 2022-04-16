@@ -1,7 +1,7 @@
 package io.github.siyual_park.client.entity
 
+import io.github.siyual_park.data.ModifiableULIDEntity
 import io.github.siyual_park.data.SoftDeletable
-import io.github.siyual_park.data.TimeableEntity
 import io.github.siyual_park.data.annotation.Key
 import org.springframework.data.relational.core.mapping.Table
 import java.net.URL
@@ -14,4 +14,4 @@ data class ClientData(
     val type: ClientType,
     var origin: URL,
     override var deletedAt: Instant? = null
-) : TimeableEntity<ClientData, Long>(), SoftDeletable
+) : ModifiableULIDEntity(), SoftDeletable

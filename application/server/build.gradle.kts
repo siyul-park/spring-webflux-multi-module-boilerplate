@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":domain:user"))
     implementation(project(":domain:client"))
 
+    implementation(project(":module:ulid"))
     implementation(project(":module:data"))
     implementation(project(":module:mapper"))
     implementation(project(":module:json"))

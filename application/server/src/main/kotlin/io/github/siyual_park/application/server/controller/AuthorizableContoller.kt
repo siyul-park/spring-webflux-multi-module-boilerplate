@@ -9,6 +9,7 @@ import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.Storage
 import io.github.siyual_park.persistence.loadOrFail
+import io.github.siyual_park.ulid.ULID
 import org.springframework.dao.EmptyResultDataAccessException
 
 class AuthorizableContoller<T : Authorizable, ID : Any>(
@@ -31,7 +32,7 @@ class AuthorizableContoller<T : Authorizable, ID : Any>(
         return mapperContext.map(scopeToken)
     }
 
-    suspend fun revokeScope(id: ID, scopeId: Long) {
+    suspend fun revokeScope(id: ID, scopeId: ULID) {
         val entity = storage.loadOrFail(id)
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
 

@@ -32,9 +32,9 @@ class CreateUserCredential : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
-                    "user_id BIGINT NOT NULL REFERENCES users (id), " +
+                    "user_id BINARY(16) NOT NULL REFERENCES users (id), " +
 
                     "password VARCHAR(128) NOT NULL, " +
                     "hash_algorithm VARCHAR(64) NOT NULL, " +

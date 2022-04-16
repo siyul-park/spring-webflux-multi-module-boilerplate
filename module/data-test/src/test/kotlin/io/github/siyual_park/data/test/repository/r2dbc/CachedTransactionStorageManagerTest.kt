@@ -7,6 +7,7 @@ import io.github.siyual_park.data.repository.r2dbc.CacheTransactionSynchronizati
 import io.github.siyual_park.data.repository.r2dbc.R2DBCStorageManager
 import io.github.siyual_park.data.test.R2DBCTest
 import io.github.siyual_park.data.test.entity.Person
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.reactor.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -16,14 +17,14 @@ import org.springframework.transaction.reactive.TransactionContextManager
 @Suppress("UNCHECKED_CAST")
 class CachedTransactionStorageManagerTest : R2DBCTest() {
     private val storage = InMemoryNestedStorage(
-        CacheBuilder.newBuilder() as CacheBuilder<Long, Person>,
-        object : Extractor<Person, Long> {
-            override fun getKey(entity: Person): Long? {
+        CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+        object : Extractor<Person, ULID> {
+            override fun getKey(entity: Person): ULID {
                 return entity.id
             }
         }
     )
-    private val cacheTransactionSynchronization = CacheTransactionSynchronization<Person, Long>()
+    private val cacheTransactionSynchronization = CacheTransactionSynchronization<Person, ULID>()
     private val manager = R2DBCStorageManager(storage, cacheTransactionSynchronization)
 
     @Test

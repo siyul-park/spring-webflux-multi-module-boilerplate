@@ -12,6 +12,7 @@ import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
+import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
@@ -37,8 +38,8 @@ class User(
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
-) : Persistence<UserData, Long>(value, userRepository, eventPublisher), UserEntity, Authorizable {
-    val id: Long by proxyNotNull(root, UserData::id)
+) : Persistence<UserData, ULID>(value, userRepository, eventPublisher), UserEntity, Authorizable {
+    val id by proxyNotNull(root, UserData::id)
     override val userId by proxyNotNull(root, UserData::id)
     var name by proxy(root, UserData::name)
     var email by proxy(root, UserData::email)

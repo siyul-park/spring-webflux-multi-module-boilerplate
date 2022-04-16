@@ -1,6 +1,7 @@
 val junit_version: String by project
 
 dependencies {
+    implementation(project(":module:ulid"))
     implementation(project(":module:data"))
     implementation(project(":module:coroutine-test"))
 

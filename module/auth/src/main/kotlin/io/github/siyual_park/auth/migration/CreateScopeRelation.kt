@@ -30,10 +30,10 @@ class CreateScopeRelation : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
-                    "parent_id BIGINT NOT NULL REFERENCES scope_tokens (id), " +
-                    "child_id BIGINT NOT NULL REFERENCES scope_tokens (id), " +
+                    "parent_id BINARY(16) NOT NULL REFERENCES scope_tokens (id), " +
+                    "child_id BINARY(16) NOT NULL REFERENCES scope_tokens (id), " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +

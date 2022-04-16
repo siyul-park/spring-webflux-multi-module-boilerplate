@@ -22,6 +22,7 @@ import io.github.siyual_park.search.filter.RHSFilterParserFactory
 import io.github.siyual_park.search.pagination.OffsetPage
 import io.github.siyual_park.search.pagination.OffsetPaginator
 import io.github.siyual_park.search.sort.SortParserFactory
+import io.github.siyual_park.ulid.ULID
 import io.swagger.annotations.Api
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -118,7 +119,7 @@ class ClientController(
     @GetMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
-    suspend fun read(@PathVariable("client-id") clientId: Long): ClientInfo {
+    suspend fun read(@PathVariable("client-id") clientId: ULID): ClientInfo {
         val client = clientStorage.loadOrFail(clientId)
         return mapperContext.map(client)
     }
@@ -127,7 +128,7 @@ class ClientController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:update', 'clients[self]:update'})")
     suspend fun update(
-        @PathVariable("client-id") clientId: Long,
+        @PathVariable("client-id") clientId: ULID,
         @Valid @RequestBody request: UpdateClientRequest
     ): ClientInfo {
         val patch = PropertyOverridePatch.of<Client, UpdateClientRequest>(request)
@@ -142,7 +143,7 @@ class ClientController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:delete', 'clients[self]:delete'})")
     suspend fun delete(
-        @PathVariable("client-id") clientId: Long,
+        @PathVariable("client-id") clientId: ULID,
     ) {
         val client = clientStorage.loadOrFail(clientId)
         client.clear()
@@ -152,7 +153,7 @@ class ClientController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients.scope:read', 'clients[self].scope:read'})")
     fun readScope(
-        @PathVariable("client-id") clientId: Long
+        @PathVariable("client-id") clientId: ULID
     ): Flow<ScopeTokenInfo> {
         return flow {
             val client = clientStorage.loadOrFail(clientId)
@@ -164,7 +165,7 @@ class ClientController(
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'clients.scope:create')")
     suspend fun grantScope(
-        @PathVariable("client-id") clientId: Long,
+        @PathVariable("client-id") clientId: ULID,
         @Valid @RequestBody request: GrantScopeRequest
     ): ScopeTokenInfo {
         return authorizableContoller.grantScope(clientId, request)
@@ -174,8 +175,8 @@ class ClientController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'clients.scope:delete')")
     suspend fun revokeScope(
-        @PathVariable("client-id") clientId: Long,
-        @PathVariable("scope-id") scopeId: Long
+        @PathVariable("client-id") clientId: ULID,
+        @PathVariable("scope-id") scopeId: ULID
     ) {
         return authorizableContoller.revokeScope(clientId, scopeId)
     }
