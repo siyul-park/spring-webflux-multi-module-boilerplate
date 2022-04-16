@@ -9,5 +9,5 @@ data class ClientPrincipal(
     override val id: String,
     override var scope: Set<ScopeToken>
 ) : Principal, ClientEntity {
-    override val clientId: ULID by lazy { ULID.fromString(id) }
+    override val clientId = ULID.fromString(id)
 }

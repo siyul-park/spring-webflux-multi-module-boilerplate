@@ -11,6 +11,5 @@ data class UserPrincipal(
     override val clientId: ULID? = null,
     override var scope: Set<ScopeToken>,
 ) : Principal, UserEntity, ClientEntity {
-    override val userId: ULID
-        get() = ULID.fromString(id)
+    override val userId = ULID.fromString(id)
 }
