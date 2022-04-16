@@ -15,7 +15,7 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <root level="${APPLICATION_LOGGING_LEVEL:-INFO}">
         <appender-ref ref="Console"/>
         <appender-ref ref="Sentry"/>
     </root>
