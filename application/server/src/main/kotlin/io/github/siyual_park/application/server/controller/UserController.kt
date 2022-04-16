@@ -15,6 +15,7 @@ import io.github.siyual_park.search.filter.RHSFilterParserFactory
 import io.github.siyual_park.search.pagination.OffsetPage
 import io.github.siyual_park.search.pagination.OffsetPaginator
 import io.github.siyual_park.search.sort.SortParserFactory
+import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.User
 import io.github.siyual_park.user.domain.UserFactory
@@ -112,7 +113,7 @@ class UserController(
     @GetMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
-    suspend fun read(@PathVariable("user-id") userId: Long): UserInfo {
+    suspend fun read(@PathVariable("user-id") userId: ULID): UserInfo {
         val user = userStorage.loadOrFail(userId)
         return mapperContext.map(user)
     }
@@ -121,7 +122,7 @@ class UserController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users:update', 'users[self]:update'})")
     suspend fun update(
-        @PathVariable("user-id") userId: Long,
+        @PathVariable("user-id") userId: ULID,
         @Valid @RequestBody request: UpdateUserRequest
     ): UserInfo {
         val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(request)
@@ -135,7 +136,7 @@ class UserController(
     @DeleteMapping("/{user-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #userId}, {'users:delete', 'users[self]:delete'})")
-    suspend fun delete(@PathVariable("user-id") userId: Long) {
+    suspend fun delete(@PathVariable("user-id") userId: ULID) {
         val user = userStorage.loadOrFail(userId)
         user.clear()
     }
@@ -144,7 +145,7 @@ class UserController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users.scope:read', 'users[self].scope:read'})")
     fun readScope(
-        @PathVariable("user-id") userId: Long
+        @PathVariable("user-id") userId: ULID
     ): Flow<ScopeTokenInfo> {
         return flow {
             val user = userStorage.loadOrFail(userId)
@@ -156,7 +157,7 @@ class UserController(
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'users.scope:create')")
     suspend fun grantScope(
-        @PathVariable("user-id") userId: Long,
+        @PathVariable("user-id") userId: ULID,
         @Valid @RequestBody request: GrantScopeRequest
     ): ScopeTokenInfo {
         return authorizableContoller.grantScope(userId, request)
@@ -166,8 +167,8 @@ class UserController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'users.scope:delete')")
     suspend fun revokeScope(
-        @PathVariable("user-id") userId: Long,
-        @PathVariable("scope-id") scopeId: Long
+        @PathVariable("user-id") userId: ULID,
+        @PathVariable("scope-id") scopeId: ULID
     ) {
         return authorizableContoller.revokeScope(userId, scopeId)
     }

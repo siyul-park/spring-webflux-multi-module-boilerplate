@@ -1,12 +1,7 @@
 package io.github.siyual_park.data
 
-import io.github.siyual_park.data.annotation.GeneratedValue
-import org.springframework.data.annotation.Id
-
-abstract class IdEntity<T, ID> {
-    @Id
-    @GeneratedValue
-    var id: ID? = null
+abstract class Entity<ID> {
+    abstract var id: ID
 
     override fun hashCode(): Int {
         return id.hashCode()
@@ -16,7 +11,7 @@ abstract class IdEntity<T, ID> {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as IdEntity<*, *>
+        other as Entity<*>
 
         return id == other.id
     }

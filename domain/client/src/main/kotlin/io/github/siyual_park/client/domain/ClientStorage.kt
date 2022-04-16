@@ -5,6 +5,7 @@ import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.persistence.R2DBCStorage
 import io.github.siyual_park.persistence.SimpleR2DBCStorage
+import io.github.siyual_park.ulid.ULID
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.stereotype.Component
 
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component
 class ClientStorage(
     private val clientRepository: ClientRepository,
     private val clientMapper: ClientMapper
-) : R2DBCStorage<Client, Long> by SimpleR2DBCStorage(
+) : R2DBCStorage<Client, ULID> by SimpleR2DBCStorage(
     clientRepository,
     { clientMapper.map(it) }
 ) {

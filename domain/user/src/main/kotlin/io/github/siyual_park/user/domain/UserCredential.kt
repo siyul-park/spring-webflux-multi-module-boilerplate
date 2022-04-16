@@ -5,6 +5,7 @@ import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
+import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import java.security.MessageDigest
@@ -13,7 +14,7 @@ class UserCredential(
     value: UserCredentialData,
     userCredentialRepository: UserCredentialRepository,
     eventPublisher: EventPublisher
-) : Persistence<UserCredentialData, Long>(value, userCredentialRepository, eventPublisher) {
+) : Persistence<UserCredentialData, ULID>(value, userCredentialRepository, eventPublisher) {
     val id by proxyNotNull(root, UserCredentialData::id)
     val userId by proxyNotNull(root, UserCredentialData::userId)
 

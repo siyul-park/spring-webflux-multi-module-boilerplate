@@ -5,6 +5,7 @@ import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.SoftDeletedR2DBCRepository
 import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.ulid.ULID
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Repository
 class ClientRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<ClientData, Long> by CachedR2DBCRepository.of(
+) : R2DBCRepository<ClientData, ULID> by CachedR2DBCRepository.of(
     SoftDeletedR2DBCRepository(
         entityOperations,
         ClientData::class,

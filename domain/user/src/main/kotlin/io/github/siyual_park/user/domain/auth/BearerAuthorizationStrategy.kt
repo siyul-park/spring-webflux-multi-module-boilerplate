@@ -4,6 +4,7 @@ import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import io.github.siyual_park.auth.domain.authentication.AuthorizationStrategy
 import io.github.siyual_park.auth.domain.token.TokenParser
+import io.github.siyual_park.ulid.ULID
 import org.springframework.stereotype.Component
 
 @Component
@@ -19,7 +20,7 @@ class BearerAuthorizationStrategy(
 
         return UserPrincipal(
             id = claims["uid"].toString(),
-            clientId = claims["cid"]?.toString()?.toLongOrNull(),
+            clientId = claims["cid"]?.toString()?.let { ULID.fromString(it) },
             scope = claims.scope.toSet()
         )
     }

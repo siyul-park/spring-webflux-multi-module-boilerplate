@@ -5,6 +5,7 @@ import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.persistence.R2DBCStorage
 import io.github.siyual_park.persistence.SimpleR2DBCStorage
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component
 class ScopeTokenStorage(
     private val scopeTokenRepository: ScopeTokenRepository,
     private val scopeTokenMapper: ScopeTokenMapper
-) : R2DBCStorage<ScopeToken, Long> by SimpleR2DBCStorage(
+) : R2DBCStorage<ScopeToken, ULID> by SimpleR2DBCStorage(
     scopeTokenRepository,
     { scopeTokenMapper.map(it) }
 ) {

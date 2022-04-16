@@ -17,6 +17,7 @@ import io.github.siyual_park.search.filter.RHSFilterParserFactory
 import io.github.siyual_park.search.pagination.OffsetPage
 import io.github.siyual_park.search.pagination.OffsetPaginator
 import io.github.siyual_park.search.sort.SortParserFactory
+import io.github.siyual_park.ulid.ULID
 import io.swagger.annotations.Api
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -99,7 +100,7 @@ class ScopeController(
     @GetMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope:read')")
-    suspend fun read(@PathVariable("scope-id") scopeId: Long): ScopeTokenInfo {
+    suspend fun read(@PathVariable("scope-id") scopeId: ULID): ScopeTokenInfo {
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
         return mapperContext.map(scopeToken)
     }
@@ -108,7 +109,7 @@ class ScopeController(
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope:update')")
     suspend fun update(
-        @PathVariable("scope-id") scopeId: Long,
+        @PathVariable("scope-id") scopeId: ULID,
         @Valid @RequestBody request: UpdateScopeTokenRequest
     ): ScopeTokenInfo {
         val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request)
@@ -122,7 +123,7 @@ class ScopeController(
     @DeleteMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'scope:delete')")
-    suspend fun delete(@PathVariable("scope-id") scopeId: Long) {
+    suspend fun delete(@PathVariable("scope-id") scopeId: ULID) {
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
         scopeToken.clear()
     }
@@ -130,7 +131,7 @@ class ScopeController(
     @GetMapping("/{scope-id}/children")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope.children:read')")
-    fun readChildren(@PathVariable("scope-id") scopeId: Long): Flow<ScopeTokenInfo> {
+    fun readChildren(@PathVariable("scope-id") scopeId: ULID): Flow<ScopeTokenInfo> {
         return flow {
             val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
             emitAll(scopeToken.children())
@@ -141,7 +142,7 @@ class ScopeController(
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'scope.children:create')")
     suspend fun grantScope(
-        @PathVariable("scope-id") scopeId: Long,
+        @PathVariable("scope-id") scopeId: ULID,
         @Valid @RequestBody request: GrantScopeRequest
     ): ScopeTokenInfo {
         return authorizableContoller.grantScope(scopeId, request)
@@ -151,8 +152,8 @@ class ScopeController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'scope.children:delete')")
     suspend fun revokeScope(
-        @PathVariable("scope-id") scopeId: Long,
-        @PathVariable("child-id") childId: Long
+        @PathVariable("scope-id") scopeId: ULID,
+        @PathVariable("child-id") childId: ULID
     ) {
         return authorizableContoller.revokeScope(scopeId, childId)
     }
