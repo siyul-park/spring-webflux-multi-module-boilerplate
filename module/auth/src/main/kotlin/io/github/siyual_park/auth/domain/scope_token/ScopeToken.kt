@@ -12,7 +12,6 @@ import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
-import io.github.siyual_park.persistence.proxyNotNull
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -38,7 +37,7 @@ class ScopeToken(
     )
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
 
-    val id by proxyNotNull(root, ScopeTokenData::id)
+    val id by proxy(root, ScopeTokenData::id)
     var name by proxy(root, ScopeTokenData::name)
     var description by proxy(root, ScopeTokenData::description)
 

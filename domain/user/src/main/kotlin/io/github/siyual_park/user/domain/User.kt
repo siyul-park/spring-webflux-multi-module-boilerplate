@@ -11,7 +11,6 @@ import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
-import io.github.siyual_park.persistence.proxyNotNull
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
@@ -39,8 +38,8 @@ class User(
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
 ) : Persistence<UserData, ULID>(value, userRepository, eventPublisher), UserEntity, Authorizable {
-    val id by proxyNotNull(root, UserData::id)
-    override val userId by proxyNotNull(root, UserData::id)
+    val id by proxy(root, UserData::id)
+    override val userId by proxy(root, UserData::id)
     var name by proxy(root, UserData::name)
     var email by proxy(root, UserData::email)
 

@@ -4,7 +4,6 @@ import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
-import io.github.siyual_park.persistence.proxyNotNull
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.repository.UserCredentialRepository
@@ -15,8 +14,8 @@ class UserCredential(
     userCredentialRepository: UserCredentialRepository,
     eventPublisher: EventPublisher
 ) : Persistence<UserCredentialData, ULID>(value, userCredentialRepository, eventPublisher) {
-    val id by proxyNotNull(root, UserCredentialData::id)
-    val userId by proxyNotNull(root, UserCredentialData::userId)
+    val id by proxy(root, UserCredentialData::id)
+    val userId by proxy(root, UserCredentialData::userId)
 
     private val hashAlgorithm by proxy(root, UserCredentialData::hashAlgorithm)
 
