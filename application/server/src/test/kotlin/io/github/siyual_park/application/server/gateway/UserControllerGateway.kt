@@ -5,6 +5,7 @@ import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
+import io.github.siyual_park.ulid.ULID
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.FluxExchangeResult
@@ -60,7 +61,7 @@ class UserControllerGateway(
             .returnResult(UserInfo::class.java)
     }
 
-    suspend fun read(userId: Long): FluxExchangeResult<UserInfo> {
+    suspend fun read(userId: ULID): FluxExchangeResult<UserInfo> {
         return client.get()
             .uri("/users/$userId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -68,7 +69,7 @@ class UserControllerGateway(
             .returnResult(UserInfo::class.java)
     }
 
-    suspend fun update(userId: Long, request: UpdateUserRequest): FluxExchangeResult<UserInfo> {
+    suspend fun update(userId: ULID, request: UpdateUserRequest): FluxExchangeResult<UserInfo> {
         return client.patch()
             .uri("/users/$userId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -77,7 +78,7 @@ class UserControllerGateway(
             .returnResult(UserInfo::class.java)
     }
 
-    suspend fun delete(userId: Long): FluxExchangeResult<Unit> {
+    suspend fun delete(userId: ULID): FluxExchangeResult<Unit> {
         return client.delete()
             .uri("/users/$userId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -85,7 +86,7 @@ class UserControllerGateway(
             .returnResult()
     }
 
-    suspend fun readScope(userId: Long): FluxExchangeResult<ScopeTokenInfo> {
+    suspend fun readScope(userId: ULID): FluxExchangeResult<ScopeTokenInfo> {
         return client.get()
             .uri("/users/$userId/scope")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -93,7 +94,7 @@ class UserControllerGateway(
             .returnResult(ScopeTokenInfo::class.java)
     }
 
-    suspend fun grantScope(userId: Long, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
+    suspend fun grantScope(userId: ULID, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
         return client.post()
             .uri("/users/$userId/scope")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -102,7 +103,7 @@ class UserControllerGateway(
             .returnResult(ScopeTokenInfo::class.java)
     }
 
-    suspend fun revokeScope(clientId: Long, scopeId: Long): FluxExchangeResult<Unit> {
+    suspend fun revokeScope(clientId: ULID, scopeId: ULID): FluxExchangeResult<Unit> {
         return client.delete()
             .uri("/users/$clientId/scope/$scopeId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())

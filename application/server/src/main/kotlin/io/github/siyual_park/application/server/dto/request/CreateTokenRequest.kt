@@ -2,6 +2,7 @@ package io.github.siyual_park.application.server.dto.request
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.github.siyual_park.application.server.dto.GrantType
+import io.github.siyual_park.ulid.ULID
 import io.swagger.annotations.ApiModelProperty
 import javax.validation.constraints.AssertTrue
 
@@ -20,7 +21,7 @@ data class CreateTokenRequest(
     val refreshToken: String? = null,
 
     @ApiModelProperty(name = "client_id")
-    val clientId: Long,
+    val clientId: ULID,
     @ApiModelProperty(name = "client_secret")
     val clientSecret: String? = null
 ) {

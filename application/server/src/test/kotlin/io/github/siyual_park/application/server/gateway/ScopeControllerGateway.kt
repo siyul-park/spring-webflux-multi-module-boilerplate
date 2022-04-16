@@ -4,6 +4,7 @@ import io.github.siyual_park.application.server.dto.request.CreateScopeTokenRequ
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateScopeTokenRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
+import io.github.siyual_park.ulid.ULID
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.FluxExchangeResult
@@ -51,7 +52,7 @@ class ScopeControllerGateway(
             .returnResult(ScopeTokenInfo::class.java)
     }
 
-    suspend fun read(scopeId: Long): FluxExchangeResult<ScopeTokenInfo> {
+    suspend fun read(scopeId: ULID): FluxExchangeResult<ScopeTokenInfo> {
         return client.get()
             .uri("/scope/$scopeId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -59,7 +60,7 @@ class ScopeControllerGateway(
             .returnResult(ScopeTokenInfo::class.java)
     }
 
-    suspend fun update(scopeId: Long, request: UpdateScopeTokenRequest): FluxExchangeResult<ScopeTokenInfo> {
+    suspend fun update(scopeId: ULID, request: UpdateScopeTokenRequest): FluxExchangeResult<ScopeTokenInfo> {
         return client.patch()
             .uri("/scope/$scopeId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -68,7 +69,7 @@ class ScopeControllerGateway(
             .returnResult(ScopeTokenInfo::class.java)
     }
 
-    suspend fun delete(scopeId: Long): FluxExchangeResult<Unit> {
+    suspend fun delete(scopeId: ULID): FluxExchangeResult<Unit> {
         return client.delete()
             .uri("/scope/$scopeId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -76,7 +77,7 @@ class ScopeControllerGateway(
             .returnResult()
     }
 
-    suspend fun readChildren(scopeId: Long): FluxExchangeResult<ScopeTokenInfo> {
+    suspend fun readChildren(scopeId: ULID): FluxExchangeResult<ScopeTokenInfo> {
         return client.get()
             .uri("/scope/$scopeId/children")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -84,7 +85,7 @@ class ScopeControllerGateway(
             .returnResult(ScopeTokenInfo::class.java)
     }
 
-    suspend fun grantScope(scopeId: Long, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
+    suspend fun grantScope(scopeId: ULID, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
         return client.post()
             .uri("/scope/$scopeId/children")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -93,7 +94,7 @@ class ScopeControllerGateway(
             .returnResult(ScopeTokenInfo::class.java)
     }
 
-    suspend fun revokeScope(scopeId: Long, childId: Long): FluxExchangeResult<Unit> {
+    suspend fun revokeScope(scopeId: ULID, childId: ULID): FluxExchangeResult<Unit> {
         return client.delete()
             .uri("/scope/$scopeId/children/$childId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())

@@ -13,6 +13,7 @@ import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
@@ -28,7 +29,7 @@ class ScopeToken(
     private val scopeRelationRepository: ScopeRelationRepository,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
-) : Persistence<ScopeTokenData, Long>(value, scopeTokenRepository, eventPublisher), Authorizable {
+) : Persistence<ScopeTokenData, ULID>(value, scopeTokenRepository, eventPublisher), Authorizable {
     private val scopeTokenMapper = ScopeTokenMapper(
         scopeTokenRepository,
         scopeRelationRepository,

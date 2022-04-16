@@ -73,21 +73,24 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun createAll(entities: Flow<T>): Flow<T> {
-        val saved = entities.map {
-            eventPublisher?.publish(BeforeCreateEvent(it))
-
-            this.entityOperations.insert(it)
-                .subscribeOn(scheduler)
-                .awaitSingle()
-        }
-
         return flow {
+            val saved = entities.map {
+                eventPublisher?.publish(BeforeCreateEvent(it))
+
+                entityOperations.insert(it)
+                    .subscribeOn(scheduler)
+                    .awaitSingle()
+            }.toList()
+
             emitAll(
                 entityOperations.select(
-                    query(where(entityManager.idProperty).`in`(saved.toList())),
+                    query(where(entityManager.idProperty).`in`(saved)),
                     clazz.java
                 )
                     .subscribeOn(scheduler)
+                    .sort { p1, p2 ->
+                        saved.indexOf(p1) - saved.indexOf(p2)
+                    }
                     .asFlow()
                     .onEach { eventPublisher?.publish(AfterCreateEvent(it)) }
             )
@@ -236,7 +239,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             return null
         }
 
-        return findById(entityManager.getId(originOutboundRow))
+        return findById(entityManager.getId(entity))
             ?.also {
                 val patchedOutboundRow = entityManager.getOutboundRow(it)
                 val diff = diff(originOutboundRow, patchedOutboundRow)
@@ -277,7 +280,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
 
         val updateCount = this.entityOperations.update(
-            query(where(entityManager.idProperty).`is`(entityManager.getId(originOutboundRow))),
+            query(where(entityManager.idProperty).`is`(entityManager.getId(entity))),
             Update.from(diff as Map<SqlIdentifier, Any>),
             clazz.java
         )
@@ -287,7 +290,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             return null
         }
 
-        return findById(entityManager.getId(patchedOutboundRow))
+        return findById(entityManager.getId(entity))
             ?.also { eventPublisher?.publish(AfterUpdateEvent(it, propertyDiff)) }
     }
 

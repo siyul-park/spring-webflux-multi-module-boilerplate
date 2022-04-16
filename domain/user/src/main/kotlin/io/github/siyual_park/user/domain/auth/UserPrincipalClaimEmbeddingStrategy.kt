@@ -13,7 +13,7 @@ class UserPrincipalClaimEmbeddingStrategy : ClaimEmbeddingStrategy<UserPrincipal
 
         claims["uid"] = principal.id
         if (principal.clientId != null) {
-            claims["cid"] = principal.clientId
+            claims["cid"] = principal.clientId.toString()
         }
         claims["scope"] = principal.scope
 

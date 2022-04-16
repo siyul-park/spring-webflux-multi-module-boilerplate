@@ -1,5 +1,6 @@
 package io.github.siyual_park.data.repository.r2dbc
 
+import io.github.siyual_park.data.expansion.columnName
 import org.springframework.dao.InvalidDataAccessResourceUsageException
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.r2dbc.dialect.DialectResolver
@@ -29,6 +30,7 @@ class EntityManager<T : Any, ID : Any>(
 
     private val mappingContext = converter.mappingContext
 
+    private val idGetter: KProperty1<T, ID>
     val idColumn: SqlIdentifier
     val idProperty: String
 
@@ -37,15 +39,14 @@ class EntityManager<T : Any, ID : Any>(
 
         idColumn = persistentEntity.requiredIdProperty.columnName
         idProperty = updateManager.toSql(idColumn)
-    }
-
-    fun getId(row: OutboundRow): ID {
-        return row[idColumn].value as ID
+        idGetter = (
+            clazz.memberProperties.find { columnName(it) == idProperty }
+                ?: throw RuntimeException("")
+            ) as KProperty1<T, ID>
     }
 
     fun getId(entity: T): ID {
-        val outboundRow = getOutboundRow(entity)
-        return getId(outboundRow)
+        return idGetter.get(entity)
     }
 
     fun getOutboundRow(entity: T): OutboundRow {

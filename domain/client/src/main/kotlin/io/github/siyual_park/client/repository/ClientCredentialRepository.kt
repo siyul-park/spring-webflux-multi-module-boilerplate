@@ -6,6 +6,7 @@ import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.ulid.ULID
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
@@ -14,28 +15,28 @@ import org.springframework.stereotype.Repository
 class ClientCredentialRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<ClientCredentialData, Long> by CachedR2DBCRepository.of(
+) : R2DBCRepository<ClientCredentialData, ULID> by CachedR2DBCRepository.of(
     entityOperations,
     ClientCredentialData::class,
     eventPublisher = eventPublisher
 ) {
-    suspend fun findByClientIdOrFail(clientId: Long): ClientCredentialData {
+    suspend fun findByClientIdOrFail(clientId: ULID): ClientCredentialData {
         return findByClientId(clientId) ?: throw EmptyResultDataAccessException(1)
     }
 
-    suspend fun findByClientId(clientId: Long): ClientCredentialData? {
+    suspend fun findByClientId(clientId: ULID): ClientCredentialData? {
         return findOne(where(ClientCredentialData::clientId).`is`(clientId))
     }
 
-    suspend fun existsByClientId(clientId: Long): Boolean {
+    suspend fun existsByClientId(clientId: ULID): Boolean {
         return exists(where(ClientCredentialData::clientId).`is`(clientId))
     }
 
-    suspend fun updateByClientId(clientId: Long, patch: AsyncPatch<ClientCredentialData>): ClientCredentialData? {
+    suspend fun updateByClientId(clientId: ULID, patch: AsyncPatch<ClientCredentialData>): ClientCredentialData? {
         return update(where(ClientCredentialData::clientId).`is`(clientId), patch)
     }
 
-    suspend fun deleteByClientId(clientId: Long) {
+    suspend fun deleteByClientId(clientId: ULID) {
         deleteAll(where(ClientCredentialData::clientId).`is`(clientId))
     }
 }

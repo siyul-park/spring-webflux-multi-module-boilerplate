@@ -2,6 +2,7 @@ dependencies {
     implementation(project(":module:event"))
     implementation(project(":module:data"))
 
+    implementation(project(":module:ulid"))
     testImplementation(project(":module:coroutine-test"))
     testImplementation(project(":module:data-test"))
     testImplementation(project(":module:util"))

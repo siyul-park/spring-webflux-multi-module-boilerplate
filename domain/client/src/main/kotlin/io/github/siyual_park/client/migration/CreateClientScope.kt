@@ -30,10 +30,10 @@ class CreateClientScope : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
-                    "client_id BIGINT NOT NULL REFERENCES clients (id), " +
-                    "scope_token_id BIGINT NOT NULL REFERENCES scope_tokens (id), " +
+                    "client_id BINARY(16) NOT NULL REFERENCES clients (id), " +
+                    "scope_token_id BINARY(16) NOT NULL REFERENCES scope_tokens (id), " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +

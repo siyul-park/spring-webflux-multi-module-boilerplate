@@ -1,4 +1,5 @@
 dependencies {
+    implementation(project(":module:ulid"))
     implementation(project(":module:data"))
     testImplementation(project(":module:data-test"))
     implementation(project(":module:auth"))

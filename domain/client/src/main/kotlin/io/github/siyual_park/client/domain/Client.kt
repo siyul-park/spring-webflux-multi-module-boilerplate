@@ -20,6 +20,7 @@ import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
@@ -39,8 +40,8 @@ class Client(
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
-) : Persistence<ClientData, Long>(value, clientRepository, eventPublisher), ClientEntity, Authorizable {
-    val id: Long by proxyNotNull(root, ClientData::id)
+) : Persistence<ClientData, ULID>(value, clientRepository, eventPublisher), ClientEntity, Authorizable {
+    val id by proxyNotNull(root, ClientData::id)
     override val clientId by proxyNotNull(root, ClientData::id)
     var name by proxy(root, ClientData::name)
     val type by proxy(root, ClientData::type)

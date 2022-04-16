@@ -11,6 +11,7 @@ import io.github.siyual_park.data.test.R2DBCTest
 import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
 import io.github.siyual_park.data.test.migration.CreatePerson
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -100,7 +101,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
     fun findAllCustomQuery() = parameterized { personRepository ->
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
-        val foundPersons = personRepository.findAll(where(Person::id).`is`(person.id!!)).toList()
+        val foundPersons = personRepository.findAll(where(Person::id).`is`(person.id)).toList()
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
@@ -162,7 +163,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         val persons = (0 until numOfPerson).map { DummyPerson.create() }
             .let { personRepository.createAll(it) }
             .toList()
-        val ids = persons.map { it.id!! }
+        val ids = persons.map { it.id }
 
         val foundPersons = personRepository.findAllById(ids).toList()
 
@@ -359,7 +360,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         personRepository.delete(person)
 
-        assertFalse(personRepository.existsById(person.id!!))
+        assertFalse(personRepository.existsById(person.id))
     }
 
     @Test
@@ -367,9 +368,9 @@ class R2DBCRepositoryTest : R2DBCTest() {
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
 
-        personRepository.deleteById(person.id!!)
+        personRepository.deleteById(person.id)
 
-        assertFalse(personRepository.existsById(person.id!!))
+        assertFalse(personRepository.existsById(person.id))
     }
 
     @Test
@@ -390,7 +391,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
             .map { DummyPerson.create() }
             .let { personRepository.createAll(it) }
             .toList()
-        val ids = persons.map { it.id!! }
+        val ids = persons.map { it.id }
 
         personRepository.deleteAllById(ids)
 
@@ -443,7 +444,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         }
     }
 
-    private fun parameterized(func: suspend (R2DBCRepository<Person, Long>) -> Unit) {
+    private fun parameterized(func: suspend (R2DBCRepository<Person, ULID>) -> Unit) {
         transactional {
             repositories().forEach {
                 func(it)
@@ -460,7 +461,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         }
     }
 
-    private fun repositories(): List<R2DBCRepository<Person, Long>> {
+    private fun repositories(): List<R2DBCRepository<Person, ULID>> {
         return listOf(
             SimpleR2DBCRepository(entityOperations, Person::class),
             CachedR2DBCRepository.of(entityOperations, Person::class)

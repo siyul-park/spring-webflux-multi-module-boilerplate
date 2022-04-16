@@ -2,6 +2,7 @@ package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.ulid.ULID
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
@@ -15,6 +16,7 @@ import java.util.Date
 import java.util.UUID
 import javax.crypto.SecretKey
 
+@Suppress("UNCHECKED_CAST")
 @Component
 class TokenParser(
     @Value("\${application.auth.secret}") private val secret: String,
@@ -68,7 +70,7 @@ class TokenParser(
 
     private fun decodeScope(scope: String): Flow<ScopeToken> {
         return scope.split(" ")
-            .mapNotNull { it.toLongOrNull() }
+            .map { ULID.fromString(it) }
             .let { scopeTokenStorage.load(it) }
     }
 }

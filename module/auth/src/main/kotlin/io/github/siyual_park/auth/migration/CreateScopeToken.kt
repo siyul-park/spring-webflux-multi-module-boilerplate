@@ -31,7 +31,7 @@ class CreateScopeToken : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
                     "description VARCHAR(128), " +

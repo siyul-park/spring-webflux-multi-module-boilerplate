@@ -31,9 +31,9 @@ class CreateClientCredential : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
-                    "client_id BIGINT NOT NULL REFERENCES clients (id), " +
+                    "client_id BINARY(16) NOT NULL REFERENCES clients (id), " +
 
                     "secret VARCHAR(128) NOT NULL, " +
 

@@ -1,4 +1,5 @@
 dependencies {
+    implementation(project(":module:ulid"))
     implementation(project(":module:event"))
 }
 
