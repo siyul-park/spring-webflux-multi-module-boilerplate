@@ -11,6 +11,7 @@ import io.github.siyual_park.data.test.R2DBCTest
 import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
 import io.github.siyual_park.data.test.migration.CreatePerson
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -443,7 +444,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         }
     }
 
-    private fun parameterized(func: suspend (R2DBCRepository<Person, Long>) -> Unit) {
+    private fun parameterized(func: suspend (R2DBCRepository<Person, ULID>) -> Unit) {
         transactional {
             repositories().forEach {
                 func(it)
@@ -460,7 +461,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         }
     }
 
-    private fun repositories(): List<R2DBCRepository<Person, Long>> {
+    private fun repositories(): List<R2DBCRepository<Person, ULID>> {
         return listOf(
             SimpleR2DBCRepository(entityOperations, Person::class),
             CachedR2DBCRepository.of(entityOperations, Person::class)

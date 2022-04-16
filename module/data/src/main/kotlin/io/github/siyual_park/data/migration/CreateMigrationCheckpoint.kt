@@ -26,7 +26,7 @@ class CreateMigrationCheckpoint : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
                     "version BIGINT NOT NULL, " +
                     "status VARCHAR(64) NOT NULL, " +

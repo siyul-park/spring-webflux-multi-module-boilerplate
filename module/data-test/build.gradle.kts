@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":module:data"))
     implementation(project(":module:coroutine-test"))
 
+    testImplementation(project(":module:ulid"))
     testImplementation(project(":module:util"))
     testImplementation(project(":module:event"))
 
