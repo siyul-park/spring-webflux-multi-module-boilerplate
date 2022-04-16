@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.core.convert.converter.Converter
 import org.springframework.data.r2dbc.core.DefaultReactiveDataAccessStrategy
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.r2dbc.dialect.DialectResolver
@@ -19,7 +20,9 @@ import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import java.util.UUID
 
-open class R2DBCTest : CoroutineTest() {
+open class R2DBCTest(
+    converter: Collection<Converter<*, *>> = emptyList()
+) : CoroutineTest() {
     private val database: String = UUID.randomUUID().toString()
 
     protected val connectionFactory = H2ConnectionFactory.inMemory(database)
@@ -28,10 +31,12 @@ open class R2DBCTest : CoroutineTest() {
 
     protected val r2dbcConverter = DefaultReactiveDataAccessStrategy.createConverter(
         dialect,
-        listOf(
+        mutableListOf<Converter<*, *>>(
             ULIDToBytesConverter(),
             BytesToULIDConverter()
-        )
+        ).also {
+            it.addAll(converter)
+        }
     )
 
     protected val entityOperations = R2dbcEntityTemplate(
