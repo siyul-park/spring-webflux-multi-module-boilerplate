@@ -2,7 +2,6 @@ package io.github.siyual_park.ulid
 
 import java.io.Serializable
 import java.security.SecureRandom
-import java.util.Objects
 
 class ULID(
     private val mostSignificantBits: Long,
@@ -118,7 +117,7 @@ class ULID(
         }
 
         fun fromBytes(data: ByteArray): ULID {
-            require(data.size == 16)
+            require(data.size == 16) { "data length must not exceed 16 but was ${data.size}!" }
             var mostSignificantBits: Long = 0
             var leastSignificantBits: Long = 0
             for (i in 0..7) {
@@ -131,7 +130,7 @@ class ULID(
         }
 
         fun fromString(name: String): ULID {
-            require(name.length == 26)
+            require(name.length == 26) { "name length must not exceed 26 but was ${name.length}!" }
             val timeString = name.substring(0, 10)
             val time = parseCrockford(timeString)
             require(time and TIMESTAMP_OVERFLOW_MASK == 0L)
@@ -145,7 +144,6 @@ class ULID(
         }
 
         private fun parseCrockford(input: String): Long {
-            Objects.requireNonNull(input, "input must not be null!")
             val length = input.length
             require(length <= 12) { "input length must not exceed 12 but was $length!" }
             var result: Long = 0

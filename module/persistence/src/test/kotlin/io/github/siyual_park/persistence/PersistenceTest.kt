@@ -9,6 +9,7 @@ import io.github.siyual_park.persistence.domain.Person
 import io.github.siyual_park.persistence.dummy.DummyPerson
 import io.github.siyual_park.persistence.entity.PersonData
 import io.github.siyual_park.persistence.migration.CreatePerson
+import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -27,7 +28,7 @@ class PersistenceTest : R2DBCTest() {
 
         val updatedPerson = DummyPerson.create()
 
-        var oldPerson = personRepository.findByIdOrFail(person.id!!)
+        var oldPerson = personRepository.findByIdOrFail(person.id)
 
         assertEquals(originPerson.name, oldPerson.name)
         assertEquals(originPerson.age, oldPerson.age)
@@ -38,14 +39,14 @@ class PersistenceTest : R2DBCTest() {
         assertEquals(updatedPerson.name, person.name)
         assertEquals(updatedPerson.age, person.age)
 
-        oldPerson = personRepository.findByIdOrFail(person.id!!)
+        oldPerson = personRepository.findByIdOrFail(person.id)
 
         assertEquals(originPerson.name, oldPerson.name)
         assertEquals(originPerson.age, oldPerson.age)
 
         assertTrue(person.sync())
 
-        oldPerson = personRepository.findByIdOrFail(person.id!!)
+        oldPerson = personRepository.findByIdOrFail(person.id)
 
         assertEquals(updatedPerson.name, oldPerson.name)
         assertEquals(updatedPerson.age, oldPerson.age)
@@ -69,14 +70,14 @@ class PersistenceTest : R2DBCTest() {
                 person.age = updatedPerson.age
             }
 
-            val oldPerson = personRepository.findByIdOrFail(person.id!!)
+            val oldPerson = personRepository.findByIdOrFail(person.id)
 
             assertEquals(updatedPerson.name, oldPerson.name)
             assertEquals(updatedPerson.age, oldPerson.age)
         }
     }
 
-    private fun parameterized(func: suspend (R2DBCRepository<PersonData, Long>) -> Unit) {
+    private fun parameterized(func: suspend (R2DBCRepository<PersonData, ULID>) -> Unit) {
         transactional {
             repositories().forEach {
                 func(it)
@@ -93,7 +94,7 @@ class PersistenceTest : R2DBCTest() {
         }
     }
 
-    private fun repositories(): List<R2DBCRepository<PersonData, Long>> {
+    private fun repositories(): List<R2DBCRepository<PersonData, ULID>> {
         return listOf(
             SimpleR2DBCRepository(entityOperations, PersonData::class),
             CachedR2DBCRepository.of(entityOperations, PersonData::class)
