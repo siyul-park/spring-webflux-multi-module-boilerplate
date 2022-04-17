@@ -31,10 +31,10 @@ class TokenStorage(
 
     private val delegator = SimpleR2DBCStorage(tokenRepository) { tokenMapper.map(it) }
 
-    private val expireJob = tickerFlow(Duration.ofSeconds(30), Duration.ofSeconds(30))
+    private val expireJob = tickerFlow(Duration.ofMinutes(1))
         .onEach {
             try {
-                delay(Random.nextLong(Duration.ofSeconds(15).toMillis()))
+                delay(Random.nextLong(Duration.ofSeconds(30).toMillis()))
 
                 tokenRepository.deleteAll(
                     where(TokenData::expiredAt).lessThanOrEquals(Instant.now()),
