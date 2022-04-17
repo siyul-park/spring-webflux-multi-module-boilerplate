@@ -2,9 +2,9 @@ package io.github.siyual_park.auth.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.entity.ScopeRelationData
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow

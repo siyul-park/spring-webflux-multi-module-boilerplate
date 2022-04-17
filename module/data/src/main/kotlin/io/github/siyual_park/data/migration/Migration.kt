@@ -6,8 +6,8 @@ import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
 interface Migration {
-    suspend fun up(entityOperations: R2dbcEntityOperations)
-    suspend fun down(entityOperations: R2dbcEntityOperations)
+    suspend fun up()
+    suspend fun down()
 }
 
 suspend fun R2dbcEntityOperations.fetchSQL(/*language=SQL*/ sql: String) {

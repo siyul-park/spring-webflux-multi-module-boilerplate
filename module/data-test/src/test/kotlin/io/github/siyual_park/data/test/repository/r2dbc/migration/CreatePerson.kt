@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.test.migration
+package io.github.siyual_park.data.test.repository.r2dbc.migration
 
 import io.github.siyual_park.data.migration.Migration
 import io.github.siyual_park.data.migration.createUniqueIndex
@@ -7,10 +7,12 @@ import io.github.siyual_park.data.migration.fetchSQL
 import io.github.siyual_park.data.migration.isExistTable
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
-class CreatePerson : Migration {
+class CreatePerson(
+    private val entityOperations: R2dbcEntityOperations
+) : Migration {
     private val tableName = "persons"
 
-    override suspend fun up(entityOperations: R2dbcEntityOperations) {
+    override suspend fun up() {
         if (entityOperations.isExistTable(tableName)) {
             return
         }
@@ -30,7 +32,7 @@ class CreatePerson : Migration {
         entityOperations.createUniqueIndex(tableName, listOf("name"))
     }
 
-    override suspend fun down(entityOperations: R2dbcEntityOperations) {
+    override suspend fun down() {
         if (!entityOperations.isExistTable(tableName)) {
             return
         }

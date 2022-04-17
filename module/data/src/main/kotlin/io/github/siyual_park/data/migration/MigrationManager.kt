@@ -1,8 +1,8 @@
 package io.github.siyual_park.data.migration
 
 import io.github.siyual_park.data.expansion.columnName
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.data.repository.update
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
@@ -15,7 +15,7 @@ import java.time.Duration
 
 @Component
 class MigrationManager(
-    private val entityOperations: R2dbcEntityOperations,
+    entityOperations: R2dbcEntityOperations,
 ) {
     private val logger = LoggerFactory.getLogger(MigrationManager::class.java)
 
@@ -26,8 +26,8 @@ class MigrationManager(
 
     private val migrations = mutableListOf<Migration>()
 
-    private val createUpdatedAtFunction = CreateUpdatedAtFunction()
-    private val createMigrationCheckpoint = CreateMigrationCheckpoint()
+    private val createUpdatedAtFunction = CreateUpdatedAtFunction(entityOperations)
+    private val createMigrationCheckpoint = CreateMigrationCheckpoint(entityOperations)
 
     fun register(migration: Migration): MigrationManager {
         migrations.add(migration)
@@ -39,9 +39,9 @@ class MigrationManager(
     }
 
     suspend fun run(): Unit = logging {
-        if (!createMigrationCheckpoint.isApplied(entityOperations)) {
-            createUpdatedAtFunction.up(entityOperations)
-            createMigrationCheckpoint.up(entityOperations)
+        if (!createMigrationCheckpoint.isApplied()) {
+            createUpdatedAtFunction.up()
+            createMigrationCheckpoint.up()
         }
 
         while (
@@ -75,7 +75,7 @@ class MigrationManager(
             }
 
             try {
-                migration.up(entityOperations)
+                migration.up()
                 migrationCheckpointRepository.update(checkpoint) {
                     it.status = MigrationStatus.COMPLETE
                 }
@@ -92,16 +92,16 @@ class MigrationManager(
         migrations.asReversed()
             .forEach {
                 try {
-                    it.down(entityOperations)
+                    it.down()
                 } catch (e: RuntimeException) {
                     logger.error(e.message, e)
                 }
             }
 
         try {
-            if (createMigrationCheckpoint.isApplied(entityOperations)) {
-                createMigrationCheckpoint.down(entityOperations)
-                createUpdatedAtFunction.down(entityOperations)
+            if (createMigrationCheckpoint.isApplied()) {
+                createMigrationCheckpoint.down()
+                createUpdatedAtFunction.down()
             }
         } catch (e: RuntimeException) {
             logger.error(e.message, e)
@@ -117,13 +117,13 @@ class MigrationManager(
 
         migrationCheckpoints.forEach {
             val migration = migrations[it.version]
-            migration.down(entityOperations)
+            migration.down()
             migrationCheckpointRepository.delete(it)
         }
 
-        if (createMigrationCheckpoint.isApplied(entityOperations)) {
-            createMigrationCheckpoint.down(entityOperations)
-            createUpdatedAtFunction.down(entityOperations)
+        if (createMigrationCheckpoint.isApplied()) {
+            createMigrationCheckpoint.down()
+            createUpdatedAtFunction.down()
         }
     }
 

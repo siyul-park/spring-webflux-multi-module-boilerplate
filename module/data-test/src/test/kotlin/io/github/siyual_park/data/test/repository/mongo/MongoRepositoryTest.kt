@@ -1,16 +1,21 @@
-package io.github.siyual_park.data.test.repository.r2dbc
+package io.github.siyual_park.data.test.repository.mongo
 
+import io.github.siyual_park.data.event.BeforeCreateEvent
+import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
-import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
-import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
-import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
-import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
-import io.github.siyual_park.data.repository.r2dbc.where
-import io.github.siyual_park.data.test.R2DBCTest
+import io.github.siyual_park.data.repository.mongo.CreateTimestamp
+import io.github.siyual_park.data.repository.mongo.MongoRepository
+import io.github.siyual_park.data.repository.mongo.SimpleMongoRepository
+import io.github.siyual_park.data.repository.mongo.UpdateTimestamp
+import io.github.siyual_park.data.repository.mongo.findOneOrFail
+import io.github.siyual_park.data.repository.mongo.where
+import io.github.siyual_park.data.test.MongoTest
 import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
-import io.github.siyual_park.data.test.repository.r2dbc.migration.CreatePerson
+import io.github.siyual_park.data.test.repository.mongo.migration.CreatePerson
+import io.github.siyual_park.event.EventEmitter
+import io.github.siyual_park.event.TypeMatchEventFilter
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,12 +23,17 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.springframework.transaction.reactive.executeAndAwait
 
-class R2DBCRepositoryTest : R2DBCTest() {
+class MongoRepositoryTest : MongoTest() {
+    private val eventEmitter = EventEmitter()
+
     init {
-        migrationManager.register(CreatePerson(entityOperations))
+        eventEmitter.on(TypeMatchEventFilter(BeforeCreateEvent::class), CreateTimestamp())
+        eventEmitter.on(TypeMatchEventFilter(BeforeUpdateEvent::class), UpdateTimestamp())
+    }
+
+    init {
+        migrationManager.register(CreatePerson(mongoTemplate))
     }
 
     @Test
@@ -75,8 +85,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
         val foundPerson = personRepository.findById(person.id)!!
 
         assertEquals(person.id, foundPerson.id)
-        assertEquals(person.createdAt, foundPerson.createdAt)
-        assertEquals(person.updatedAt, foundPerson.updatedAt)
 
         assertEquals(person.name, foundPerson.name)
         assertEquals(person.age, foundPerson.age)
@@ -90,8 +98,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -105,8 +111,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -120,8 +124,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -135,8 +137,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -149,8 +149,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
         val foundPerson = personRepository.findOneOrFail(where(Person::name).`is`(person.name))
 
         assertEquals(person.id, foundPerson.id)
-        assertEquals(person.createdAt, foundPerson.createdAt)
-        assertEquals(person.updatedAt, foundPerson.updatedAt)
 
         assertEquals(person.name, foundPerson.name)
         assertEquals(person.age, foundPerson.age)
@@ -193,7 +191,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
         val updatedPerson = personRepository.update(person)!!
 
         assertEquals(person.id, updatedPerson.id)
-        assertEquals(person.createdAt, updatedPerson.createdAt)
         assertNotNull(updatedPerson.updatedAt)
 
         assertEquals(person.name, updatedPerson.name)
@@ -215,7 +212,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
         )!!
 
         assertEquals(person.id, updatedPerson.id)
-        assertEquals(person.createdAt, updatedPerson.createdAt)
         assertNotNull(updatedPerson.updatedAt)
 
         assertEquals(person.name, updatedPerson.name)
@@ -237,7 +233,6 @@ class R2DBCRepositoryTest : R2DBCTest() {
         )!!
 
         assertEquals(person.id, updatedPerson.id)
-        assertEquals(person.createdAt, updatedPerson.createdAt)
         assertNotNull(updatedPerson.updatedAt)
 
         assertEquals(person.name, updatedPerson.name)
@@ -412,46 +407,7 @@ class R2DBCRepositoryTest : R2DBCTest() {
         assertEquals(0, personRepository.count())
     }
 
-    @Test
-    fun transactionCommit() = parameterized { personRepository ->
-        var person: Person? = null
-
-        transactionalOperator.executeAndAwait {
-            person = DummyPerson.create()
-                .let { personRepository.create(it) }
-        }
-
-        assertTrue(personRepository.findById(person?.id!!) != null)
-        assertTrue(personRepository.existsById(person?.id!!))
-    }
-
-    @Test
-    fun transactionRollback() = blocking {
-        repositories().forEach { personRepository ->
-            var person: Person? = null
-
-            assertThrows<RuntimeException> {
-                transactionalOperator.executeAndAwait {
-                    it.setRollbackOnly()
-                    person = DummyPerson.create()
-                        .let { personRepository.create(it) }
-                    throw RuntimeException()
-                }
-            }
-
-            assertTrue(personRepository.findById(person?.id!!) == null)
-            assertFalse(personRepository.existsById(person?.id!!))
-        }
-    }
-
-    private fun parameterized(func: suspend (R2DBCRepository<Person, ULID>) -> Unit) {
-        transactional {
-            repositories().forEach {
-                func(it)
-                migrationManager.revert()
-                migrationManager.run()
-            }
-        }
+    private fun parameterized(func: suspend (MongoRepository<Person, ULID>) -> Unit) {
         blocking {
             repositories().forEach {
                 func(it)
@@ -461,10 +417,9 @@ class R2DBCRepositoryTest : R2DBCTest() {
         }
     }
 
-    private fun repositories(): List<R2DBCRepository<Person, ULID>> {
+    private fun repositories(): List<MongoRepository<Person, ULID>> {
         return listOf(
-            SimpleR2DBCRepository(entityOperations, Person::class),
-            CachedR2DBCRepository.of(entityOperations, Person::class)
+            SimpleMongoRepository(mongoTemplate, Person::class, eventPublisher = eventEmitter),
         )
     }
 }

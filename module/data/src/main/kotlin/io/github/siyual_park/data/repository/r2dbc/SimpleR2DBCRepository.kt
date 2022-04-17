@@ -243,7 +243,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             ?.also {
                 val patchedOutboundRow = entityManager.getOutboundRow(it)
                 val diff = diff(originOutboundRow, patchedOutboundRow)
-                eventPublisher?.publish(AfterUpdateEvent(entity, toProperty(diff)))
+                eventPublisher?.publish(AfterUpdateEvent(it, toProperty(diff)))
             }
     }
 
@@ -329,11 +329,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
     override suspend fun deleteAll(entities: Iterable<T>) {
         val ids = entities.map { entityManager.getId(it) }
-        if (ids.count() == 0) {
-            return
-        }
-
-        deleteAll(where(entityManager.idProperty).`in`(ids))
+        return deleteAllById(ids)
     }
 
     override suspend fun deleteAll() {

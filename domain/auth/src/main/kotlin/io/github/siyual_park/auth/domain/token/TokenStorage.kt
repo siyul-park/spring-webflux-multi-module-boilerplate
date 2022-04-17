@@ -3,7 +3,7 @@ package io.github.siyual_park.auth.domain.token
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.expansion.columnName
-import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.persistence.R2DBCStorage
 import io.github.siyual_park.persistence.SimpleR2DBCStorage
 import io.github.siyual_park.util.tickerFlow

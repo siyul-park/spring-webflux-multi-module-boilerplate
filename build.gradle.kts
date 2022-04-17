@@ -8,6 +8,7 @@ val jackson_version: String by project
 val json_patch_version: String by project
 val springfox_version: String by project
 val sentry_logback_version: String by project
+val embed_mongo_version: String by project
 
 buildscript {
     val kotlin_version: String by project
@@ -87,12 +88,14 @@ allprojects {
         implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:$reactor_kotlin_extensions_version")
 
         implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+        implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 
         implementation("io.r2dbc:r2dbc-h2")
         implementation("io.r2dbc:r2dbc-pool")
         implementation("io.r2dbc:r2dbc-postgresql")
 
         runtimeOnly("com.h2database:h2")
+        implementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:$embed_mongo_version")
 
         testImplementation("io.projectreactor:reactor-test:$projectreactor_version")
         testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")

@@ -7,7 +7,7 @@ import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.test.R2DBCTest
 import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
-import io.github.siyual_park.data.test.migration.CreatePerson
+import io.github.siyual_park.data.test.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -36,7 +36,7 @@ class InMemoryNestedStorageTest : R2DBCTest() {
     }
 
     init {
-        migrationManager.register(CreatePerson())
+        migrationManager.register(CreatePerson(entityOperations))
     }
 
     @BeforeEach
