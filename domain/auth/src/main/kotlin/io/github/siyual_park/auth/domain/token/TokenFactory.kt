@@ -6,11 +6,9 @@ import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.util.retry
 import org.springframework.stereotype.Component
-import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
-import java.util.Random
 
 @Component
 class TokenFactory(
