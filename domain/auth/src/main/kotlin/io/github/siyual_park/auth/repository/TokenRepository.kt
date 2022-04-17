@@ -20,7 +20,7 @@ class TokenRepository(
     FilteredR2DBCRepository(
         entityOperations,
         TokenData::class,
-        filter = { where(TokenData::expiredAt).lessThanOrEquals(Instant.now()) },
+        filter = { where(TokenData::expiredAt).greaterThan(Instant.now()) },
         eventPublisher = eventPublisher
     ),
     CacheBuilder.newBuilder()

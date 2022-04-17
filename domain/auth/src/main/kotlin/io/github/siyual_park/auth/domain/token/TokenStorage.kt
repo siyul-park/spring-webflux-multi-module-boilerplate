@@ -1,7 +1,6 @@
 package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.entity.TokenData
-import io.github.siyual_park.auth.repository.RawTokenRepository
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.expansion.where
@@ -26,7 +25,6 @@ import kotlin.random.Random
 @Component
 class TokenStorage(
     tokenRepository: TokenRepository,
-    rawTokenRepository: RawTokenRepository,
     tokenMapper: TokenMapper
 ) : R2DBCStorage<Token, Long> {
     private val logger = LoggerFactory.getLogger(TokenStorage::class.java)
@@ -37,8 +35,7 @@ class TokenStorage(
         .onEach {
             try {
                 delay(Random.nextLong(Duration.ofSeconds(30).toMillis()))
-
-                rawTokenRepository.deleteAll(
+                tokenRepository.deleteAll(
                     where(TokenData::expiredAt).lessThanOrEquals(Instant.now()),
                     sort = Sort.by(Sort.Order.asc(columnName(TokenData::expiredAt))),
                     limit = 200
