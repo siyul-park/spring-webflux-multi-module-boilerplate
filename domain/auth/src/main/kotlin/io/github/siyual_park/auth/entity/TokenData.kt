@@ -6,8 +6,6 @@ import java.time.Instant
 
 @Table("tokens")
 data class TokenData(
-    var ownerId: String,
-    var ownerType: String,
     var claims: Map<String, Any>,
     var expiredAt: Instant? = null
 ) : ModifiableULIDEntity()

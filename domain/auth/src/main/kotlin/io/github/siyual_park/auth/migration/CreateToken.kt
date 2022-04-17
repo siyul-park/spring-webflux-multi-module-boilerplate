@@ -18,9 +18,6 @@ class CreateToken : Migration {
                     "(" +
                     "id BYTEA PRIMARY KEY, " +
 
-                    "owner_id VARCHAR(64) NOT NULL, " +
-                    "owner_type VARCHAR(64) NOT NULL, " +
-
                     "claims TEXT NOT NULL, " +
 
                     "expired_at TIMESTAMP, " +
@@ -34,9 +31,6 @@ class CreateToken : Migration {
                 "CREATE TABLE $tableName" +
                     "(" +
                     "id BINARY(16) NOT NULL PRIMARY KEY, " +
-
-                    "owner_id VARCHAR(64) NOT NULL, " +
-                    "owner_type VARCHAR(64) NOT NULL, " +
 
                     "claims TEXT NOT NULL, " +
 

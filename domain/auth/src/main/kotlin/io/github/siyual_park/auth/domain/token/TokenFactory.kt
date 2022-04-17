@@ -1,6 +1,5 @@
 package io.github.siyual_park.auth.domain.token
 
-import com.google.common.base.CaseFormat
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.entity.TokenData
@@ -38,8 +37,6 @@ class TokenFactory(
 
         val now = Instant.now()
         val data = TokenData(
-            CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, principal.javaClass.simpleName),
-            principal.id,
             claim,
             now.plus(age)
         ).let { tokenRepository.create(it) }
