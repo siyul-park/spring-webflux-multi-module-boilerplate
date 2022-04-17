@@ -10,6 +10,7 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
+import java.util.Random
 
 @Component
 class TokenFactory(
@@ -18,7 +19,6 @@ class TokenFactory(
     private val tokenMapper: TokenMapper,
 ) {
     private val random = SecureRandom.getInstance("SHA1PRNG")
-    private val digest = MessageDigest.getInstance("SHA-256")
 
     init {
         random.setSeed(random.generateSeed(128))
@@ -47,14 +47,24 @@ class TokenFactory(
 
         val now = Instant.now()
         val expiredAt = now.plus(age)
-        val data = retry(null) {
+        val data = retry(3) {
             TokenData(
-                signature = digest.digest(random.nextLong().toString().toByteArray()).toString(),
+                signature = generateSignature(64),
                 claims = claims,
                 expiredAt = expiredAt
             ).let { tokenRepository.create(it) }
         }
 
         return tokenMapper.map(data)
+    }
+
+    @Suppress("SameParameterValue")
+    private fun generateSignature(length: Int): String {
+        val chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        val stringBuilder = StringBuilder(length)
+        for (i in 0 until length) {
+            stringBuilder.append(chars[random.nextInt(chars.length)])
+        }
+        return stringBuilder.toString()
     }
 }

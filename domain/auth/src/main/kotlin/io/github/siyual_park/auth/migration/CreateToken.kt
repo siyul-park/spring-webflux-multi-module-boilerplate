@@ -17,9 +17,9 @@ class CreateToken : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BYTEA PRIMARY KEY, " +
+                    "id SERIAL PRIMARY KEY, " +
 
-                    "signature VARCHAR(128) NOT NULL, " +
+                    "signature VARCHAR(64) NOT NULL, " +
                     "claims TEXT NOT NULL, " +
 
                     "expired_at TIMESTAMP, " +
@@ -32,9 +32,9 @@ class CreateToken : Migration {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
+                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 
-                    "signature VARCHAR(128) NOT NULL, " +
+                    "signature VARCHAR(64) NOT NULL, " +
                     "claims TEXT NOT NULL, " +
 
                     "expired_at TIMESTAMP, " +
