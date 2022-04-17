@@ -33,7 +33,7 @@ class TokenStorage(
             delay(Random.nextLong(Duration.ofSeconds(5).toMillis()))
 
             tokenRepository.deleteAll(
-                where(TokenData::expiredAt).lessThan(Instant.now()),
+                where(TokenData::expiredAt).lessThanOrEquals(Instant.now()),
                 limit = 200
             )
         }.launchIn(CoroutineScope(Dispatchers.IO))
