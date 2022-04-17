@@ -249,9 +249,9 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             delegator.deleteAll()
         } else {
             findAll(criteria, limit, offset, sort)
-                .onEach { storage.delete(it) }
-                .onEach { delegator.delete(it) }
-                .collect { }
+                .collect { storage.delete(it) }
+
+            delegator.deleteAll(criteria, limit, offset, sort)
         }
     }
 
