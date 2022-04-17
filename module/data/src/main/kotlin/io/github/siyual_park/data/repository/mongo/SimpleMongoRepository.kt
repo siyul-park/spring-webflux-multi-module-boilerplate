@@ -6,7 +6,7 @@ import io.github.siyual_park.data.event.AfterUpdateEvent
 import io.github.siyual_park.data.event.BeforeCreateEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.event.BeforeUpdateEvent
-import io.github.siyual_park.data.expansion.columnName
+import io.github.siyual_park.data.expansion.fieldName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
@@ -114,7 +114,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         offset?.let {
             query = query.skip(it)
         }
-        query = query.with(sort ?: Sort.by(Sort.Order.asc(columnName(idProperty))))
+        query = query.with(sort ?: Sort.by(Sort.Order.asc(fieldName(idProperty))))
 
         return template.find(
             query,
@@ -167,7 +167,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             Query.query(where(idProperty).`is`(idProperty.get(entity))),
             Update().also {
                 propertyDiff.forEach { (key, value) ->
-                    it[columnName(key)] = value
+                    it[fieldName(key)] = value
                 }
             },
             FindAndModifyOptions().returnNew(true),
@@ -209,7 +209,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             Query.query(where(idProperty).`is`(idProperty.get(entity))),
             Update().also {
                 propertyDiff.forEach { (key, value) ->
-                    it[columnName(key)] = value
+                    it[fieldName(key)] = value
                 }
             },
             FindAndModifyOptions().returnNew(true),
@@ -320,7 +320,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         offset?.let {
             query = query.skip(it)
         }
-        query = query.with(sort ?: Sort.by(Sort.Order.asc(columnName(idProperty))))
+        query = query.with(sort ?: Sort.by(Sort.Order.asc(fieldName(idProperty))))
 
         template.findAllAndRemove(
             query,
