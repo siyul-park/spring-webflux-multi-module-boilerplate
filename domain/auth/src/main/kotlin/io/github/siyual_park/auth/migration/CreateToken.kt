@@ -23,7 +23,7 @@ class CreateToken : Migration {
 
                     "claims TEXT NOT NULL, " +
 
-                    "expiredAt TIMESTAMP, " +
+                    "expired_at TIMESTAMP, " +
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
                     ")"
@@ -40,14 +40,14 @@ class CreateToken : Migration {
 
                     "claims TEXT NOT NULL, " +
 
-                    "expiredAt TIMESTAMP, " +
+                    "expired_at TIMESTAMP, " +
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
                     ")"
             )
         }
 
-        entityOperations.createUniqueIndex(tableName, listOf("name"))
+        entityOperations.createUniqueIndex(tableName, listOf("expired_at"))
     }
 
     override suspend fun down(entityOperations: R2dbcEntityOperations) {
