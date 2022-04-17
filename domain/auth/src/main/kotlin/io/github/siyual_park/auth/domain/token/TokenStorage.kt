@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.CriteriaDefinition
 import org.springframework.stereotype.Component
@@ -26,16 +27,22 @@ class TokenStorage(
     tokenRepository: TokenRepository,
     tokenMapper: TokenMapper
 ) : R2DBCStorage<Token, ULID> {
+    private val logger = LoggerFactory.getLogger(TokenStorage::class.java)
+
     private val delegator = SimpleR2DBCStorage(tokenRepository) { tokenMapper.map(it) }
 
     private val expireJob = tickerFlow(Duration.ofSeconds(30))
         .onEach {
-            delay(Random.nextLong(Duration.ofSeconds(5).toMillis()))
+            try {
+                delay(Random.nextLong(Duration.ofSeconds(5).toMillis()))
 
-            tokenRepository.deleteAll(
-                where(TokenData::expiredAt).lessThanOrEquals(Instant.now()),
-                limit = 200
-            )
+                tokenRepository.deleteAll(
+                    where(TokenData::expiredAt).lessThanOrEquals(Instant.now()),
+                    limit = 200
+                )
+            } catch (e: Exception) {
+                logger.error(e.message)
+            }
         }.launchIn(CoroutineScope(Dispatchers.IO))
 
     override suspend fun load(criteria: CriteriaDefinition): Token? {
