@@ -31,7 +31,7 @@ class TokenStorage(
 
     private val delegator = SimpleR2DBCStorage(tokenRepository) { tokenMapper.map(it) }
 
-    private val expireJob = tickerFlow(Duration.ofSeconds(30))
+    private val expireJob = tickerFlow(Duration.ofSeconds(30), Duration.ofSeconds(30))
         .onEach {
             try {
                 delay(Random.nextLong(Duration.ofSeconds(15).toMillis()))
