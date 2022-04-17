@@ -38,6 +38,7 @@ import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaField
 
 @Suppress("UNCHECKED_CAST")
 class SimpleMongoRepository<T : Any, ID : Any>(
@@ -46,14 +47,10 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     private val scheduler: Scheduler = Schedulers.boundedElastic(),
     private val eventPublisher: EventPublisher? = null,
 ) : MongoRepository<T, ID> {
-    private val idProperty: KProperty1<T, ID>
-
-    init {
-        idProperty = (
-            clazz.memberProperties.find { it.annotations.find { it is Id } != null }
-                ?: throw RuntimeException()
-            ) as KProperty1<T, ID>
-    }
+    private val idProperty = (
+        clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
+            ?: throw RuntimeException()
+        ) as KProperty1<T, ID>
 
     override suspend fun create(entity: T): T {
         eventPublisher?.publish(BeforeCreateEvent(entity))
