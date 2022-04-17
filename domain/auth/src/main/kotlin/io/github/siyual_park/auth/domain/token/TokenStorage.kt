@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.slf4j.LoggerFactory
@@ -54,11 +55,11 @@ class TokenStorage(
     }
 
     override suspend fun load(criteria: CriteriaDefinition): Token? {
-        return delegator.load(criteria)
+        return delegator.load(criteria)?.let { if (it.isActivated()) it else null }
     }
 
     override fun load(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<Token> {
-        return delegator.load(criteria, limit, offset, sort)
+        return delegator.load(criteria, limit, offset, sort).filter { it.isActivated() }
     }
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
@@ -66,11 +67,11 @@ class TokenStorage(
     }
 
     override suspend fun load(id: Long): Token? {
-        return delegator.load(id)
+        return delegator.load(id)?.let { if (it.isActivated()) it else null }
     }
 
     override fun load(ids: Iterable<Long>): Flow<Token> {
-        return delegator.load(ids)
+        return delegator.load(ids).filter { it.isActivated() }
     }
 
     override suspend fun count(): Long {
