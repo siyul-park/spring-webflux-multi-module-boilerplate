@@ -30,7 +30,7 @@ class Token(
     fun isActivated(): Boolean {
         val expiredAt = expiredAt ?: return true
         val now = Instant.now()
-        return expiredAt.isBefore(now)
+        return expiredAt.isAfter(now)
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {

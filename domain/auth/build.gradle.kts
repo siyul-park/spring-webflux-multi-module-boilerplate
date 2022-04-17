@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":module:event"))
     implementation(project(":module:persistence"))
     implementation(project(":module:mapper"))
+    implementation(project(":module:util"))
 
     testImplementation(project(":module:data-test"))
 }

@@ -188,8 +188,8 @@ class FilteredR2DBCRepository<T : Any, ID : Any>(
         return deleteAll(null)
     }
 
-    override suspend fun deleteAll(criteria: CriteriaDefinition?) {
-        return delegator.deleteAll(filtered(criteria))
+    override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+        return delegator.deleteAll(filtered(criteria), limit, offset, sort)
     }
 
     private fun filtered(criteria: CriteriaDefinition?): CriteriaDefinition {

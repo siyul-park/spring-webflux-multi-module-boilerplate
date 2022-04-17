@@ -32,7 +32,7 @@ interface R2DBCRepository<T : Any, ID : Any> : Repository<T, ID> {
 
     suspend fun count(criteria: CriteriaDefinition? = null): Long
 
-    suspend fun deleteAll(criteria: CriteriaDefinition? = null)
+    suspend fun deleteAll(criteria: CriteriaDefinition? = null, limit: Int? = null, offset: Long? = null, sort: Sort? = null)
 }
 
 suspend fun <T : Any, ID : Any> R2DBCRepository<T, ID>.findOneOrFail(criteria: CriteriaDefinition): T {

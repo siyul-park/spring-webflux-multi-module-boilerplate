@@ -169,21 +169,12 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
         return deleteAll(null)
     }
 
-    override suspend fun deleteAll(criteria: CriteriaDefinition?) {
-        if (criteria != null) {
-            updateAll(
-                criteria,
-                Patch.with {
-                    it.deletedAt = Instant.now()
-                }
-            ).collect { }
-        } else {
-            updateAll(
-                findAll().toList(),
-                Patch.with {
-                    it.deletedAt = Instant.now()
-                }
-            )
-        }
+    override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+        delegator.updateAll(
+            delegator.findAll(criteria, limit, offset, sort).toList(),
+            Patch.with {
+                it.deletedAt = Instant.now()
+            }
+        ).collect { }
     }
 }

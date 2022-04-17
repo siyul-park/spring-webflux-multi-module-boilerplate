@@ -36,9 +36,10 @@ class TokenFactory(
         claim["scope"] = scope.map { it.id.toString() }
 
         val now = Instant.now()
+        val expiredAt = now.plus(age)
         val data = TokenData(
             claim,
-            now.plus(age)
+            expiredAt
         ).let { tokenRepository.create(it) }
 
         return tokenMapper.map(data)

@@ -6,12 +6,20 @@ import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.persistence.R2DBCStorage
 import io.github.siyual_park.persistence.SimpleR2DBCStorage
 import io.github.siyual_park.ulid.ULID
+import io.github.siyual_park.util.tickerFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.CriteriaDefinition
 import org.springframework.stereotype.Component
+import java.time.Duration
 import java.time.Instant
+import kotlin.random.Random
 
 @Component
 class TokenStorage(
@@ -19,6 +27,16 @@ class TokenStorage(
     tokenMapper: TokenMapper
 ) : R2DBCStorage<Token, ULID> {
     private val delegator = SimpleR2DBCStorage(tokenRepository) { tokenMapper.map(it) }
+
+    private val expireJob = tickerFlow(Duration.ofSeconds(30))
+        .onEach {
+            delay(Random.nextLong(Duration.ofSeconds(5).toMillis()))
+
+            tokenRepository.deleteAll(
+                where(TokenData::expiredAt).lessThan(Instant.now()),
+                limit = 200
+            )
+        }.launchIn(CoroutineScope(Dispatchers.IO))
 
     override suspend fun load(criteria: CriteriaDefinition): Token? {
         return delegator.load(filter(criteria))
@@ -33,7 +51,7 @@ class TokenStorage(
     }
 
     override suspend fun load(id: ULID): Token? {
-        return delegator.load(id)?.let { if (it.isActivated()) null else it }
+        return delegator.load(id)?.let { if (it.isActivated()) it else null }
     }
 
     override fun load(ids: Iterable<ULID>): Flow<Token> {
@@ -46,9 +64,14 @@ class TokenStorage(
 
     private fun filter(criteria: CriteriaDefinition?): CriteriaDefinition {
         if (criteria != null) {
-            return where(TokenData::expiredAt).lessThan(Instant.now()).and(criteria)
+            return where(TokenData::expiredAt).greaterThan(Instant.now())
+                .and(criteria)
         }
 
-        return where(TokenData::expiredAt).lessThan(Instant.now())
+        return where(TokenData::expiredAt).greaterThan(Instant.now())
+    }
+
+    fun clear() {
+        expireJob.cancel()
     }
 }
