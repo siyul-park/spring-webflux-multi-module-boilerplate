@@ -10,40 +10,28 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.convert.converter.Converter
-import org.springframework.data.r2dbc.core.DefaultReactiveDataAccessStrategy
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
-import org.springframework.data.r2dbc.dialect.DialectResolver
 import org.springframework.r2dbc.connection.R2dbcTransactionManager
-import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.transaction.ReactiveTransaction
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import java.util.UUID
 
 open class R2DBCTest(
-    converter: Collection<Converter<*, *>> = emptyList()
+    converters: Collection<Converter<*, *>> = emptyList()
 ) : CoroutineTest() {
     private val database: String = UUID.randomUUID().toString()
 
     protected val connectionFactory = H2ConnectionFactory.inMemory(database)
-    protected val dialect = DialectResolver.getDialect(connectionFactory)
-    protected val databaseClient = DatabaseClient.builder().connectionFactory(connectionFactory).bindMarkers(dialect.bindMarkersFactory).build()
-
-    protected val r2dbcConverter = DefaultReactiveDataAccessStrategy.createConverter(
-        dialect,
+    protected val entityOperations = createR2dbcEntityTemplate(
+        connectionFactory,
         mutableListOf<Converter<*, *>>(
             ULIDToBytesConverter(),
             BytesToULIDConverter(),
         ).also {
-            it.addAll(converter)
+            it.addAll(converters)
         }
     )
 
-    protected val entityOperations = R2dbcEntityTemplate(
-        databaseClient,
-        dialect,
-        r2dbcConverter
-    )
     protected val migrationManager = MigrationManager(entityOperations)
 
     protected var transactionManager = R2dbcTransactionManager(connectionFactory)
