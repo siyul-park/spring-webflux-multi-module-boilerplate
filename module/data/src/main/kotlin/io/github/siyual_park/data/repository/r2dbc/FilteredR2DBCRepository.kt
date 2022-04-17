@@ -25,7 +25,7 @@ class FilteredR2DBCRepository<T : Any, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     clazz: KClass<T>,
     scheduler: Scheduler = Schedulers.boundedElastic(),
-    private val filter: Criteria,
+    private val filter: () -> Criteria,
     eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val delegator = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, scheduler, eventPublisher)
@@ -188,15 +188,15 @@ class FilteredR2DBCRepository<T : Any, ID : Any>(
         return deleteAll(null)
     }
 
-    override suspend fun deleteAll(criteria: CriteriaDefinition?) {
-        return delegator.deleteAll(filtered(criteria))
+    override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+        return delegator.deleteAll(criteria, limit, offset, sort)
     }
 
     private fun filtered(criteria: CriteriaDefinition?): CriteriaDefinition {
         return if (criteria == null) {
-            filter
+            filter()
         } else {
-            filter.and(criteria)
+            filter().and(criteria)
         }
     }
 }

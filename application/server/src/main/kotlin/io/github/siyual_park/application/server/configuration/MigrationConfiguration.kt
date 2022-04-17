@@ -2,6 +2,7 @@ package io.github.siyual_park.application.server.configuration
 
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
+import io.github.siyual_park.auth.migration.CreateToken
 import io.github.siyual_park.client.migration.CreateClient
 import io.github.siyual_park.client.migration.CreateClientCredential
 import io.github.siyual_park.client.migration.CreateClientScope
@@ -19,6 +20,7 @@ class MigrationConfiguration {
         migrationManager
             .register(CreateScopeToken())
             .register(CreateScopeRelation())
+            .register(CreateToken())
             .register(CreateClient())
             .register(CreateClientCredential())
             .register(CreateClientScope())

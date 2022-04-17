@@ -241,17 +241,18 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         return delegator.count(criteria)
     }
 
-    override suspend fun deleteAll(criteria: CriteriaDefinition?) {
+    override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
         val storage = storageManager.getCurrent()
 
         if (criteria == null) {
             storage.clear()
+            delegator.deleteAll()
         } else {
-            findAll(criteria)
+            findAll(criteria, limit, offset, sort)
                 .collect { storage.delete(it) }
-        }
 
-        delegator.deleteAll(criteria)
+            delegator.deleteAll(criteria, limit, offset, sort)
+        }
     }
 
     companion object {

@@ -340,16 +340,33 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         deleteAll(criteria = null)
     }
 
-    override suspend fun deleteAll(criteria: CriteriaDefinition?) {
+    override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+        var query = query(criteria ?: CriteriaDefinition.empty())
+        limit?.let {
+            query = query.limit(it)
+        }
+        offset?.let {
+            query = query.offset(it)
+        }
+        query = query.sort(sort ?: by(asc(entityManager.idProperty)))
+
         if (eventPublisher == null) {
-            this.entityOperations.delete(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
+            this.entityOperations.delete(query, clazz.java)
                 .subscribeOn(scheduler)
                 .awaitSingle()
         } else {
-            val entities = findAll(criteria)
+            val entities = this.entityOperations.select(
+                query,
+                clazz.java
+            )
+                .subscribeOn(scheduler)
+                .asFlow()
                 .onEach { eventPublisher.publish(BeforeDeleteEvent(it)) }
                 .toList()
             val ids = entities.map { entityManager.getId(it) }
+            if (ids.isEmpty()) {
+                return
+            }
 
             this.entityOperations.delete(query(where(entityManager.idProperty).`in`(ids.toList())), clazz.java)
                 .subscribeOn(scheduler)

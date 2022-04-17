@@ -15,7 +15,7 @@ class ClaimEmbedder {
         return this
     }
 
-    suspend fun <T : Principal> embedding(principal: T): Claims {
+    suspend fun <T : Principal> embedding(principal: T): Map<String, Any> {
         val processor = processors[principal.javaClass] ?: throw UnsupportedPrincipalException()
         processor as ClaimEmbeddingStrategy<T>
         return processor.embedding(principal)

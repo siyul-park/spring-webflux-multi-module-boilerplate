@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":domain:auth"))
     implementation(project(":domain:user"))
     implementation(project(":domain:client"))
 
@@ -11,7 +12,6 @@ dependencies {
     implementation(project(":module:mapper"))
     implementation(project(":module:json"))
     implementation(project(":module:swagger"))
-    implementation(project(":module:auth"))
     implementation(project(":module:event"))
     implementation(project(":module:search"))
     implementation(project(":module:validation"))

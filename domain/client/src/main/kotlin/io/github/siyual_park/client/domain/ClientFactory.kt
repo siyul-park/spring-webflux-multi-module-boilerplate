@@ -13,7 +13,7 @@ import io.github.siyual_park.persistence.AsyncLazy
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
-import java.util.Random
+import java.security.SecureRandom
 
 @Component
 class ClientFactory(
@@ -24,11 +24,17 @@ class ClientFactory(
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
 ) {
+    private val random = SecureRandom.getInstance("SHA1PRNG")
+
     private val confidentialClientScope = AsyncLazy {
         scopeTokenStorage.loadOrFail("confidential(client):pack")
     }
     private val publicClientScope = AsyncLazy {
         scopeTokenStorage.loadOrFail("public(client):pack")
+    }
+
+    init {
+        random.setSeed(random.generateSeed(128))
     }
 
     suspend fun create(payload: CreateClientPayload): Client =
@@ -81,7 +87,6 @@ class ClientFactory(
 
     private fun generateRandomSecret(length: Int): String {
         val chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-        val random = Random()
         val stringBuilder = StringBuilder(length)
         for (i in 0 until length) {
             stringBuilder.append(chars[random.nextInt(chars.length)])

@@ -6,7 +6,6 @@ val reactor_kotlin_extensions_version: String by project
 val guava_version: String by project
 val jackson_version: String by project
 val json_patch_version: String by project
-val jjwt_version: String by project
 val springfox_version: String by project
 val sentry_logback_version: String by project
 
@@ -104,10 +103,6 @@ allprojects {
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version")
 
         implementation("com.github.java-json-tools:json-patch:$json_patch_version")
-
-        implementation("io.jsonwebtoken:jjwt-api:$jjwt_version")
-        runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwt_version")
-        runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwt_version")
 
         implementation("io.springfox:springfox-boot-starter:$springfox_version")
         implementation("io.springfox:springfox-swagger-ui:$springfox_version")
