@@ -1,15 +1,21 @@
 package io.github.siyual_park.data.test.repository.mongo
 
+import io.github.siyual_park.data.event.BeforeCreateEvent
+import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.repository.mongo.CreateTimestamp
 import io.github.siyual_park.data.repository.mongo.MongoRepository
 import io.github.siyual_park.data.repository.mongo.SimpleMongoRepository
+import io.github.siyual_park.data.repository.mongo.UpdateTimestamp
 import io.github.siyual_park.data.repository.mongo.findOneOrFail
 import io.github.siyual_park.data.repository.mongo.where
 import io.github.siyual_park.data.test.MongoTest
 import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
 import io.github.siyual_park.data.test.repository.mongo.migration.CreatePerson
+import io.github.siyual_park.event.EventEmitter
+import io.github.siyual_park.event.TypeMatchEventFilter
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,6 +25,13 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class MongoRepositoryTest : MongoTest() {
+    private val eventEmitter = EventEmitter()
+
+    init {
+        eventEmitter.on(TypeMatchEventFilter(BeforeCreateEvent::class), CreateTimestamp())
+        eventEmitter.on(TypeMatchEventFilter(BeforeUpdateEvent::class), UpdateTimestamp())
+    }
+
     init {
         migrationManager.register(CreatePerson(mongoTemplate))
     }
@@ -29,8 +42,8 @@ class MongoRepositoryTest : MongoTest() {
         val savedPerson = personRepository.create(person)
 
         assertNotNull(savedPerson.id)
-        // assertNotNull(savedPerson.createdAt)
-        // assertNotNull(savedPerson.updatedAt)
+        assertNotNull(savedPerson.createdAt)
+        assertNotNull(savedPerson.updatedAt)
 
         assertEquals(person.name, savedPerson.name)
         assertEquals(person.age, savedPerson.age)
@@ -49,8 +62,8 @@ class MongoRepositoryTest : MongoTest() {
             val savedPerson = savedPersons[i]
 
             assertNotNull(savedPerson.id)
-            // assertNotNull(savedPerson.createdAt)
-            // assertNotNull(savedPerson.updatedAt)
+            assertNotNull(savedPerson.createdAt)
+            assertNotNull(savedPerson.updatedAt)
 
             assertEquals(person.name, savedPerson.name)
             assertEquals(person.age, savedPerson.age)
@@ -72,8 +85,6 @@ class MongoRepositoryTest : MongoTest() {
         val foundPerson = personRepository.findById(person.id)!!
 
         assertEquals(person.id, foundPerson.id)
-        assertEquals(person.createdAt, foundPerson.createdAt)
-        assertEquals(person.updatedAt, foundPerson.updatedAt)
 
         assertEquals(person.name, foundPerson.name)
         assertEquals(person.age, foundPerson.age)
@@ -87,8 +98,6 @@ class MongoRepositoryTest : MongoTest() {
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -102,8 +111,6 @@ class MongoRepositoryTest : MongoTest() {
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -117,8 +124,6 @@ class MongoRepositoryTest : MongoTest() {
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -132,8 +137,6 @@ class MongoRepositoryTest : MongoTest() {
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -170,8 +173,8 @@ class MongoRepositoryTest : MongoTest() {
             val foundPerson = foundPersons[i]
 
             assertNotNull(foundPerson.id)
-            // assertNotNull(foundPerson.createdAt)
-            // assertNotNull(foundPerson.updatedAt)
+            assertNotNull(foundPerson.createdAt)
+            assertNotNull(foundPerson.updatedAt)
 
             assertEquals(person.name, foundPerson.name)
             assertEquals(person.age, foundPerson.age)
@@ -190,8 +193,7 @@ class MongoRepositoryTest : MongoTest() {
         val updatedPerson = personRepository.update(person)!!
 
         assertEquals(person.id, updatedPerson.id)
-        assertEquals(person.createdAt, updatedPerson.createdAt)
-        // assertNotNull(updatedPerson.updatedAt)
+        assertNotNull(updatedPerson.updatedAt)
 
         assertEquals(person.name, updatedPerson.name)
         assertEquals(person.age, updatedPerson.age)
@@ -212,8 +214,7 @@ class MongoRepositoryTest : MongoTest() {
         )!!
 
         assertEquals(person.id, updatedPerson.id)
-        assertEquals(person.createdAt, updatedPerson.createdAt)
-        // assertNotNull(updatedPerson.updatedAt)
+        assertNotNull(updatedPerson.updatedAt)
 
         assertEquals(person.name, updatedPerson.name)
         assertEquals(person.age, updatedPerson.age)
@@ -235,7 +236,7 @@ class MongoRepositoryTest : MongoTest() {
 
         assertEquals(person.id, updatedPerson.id)
         assertEquals(person.createdAt, updatedPerson.createdAt)
-        // assertNotNull(updatedPerson.updatedAt)
+        assertNotNull(updatedPerson.updatedAt)
 
         assertEquals(person.name, updatedPerson.name)
         assertEquals(person.age, updatedPerson.age)
@@ -265,8 +266,8 @@ class MongoRepositoryTest : MongoTest() {
             val updatedPerson = updatedPersons[i]!!
 
             assertNotNull(updatedPerson.id)
-            // assertNotNull(updatedPerson.createdAt)
-            // assertNotNull(updatedPerson.updatedAt)
+            assertNotNull(updatedPerson.createdAt)
+            assertNotNull(updatedPerson.updatedAt)
 
             assertEquals(person.name, updatedPerson.name)
             assertEquals(person.age, updatedPerson.age)
@@ -297,8 +298,8 @@ class MongoRepositoryTest : MongoTest() {
             val updatedPerson = updatedPersons[i]!!
 
             assertNotNull(updatedPerson.id)
-            // assertNotNull(updatedPerson.createdAt)
-            // assertNotNull(updatedPerson.updatedAt)
+            assertNotNull(updatedPerson.createdAt)
+            assertNotNull(updatedPerson.updatedAt)
 
             assertEquals(person.name, updatedPerson.name)
             assertEquals(person.age, updatedPerson.age)
@@ -329,8 +330,8 @@ class MongoRepositoryTest : MongoTest() {
             val updatedPerson = updatedPersons[i]!!
 
             assertNotNull(updatedPerson.id)
-            // assertNotNull(updatedPerson.createdAt)
-            // assertNotNull(updatedPerson.updatedAt)
+            assertNotNull(updatedPerson.createdAt)
+            assertNotNull(updatedPerson.updatedAt)
 
             assertEquals(person.name, updatedPerson.name)
             assertEquals(person.age, updatedPerson.age)
@@ -421,7 +422,7 @@ class MongoRepositoryTest : MongoTest() {
 
     private fun repositories(): List<MongoRepository<Person, ULID>> {
         return listOf(
-            SimpleMongoRepository(mongoTemplate, Person::class),
+            SimpleMongoRepository(mongoTemplate, Person::class, eventPublisher = eventEmitter),
         )
     }
 }
