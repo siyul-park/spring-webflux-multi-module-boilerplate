@@ -34,7 +34,7 @@ class TokenStorage(
     private val expireJob = tickerFlow(Duration.ofSeconds(30))
         .onEach {
             try {
-                delay(Random.nextLong(Duration.ofSeconds(5).toMillis()))
+                delay(Random.nextLong(Duration.ofSeconds(15).toMillis()))
 
                 tokenRepository.deleteAll(
                     where(TokenData::expiredAt).lessThanOrEquals(Instant.now()),
