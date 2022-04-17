@@ -28,6 +28,7 @@ import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Sort
+import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.count
 import org.springframework.data.mongodb.core.query.CriteriaDefinition
@@ -169,6 +170,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
                     it[columnName(key)] = value
                 }
             },
+            FindAndModifyOptions().returnNew(true),
             clazz.java
         )
             .subscribeOn(scheduler)
@@ -210,6 +212,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
                     it[columnName(key)] = value
                 }
             },
+            FindAndModifyOptions().returnNew(true),
             clazz.java
         )
             .subscribeOn(scheduler)
