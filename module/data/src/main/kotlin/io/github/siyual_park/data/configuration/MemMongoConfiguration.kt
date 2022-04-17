@@ -36,7 +36,7 @@ import java.util.stream.Stream
 @AutoConfigureBefore(MongoAutoConfiguration::class)
 @ConditionalOnClass(MongoClientSettings::class, MongodStarter::class)
 class MemMongoConfiguration(
-    private val properties: MongoProperties
+    properties: MongoProperties
 ) {
     private val doConfigurate: Boolean
 
@@ -45,19 +45,22 @@ class MemMongoConfiguration(
     init {
         val uri = properties.uri
         val tokens = uri.split(":")
-        doConfigurate = tokens[1] == "mem"
-
-        properties.uri = uri.replace(":mem", "")
+        if (tokens.size > 2) {
+            doConfigurate = tokens[1] == "mem"
+            properties.uri = uri.replace(":mem", "")
+        } else {
+            doConfigurate = false
+        }
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnMissingBean
     fun embeddedMongoServer(
-        mongodConfig: MongodConfig,
+        mongodConfig: MongodConfig?,
         runtimeConfig: RuntimeConfig?,
         context: ApplicationContext?
     ): MongodExecutable? {
-        if (!doConfigurate) {
+        if (!doConfigurate || mongodConfig == null) {
             return null
         }
 

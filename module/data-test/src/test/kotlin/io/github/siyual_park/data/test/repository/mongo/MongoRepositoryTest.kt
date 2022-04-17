@@ -149,8 +149,6 @@ class MongoRepositoryTest : MongoTest() {
         val foundPerson = personRepository.findOneOrFail(where(Person::name).`is`(person.name))
 
         assertEquals(person.id, foundPerson.id)
-        assertEquals(person.createdAt, foundPerson.createdAt)
-        assertEquals(person.updatedAt, foundPerson.updatedAt)
 
         assertEquals(person.name, foundPerson.name)
         assertEquals(person.age, foundPerson.age)
@@ -235,7 +233,6 @@ class MongoRepositoryTest : MongoTest() {
         )!!
 
         assertEquals(person.id, updatedPerson.id)
-        assertEquals(person.createdAt, updatedPerson.createdAt)
         assertNotNull(updatedPerson.updatedAt)
 
         assertEquals(person.name, updatedPerson.name)
