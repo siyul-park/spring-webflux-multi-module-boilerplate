@@ -9,10 +9,12 @@ import io.github.siyual_park.data.migration.fetchSQL
 import io.github.siyual_park.data.migration.isDriver
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
-class CreateToken : Migration {
+class CreateToken(
+    private val entityOperations: R2dbcEntityOperations
+) : Migration {
     private val tableName = "tokens"
 
-    override suspend fun up(entityOperations: R2dbcEntityOperations) {
+    override suspend fun up() {
         if (entityOperations.isDriver("PostgreSQL")) {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
@@ -48,7 +50,7 @@ class CreateToken : Migration {
         entityOperations.createIndex(tableName, listOf("expired_at"))
     }
 
-    override suspend fun down(entityOperations: R2dbcEntityOperations) {
+    override suspend fun down() {
         entityOperations.dropTable(tableName)
     }
 }

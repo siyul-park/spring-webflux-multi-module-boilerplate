@@ -2,10 +2,12 @@ package io.github.siyual_park.data.migration
 
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
-class CreateMigrationCheckpoint : Migration {
+class CreateMigrationCheckpoint(
+    private val entityOperations: R2dbcEntityOperations
+) : Migration {
     private val tableName = "migration_checkpoints"
 
-    override suspend fun up(entityOperations: R2dbcEntityOperations) {
+    override suspend fun up() {
         if (entityOperations.isDriver("PostgreSQL")) {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
@@ -36,11 +38,11 @@ class CreateMigrationCheckpoint : Migration {
         }
     }
 
-    override suspend fun down(entityOperations: R2dbcEntityOperations) {
+    override suspend fun down() {
         entityOperations.dropTable(tableName)
     }
 
-    suspend fun isApplied(entityOperations: R2dbcEntityOperations): Boolean {
+    suspend fun isApplied(): Boolean {
         return entityOperations.isExistTable(tableName)
     }
 }

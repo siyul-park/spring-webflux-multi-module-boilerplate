@@ -36,7 +36,7 @@ class InMemoryNestedStorageTest : R2DBCTest() {
     }
 
     init {
-        migrationManager.register(CreatePerson())
+        migrationManager.register(CreatePerson(entityOperations))
     }
 
     @BeforeEach

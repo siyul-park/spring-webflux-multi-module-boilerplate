@@ -23,7 +23,7 @@ import org.springframework.transaction.reactive.executeAndAwait
 
 class R2DBCRepositoryTest : R2DBCTest() {
     init {
-        migrationManager.register(CreatePerson())
+        migrationManager.register(CreatePerson(entityOperations))
     }
 
     @Test

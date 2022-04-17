@@ -17,7 +17,7 @@ import org.springframework.transaction.reactive.executeAndAwait
 
 class PersistenceTest : R2DBCTest() {
     init {
-        migrationManager.register(CreatePerson())
+        migrationManager.register(CreatePerson(entityOperations))
     }
 
     @Test

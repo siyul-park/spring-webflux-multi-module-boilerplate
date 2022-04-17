@@ -95,7 +95,7 @@ allprojects {
         implementation("io.r2dbc:r2dbc-postgresql")
 
         runtimeOnly("com.h2database:h2")
-        implementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:$embed_mongo_version")
+        // implementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:$embed_mongo_version")
 
         testImplementation("io.projectreactor:reactor-test:$projectreactor_version")
         testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")

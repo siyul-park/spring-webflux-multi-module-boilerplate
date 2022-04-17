@@ -8,10 +8,12 @@ import io.github.siyual_park.data.migration.fetchSQL
 import io.github.siyual_park.data.migration.isDriver
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
-class CreateUserCredential : Migration {
+class CreateUserCredential(
+    private val entityOperations: R2dbcEntityOperations
+) : Migration {
     private val tableName = "user_credentials"
 
-    override suspend fun up(entityOperations: R2dbcEntityOperations) {
+    override suspend fun up() {
         if (entityOperations.isDriver("PostgreSQL")) {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
@@ -48,7 +50,7 @@ class CreateUserCredential : Migration {
         entityOperations.createUniqueIndex(tableName, listOf("user_id"))
     }
 
-    override suspend fun down(entityOperations: R2dbcEntityOperations) {
+    override suspend fun down() {
         entityOperations.dropTable(tableName)
     }
 }

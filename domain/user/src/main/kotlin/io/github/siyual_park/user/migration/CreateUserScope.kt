@@ -8,10 +8,12 @@ import io.github.siyual_park.data.migration.fetchSQL
 import io.github.siyual_park.data.migration.isDriver
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
-class CreateUserScope : Migration {
+class CreateUserScope(
+    private val entityOperations: R2dbcEntityOperations
+) : Migration {
     private val tableName = "user_scopes"
 
-    override suspend fun up(entityOperations: R2dbcEntityOperations) {
+    override suspend fun up() {
         if (entityOperations.isDriver("PostgreSQL")) {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
@@ -45,7 +47,7 @@ class CreateUserScope : Migration {
         entityOperations.createIndex(tableName, listOf("scope_token_id"))
     }
 
-    override suspend fun down(entityOperations: R2dbcEntityOperations) {
+    override suspend fun down() {
         entityOperations.dropTable(tableName)
     }
 }

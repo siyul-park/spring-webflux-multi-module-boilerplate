@@ -2,8 +2,10 @@ package io.github.siyual_park.data.migration
 
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
-class CreateUpdatedAtFunction : Migration {
-    override suspend fun up(entityOperations: R2dbcEntityOperations) {
+class CreateUpdatedAtFunction(
+    private val entityOperations: R2dbcEntityOperations
+) : Migration {
+    override suspend fun up() {
         if (entityOperations.isDriver("PostgreSQL")) {
             entityOperations.fetchSQL(
                 "CREATE OR REPLACE FUNCTION update_timestamp()" +
@@ -17,7 +19,7 @@ class CreateUpdatedAtFunction : Migration {
         }
     }
 
-    override suspend fun down(entityOperations: R2dbcEntityOperations) {
+    override suspend fun down() {
         if (entityOperations.isDriver("PostgreSQL")) {
             entityOperations.fetchSQL(
                 "DROP FUNCTION update_timestamp;"
