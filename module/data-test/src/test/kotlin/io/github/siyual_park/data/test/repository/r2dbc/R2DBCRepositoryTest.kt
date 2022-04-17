@@ -10,7 +10,7 @@ import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.data.test.R2DBCTest
 import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
-import io.github.siyual_park.data.test.migration.CreatePerson
+import io.github.siyual_park.data.test.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals

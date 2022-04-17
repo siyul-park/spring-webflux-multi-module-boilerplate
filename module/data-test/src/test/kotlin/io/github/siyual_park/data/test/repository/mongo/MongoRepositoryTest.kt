@@ -9,6 +9,7 @@ import io.github.siyual_park.data.repository.mongo.where
 import io.github.siyual_park.data.test.MongoTest
 import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
+import io.github.siyual_park.data.test.repository.mongo.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,6 +19,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class MongoRepositoryTest : MongoTest() {
+    init {
+        migrationManager.register(CreatePerson(mongoTemplate))
+    }
+
     @Test
     fun create() = parameterized { personRepository ->
         val person = DummyPerson.create()
