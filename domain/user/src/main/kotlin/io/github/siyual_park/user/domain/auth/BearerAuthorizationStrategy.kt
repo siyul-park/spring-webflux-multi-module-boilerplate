@@ -15,13 +15,7 @@ class BearerAuthorizationStrategy(
     private val tokenStorage: TokenStorage
 ) : AuthorizationStrategy<UserPrincipal>("bearer") {
     override suspend fun authenticate(credentials: String): UserPrincipal? {
-        val id = try {
-            ULID.fromString(credentials)
-        } catch (e: Exception) {
-            return null
-        }
-
-        val token = tokenStorage.loadOrFail(id)
+        val token = tokenStorage.loadOrFail(credentials)
         val claims = token.claims
         if (claims["uid"] == null) {
             return null

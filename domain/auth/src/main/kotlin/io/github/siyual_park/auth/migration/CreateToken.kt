@@ -1,6 +1,7 @@
 package io.github.siyual_park.auth.migration
 
 import io.github.siyual_park.data.migration.Migration
+import io.github.siyual_park.data.migration.createIndex
 import io.github.siyual_park.data.migration.createUniqueIndex
 import io.github.siyual_park.data.migration.createUpdatedAtTrigger
 import io.github.siyual_park.data.migration.dropTable
@@ -18,6 +19,7 @@ class CreateToken : Migration {
                     "(" +
                     "id BYTEA PRIMARY KEY, " +
 
+                    "signature VARCHAR(128) NOT NULL, " +
                     "claims TEXT NOT NULL, " +
 
                     "expired_at TIMESTAMP, " +
@@ -32,6 +34,7 @@ class CreateToken : Migration {
                     "(" +
                     "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
+                    "signature VARCHAR(128) NOT NULL, " +
                     "claims TEXT NOT NULL, " +
 
                     "expired_at TIMESTAMP, " +
@@ -41,7 +44,8 @@ class CreateToken : Migration {
             )
         }
 
-        entityOperations.createUniqueIndex(tableName, listOf("expired_at"))
+        entityOperations.createUniqueIndex(tableName, listOf("signature"))
+        entityOperations.createIndex(tableName, listOf("expired_at"))
     }
 
     override suspend fun down(entityOperations: R2dbcEntityOperations) {

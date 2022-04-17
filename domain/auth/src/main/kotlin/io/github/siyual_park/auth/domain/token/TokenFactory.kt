@@ -4,7 +4,10 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
+import io.github.siyual_park.util.retry
 import org.springframework.stereotype.Component
+import java.security.MessageDigest
+import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
 
@@ -14,6 +17,13 @@ class TokenFactory(
     private val tokenRepository: TokenRepository,
     private val tokenMapper: TokenMapper,
 ) {
+    private val random = SecureRandom.getInstance("SHA1PRNG")
+    private val digest = MessageDigest.getInstance("SHA-256")
+
+    init {
+        random.setSeed(random.generateSeed(128))
+    }
+
     suspend fun create(
         principal: Principal,
         age: Duration,
@@ -21,7 +31,7 @@ class TokenFactory(
         push: Set<ScopeToken>? = null,
         filter: Set<ScopeToken>? = null
     ): Token {
-        val baseClaim = claimEmbedder.embedding(principal)
+        val baseClaims = claimEmbedder.embedding(principal)
         val scope = mutableSetOf<ScopeToken>().also { scope ->
             scope.addAll(
                 principal.scope
@@ -31,16 +41,19 @@ class TokenFactory(
             push?.let { scope.addAll(it) }
         }
 
-        val claim = mutableMapOf<String, Any>()
-        claim.putAll(baseClaim)
-        claim["scope"] = scope.map { it.id.toString() }
+        val claims = mutableMapOf<String, Any>()
+        claims.putAll(baseClaims)
+        claims["scope"] = scope.map { it.id.toString() }
 
         val now = Instant.now()
         val expiredAt = now.plus(age)
-        val data = TokenData(
-            claim,
-            expiredAt
-        ).let { tokenRepository.create(it) }
+        val data = retry(null) {
+            TokenData(
+                signature = digest.digest(random.nextLong().toString().toByteArray()).toString(),
+                claims = claims,
+                expiredAt = expiredAt
+            ).let { tokenRepository.create(it) }
+        }
 
         return tokenMapper.map(data)
     }

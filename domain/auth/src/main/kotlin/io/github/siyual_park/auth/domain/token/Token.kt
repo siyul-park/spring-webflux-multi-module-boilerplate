@@ -9,6 +9,7 @@ import io.github.siyual_park.data.repository.updateById
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
+import io.github.siyual_park.persistence.proxyNotNull
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -22,8 +23,9 @@ class Token(
     private val tokenRepository: TokenRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     eventPublisher: EventPublisher
-) : Persistence<TokenData, ULID>(value, tokenRepository, eventPublisher), Authorizable {
-    val id by proxy(root, TokenData::id)
+) : Persistence<TokenData, Long>(value, tokenRepository, eventPublisher), Authorizable {
+    val id by proxyNotNull(root, TokenData::id)
+    val signature by proxy(root, TokenData::signature)
     val claims by proxy(root, TokenData::claims)
     private val expiredAt by proxy(root, TokenData::expiredAt)
 

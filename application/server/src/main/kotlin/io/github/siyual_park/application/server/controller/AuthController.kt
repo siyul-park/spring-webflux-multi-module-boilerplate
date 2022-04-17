@@ -103,10 +103,10 @@ class AuthController(
         }
 
         return TokenInfo(
-            accessToken = accessToken.id.toString(),
+            accessToken = accessToken.signature,
             tokenType = "bearer",
             expiresIn = tokensProperty.accessToken.age,
-            refreshToken = refreshToken?.id?.toString()
+            refreshToken = refreshToken?.signature
         )
     }
 

@@ -6,7 +6,6 @@ import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.persistence.R2DBCStorage
 import io.github.siyual_park.persistence.SimpleR2DBCStorage
-import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.util.tickerFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +15,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.slf4j.LoggerFactory
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.CriteriaDefinition
 import org.springframework.stereotype.Component
@@ -27,7 +27,7 @@ import kotlin.random.Random
 class TokenStorage(
     tokenRepository: TokenRepository,
     tokenMapper: TokenMapper
-) : R2DBCStorage<Token, ULID> {
+) : R2DBCStorage<Token, Long> {
     private val logger = LoggerFactory.getLogger(TokenStorage::class.java)
 
     private val delegator = SimpleR2DBCStorage(tokenRepository) { tokenMapper.map(it) }
@@ -47,6 +47,14 @@ class TokenStorage(
             }
         }.launchIn(CoroutineScope(Dispatchers.IO))
 
+    suspend fun loadOrFail(signature: String): Token {
+        return load(signature) ?: throw EmptyResultDataAccessException(1)
+    }
+
+    suspend fun load(signature: String): Token? {
+        return load(where(TokenData::signature).`is`(signature))
+    }
+
     override suspend fun load(criteria: CriteriaDefinition): Token? {
         return delegator.load(filter(criteria))
     }
@@ -59,11 +67,11 @@ class TokenStorage(
         return delegator.count(filter(criteria))
     }
 
-    override suspend fun load(id: ULID): Token? {
+    override suspend fun load(id: Long): Token? {
         return delegator.load(id)?.let { if (it.isActivated()) it else null }
     }
 
-    override fun load(ids: Iterable<ULID>): Flow<Token> {
+    override fun load(ids: Iterable<Long>): Flow<Token> {
         return delegator.load(ids).filter { it.isActivated() }
     }
 
