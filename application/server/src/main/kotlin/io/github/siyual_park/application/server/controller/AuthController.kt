@@ -12,7 +12,7 @@ import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.auth.domain.token.TokenIssuer
+import io.github.siyual_park.auth.domain.token.TokenFactory
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
 import io.github.siyual_park.json.bind.RequestForm
@@ -39,7 +39,7 @@ import javax.validation.Valid
 class AuthController(
     private val authenticator: Authenticator,
     private val authorizator: Authorizator,
-    private val tokenIssuer: TokenIssuer,
+    private val tokenFactory: TokenFactory,
     private val principalRefresher: PrincipalRefresher,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val tokensProperty: TokensProperty,
@@ -85,14 +85,14 @@ class AuthController(
             throw RequiredPermissionException()
         }
 
-        val accessToken = tokenIssuer.issue(
+        val accessToken = tokenFactory.create(
             principal,
             tokensProperty.accessToken.age,
             pop = setOf(accessTokenScope.get(), refreshTokenScope.get()),
             filter = scope
         )
         val refreshToken = if (authorizator.authorize(principal, refreshTokenScope.get())) {
-            tokenIssuer.issue(
+            tokenFactory.create(
                 principal,
                 tokensProperty.refreshToken.age,
                 pop = setOf(refreshTokenScope.get()),
@@ -103,10 +103,10 @@ class AuthController(
         }
 
         return TokenInfo(
-            accessToken = accessToken.value,
-            tokenType = accessToken.type,
-            expiresIn = accessToken.expiresIn,
-            refreshToken = refreshToken?.value
+            accessToken = accessToken.id.toString(),
+            tokenType = "bearer",
+            expiresIn = tokensProperty.accessToken.age,
+            refreshToken = refreshToken?.id?.toString()
         )
     }
 
