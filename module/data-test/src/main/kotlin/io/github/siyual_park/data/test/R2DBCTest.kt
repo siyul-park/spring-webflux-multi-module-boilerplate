@@ -1,9 +1,9 @@
 package io.github.siyual_park.data.test
 
 import io.github.siyual_park.coroutine.test.CoroutineTest
+import io.github.siyual_park.data.converter.BytesToULIDConverter
+import io.github.siyual_park.data.converter.ULIDToBytesConverter
 import io.github.siyual_park.data.migration.MigrationManager
-import io.github.siyual_park.ulid.converter.BytesToULIDConverter
-import io.github.siyual_park.ulid.converter.ULIDToBytesConverter
 import io.r2dbc.h2.H2ConnectionFactory
 import kotlinx.coroutines.CoroutineScope
 import org.junit.jupiter.api.AfterEach
@@ -33,7 +33,7 @@ open class R2DBCTest(
         dialect,
         mutableListOf<Converter<*, *>>(
             ULIDToBytesConverter(),
-            BytesToULIDConverter()
+            BytesToULIDConverter(),
         ).also {
             it.addAll(converter)
         }

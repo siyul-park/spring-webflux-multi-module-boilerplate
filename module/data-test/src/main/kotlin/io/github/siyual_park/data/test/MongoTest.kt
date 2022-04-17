@@ -7,15 +7,21 @@ import de.flapdoodle.embed.mongo.config.Net
 import de.flapdoodle.embed.mongo.distribution.Version
 import de.flapdoodle.embed.process.runtime.Network
 import io.github.siyual_park.coroutine.test.CoroutineTest
+import io.github.siyual_park.data.converter.BinaryToULIDConverter
+import io.github.siyual_park.data.converter.BytesToULIDConverter
+import io.github.siyual_park.data.converter.ULIDToBinaryConverter
+import io.github.siyual_park.data.converter.ULIDToBytesConverter
 import io.github.siyual_park.data.migration.MigrationManager
-import io.github.siyual_park.ulid.converter.BytesToULIDConverter
-import io.github.siyual_park.ulid.converter.ULIDToBytesConverter
 import io.r2dbc.h2.H2ConnectionFactory
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions
+import org.springframework.data.mongodb.core.mapping.MongoMappingContext
 import org.springframework.data.r2dbc.core.DefaultReactiveDataAccessStrategy
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.r2dbc.dialect.DialectResolver
@@ -23,25 +29,25 @@ import org.springframework.r2dbc.core.DatabaseClient
 import java.util.UUID
 
 open class MongoTest(
-    converter: Collection<Converter<*, *>> = emptyList()
+    converters: Collection<Converter<*, *>> = emptyList()
 ) : CoroutineTest() {
     private val database: String = UUID.randomUUID().toString()
 
-    protected val connectionFactory = H2ConnectionFactory.inMemory(database)
-    protected val dialect = DialectResolver.getDialect(connectionFactory)
-    protected val databaseClient = DatabaseClient.builder().connectionFactory(connectionFactory).bindMarkers(dialect.bindMarkersFactory).build()
+    private val connectionFactory = H2ConnectionFactory.inMemory(database)
+    private val dialect = DialectResolver.getDialect(connectionFactory)
+    private val databaseClient = DatabaseClient.builder().connectionFactory(connectionFactory).bindMarkers(dialect.bindMarkersFactory).build()
 
-    protected val r2dbcConverter = DefaultReactiveDataAccessStrategy.createConverter(
+    private val r2dbcConverter = DefaultReactiveDataAccessStrategy.createConverter(
         dialect,
         mutableListOf<Converter<*, *>>(
             ULIDToBytesConverter(),
-            BytesToULIDConverter()
+            BytesToULIDConverter(),
         ).also {
-            it.addAll(converter)
+            it.addAll(converters)
         }
     )
 
-    protected val entityOperations = R2dbcEntityTemplate(
+    private val entityOperations = R2dbcEntityTemplate(
         databaseClient,
         dialect,
         r2dbcConverter
@@ -61,7 +67,28 @@ open class MongoTest(
 
     private val mongoClient = MongoClients.create("mongodb://localhost:$port")
 
-    protected val mongoTemplate = ReactiveMongoTemplate(mongoClient, database)
+    private val mongoDatabaseFactory = SimpleReactiveMongoDatabaseFactory(mongoClient, database)
+
+    private val mongoConverter = run {
+        val conversions = MongoCustomConversions(
+            mutableListOf<Converter<*, *>>(
+                BinaryToULIDConverter(),
+                ULIDToBinaryConverter(),
+            ).also {
+                it.addAll(converters)
+            }
+        )
+        val context = MongoMappingContext()
+        context.setSimpleTypeHolder(conversions.simpleTypeHolder)
+        context.afterPropertiesSet()
+        val converter = MappingMongoConverter(ReactiveMongoTemplate.NO_OP_REF_RESOLVER, context)
+        converter.setCustomConversions(conversions)
+        converter.setCodecRegistryProvider(mongoDatabaseFactory)
+        converter.afterPropertiesSet()
+        converter
+    }
+
+    protected val mongoTemplate = ReactiveMongoTemplate(mongoDatabaseFactory, mongoConverter)
 
     @BeforeEach
     override fun setUp() {

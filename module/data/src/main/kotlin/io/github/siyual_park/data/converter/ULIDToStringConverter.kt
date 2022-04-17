@@ -1,4 +1,4 @@
-package io.github.siyual_park.ulid.converter
+package io.github.siyual_park.data.converter
 
 import io.github.siyual_park.ulid.ULID
 import org.springframework.core.convert.converter.Converter
