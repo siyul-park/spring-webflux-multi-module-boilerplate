@@ -1,6 +1,7 @@
 package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.entity.TokenData
+import io.github.siyual_park.auth.repository.RawTokenRepository
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.expansion.where
@@ -11,7 +12,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.slf4j.LoggerFactory
@@ -26,6 +26,7 @@ import kotlin.random.Random
 @Component
 class TokenStorage(
     tokenRepository: TokenRepository,
+    rawTokenRepository: RawTokenRepository,
     tokenMapper: TokenMapper
 ) : R2DBCStorage<Token, Long> {
     private val logger = LoggerFactory.getLogger(TokenStorage::class.java)
@@ -37,7 +38,7 @@ class TokenStorage(
             try {
                 delay(Random.nextLong(Duration.ofSeconds(30).toMillis()))
 
-                tokenRepository.deleteAll(
+                rawTokenRepository.deleteAll(
                     where(TokenData::expiredAt).lessThanOrEquals(Instant.now()),
                     sort = Sort.by(Sort.Order.asc(columnName(TokenData::expiredAt))),
                     limit = 200
@@ -56,36 +57,27 @@ class TokenStorage(
     }
 
     override suspend fun load(criteria: CriteriaDefinition): Token? {
-        return delegator.load(filter(criteria))
+        return delegator.load(criteria)
     }
 
     override fun load(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<Token> {
-        return delegator.load(filter(criteria), limit, offset, sort)
+        return delegator.load(criteria, limit, offset, sort)
     }
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
-        return delegator.count(filter(criteria))
+        return delegator.count(criteria)
     }
 
     override suspend fun load(id: Long): Token? {
-        return delegator.load(id)?.let { if (it.isActivated()) it else null }
+        return delegator.load(id)
     }
 
     override fun load(ids: Iterable<Long>): Flow<Token> {
-        return delegator.load(ids).filter { it.isActivated() }
+        return delegator.load(ids)
     }
 
     override suspend fun count(): Long {
-        return delegator.count(filter(null))
-    }
-
-    private fun filter(criteria: CriteriaDefinition?): CriteriaDefinition {
-        if (criteria != null) {
-            return where(TokenData::expiredAt).greaterThan(Instant.now())
-                .and(criteria)
-        }
-
-        return where(TokenData::expiredAt).greaterThan(Instant.now())
+        return delegator.count()
     }
 
     fun clear() {

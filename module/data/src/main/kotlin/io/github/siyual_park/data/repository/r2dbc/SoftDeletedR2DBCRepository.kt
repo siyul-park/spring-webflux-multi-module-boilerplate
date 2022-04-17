@@ -28,7 +28,7 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
         entityOperations,
         clazz,
         scheduler,
-        where(SoftDeletable::deletedAt).isNull,
+        { where(SoftDeletable::deletedAt).isNull },
         eventPublisher
     )
 
