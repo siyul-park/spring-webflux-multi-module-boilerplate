@@ -27,10 +27,6 @@ class Token(
     val claims by proxy(root, TokenData::claims)
     private val expiredAt by proxy(root, TokenData::expiredAt)
 
-    operator fun <T> get(key: String): T? {
-        return claims[key] as? T
-    }
-
     fun isActivated(): Boolean {
         val expiredAt = expiredAt ?: return true
         val now = Instant.now()

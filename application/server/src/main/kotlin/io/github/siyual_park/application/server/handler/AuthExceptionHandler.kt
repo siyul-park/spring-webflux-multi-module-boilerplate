@@ -4,7 +4,6 @@ import io.github.siyual_park.application.server.exception.ForbiddenException
 import io.github.siyual_park.application.server.exception.UnauthorizedException
 import io.github.siyual_park.auth.exception.AuthException
 import io.github.siyual_park.auth.exception.RequiredPermissionException
-import io.jsonwebtoken.JwtException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -22,11 +21,6 @@ class AuthExceptionHandler {
     @ExceptionHandler(UnsupportedOperationException::class)
     fun handle(exception: UnsupportedOperationException) {
         throw ForbiddenException(exception.message)
-    }
-
-    @ExceptionHandler(JwtException::class)
-    fun handle(exception: JwtException) {
-        throw UnauthorizedException(exception.message)
     }
 
     @ExceptionHandler(AuthException::class)
