@@ -246,12 +246,13 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
         if (criteria == null) {
             storage.clear()
+            delegator.deleteAll()
         } else {
             findAll(criteria, limit, offset, sort)
-                .collect { storage.delete(it) }
+                .onEach { storage.delete(it) }
+                .onEach { delegator.delete(it) }
+                .collect { }
         }
-
-        delegator.deleteAll(criteria, limit, offset, sort)
     }
 
     companion object {
