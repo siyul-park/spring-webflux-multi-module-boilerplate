@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria
@@ -248,10 +249,11 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             storage.clear()
             delegator.deleteAll()
         } else {
-            findAll(criteria, limit, offset, sort)
-                .collect { storage.delete(it) }
+            val founded = findAll(criteria, limit, offset, sort)
+                .onEach { storage.delete(it) }
+                .toList()
 
-            delegator.deleteAll(criteria, limit, offset, sort)
+            delegator.deleteAll(founded)
         }
     }
 
