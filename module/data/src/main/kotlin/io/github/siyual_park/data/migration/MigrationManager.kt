@@ -1,8 +1,8 @@
 package io.github.siyual_park.data.migration
 
 import io.github.siyual_park.data.expansion.columnName
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.data.repository.update
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList

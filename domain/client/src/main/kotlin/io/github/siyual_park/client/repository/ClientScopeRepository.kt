@@ -1,9 +1,9 @@
 package io.github.siyual_park.client.repository
 
 import io.github.siyual_park.client.entity.ClientScopeData
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow

@@ -1,12 +1,12 @@
 package io.github.siyual_park.data.test.repository.r2dbc
 
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
+import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.data.test.R2DBCTest
 import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person

@@ -13,8 +13,8 @@ import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.event.AfterDeleteEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
+import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.Persistence

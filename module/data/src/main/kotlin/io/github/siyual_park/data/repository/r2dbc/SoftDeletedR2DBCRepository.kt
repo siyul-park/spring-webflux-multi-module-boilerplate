@@ -1,7 +1,6 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import io.github.siyual_park.data.SoftDeletable
-import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.event.EventPublisher

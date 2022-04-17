@@ -1,6 +1,6 @@
 package io.github.siyual_park.user.domain
 
-import io.github.siyual_park.data.expansion.where
+import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.persistence.R2DBCStorage
 import io.github.siyual_park.persistence.SimpleR2DBCStorage
 import io.github.siyual_park.ulid.ULID
