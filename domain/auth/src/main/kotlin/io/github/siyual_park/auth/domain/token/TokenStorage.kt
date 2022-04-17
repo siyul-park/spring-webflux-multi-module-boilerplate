@@ -2,6 +2,7 @@ package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
+import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.expansion.where
 import io.github.siyual_park.persistence.R2DBCStorage
 import io.github.siyual_park.persistence.SimpleR2DBCStorage
@@ -38,6 +39,7 @@ class TokenStorage(
 
                 tokenRepository.deleteAll(
                     where(TokenData::expiredAt).lessThanOrEquals(Instant.now()),
+                    sort = Sort.by(Sort.Order.asc(columnName(TokenData::expiredAt))),
                     limit = 200
                 )
             } catch (e: Exception) {
