@@ -364,6 +364,9 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 .onEach { eventPublisher.publish(BeforeDeleteEvent(it)) }
                 .toList()
             val ids = entities.map { entityManager.getId(it) }
+            if (ids.isEmpty()) {
+                return
+            }
 
             this.entityOperations.delete(query(where(entityManager.idProperty).`in`(ids.toList())), clazz.java)
                 .subscribeOn(scheduler)
