@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.transaction
 
-import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
@@ -23,22 +22,20 @@ class ReactiveChainedTransactionManager : ReactiveTransactionManager {
 
     override fun getReactiveTransaction(definition: TransactionDefinition?): Mono<ReactiveTransaction> {
         return mono {
-            val reactiveTransaction = ChainedReactiveTransaction(transactionManagers[0])
+            val chainedTransaction = ChainedReactiveTransaction(transactionManagers[0])
 
             if (definition == null) {
-                reactiveTransaction
+                chainedTransaction
             } else {
                 try {
                     for (transactionManager in transactionManagers) {
-                        reactiveTransaction.registerTransactionManager(definition, transactionManager)
+                        chainedTransaction.registerTransactionManager(definition, transactionManager)
                     }
                 } catch (ex: Exception) {
-                    val transactions = reactiveTransaction.transactions
                     for (transactionManager in transactionManagers) {
                         try {
-                            val transaction = transactions[transactionManager]
-                            if (transaction != null) {
-                                transactionManager.rollback(transaction).awaitSingle()
+                            chainedTransaction.getTransaction(transactionManager)?.let {
+                                transactionManager.rollback(it).awaitSingleOrNull()
                             }
                         } catch (ex2: Exception) {
                             logger.warn("Rollback exception (" + transactionManager + ") " + ex2.message, ex2)
@@ -47,7 +44,7 @@ class ReactiveChainedTransactionManager : ReactiveTransactionManager {
                     throw CannotCreateTransactionException(ex.message ?: "", ex)
                 }
 
-                reactiveTransaction
+                chainedTransaction
             }
         }
     }
