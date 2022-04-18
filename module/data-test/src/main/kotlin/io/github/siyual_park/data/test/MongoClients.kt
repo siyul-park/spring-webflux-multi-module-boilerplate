@@ -5,6 +5,7 @@ import com.mongodb.reactivestreams.client.MongoClients
 import de.flapdoodle.embed.mongo.MongodExecutable
 import de.flapdoodle.embed.mongo.MongodStarter
 import de.flapdoodle.embed.mongo.config.Defaults
+import de.flapdoodle.embed.mongo.config.ImmutableMongoCmdOptions
 import de.flapdoodle.embed.mongo.config.MongodConfig
 import de.flapdoodle.embed.mongo.config.Net
 import de.flapdoodle.embed.mongo.distribution.Version
@@ -41,6 +42,14 @@ fun createEmbeddedMongoDBClients(): Pair<MongodExecutable, MongoClient> {
     val port = Network.getFreeServerPort()
     val mongodConfig = MongodConfig.builder()
         .version(Version.Main.PRODUCTION)
+        .cmdOptions(
+            ImmutableMongoCmdOptions.builder()
+                .syncDelay(0)
+                .useSmallFiles(true)
+                .useNoJournal(true)
+                .useNoPrealloc(false)
+                .build()
+        )
         .net(Net(port, Network.localhostIsIPv6()))
         .build()
 
