@@ -21,6 +21,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.MongoProperties
+import org.springframework.boot.autoconfigure.mongo.MongoReactiveAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.embedded.DownloadConfigBuilderCustomizer
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoProperties
@@ -31,9 +32,9 @@ import org.springframework.context.annotation.Configuration
 import java.util.stream.Stream
 
 @Suppress("UNCHECKED_CAST")
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @EnableConfigurationProperties(MongoProperties::class, EmbeddedMongoProperties::class)
-@AutoConfigureBefore(MongoAutoConfiguration::class)
+@AutoConfigureBefore(MongoAutoConfiguration::class, MongoReactiveAutoConfiguration::class)
 @ConditionalOnClass(MongoClientSettings::class, MongodStarter::class)
 class MemMongoConfiguration(
     properties: MongoProperties
