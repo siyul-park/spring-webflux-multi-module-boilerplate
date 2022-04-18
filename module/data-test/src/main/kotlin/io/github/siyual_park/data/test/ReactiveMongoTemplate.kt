@@ -1,8 +1,6 @@
 package io.github.siyual_park.data.test
 
 import com.mongodb.reactivestreams.client.MongoClient
-import io.github.siyual_park.data.converter.BinaryToULIDConverter
-import io.github.siyual_park.data.converter.ULIDToBinaryConverter
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory
@@ -15,10 +13,7 @@ fun createReactiveMongoTemplate(mongoClient: MongoClient, databaseName: String, 
 
     val mongoConverter = run {
         val conversions = MongoCustomConversions(
-            mutableListOf<Converter<*, *>>(
-                BinaryToULIDConverter(),
-                ULIDToBinaryConverter(),
-            ).also {
+            mutableListOf<Converter<*, *>>().also {
                 it.addAll(converters)
             }
         )
