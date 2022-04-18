@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.configuration
 
 import com.mongodb.MongoClientSettings
+import com.mongodb.reactivestreams.client.MongoClient
 import de.flapdoodle.embed.mongo.MongodExecutable
 import de.flapdoodle.embed.mongo.MongodStarter
 import de.flapdoodle.embed.mongo.config.Defaults
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfigureBefore
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.data.mongo.ReactiveStreamsMongoClientDependsOnBeanFactoryPostProcessor
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.MongoProperties
 import org.springframework.boot.autoconfigure.mongo.MongoReactiveAutoConfiguration
@@ -29,6 +31,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
+import org.springframework.data.mongodb.core.ReactiveMongoClientFactoryBean
 import java.util.stream.Stream
 
 @Suppress("UNCHECKED_CAST")
@@ -36,7 +40,10 @@ import java.util.stream.Stream
 @EnableConfigurationProperties(MongoProperties::class, EmbeddedMongoProperties::class)
 @AutoConfigureBefore(MongoAutoConfiguration::class, MongoReactiveAutoConfiguration::class)
 @ConditionalOnClass(MongoClientSettings::class, MongodStarter::class)
-class EmbeddedMongoAutoConfiguration(
+@Import(
+    EmbeddedMongoAutoCustomConfiguration.ReactiveStreamsDependsOnBeanFactoryPostProcessor::class
+)
+class EmbeddedMongoAutoCustomConfiguration(
     mongoProperties: MongoProperties,
     private val embeddedMongoCustomProperties: EmbeddedMongoCustomProperties
 ) {
@@ -106,4 +113,8 @@ class EmbeddedMongoAutoConfiguration(
             return Defaults.extractedArtifactStoreFor(Command.MongoD).withDownloadConfig(downloadConfig)
         }
     }
+
+    @ConditionalOnClass(MongoClient::class, ReactiveMongoClientFactoryBean::class)
+    internal class ReactiveStreamsDependsOnBeanFactoryPostProcessor :
+        ReactiveStreamsMongoClientDependsOnBeanFactoryPostProcessor(MongodExecutable::class.java)
 }
