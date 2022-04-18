@@ -4,7 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConstructorBinding
-@ConfigurationProperties(prefix = "application.mongodb.mem")
-data class MemMongoProperty(
-    val enable: Boolean
+@ConfigurationProperties(prefix = "application.migration")
+data class MigrationProperties(
+    val sync: Boolean,
+    val clear: Boolean
 )

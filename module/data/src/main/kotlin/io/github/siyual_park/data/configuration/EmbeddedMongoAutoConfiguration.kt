@@ -13,7 +13,7 @@ import de.flapdoodle.embed.process.io.Processors
 import de.flapdoodle.embed.process.io.Slf4jLevel
 import de.flapdoodle.embed.process.io.progress.Slf4jProgressListener
 import de.flapdoodle.embed.process.store.ExtractedArtifactStore
-import io.github.siyual_park.data.property.MemMongoProperty
+import io.github.siyual_park.data.property.EmbeddedMongoCustomProperties
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
@@ -37,9 +37,9 @@ import java.util.stream.Stream
 @EnableConfigurationProperties(MongoProperties::class, EmbeddedMongoProperties::class)
 @AutoConfigureBefore(MongoAutoConfiguration::class, MongoReactiveAutoConfiguration::class)
 @ConditionalOnClass(MongoClientSettings::class, MongodStarter::class)
-class MemMongoConfiguration(
+class EmbeddedMongoAutoConfiguration(
     mongoProperties: MongoProperties,
-    private val memMongoProperty: MemMongoProperty
+    private val embeddedMongoCustomProperties: EmbeddedMongoCustomProperties
 ) {
     private val embeddedMongoAutoConfiguration = EmbeddedMongoAutoConfiguration(mongoProperties)
 
@@ -50,7 +50,7 @@ class MemMongoConfiguration(
         runtimeConfig: RuntimeConfig?,
         context: ApplicationContext?
     ): MongodExecutable? {
-        if (!memMongoProperty.enable || mongodConfig == null) {
+        if (!embeddedMongoCustomProperties.enable || mongodConfig == null) {
             return null
         }
 
@@ -60,7 +60,7 @@ class MemMongoConfiguration(
     @Bean
     @ConditionalOnMissingBean
     fun embeddedMongoConfiguration(embeddedProperties: EmbeddedMongoProperties): MongodConfig? {
-        if (!memMongoProperty.enable) {
+        if (!embeddedMongoCustomProperties.enable) {
             return null
         }
 
@@ -71,13 +71,13 @@ class MemMongoConfiguration(
     @ConditionalOnClass(Logger::class)
     @ConditionalOnMissingBean(RuntimeConfig::class)
     internal class RuntimeConfigConfiguration(
-        private val memMongoProperty: MemMongoProperty
+        private val embeddedMongoCustomProperties: EmbeddedMongoCustomProperties
     ) {
         @Bean
         fun embeddedMongoRuntimeConfig(
             downloadConfigBuilderCustomizers: ObjectProvider<DownloadConfigBuilderCustomizer>
         ): RuntimeConfig? {
-            if (!memMongoProperty.enable) {
+            if (!embeddedMongoCustomProperties.enable) {
                 return null
             }
 

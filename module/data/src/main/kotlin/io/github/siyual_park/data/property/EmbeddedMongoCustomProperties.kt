@@ -4,8 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConstructorBinding
-@ConfigurationProperties(prefix = "application.migration")
-data class MigrationProperty(
-    val sync: Boolean,
-    val clear: Boolean
+@ConfigurationProperties(prefix = "spring.mongodb.embedded")
+data class EmbeddedMongoCustomProperties(
+    val enable: Boolean
 )
