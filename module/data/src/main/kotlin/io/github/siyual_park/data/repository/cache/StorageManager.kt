@@ -2,9 +2,11 @@ package io.github.siyual_park.data.repository.cache
 
 import io.github.siyual_park.data.annotation.Key
 import io.github.siyual_park.data.expansion.columnName
+import org.springframework.data.annotation.Id
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaField
 
 interface StorageManager<T : Any, ID : Any> {
     val root: Storage<T, ID>
@@ -17,6 +19,11 @@ fun <T : Any, ID : Any> StorageManager<T, ID>.createIndexes(clazz: KClass<T>, in
     clazz.memberProperties.forEach {
         val index = it.annotations.find { it is Key } as? Key ?: return@forEach
         indexes.getOrPut(index.name.ifEmpty { indexName(it) }) { mutableListOf() }
+            .add(it)
+    }
+    clazz.memberProperties.forEach {
+        if (it.javaField?.annotations?.find { it is Id } == null) return@forEach
+        indexes.getOrPut(indexName(it)) { mutableListOf() }
             .add(it)
     }
 

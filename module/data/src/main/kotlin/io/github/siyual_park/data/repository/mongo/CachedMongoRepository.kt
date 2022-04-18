@@ -216,6 +216,9 @@ class CachedMongoRepository<T : Any, ID : Any>(
             if (key.startsWith("$")) {
                 return null
             }
+            if (value is Document) {
+                return null
+            }
 
             columns.add(key)
             values.add(value)
