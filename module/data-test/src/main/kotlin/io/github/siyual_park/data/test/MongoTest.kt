@@ -11,6 +11,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.convert.converter.Converter
+import org.springframework.data.mongodb.ReactiveMongoTransactionManager
+import org.springframework.transaction.reactive.TransactionalOperator
 import java.util.UUID
 
 open class MongoTest(
@@ -41,6 +43,9 @@ open class MongoTest(
             it.addAll(converters)
         }
     )
+
+    protected var transactionManager = ReactiveMongoTransactionManager(mongoTemplate.mongoDatabaseFactory)
+    protected var transactionalOperator = TransactionalOperator.create(transactionManager)
 
     protected val migrationManager = MigrationManager(entityOperations)
 
