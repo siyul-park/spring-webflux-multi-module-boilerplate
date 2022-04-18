@@ -33,11 +33,12 @@ class ReactiveChainedTransactionManager : ReactiveTransactionManager {
                         reactiveTransaction.registerTransactionManager(definition, transactionManager)
                     }
                 } catch (ex: Exception) {
-                    val transactionStatuses = reactiveTransaction.transactionStatuses
+                    val transactions = reactiveTransaction.transactions
                     for (transactionManager in transactionManagers) {
                         try {
-                            if (transactionStatuses[transactionManager] != null) {
-                                transactionManager.rollback(transactionStatuses[transactionManager]!!).awaitSingle()
+                            val transaction = transactions[transactionManager]
+                            if (transaction != null) {
+                                transactionManager.rollback(transaction).awaitSingle()
                             }
                         } catch (ex2: Exception) {
                             logger.warn("Rollback exception (" + transactionManager + ") " + ex2.message, ex2)

@@ -9,18 +9,18 @@ import java.util.Collections
 class ChainedReactiveTransaction(
     val mainTransactionManager: ReactiveTransactionManager
 ) : ReactiveTransaction {
-    val transactionStatuses = Collections
+    val transactions = Collections
         .synchronizedMap(mutableMapOf<ReactiveTransactionManager, ReactiveTransaction>())
 
     suspend fun registerTransactionManager(
         definition: TransactionDefinition?,
         transactionManager: ReactiveTransactionManager
     ) {
-        transactionStatuses[transactionManager] = transactionManager.getReactiveTransaction(definition).awaitSingle()
+        transactions[transactionManager] = transactionManager.getReactiveTransaction(definition).awaitSingle()
     }
 
     fun getTransaction(transactionManager: ReactiveTransactionManager): ReactiveTransaction? {
-        return transactionStatuses[transactionManager]
+        return transactions[transactionManager]
     }
 
     override fun isNewTransaction(): Boolean {
@@ -28,7 +28,7 @@ class ChainedReactiveTransaction(
     }
 
     override fun setRollbackOnly() {
-        transactionStatuses.values.forEach { it.setRollbackOnly() }
+        transactions.values.forEach { it.setRollbackOnly() }
     }
 
     override fun isRollbackOnly(): Boolean {
@@ -40,6 +40,6 @@ class ChainedReactiveTransaction(
     }
 
     private fun getMainTranslation(): ReactiveTransaction {
-        return transactionStatuses[mainTransactionManager]!!
+        return transactions[mainTransactionManager]!!
     }
 }

@@ -1,14 +1,13 @@
 package io.github.siyual_park.data.configuration
 
 import com.mongodb.MongoClientSettings
-import de.flapdoodle.embed.mongo.Command
 import de.flapdoodle.embed.mongo.MongodExecutable
 import de.flapdoodle.embed.mongo.MongodStarter
 import de.flapdoodle.embed.mongo.config.Defaults
 import de.flapdoodle.embed.mongo.config.MongodConfig
+import de.flapdoodle.embed.mongo.packageresolver.Command
 import de.flapdoodle.embed.process.config.RuntimeConfig
-import de.flapdoodle.embed.process.config.io.ProcessOutput
-import de.flapdoodle.embed.process.config.store.DownloadConfig
+import de.flapdoodle.embed.process.config.process.ProcessOutput
 import de.flapdoodle.embed.process.io.Processors
 import de.flapdoodle.embed.process.io.Slf4jLevel
 import de.flapdoodle.embed.process.io.progress.Slf4jProgressListener
@@ -82,11 +81,11 @@ class EmbeddedMongoAutoConfiguration(
             }
 
             val logger = LoggerFactory.getLogger(javaClass.getPackage().name + ".EmbeddedMongo")
-            val processOutput = ProcessOutput(
-                Processors.logTo(logger, Slf4jLevel.INFO),
-                Processors.logTo(logger, Slf4jLevel.ERROR),
-                Processors.named("[console>]", Processors.logTo(logger, Slf4jLevel.DEBUG))
-            )
+            val processOutput = ProcessOutput.builder()
+                .output(Processors.logTo(logger, Slf4jLevel.INFO))
+                .error(Processors.logTo(logger, Slf4jLevel.ERROR))
+                .commands(Processors.named("[console>]", Processors.logTo(logger, Slf4jLevel.DEBUG)))
+                .build()
             return Defaults.runtimeConfigFor(Command.MongoD, logger).processOutput(processOutput)
                 .artifactStore(getArtifactStore(logger, downloadConfigBuilderCustomizers.orderedStream()))
                 .isDaemonProcess(false).build()
@@ -103,7 +102,7 @@ class EmbeddedMongoAutoConfiguration(
                     downloadConfigBuilder
                 )
             }
-            val downloadConfig: DownloadConfig = downloadConfigBuilder.build()
+            val downloadConfig = downloadConfigBuilder.build()
             return Defaults.extractedArtifactStoreFor(Command.MongoD).withDownloadConfig(downloadConfig)
         }
     }
