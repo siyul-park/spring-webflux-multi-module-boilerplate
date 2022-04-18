@@ -13,13 +13,13 @@ import org.springframework.transaction.UnexpectedRollbackException
 import reactor.core.publisher.Mono
 
 class ReactiveChainedTransactionManager : ReactiveTransactionManager {
+    private val logger = LoggerFactory.getLogger(ReactiveChainedTransactionManager::class.java)
+
     private val transactionManagers: MutableList<ReactiveTransactionManager> = mutableListOf()
 
     fun registerTransactionManager(transactionManager: ReactiveTransactionManager) {
         transactionManagers.add(transactionManager)
     }
-
-    private val logger = LoggerFactory.getLogger(ReactiveChainedTransactionManager::class.java)
 
     override fun getReactiveTransaction(definition: TransactionDefinition?): Mono<ReactiveTransaction> {
         return mono {
@@ -43,7 +43,7 @@ class ReactiveChainedTransactionManager : ReactiveTransactionManager {
                             logger.warn("Rollback exception (" + transactionManager + ") " + ex2.message, ex2)
                         }
                     }
-                    throw CannotCreateTransactionException(ex.message!!, ex)
+                    throw CannotCreateTransactionException(ex.message ?: "", ex)
                 }
 
                 reactiveTransaction

@@ -29,7 +29,9 @@ open class MongoTest(
         }
     )
 
-    private val mongoClient = createMemMongoClients()
+    private val pair = createEmbeddedMongoDBClients()
+    private val mongodExecutable = pair.first
+    private val mongoClient = pair.second
     protected val mongoTemplate = createReactiveMongoTemplate(
         mongoClient, database,
         mutableListOf<Converter<*, *>>(
@@ -46,6 +48,8 @@ open class MongoTest(
     override fun setUp() {
         super.setUp()
 
+        mongodExecutable.start()
+
         blocking {
             migrationManager.run()
         }
@@ -56,6 +60,8 @@ open class MongoTest(
         blocking {
             migrationManager.revert()
         }
+
+        mongodExecutable.stop()
 
         super.tearDown()
     }
