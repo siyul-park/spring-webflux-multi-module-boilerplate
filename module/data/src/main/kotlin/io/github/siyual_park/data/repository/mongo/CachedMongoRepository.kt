@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.r2dbc
+package io.github.siyual_park.data.repository.mongo
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.patch.AsyncPatch
@@ -18,32 +18,38 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
+import org.bson.Document
+import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Sort
-import org.springframework.data.r2dbc.core.R2dbcEntityOperations
-import org.springframework.data.relational.core.query.Criteria
-import org.springframework.data.relational.core.query.CriteriaDefinition
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.CriteriaDefinition
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import java.time.Duration
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaField
 
 @Suppress("UNCHECKED_CAST")
-class CachedR2DBCRepository<T : Any, ID : Any>(
-    private val delegator: R2DBCRepository<T, ID>,
+class CachedMongoRepository<T : Any, ID : Any>(
+    private val delegator: MongoRepository<T, ID>,
     private val storageManager: TransactionalStorageManager<T, ID>,
     private val idExtractor: Extractor<T, ID>,
-) : R2DBCRepository<T, ID>,
+) : MongoRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(
         delegator,
         storageManager,
         idExtractor,
     ) {
 
-    override val entityManager: EntityManager<T, ID>
-        get() = delegator.entityManager
+    override val template: ReactiveMongoTemplate
+        get() = delegator.template
+    override val clazz: KClass<T>
+        get() = delegator.clazz
 
     init {
-        val clazz = entityManager.clazz
         storageManager.createIndexes(clazz)
     }
 
@@ -91,19 +97,25 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                 }
 
                 if (isSingleCriteria(criteria)) {
-                    val column = criteria.column
-                    val value = criteria.value ?: return@flow emitAll(fallback())
-                    val indexName = column?.reference ?: return@flow emitAll(fallback())
+                    val document = criteria.criteriaObject
+                    val column = criteria.key ?: return@flow emitAll(fallback())
+                    val child = document[column] ?: return@flow emitAll(fallback())
+                    if (child !is Document) {
+                        return@flow emitAll(fallback())
+                    }
+                    if (child.size != 1 || child.keys.toList()[0] != "\$in") {
+                        return@flow emitAll(fallback())
+                    }
+                    val value = child["\$in"]
 
                     if (
-                        storage.containsIndex(indexName) &&
-                        criteria.comparator == CriteriaDefinition.Comparator.IN &&
+                        storage.containsIndex(column) &&
                         value is Collection<*>
                     ) {
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
                         value.forEach { key ->
-                            val cached = key?.let { storage.getIfPresent(indexName, it) }
+                            val cached = key?.let { storage.getIfPresent(column, it) }
                             if (cached == null) {
                                 notCachedKey.add(key)
                             } else {
@@ -112,7 +124,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                         }
 
                         if (notCachedKey.isNotEmpty()) {
-                            delegator.findAll(Criteria.where(indexName).`in`(notCachedKey))
+                            delegator.findAll(Criteria.where(column).`in`(notCachedKey))
                                 .collect { entity ->
                                     storage.put(entity)
                                     result.add(entity)
@@ -198,51 +210,32 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         val columns = mutableListOf<String>()
         val values = mutableListOf<Any?>()
 
-        when {
-            criteria.isGroup -> {
-                if (criteria.combinator != CriteriaDefinition.Combinator.AND) {
-                    return null
-                }
+        val document = criteria.criteriaObject
 
-                criteria.group.forEach {
-                    val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(it) ?: return null
-                    columns.addAll(childColumns)
-                    values.addAll(childValues)
-                }
+        document.entries.forEach { (key, value) ->
+            if (key.startsWith("$")) {
+                return null
             }
-            criteria.comparator === CriteriaDefinition.Comparator.EQ -> {
-                val column = criteria.column
-                val value = criteria.value
-                val indexName = column?.reference ?: return null
 
-                columns.add(indexName)
-                values.add(value)
-            }
-            else -> return null
-        }
-
-        val previous = criteria.previous
-        if (previous != null) {
-            val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(previous) ?: return null
-            columns.addAll(childColumns)
-            values.addAll(childValues)
+            columns.add(key)
+            values.add(value)
         }
 
         return columns to values
     }
 
     private fun isSingleCriteria(criteria: CriteriaDefinition?): Boolean {
-        return criteria != null && !criteria.hasPrevious() && !criteria.isGroup
+        return criteria != null && criteria.criteriaObject.size == 1 && criteria.key != null
     }
 
     companion object {
         fun <T : Any, ID : Any> of(
-            repository: R2DBCRepository<T, ID>,
+            repository: MongoRepository<T, ID>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-        ): CachedR2DBCRepository<T, ID> {
+        ): CachedMongoRepository<T, ID> {
             val idExtractor = createIdExtractor(repository)
 
-            return CachedR2DBCRepository(
+            return CachedMongoRepository(
                 repository,
                 TransactionalStorageManager(
                     InMemoryNestedStorage(
@@ -255,16 +248,16 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         }
 
         fun <T : Any, ID : Any> of(
-            entityOperations: R2dbcEntityOperations,
+            template: ReactiveMongoTemplate,
             clazz: KClass<T>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
             scheduler: Scheduler = Schedulers.boundedElastic(),
             eventPublisher: EventPublisher? = null
-        ): CachedR2DBCRepository<T, ID> {
-            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, scheduler, eventPublisher)
+        ): CachedMongoRepository<T, ID> {
+            val repository = SimpleMongoRepository<T, ID>(template, clazz, scheduler, eventPublisher)
             val idExtractor = createIdExtractor(repository)
 
-            return CachedR2DBCRepository(
+            return CachedMongoRepository(
                 repository,
                 TransactionalStorageManager(
                     InMemoryNestedStorage(
@@ -282,9 +275,16 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
 
-        private fun <T : Any, ID : Any> createIdExtractor(repository: R2DBCRepository<T, ID>) = object : Extractor<T, ID> {
-            override fun getKey(entity: T): ID {
-                return repository.entityManager.getId(entity)
+        private fun <T : Any, ID : Any> createIdExtractor(repository: MongoRepository<T, ID>): Extractor<T, ID> {
+            val idProperty = (
+                repository.clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
+                    ?: throw RuntimeException()
+                ) as KProperty1<T, ID>
+
+            return object : Extractor<T, ID> {
+                override fun getKey(entity: T): ID {
+                    return idProperty.get(entity)
+                }
             }
         }
     }
