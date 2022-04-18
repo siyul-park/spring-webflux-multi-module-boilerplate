@@ -13,7 +13,6 @@ import org.springframework.data.mongodb.core.convert.MongoCustomConversions
 class MongoConfiguration(
     private val applicationContext: ApplicationContext
 ) {
-
     @Bean
     fun mongoCustomConversions(): MongoCustomConversions {
         val converters = applicationContext.getBeansOfType(Converter::class.java)
