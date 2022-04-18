@@ -15,13 +15,12 @@ class BearerAuthorizationStrategy(
 ) : AuthorizationStrategy<ClientPrincipal>("bearer") {
     override suspend fun authenticate(credentials: String): ClientPrincipal? {
         val token = tokenStorage.loadOrFail(credentials)
-        val claims = token.claims
-        if (claims["cid"] == null || claims["uid"] != null) {
+        if (token["cid"] == null || token["uid"] != null) {
             return null
         }
 
         return ClientPrincipal(
-            id = claims["cid"].toString(),
+            id = token["cid"].toString(),
             scope = token.getScope(deep = true).toSet()
         )
     }

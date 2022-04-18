@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toSet
 import java.time.Instant
 
+@Suppress("UNCHECKED_CAST")
 class Token(
     value: TokenData,
     private val tokenRepository: TokenRepository,
@@ -33,6 +34,20 @@ class Token(
         val expiredAt = expiredAt ?: return true
         val now = Instant.now()
         return expiredAt.isAfter(now)
+    }
+
+    operator fun get(key: String): Any? {
+        return claims[key]
+    }
+
+    operator fun set(key: String, value: Any?) {
+        val claims = root[TokenData::claims].toMutableMap()
+        if (value == null) {
+            claims.remove(key)
+        } else {
+            claims[key] = value
+        }
+        root[TokenData::claims] = claims
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
