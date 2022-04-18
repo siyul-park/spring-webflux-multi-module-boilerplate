@@ -1,56 +1,28 @@
 package io.github.siyual_park.auth.migration
 
+import com.mongodb.BasicDBObject
+import com.mongodb.client.model.IndexOptions
 import io.github.siyual_park.data.migration.Migration
 import io.github.siyual_park.data.migration.createIndex
-import io.github.siyual_park.data.migration.createUniqueIndex
-import io.github.siyual_park.data.migration.createUpdatedAtTrigger
-import io.github.siyual_park.data.migration.dropTable
-import io.github.siyual_park.data.migration.fetchSQL
-import io.github.siyual_park.data.migration.isDriver
-import org.springframework.data.r2dbc.core.R2dbcEntityOperations
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import java.util.concurrent.TimeUnit
 
 class CreateToken(
-    private val entityOperations: R2dbcEntityOperations
+    private val template: ReactiveMongoTemplate
 ) : Migration {
     private val tableName = "tokens"
 
     override suspend fun up() {
-        if (entityOperations.isDriver("PostgreSQL")) {
-            entityOperations.fetchSQL(
-                "CREATE TABLE $tableName" +
-                    "(" +
-                    "id SERIAL PRIMARY KEY, " +
+        val collection = template.createCollection(tableName).awaitSingle()
 
-                    "signature VARCHAR(64) NOT NULL, " +
-                    "claims TEXT NOT NULL, " +
-
-                    "expired_at TIMESTAMP, " +
-                    "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
-                    ")"
-            )
-            entityOperations.createUpdatedAtTrigger(tableName)
-        } else {
-            entityOperations.fetchSQL(
-                "CREATE TABLE $tableName" +
-                    "(" +
-                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
-
-                    "signature VARCHAR(64) NOT NULL, " +
-                    "claims TEXT NOT NULL, " +
-
-                    "expired_at TIMESTAMP, " +
-                    "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
-                    ")"
-            )
-        }
-
-        entityOperations.createUniqueIndex(tableName, listOf("signature"))
-        entityOperations.createIndex(tableName, listOf("expired_at"))
+        collection.createIndex(BasicDBObject("signature", 1), IndexOptions().unique(true)).awaitSingle()
+        collection.createIndex(BasicDBObject("expiredAt", 1), IndexOptions().expireAfter(0, TimeUnit.SECONDS)).awaitSingle()
     }
 
     override suspend fun down() {
-        entityOperations.dropTable(tableName)
+        template.dropCollection(tableName).awaitSingleOrNull()
     }
 }
