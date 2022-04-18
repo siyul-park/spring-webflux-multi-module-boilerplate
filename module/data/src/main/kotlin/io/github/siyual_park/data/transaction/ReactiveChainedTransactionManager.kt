@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.transaction
 
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.CannotCreateTransactionException
@@ -62,7 +63,7 @@ class ReactiveChainedTransactionManager : ReactiveTransactionManager {
                 if (commit) {
                     try {
                         chainedTransaction.getTransaction(transactionManager)?.let {
-                            transactionManager.commit(it)
+                            transactionManager.commit(it).awaitSingleOrNull()
                         }
                     } catch (ex: Exception) {
                         commit = false
@@ -72,7 +73,7 @@ class ReactiveChainedTransactionManager : ReactiveTransactionManager {
                 } else {
                     try {
                         chainedTransaction.getTransaction(transactionManager)?.let {
-                            transactionManager.rollback(it)
+                            transactionManager.rollback(it).awaitSingleOrNull()
                         }
                     } catch (ex: java.lang.Exception) {
                         logger.warn("Rollback exception (after commit) (" + transactionManager + ") " + ex.message, ex)
@@ -102,7 +103,7 @@ class ReactiveChainedTransactionManager : ReactiveTransactionManager {
             for (transactionManager in transactionManagers.reversed()) {
                 try {
                     chainedTransaction.getTransaction(transactionManager)?.let {
-                        transactionManager.rollback(it)
+                        transactionManager.rollback(it).awaitSingleOrNull()
                     }
                 } catch (ex: java.lang.Exception) {
                     if (rollbackException == null) {
