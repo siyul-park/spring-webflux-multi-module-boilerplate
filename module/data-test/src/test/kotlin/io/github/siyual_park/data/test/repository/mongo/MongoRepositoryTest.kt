@@ -4,6 +4,7 @@ import io.github.siyual_park.data.event.BeforeCreateEvent
 import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.repository.mongo.CachedMongoRepository
 import io.github.siyual_park.data.repository.mongo.CreateTimestamp
 import io.github.siyual_park.data.repository.mongo.MongoRepository
 import io.github.siyual_park.data.repository.mongo.SimpleMongoRepository
@@ -420,6 +421,7 @@ class MongoRepositoryTest : MongoTest() {
     private fun repositories(): List<MongoRepository<Person, ULID>> {
         return listOf(
             SimpleMongoRepository(mongoTemplate, Person::class, eventPublisher = eventEmitter),
+            CachedMongoRepository.of(mongoTemplate, Person::class, eventPublisher = eventEmitter)
         )
     }
 }

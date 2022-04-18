@@ -43,8 +43,8 @@ import kotlin.reflect.jvm.javaField
 
 @Suppress("UNCHECKED_CAST")
 class SimpleMongoRepository<T : Any, ID : Any>(
-    private val template: ReactiveMongoTemplate,
-    private val clazz: KClass<T>,
+    override val template: ReactiveMongoTemplate,
+    override val clazz: KClass<T>,
     private val scheduler: Scheduler = Schedulers.boundedElastic(),
     private val eventPublisher: EventPublisher? = null,
 ) : MongoRepository<T, ID> {

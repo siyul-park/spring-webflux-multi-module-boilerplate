@@ -6,9 +6,14 @@ import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.CriteriaDefinition
+import kotlin.reflect.KClass
 
 interface MongoRepository<T : Any, ID : Any> : Repository<T, ID> {
+    val template: ReactiveMongoTemplate
+    val clazz: KClass<T>
+
     suspend fun exists(criteria: CriteriaDefinition): Boolean
 
     suspend fun findOne(criteria: CriteriaDefinition): T?

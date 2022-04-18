@@ -1,7 +1,5 @@
-package io.github.siyual_park.data.repository.r2dbc
+package io.github.siyual_park.data.repository.cache
 
-import io.github.siyual_park.data.repository.cache.NestedStorage
-import io.github.siyual_park.data.repository.cache.StorageManager
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.NoTransactionException
@@ -9,11 +7,11 @@ import org.springframework.transaction.reactive.TransactionContext
 import org.springframework.transaction.reactive.TransactionContextManager
 import java.util.Stack
 
-class R2DBCStorageManager<T : Any, ID : Any>(
+class TransactionalStorageManager<T : Any, ID : Any>(
     override val root: NestedStorage<T, ID>,
     private val cacheTransactionSynchronization: CacheTransactionSynchronization<T, ID> = CacheTransactionSynchronization()
 ) : StorageManager<T, ID> {
-    private val logger = LoggerFactory.getLogger(CacheTransactionSynchronization::class.java)
+    private val logger = LoggerFactory.getLogger(TransactionalStorageManager::class.java)
 
     override suspend fun getCurrent(): NestedStorage<T, ID> {
         try {

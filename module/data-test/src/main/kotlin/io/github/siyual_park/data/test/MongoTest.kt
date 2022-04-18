@@ -7,10 +7,15 @@ import io.github.siyual_park.data.converter.ULIDToBinaryConverter
 import io.github.siyual_park.data.converter.ULIDToBytesConverter
 import io.github.siyual_park.data.migration.MigrationManager
 import io.r2dbc.h2.H2ConnectionFactory
+import kotlinx.coroutines.CoroutineScope
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.convert.converter.Converter
+import org.springframework.data.mongodb.ReactiveMongoTransactionManager
+import org.springframework.transaction.ReactiveTransaction
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
 import java.util.UUID
 
 open class MongoTest(
@@ -42,6 +47,9 @@ open class MongoTest(
         }
     )
 
+    protected var transactionManager = ReactiveMongoTransactionManager(mongoTemplate.mongoDatabaseFactory)
+    protected var transactionalOperator = TransactionalOperator.create(transactionManager)
+
     protected val migrationManager = MigrationManager(entityOperations)
 
     @BeforeEach
@@ -68,5 +76,11 @@ open class MongoTest(
 
     @Test
     fun contextLoads() {
+    }
+
+    fun transactional(func: suspend CoroutineScope.(ReactiveTransaction) -> Unit) = blocking {
+        transactionalOperator.executeAndAwait {
+            func(it)
+        }
     }
 }

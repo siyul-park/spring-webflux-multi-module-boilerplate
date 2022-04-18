@@ -7,21 +7,17 @@ import org.springframework.boot.autoconfigure.AutoConfigureOrder
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
-import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory
-import org.springframework.data.mongodb.ReactiveMongoTransactionManager
 import org.springframework.r2dbc.connection.R2dbcTransactionManager
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass(ReactiveChainedTransactionManager::class, ConnectionFactory::class, ReactiveMongoDatabaseFactory::class)
+@ConditionalOnClass(ReactiveChainedTransactionManager::class, ConnectionFactory::class)
 @AutoConfigureOrder(Ordered.LOWEST_PRECEDENCE)
 class ChainedTransactionConfiguration {
     @Autowired(required = true)
     fun configuration(
         chainedTransactionManager: ReactiveChainedTransactionManager,
-        connectionFactory: ConnectionFactory,
-        reactiveMongoDatabaseFactory: ReactiveMongoDatabaseFactory
+        connectionFactory: ConnectionFactory
     ) {
         chainedTransactionManager.registerTransactionManager(R2dbcTransactionManager(connectionFactory))
-        chainedTransactionManager.registerTransactionManager(ReactiveMongoTransactionManager(reactiveMongoDatabaseFactory))
     }
 }
