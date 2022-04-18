@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory
 import org.springframework.data.mongodb.ReactiveMongoTransactionManager
 import org.springframework.r2dbc.connection.R2dbcTransactionManager
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(ReactiveChainedTransactionManager::class, ConnectionFactory::class, ReactiveMongoDatabaseFactory::class)
 @AutoConfigureOrder(Ordered.LOWEST_PRECEDENCE)
 class ChainedTransactionConfiguration {

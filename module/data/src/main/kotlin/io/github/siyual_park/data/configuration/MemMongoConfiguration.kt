@@ -13,6 +13,7 @@ import de.flapdoodle.embed.process.io.Processors
 import de.flapdoodle.embed.process.io.Slf4jLevel
 import de.flapdoodle.embed.process.io.progress.Slf4jProgressListener
 import de.flapdoodle.embed.process.store.ExtractedArtifactStore
+import io.github.siyual_park.data.property.MemMongoProperty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
@@ -32,27 +33,15 @@ import org.springframework.context.annotation.Configuration
 import java.util.stream.Stream
 
 @Suppress("UNCHECKED_CAST")
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(MongoProperties::class, EmbeddedMongoProperties::class)
 @AutoConfigureBefore(MongoAutoConfiguration::class, MongoReactiveAutoConfiguration::class)
 @ConditionalOnClass(MongoClientSettings::class, MongodStarter::class)
 class MemMongoConfiguration(
-    properties: MongoProperties
+    mongoProperties: MongoProperties,
+    private val memMongoProperty: MemMongoProperty
 ) {
-    private val doConfigurate: Boolean
-
-    private val embeddedMongoAutoConfiguration = EmbeddedMongoAutoConfiguration(properties)
-
-    init {
-        val uri = properties.uri
-        val tokens = uri.split(":")
-        if (tokens.size > 2) {
-            doConfigurate = tokens[1] == "mem"
-            properties.uri = uri.replace(":mem", "")
-        } else {
-            doConfigurate = false
-        }
-    }
+    private val embeddedMongoAutoConfiguration = EmbeddedMongoAutoConfiguration(mongoProperties)
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnMissingBean
@@ -61,7 +50,7 @@ class MemMongoConfiguration(
         runtimeConfig: RuntimeConfig?,
         context: ApplicationContext?
     ): MongodExecutable? {
-        if (!doConfigurate || mongodConfig == null) {
+        if (!memMongoProperty.enable || mongodConfig == null) {
             return null
         }
 
@@ -71,7 +60,7 @@ class MemMongoConfiguration(
     @Bean
     @ConditionalOnMissingBean
     fun embeddedMongoConfiguration(embeddedProperties: EmbeddedMongoProperties): MongodConfig? {
-        if (!doConfigurate) {
+        if (!memMongoProperty.enable) {
             return null
         }
 
@@ -81,11 +70,17 @@ class MemMongoConfiguration(
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(Logger::class)
     @ConditionalOnMissingBean(RuntimeConfig::class)
-    internal class RuntimeConfigConfiguration {
+    internal class RuntimeConfigConfiguration(
+        private val memMongoProperty: MemMongoProperty
+    ) {
         @Bean
         fun embeddedMongoRuntimeConfig(
             downloadConfigBuilderCustomizers: ObjectProvider<DownloadConfigBuilderCustomizer>
-        ): RuntimeConfig {
+        ): RuntimeConfig? {
+            if (!memMongoProperty.enable) {
+                return null
+            }
+
             val logger = LoggerFactory.getLogger(javaClass.getPackage().name + ".EmbeddedMongo")
             val processOutput = ProcessOutput(
                 Processors.logTo(logger, Slf4jLevel.INFO),
