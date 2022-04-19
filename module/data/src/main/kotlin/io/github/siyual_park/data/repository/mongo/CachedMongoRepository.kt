@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.CriteriaDefinition
+import org.springframework.data.mongodb.core.query.Update
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import java.time.Duration
@@ -138,6 +139,14 @@ class CachedMongoRepository<T : Any, ID : Any>(
 
             return@flow emitAll(fallback())
         }
+    }
+
+    override suspend fun update(criteria: CriteriaDefinition, update: Update): T? {
+        return delegator.update(criteria, update)
+    }
+
+    override suspend fun update(entity: T, update: Update): T? {
+        return delegator.update(entity, update)
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {

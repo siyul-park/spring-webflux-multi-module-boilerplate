@@ -8,6 +8,7 @@ import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.CriteriaDefinition
+import org.springframework.data.mongodb.core.query.Update
 import kotlin.reflect.KClass
 
 interface MongoRepository<T : Any, ID : Any> : Repository<T, ID> {
@@ -24,6 +25,10 @@ interface MongoRepository<T : Any, ID : Any> : Repository<T, ID> {
         offset: Long? = null,
         sort: Sort? = null
     ): Flow<T>
+
+    suspend fun update(criteria: CriteriaDefinition, update: Update): T?
+
+    suspend fun update(entity: T, update: Update): T?
 
     suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T?
 

@@ -140,6 +140,30 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             .asFlow()
     }
 
+    override suspend fun update(criteria: CriteriaDefinition, update: Update): T? {
+        return findOne(criteria)?.let { update(it, update) }
+    }
+
+    override suspend fun update(entity: T, update: Update): T? {
+        val sourceDump = mutableMapOf<KProperty1<T, *>, Any?>()
+        clazz.memberProperties.forEach {
+            sourceDump[it] = it.get(entity)
+        }
+
+        return template.findAndModify(
+            Query.query(where(idProperty).`is`(idProperty.get(entity))),
+            update,
+            FindAndModifyOptions().returnNew(true),
+            clazz.java
+        )
+            .subscribeOn(scheduler)
+            .awaitSingleOrNull()
+            ?.also { target ->
+                val propertyDiff = diff(sourceDump, target)
+                eventPublisher?.publish(AfterUpdateEvent(target, propertyDiff))
+            }
+    }
+
     override suspend fun updateById(id: ID, patch: Patch<T>): T? {
         return updateById(id, patch.async())
     }
@@ -189,16 +213,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         }
 
         val target = patch.apply(entity)
-
-        val propertyDiff = mutableMapOf<KProperty1<T, *>, Any?>()
-        clazz.memberProperties.forEach {
-            val sourceValue = sourceDump[it]
-            val targetValue = it.get(target)
-
-            if (sourceValue != targetValue) {
-                propertyDiff[it] = targetValue
-            }
-        }
+        val propertyDiff = diff(sourceDump, target)
 
         if (eventPublisher != null) {
             findOne(where(idProperty).`is`(idProperty.get(entity)))
@@ -328,5 +343,19 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         )
             .subscribeOn(scheduler)
             .collect { }
+    }
+
+    private fun diff(source: Map<KProperty1<T, *>, Any?>, target: T): Map<KProperty1<T, *>, Any?> {
+        val propertyDiff = mutableMapOf<KProperty1<T, *>, Any?>()
+        clazz.memberProperties.forEach {
+            val sourceValue = source[it]
+            val targetValue = it.get(target)
+
+            if (sourceValue != targetValue) {
+                propertyDiff[it] = targetValue
+            }
+        }
+
+        return propertyDiff
     }
 }
