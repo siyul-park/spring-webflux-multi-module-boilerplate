@@ -13,8 +13,9 @@ import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.domain.token.Token
-import io.github.siyual_park.auth.domain.token.TokenFactory
+import io.github.siyual_park.auth.domain.token.TokenFactoryProvider
 import io.github.siyual_park.auth.domain.token.TokenStorage
+import io.github.siyual_park.auth.domain.token.TokenTemplate
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
 import io.github.siyual_park.json.bind.RequestForm
@@ -24,7 +25,6 @@ import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.user.domain.auth.PasswordGrantPayload
 import io.swagger.annotations.Api
 import kotlinx.coroutines.flow.toSet
-import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -42,7 +42,7 @@ import javax.validation.Valid
 class AuthController(
     private val authenticator: Authenticator,
     private val authorizator: Authorizator,
-    private val tokenFactory: TokenFactory,
+    tokenFactoryProvider: TokenFactoryProvider,
     private val principalRefresher: PrincipalRefresher,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val tokensProperty: TokensProperty,
@@ -59,6 +59,26 @@ class AuthController(
         scopeTokenStorage.loadOrFail("refresh-token:create")
     }
 
+    private val accessTokenFactory = AsyncLazy {
+        tokenFactoryProvider.get(
+            TokenTemplate(
+                type = "acs",
+                limit = listOf(
+                    "pid" to 1
+                ),
+                pop = setOf(accessTokenScope.get(), refreshTokenScope.get())
+            )
+        )
+    }
+    private val refreshTokenFactory = AsyncLazy {
+        tokenFactoryProvider.get(
+            TokenTemplate(
+                type = "rfr",
+                pop = setOf(refreshTokenScope.get()),
+            )
+        )
+    }
+
     @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
@@ -69,11 +89,7 @@ class AuthController(
             accessToken = accessToken.signature,
             tokenType = "bearer",
             expiresIn = tokensProperty.accessToken.age,
-            refreshToken = if (request.grantType == GrantType.REFRESH_TOKEN) {
-                null
-            } else {
-                refreshToken?.signature
-            }
+            refreshToken = refreshToken?.signature
         )
     }
 
@@ -117,34 +133,27 @@ class AuthController(
             ?.toSet()
 
         val refreshToken = if (request.grantType == GrantType.REFRESH_TOKEN) {
-            val originRefreshToken = tokenStorage.load(request.refreshToken!!)
-            val originAccessToken = originRefreshToken?.let {
-                tokenStorage.load(Criteria.where("claims.parent").`is`(it.id.toString()))
-            }
-            originAccessToken?.clear()
-
-            originRefreshToken
+            tokenStorage.load(request.refreshToken!!)
         } else if (authorizator.authorize(principal, refreshTokenScope.get())) {
-            tokenFactory.create(
+            refreshTokenFactory.get().create(
                 principal,
                 tokensProperty.refreshToken.age,
-                pop = setOf(refreshTokenScope.get()),
                 filter = scope,
-                type = "rfr"
             )
         } else {
             null
         }
-
-        val accessToken = tokenFactory.create(
+        val accessToken = accessTokenFactory.get().create(
             principal,
             tokensProperty.accessToken.age,
-            claims = refreshToken?.id?.toString()?.let { mapOf("parent" to it) },
-            pop = setOf(accessTokenScope.get(), refreshTokenScope.get()),
+            claims = refreshToken?.id?.toString()?.let { mapOf("pid" to it) },
             filter = scope,
-            type = "acs"
         )
 
-        return accessToken to refreshToken
+        return if (request.grantType != GrantType.REFRESH_TOKEN) {
+            accessToken to refreshToken
+        } else {
+            accessToken to null
+        }
     }
 }

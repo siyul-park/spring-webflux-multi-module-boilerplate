@@ -20,7 +20,8 @@ class CreateToken(
 
         collection.createIndex(BasicDBObject("signature", 1), IndexOptions().unique(true)).awaitSingle()
         collection.createIndex(BasicDBObject("expiredAt", 1), IndexOptions().expireAfter(0, TimeUnit.SECONDS)).awaitSingle()
-        collection.createIndex(BasicDBObject("claims.parent", 1)).awaitSingle()
+        collection.createIndex(BasicDBObject("claims.type", 1)).awaitSingle()
+        collection.createIndex(BasicDBObject("claims.pid", 1)).awaitSingle()
     }
 
     override suspend fun down() {

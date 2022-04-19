@@ -28,6 +28,9 @@ class Token(
     val id by proxyNotNull(root, TokenData::id)
     val signature by proxy(root, TokenData::signature)
     val claims by proxy(root, TokenData::claims)
+    var type: String?
+        set(value) { set("type", value) }
+        get() = get("type") as? String?
     private val expiredAt by proxy(root, TokenData::expiredAt)
 
     fun isActivated(): Boolean {
