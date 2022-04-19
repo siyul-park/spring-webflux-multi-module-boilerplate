@@ -19,8 +19,8 @@ class TokenRepository(
     TokenData::class,
     CacheBuilder.newBuilder()
         .softValues()
-        .expireAfterAccess(Duration.ofMinutes(10))
-        .expireAfterWrite(Duration.ofMinutes(30))
+        .expireAfterAccess(Duration.ofMinutes(2))
+        .expireAfterWrite(Duration.ofMinutes(1))
         .maximumSize(10_000),
     eventPublisher = eventPublisher
 )
