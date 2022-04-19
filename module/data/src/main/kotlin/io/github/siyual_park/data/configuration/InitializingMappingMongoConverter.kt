@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter
 
 @Configuration
-class MappingMongoConverterConfiguration(
+class InitializingMappingMongoConverter(
     private val mappingMongoConverter: MappingMongoConverter
 ) : InitializingBean {
     override fun afterPropertiesSet() {
