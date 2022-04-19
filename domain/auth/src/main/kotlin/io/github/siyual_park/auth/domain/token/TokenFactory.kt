@@ -27,7 +27,8 @@ class TokenFactory(
         age: Duration,
         pop: Set<ScopeToken>? = null,
         push: Set<ScopeToken>? = null,
-        filter: Set<ScopeToken>? = null
+        filter: Set<ScopeToken>? = null,
+        type: String? = null
     ): Token {
         val baseClaims = claimEmbedder.embedding(principal)
         val scope = mutableSetOf<ScopeToken>().also { scope ->
@@ -47,7 +48,7 @@ class TokenFactory(
         val expiredAt = now.plus(age)
         val data = retry(3) {
             TokenData(
-                signature = generateSignature(64),
+                signature = generateSignature(type, 40),
                 claims = claims,
                 expiredAt = expiredAt
             ).let { tokenRepository.create(it) }
@@ -57,12 +58,17 @@ class TokenFactory(
     }
 
     @Suppress("SameParameterValue")
-    private fun generateSignature(length: Int): String {
+    private fun generateSignature(type: String?, length: Int): String {
         val chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         val stringBuilder = StringBuilder(length)
         for (i in 0 until length) {
             stringBuilder.append(chars[random.nextInt(chars.length)])
         }
-        return stringBuilder.toString()
+
+        if (type == null) {
+            return stringBuilder.toString()
+        }
+
+        return "${type}_$stringBuilder"
     }
 }

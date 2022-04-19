@@ -89,14 +89,16 @@ class AuthController(
             principal,
             tokensProperty.accessToken.age,
             pop = setOf(accessTokenScope.get(), refreshTokenScope.get()),
-            filter = scope
+            filter = scope,
+            type = "acs"
         )
         val refreshToken = if (authorizator.authorize(principal, refreshTokenScope.get())) {
             tokenFactory.create(
                 principal,
                 tokensProperty.refreshToken.age,
                 pop = setOf(refreshTokenScope.get()),
-                filter = scope
+                filter = scope,
+                type = "rfr"
             )
         } else {
             null
