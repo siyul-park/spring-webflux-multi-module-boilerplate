@@ -1,11 +1,14 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import io.github.siyual_park.data.SoftDeletable
+import io.github.siyual_park.data.event.AfterDeleteEvent
+import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
@@ -21,9 +24,9 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     clazz: KClass<T>,
     scheduler: Scheduler = Schedulers.boundedElastic(),
-    eventPublisher: EventPublisher? = null,
+    private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
-    private val delegator = FilteredR2DBCRepository<T, ID>(
+    private val filteredRepository = FilteredR2DBCRepository<T, ID>(
         entityOperations,
         clazz,
         scheduler,
@@ -31,111 +34,117 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
         eventPublisher
     )
 
+    private val simpleRepository = SimpleR2DBCRepository<T, ID>(
+        entityOperations,
+        clazz,
+        scheduler
+    )
+
     override val entityManager: EntityManager<T, ID>
-        get() = delegator.entityManager
+        get() = filteredRepository.entityManager
 
     override suspend fun create(entity: T): T {
-        return delegator.create(entity)
+        return filteredRepository.create(entity)
     }
 
     override fun createAll(entities: Flow<T>): Flow<T> {
-        return delegator.createAll(entities)
+        return filteredRepository.createAll(entities)
     }
 
     override fun createAll(entities: Iterable<T>): Flow<T> {
-        return delegator.createAll(entities)
+        return filteredRepository.createAll(entities)
     }
 
     override suspend fun existsById(id: ID): Boolean {
-        return delegator.existsById(id)
+        return filteredRepository.existsById(id)
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        return delegator.exists(criteria)
+        return filteredRepository.exists(criteria)
     }
 
     override suspend fun findById(id: ID): T? {
-        return delegator.findById(id)
+        return filteredRepository.findById(id)
     }
 
     override fun findAllById(ids: Iterable<ID>): Flow<T> {
-        return delegator.findAllById(ids)
+        return filteredRepository.findAllById(ids)
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        return delegator.findOne(criteria)
+        return filteredRepository.findOne(criteria)
     }
 
     override fun findAll(): Flow<T> {
-        return delegator.findAll()
+        return filteredRepository.findAll()
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
-        return delegator.findAll(criteria, limit, offset, sort)
+        return filteredRepository.findAll(criteria, limit, offset, sort)
     }
 
     override suspend fun updateById(id: ID, patch: Patch<T>): T? {
-        return delegator.updateById(id, patch)
+        return filteredRepository.updateById(id, patch)
     }
 
     override suspend fun updateById(id: ID, patch: AsyncPatch<T>): T? {
-        return delegator.updateById(id, patch)
+        return filteredRepository.updateById(id, patch)
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
-        return delegator.updateAllById(ids, patch)
+        return filteredRepository.updateAllById(ids, patch)
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
-        return delegator.updateAllById(ids, patch)
+        return filteredRepository.updateAllById(ids, patch)
     }
 
     override fun updateAll(entity: Iterable<T>): Flow<T?> {
-        return delegator.updateAll(entity)
+        return filteredRepository.updateAll(entity)
     }
 
     override fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
-        return delegator.updateAll(entity)
+        return filteredRepository.updateAll(entity)
     }
 
     override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
-        return delegator.updateAll(entity, patch)
+        return filteredRepository.updateAll(entity, patch)
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {
-        return delegator.update(entity, patch)
+        return filteredRepository.update(entity, patch)
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
-        return delegator.update(criteria, patch)
+        return filteredRepository.update(criteria, patch)
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
-        return delegator.update(criteria, patch)
+        return filteredRepository.update(criteria, patch)
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return delegator.updateAll(criteria, patch)
+        return filteredRepository.updateAll(criteria, patch)
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
-        return delegator.updateAll(criteria, patch)
+        return filteredRepository.updateAll(criteria, patch)
     }
 
     override suspend fun update(entity: T): T? {
-        return delegator.update(entity)
+        return filteredRepository.update(entity)
     }
 
     override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
-        return delegator.update(entity, patch)
+        return filteredRepository.update(entity, patch)
     }
 
     override suspend fun count(): Long {
-        return delegator.count()
+        return filteredRepository.count()
     }
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
-        return delegator.count(criteria)
+        return filteredRepository.count(criteria)
     }
 
     override suspend fun deleteById(id: ID) {
@@ -169,11 +178,17 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
-        delegator.updateAll(
-            delegator.findAll(criteria, limit, offset, sort).toList(),
+        val target = simpleRepository.findAll(criteria, limit, offset, sort).toList()
+        target.forEach { eventPublisher?.publish(BeforeDeleteEvent(it)) }
+        simpleRepository.updateAll(
+            target,
             Patch.with {
                 it.deletedAt = Instant.now()
             }
-        ).collect { }
+        )
+            .filterNotNull()
+            .collect {
+                eventPublisher?.publish(AfterDeleteEvent(it))
+            }
     }
 }

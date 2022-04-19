@@ -16,12 +16,13 @@ class CreateToken(
     private val tableName = "tokens"
 
     override suspend fun up() {
-        val collection = template.createCollection(tableName).awaitSingle()
+        template.createCollection(tableName).awaitSingle().apply {
+            createIndex(BasicDBObject("signature", 1), IndexOptions().unique(true)).awaitSingle()
+            createIndex(BasicDBObject("expiredAt", 1), IndexOptions().expireAfter(0, TimeUnit.SECONDS)).awaitSingle()
 
-        collection.createIndex(BasicDBObject("signature", 1), IndexOptions().unique(true)).awaitSingle()
-        collection.createIndex(BasicDBObject("expiredAt", 1), IndexOptions().expireAfter(0, TimeUnit.SECONDS)).awaitSingle()
-        collection.createIndex(BasicDBObject("claims.type", 1)).awaitSingle()
-        collection.createIndex(BasicDBObject("claims.pid", 1)).awaitSingle()
+            createIndex(BasicDBObject("claims.type", 1)).awaitSingle()
+            createIndex(BasicDBObject("claims.pid", 1)).awaitSingle()
+        }
     }
 
     override suspend fun down() {

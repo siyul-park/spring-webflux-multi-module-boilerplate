@@ -30,9 +30,9 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.FindAndModifyOptions
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.data.mongodb.core.count
 import org.springframework.data.mongodb.core.query.CriteriaDefinition
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Query.query
 import org.springframework.data.mongodb.core.query.Update
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
@@ -85,7 +85,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        return template.exists(Query.query(criteria), clazz.java).awaitSingle()
+        return template.exists(query(criteria), clazz.java).awaitSingle()
     }
 
     override suspend fun findById(id: ID): T? {
@@ -94,7 +94,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
         return template
-            .findOne(Query.query(criteria), clazz.java)
+            .findOne(query(criteria), clazz.java)
             .awaitSingle()
     }
 
@@ -106,7 +106,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         var query = if (criteria == null) {
             Query()
         } else {
-            Query.query(criteria)
+            query(criteria)
         }
         limit?.let {
             query = query.limit(it)
@@ -151,7 +151,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         }
 
         return template.findAndModify(
-            Query.query(where(idProperty).`is`(idProperty.get(entity))),
+            query(where(idProperty).`is`(idProperty.get(entity))),
             update,
             FindAndModifyOptions().returnNew(true),
             clazz.java
@@ -188,7 +188,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
 
         return template.findAndModify(
-            Query.query(where(idProperty).`is`(idProperty.get(entity))),
+            query(where(idProperty).`is`(idProperty.get(entity))),
             Update().also {
                 propertyDiff.forEach { (key, value) ->
                     it[fieldName(key)] = value
@@ -221,7 +221,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         }
 
         return template.findAndModify(
-            Query.query(where(idProperty).`is`(idProperty.get(entity))),
+            query(where(idProperty).`is`(idProperty.get(entity))),
             Update().also {
                 propertyDiff.forEach { (key, value) ->
                     it[fieldName(key)] = value
@@ -282,7 +282,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
         return template.count(
-            if (criteria == null) Query() else Query.query(criteria),
+            if (criteria == null) Query() else query(criteria),
             clazz.java
         )
             .subscribeOn(scheduler)
@@ -297,7 +297,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeDeleteEvent(entity))
 
         template.findAndRemove(
-            Query.query(where(idProperty).`is`(idProperty.get(entity))),
+            query(where(idProperty).`is`(idProperty.get(entity))),
             clazz.java
         )
             .subscribeOn(scheduler)
@@ -327,7 +327,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         var query = if (criteria == null) {
             Query()
         } else {
-            Query.query(criteria)
+            query(criteria)
         }
         limit?.let {
             query = query.limit(it)
@@ -337,12 +337,30 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         }
         query = query.with(sort ?: Sort.by(Sort.Order.asc(fieldName(idProperty))))
 
-        template.findAllAndRemove(
-            query,
-            clazz.java
-        )
-            .subscribeOn(scheduler)
-            .collect { }
+        if (eventPublisher == null) {
+            template.findAllAndRemove(
+                query,
+                clazz.java
+            )
+                .subscribeOn(scheduler)
+                .collect { }
+        } else {
+            val entities = template.find(query, clazz.java)
+                .asFlow()
+                .onEach { eventPublisher.publish(BeforeDeleteEvent(it)) }
+                .toList()
+            val ids = entities.map { idProperty.get(it) }
+            if (ids.isEmpty()) {
+                return
+            }
+
+            template.findAllAndRemove(
+                query(where(idProperty).`in`(ids.toList())),
+                clazz.java
+            )
+                .subscribeOn(scheduler)
+                .collect { eventPublisher.publish(AfterDeleteEvent(it)) }
+        }
     }
 
     private fun diff(source: Map<KProperty1<T, *>, Any?>, target: T): Map<KProperty1<T, *>, Any?> {

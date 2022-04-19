@@ -1,15 +1,20 @@
 package io.github.siyual_park.user.migration
 
+import com.mongodb.BasicDBObject
 import io.github.siyual_park.data.migration.Migration
 import io.github.siyual_park.data.migration.createUniqueIndex
 import io.github.siyual_park.data.migration.createUpdatedAtTrigger
 import io.github.siyual_park.data.migration.dropTable
 import io.github.siyual_park.data.migration.fetchSQL
 import io.github.siyual_park.data.migration.isDriver
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingle
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
 class CreateUser(
-    private val entityOperations: R2dbcEntityOperations
+    private val entityOperations: R2dbcEntityOperations,
+    private val mongoTemplate: ReactiveMongoTemplate
 ) : Migration {
     private val tableName = "users"
 
@@ -47,9 +52,17 @@ class CreateUser(
 
         entityOperations.createUniqueIndex(tableName, listOf("name"))
         entityOperations.createUniqueIndex(tableName, listOf("email"))
+
+        mongoTemplate.getCollection("tokens").awaitSingle().apply {
+            createIndex(BasicDBObject("claims.uid", 1)).awaitSingle()
+        }
     }
 
     override suspend fun down() {
         entityOperations.dropTable(tableName)
+
+        mongoTemplate.getCollection("tokens").awaitSingle().apply {
+            dropIndex(BasicDBObject("claims.uid", 1)).awaitSingle()
+        }
     }
 }

@@ -50,7 +50,7 @@ class FilteredR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        return delegator.exists(criteria)
+        return delegator.exists(filtered(criteria))
     }
 
     override suspend fun findById(id: ID): T? {

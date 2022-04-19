@@ -26,10 +26,10 @@ class MigrationConfiguration(
             .register(CreateScopeToken(entityOperations))
             .register(CreateScopeRelation(entityOperations))
             .register(CreateToken(mongoTemplate))
-            .register(CreateClient(entityOperations))
+            .register(CreateClient(entityOperations, mongoTemplate))
             .register(CreateClientCredential(entityOperations))
             .register(CreateClientScope(entityOperations))
-            .register(CreateUser(entityOperations))
+            .register(CreateUser(entityOperations, mongoTemplate))
             .register(CreateUserCredential(entityOperations))
             .register(CreateUserScope(entityOperations))
     }
