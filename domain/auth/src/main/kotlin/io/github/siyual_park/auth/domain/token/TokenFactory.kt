@@ -25,6 +25,7 @@ class TokenFactory(
     suspend fun create(
         principal: Principal,
         age: Duration,
+        claims: Map<String, Any> = mapOf(),
         pop: Set<ScopeToken>? = null,
         push: Set<ScopeToken>? = null,
         filter: Set<ScopeToken>? = null,
@@ -40,16 +41,16 @@ class TokenFactory(
             push?.let { scope.addAll(it) }
         }
 
-        val claims = mutableMapOf<String, Any>()
-        claims.putAll(baseClaims)
-        claims["scope"] = scope.map { it.id.toString() }
+        val finalClaims = claims.toMutableMap()
+        finalClaims.putAll(baseClaims)
+        finalClaims["scope"] = scope.map { it.id.toString() }
 
         val now = Instant.now()
         val expiredAt = now.plus(age)
         val data = retry(3) {
             TokenData(
                 signature = generateSignature(type, 40),
-                claims = claims,
+                claims = finalClaims,
                 expiredAt = expiredAt
             ).let { tokenRepository.create(it) }
         }
