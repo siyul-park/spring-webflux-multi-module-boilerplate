@@ -25,7 +25,7 @@ class TokenFactory(
     suspend fun create(
         principal: Principal,
         age: Duration,
-        claims: Map<String, Any> = mapOf(),
+        claims: Map<String, Any>? = null,
         pop: Set<ScopeToken>? = null,
         push: Set<ScopeToken>? = null,
         filter: Set<ScopeToken>? = null,
@@ -41,7 +41,7 @@ class TokenFactory(
             push?.let { scope.addAll(it) }
         }
 
-        val finalClaims = claims.toMutableMap()
+        val finalClaims = claims?.toMutableMap() ?: mutableMapOf()
         finalClaims.putAll(baseClaims)
         finalClaims["scope"] = scope.map { it.id.toString() }
 

@@ -22,7 +22,7 @@ class CreateClientCredential(
 
                     "client_id BYTEA NOT NULL REFERENCES clients (id), " +
 
-                    "secret VARCHAR(128) NOT NULL, " +
+                    "secret VARCHAR(32) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
@@ -37,7 +37,7 @@ class CreateClientCredential(
 
                     "client_id BINARY(16) NOT NULL REFERENCES clients (id), " +
 
-                    "secret VARCHAR(128) NOT NULL, " +
+                    "secret VARCHAR(32) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +

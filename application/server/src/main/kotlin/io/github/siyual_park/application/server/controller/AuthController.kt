@@ -12,7 +12,9 @@ import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
+import io.github.siyual_park.auth.domain.token.Token
 import io.github.siyual_park.auth.domain.token.TokenFactory
+import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
 import io.github.siyual_park.json.bind.RequestForm
@@ -22,6 +24,7 @@ import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.user.domain.auth.PasswordGrantPayload
 import io.swagger.annotations.Api
 import kotlinx.coroutines.flow.toSet
+import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -43,6 +46,7 @@ class AuthController(
     private val principalRefresher: PrincipalRefresher,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val tokensProperty: TokensProperty,
+    private val tokenStorage: TokenStorage,
     private val mapperContext: MapperContext,
 ) {
     private val tokenScope = AsyncLazy {
@@ -58,6 +62,29 @@ class AuthController(
     @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
+        val principal = authenticate(request)
+        val (accessToken, refreshToken) = createTokens(principal, request)
+
+        return TokenInfo(
+            accessToken = accessToken.signature,
+            tokenType = "bearer",
+            expiresIn = tokensProperty.accessToken.age,
+            refreshToken = if (request.grantType == GrantType.REFRESH_TOKEN) {
+                null
+            } else {
+                refreshToken?.signature
+            }
+        )
+    }
+
+    @GetMapping("/principal")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'principal[self]:read')")
+    suspend fun readSelf(@AuthenticationPrincipal principal: Principal): PrincipalInfo {
+        return mapperContext.map(principal)
+    }
+
+    suspend fun authenticate(request: CreateTokenRequest): Principal {
         authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
             .also {
                 if (!authorizator.authorize(it, tokenScope.get())) {
@@ -65,7 +92,7 @@ class AuthController(
                 }
             }
 
-        var principal = authenticator.authenticate(
+        val principal = authenticator.authenticate(
             when (request.grantType) {
                 GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!, request.clientId)
                 GrantType.CLIENT_CREDENTIALS -> ClientCredentialsGrantPayload(request.clientId, request.clientSecret)
@@ -73,26 +100,31 @@ class AuthController(
             }
         )
 
-        if (request.grantType == GrantType.REFRESH_TOKEN) {
-            principal = principalRefresher.refresh(principal)
-        }
-
-        val scope = request.scope?.split(" ")
-            ?.let { scopeTokenStorage.load(it) }
-            ?.toSet()
-
         if (!authorizator.authorize(principal, accessTokenScope.get())) {
             throw RequiredPermissionException()
         }
 
-        val accessToken = tokenFactory.create(
-            principal,
-            tokensProperty.accessToken.age,
-            pop = setOf(accessTokenScope.get(), refreshTokenScope.get()),
-            filter = scope,
-            type = "acs"
-        )
-        val refreshToken = if (authorizator.authorize(principal, refreshTokenScope.get())) {
+        if (request.grantType == GrantType.REFRESH_TOKEN) {
+            return principalRefresher.refresh(principal)
+        }
+
+        return principal
+    }
+
+    suspend fun createTokens(principal: Principal, request: CreateTokenRequest): Pair<Token, Token?> {
+        val scope = request.scope?.split(" ")
+            ?.let { scopeTokenStorage.load(it) }
+            ?.toSet()
+
+        val refreshToken = if (request.grantType == GrantType.REFRESH_TOKEN) {
+            val originRefreshToken = tokenStorage.load(request.refreshToken!!)
+            val originAccessToken = originRefreshToken?.let {
+                tokenStorage.load(Criteria.where("claims.parent").`is`(it.id.toString()))
+            }
+            originAccessToken?.clear()
+
+            originRefreshToken
+        } else if (authorizator.authorize(principal, refreshTokenScope.get())) {
             tokenFactory.create(
                 principal,
                 tokensProperty.refreshToken.age,
@@ -104,18 +136,15 @@ class AuthController(
             null
         }
 
-        return TokenInfo(
-            accessToken = accessToken.signature,
-            tokenType = "bearer",
-            expiresIn = tokensProperty.accessToken.age,
-            refreshToken = refreshToken?.signature
+        val accessToken = tokenFactory.create(
+            principal,
+            tokensProperty.accessToken.age,
+            claims = refreshToken?.id?.toString()?.let { mapOf("parent" to it) },
+            pop = setOf(accessTokenScope.get(), refreshTokenScope.get()),
+            filter = scope,
+            type = "acs"
         )
-    }
 
-    @GetMapping("/principal")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'principal[self]:read')")
-    suspend fun readSelf(@AuthenticationPrincipal principal: Principal): PrincipalInfo {
-        return mapperContext.map(principal)
+        return accessToken to refreshToken
     }
 }

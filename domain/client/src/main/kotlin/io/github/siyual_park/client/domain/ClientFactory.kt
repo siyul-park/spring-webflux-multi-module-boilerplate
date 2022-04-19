@@ -72,7 +72,7 @@ class ClientFactory(
         return clientCredentialRepository.create(
             ClientCredentialData(
                 clientId = client.id,
-                secret = generateRandomSecret(64)
+                secret = generateRandomSecret(32)
             )
         )
     }
