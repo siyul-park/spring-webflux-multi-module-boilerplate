@@ -1,23 +1,22 @@
 package io.github.siyual_park.client.domain.auth
 
 import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
-import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
-import io.github.siyual_park.auth.domain.authentication.AuthorizationStrategy
+import io.github.siyual_park.auth.domain.authentication.AuthenticateStrategy
+import io.github.siyual_park.auth.domain.authentication.RefreshTokenPayload
 import io.github.siyual_park.auth.domain.token.TokenStorage
-import io.github.siyual_park.persistence.loadOrFail
 import kotlinx.coroutines.flow.toSet
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
-@AuthenticateMapping(filterBy = AuthorizationPayload::class)
+@AuthenticateMapping(filterBy = RefreshTokenPayload::class)
 @Order(Ordered.LOWEST_PRECEDENCE)
-class BearerAuthorizationStrategy(
+class RefreshTokenAuthorizationStrategy(
     private val tokenStorage: TokenStorage
-) : AuthorizationStrategy<ClientPrincipal>("bearer") {
-    override suspend fun authenticate(credentials: String): ClientPrincipal? {
-        val token = tokenStorage.loadOrFail(credentials)
+) : AuthenticateStrategy<RefreshTokenPayload, ClientPrincipal> {
+    override suspend fun authenticate(payload: RefreshTokenPayload): ClientPrincipal? {
+        val token = tokenStorage.loadOrFail(payload.refreshToken)
         if (token["cid"] == null) {
             return null
         }

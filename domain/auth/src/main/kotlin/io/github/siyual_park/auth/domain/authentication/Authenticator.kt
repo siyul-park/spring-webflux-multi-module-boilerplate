@@ -8,9 +8,15 @@ import org.springframework.stereotype.Component
 @Component
 class Authenticator {
     private val strategies = mutableListOf<Pair<AuthenticateFilter, AuthenticateStrategy<*, *>>>()
+    private val pipelines = mutableListOf<Pair<AuthenticateFilter, AuthenticatePipeline<*>>>()
 
     fun register(filter: AuthenticateFilter, strategy: AuthenticateStrategy<*, *>): Authenticator {
         strategies.add(filter to strategy)
+        return this
+    }
+
+    fun register(filter: AuthenticateFilter, pipeline: AuthenticatePipeline<*>): Authenticator {
+        pipelines.add(filter to pipeline)
         return this
     }
 
@@ -18,6 +24,9 @@ class Authenticator {
         val strategies = strategies
             .filter { (filter, _) -> filter.isSubscribe(payload) }
             .map { (_, strategy) -> strategy }
+        val pipelines = pipelines
+            .filter { (filter, _) -> filter.isSubscribe(payload) }
+            .map { (_, pipeline) -> pipeline }
 
         var exception: RuntimeException? = null
         for (strategy in strategies) {
@@ -25,7 +34,9 @@ class Authenticator {
             try {
                 val principal = strategy.authenticate(payload)
                 if (principal != null) {
-                    return principal
+                    return pipelines.fold(principal) { acc, pipeline ->
+                        (pipeline as AuthenticatePipeline<Principal>).pipe(acc)
+                    }
                 }
             } catch (e: RuntimeException) {
                 exception = e

@@ -7,9 +7,8 @@ import io.github.siyual_park.application.server.dto.response.TokenInfo
 import io.github.siyual_park.application.server.property.TokensProperty
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authentication.Authenticator
-import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
+import io.github.siyual_park.auth.domain.authentication.RefreshTokenPayload
 import io.github.siyual_park.auth.domain.authorization.Authorizator
-import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.domain.token.Token
@@ -43,7 +42,6 @@ class AuthController(
     private val authenticator: Authenticator,
     private val authorizator: Authorizator,
     tokenFactoryProvider: TokenFactoryProvider,
-    private val principalRefresher: PrincipalRefresher,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val tokensProperty: TokensProperty,
     private val tokenStorage: TokenStorage,
@@ -112,16 +110,12 @@ class AuthController(
             when (request.grantType) {
                 GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!, request.clientId)
                 GrantType.CLIENT_CREDENTIALS -> ClientCredentialsGrantPayload(request.clientId, request.clientSecret)
-                GrantType.REFRESH_TOKEN -> AuthorizationPayload("bearer", request.refreshToken!!)
+                GrantType.REFRESH_TOKEN -> RefreshTokenPayload(request.refreshToken!!)
             }
         )
 
         if (!authorizator.authorize(principal, accessTokenScope.get())) {
             throw RequiredPermissionException()
-        }
-
-        if (request.grantType == GrantType.REFRESH_TOKEN) {
-            return principalRefresher.refresh(principal)
         }
 
         return principal
