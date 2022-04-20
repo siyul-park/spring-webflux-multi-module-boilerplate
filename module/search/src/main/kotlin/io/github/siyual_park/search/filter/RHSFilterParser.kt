@@ -3,12 +3,11 @@ package io.github.siyual_park.search.filter
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.search.exception.FilterInvalidException
-import org.springframework.data.relational.core.query.Criteria
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
-abstract class RHSFilterParser<T : Any, C: Any>(
+abstract class RHSFilterParser<T : Any, C : Any>(
     private val clazz: KClass<T>,
     private val objectMapper: ObjectMapper
 ) {
