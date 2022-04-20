@@ -80,7 +80,7 @@ class AuthController(
     @PostMapping("/token", consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
-        val principal = authenticate(request)
+        val principal = auth(request)
         val (accessToken, refreshToken) = createTokens(principal, request)
 
         return TokenInfo(
@@ -91,37 +91,27 @@ class AuthController(
         )
     }
 
-    @GetMapping("/principal")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'principal[self]:read')")
-    suspend fun readSelf(@AuthenticationPrincipal principal: Principal): PrincipalInfo {
-        return mapperContext.map(principal)
-    }
-
-    suspend fun authenticate(request: CreateTokenRequest): Principal {
+    suspend fun auth(request: CreateTokenRequest): Principal {
         authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
             .also {
                 if (!authorizator.authorize(it, tokenScope.get())) {
                     throw RequiredPermissionException()
                 }
             }
-
-        val principal = authenticator.authenticate(
+        return authenticator.authenticate(
             when (request.grantType) {
                 GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!, request.clientId)
                 GrantType.CLIENT_CREDENTIALS -> ClientCredentialsGrantPayload(request.clientId, request.clientSecret)
                 GrantType.REFRESH_TOKEN -> RefreshTokenPayload(request.refreshToken!!)
             }
         )
+    }
 
+    suspend fun createTokens(principal: Principal, request: CreateTokenRequest): Pair<Token, Token?> {
         if (!authorizator.authorize(principal, accessTokenScope.get())) {
             throw RequiredPermissionException()
         }
 
-        return principal
-    }
-
-    suspend fun createTokens(principal: Principal, request: CreateTokenRequest): Pair<Token, Token?> {
         val scope = request.scope?.split(" ")
             ?.let { scopeTokenStorage.load(it) }
             ?.toSet()
@@ -149,5 +139,12 @@ class AuthController(
         } else {
             accessToken to null
         }
+    }
+
+    @GetMapping("/principal")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission(null, 'principal[self]:read')")
+    suspend fun readSelf(@AuthenticationPrincipal principal: Principal): PrincipalInfo {
+        return mapperContext.map(principal)
     }
 }
