@@ -6,7 +6,6 @@ import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
@@ -55,7 +54,7 @@ class UserController(
 ) {
     private val authorizableContoller = AuthorizableContoller(userStorage, scopeTokenStorage, mapperContext)
 
-    private val rhsFilterParser = rhsFilterParserFactory.create(UserData::class)
+    private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(UserData::class)
     private val sortParser = sortParserFactory.create(UserData::class)
 
     private val offsetPaginator = OffsetPaginator(userStorage)

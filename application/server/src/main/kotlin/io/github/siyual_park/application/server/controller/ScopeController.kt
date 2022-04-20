@@ -49,7 +49,7 @@ class ScopeController(
 ) {
     private val authorizableContoller = AuthorizableContoller(scopeTokenStorage, scopeTokenStorage, mapperContext)
 
-    private val rhsFilterParser = rhsFilterParserFactory.create(ScopeTokenData::class)
+    private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ScopeTokenData::class)
     private val sortParser = sortParserFactory.create(ScopeTokenData::class)
 
     private val offsetPaginator = OffsetPaginator(scopeTokenStorage)

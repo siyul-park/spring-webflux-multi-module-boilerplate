@@ -8,15 +8,15 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
-class RHSFilterParser<T : Any>(
+abstract class RHSFilterParser<T : Any, C: Any>(
     private val clazz: KClass<T>,
     private val objectMapper: ObjectMapper
 ) {
     private val regex = Regex("(.[^:]+):(.+)")
 
-    fun parse(query: Map<KProperty1<T, *>, Collection<String?>>): Criteria {
+    fun parse(query: Map<KProperty1<T, *>, Collection<String?>>): C {
         try {
-            var criteria = Criteria.empty()
+            var criteria = empty()
             query.forEach { (key, values) ->
                 val property = clazz.memberProperties.find { it == key } ?: return@forEach
                 val columnName = columnName(property)
@@ -28,9 +28,10 @@ class RHSFilterParser<T : Any>(
                     val (operator, operand) = result.destructured
 
                     val parsed = convert(operand, clazz)
-                    criteria = criteria.and(
-                        createCriteria(
-                            Criteria.where(columnName),
+                    criteria = and(
+                        criteria,
+                        create(
+                            columnName,
                             operator,
                             parsed
                         )
@@ -67,16 +68,7 @@ class RHSFilterParser<T : Any>(
         return converted
     }
 
-    private fun createCriteria(step: Criteria.CriteriaStep, operator: String, value: Any): Criteria {
-        return when (operator) {
-            "ne" -> step.not(value)
-            "eq" -> step.`is`(value)
-            "like" -> step.like(value)
-            "gt" -> step.greaterThan(value)
-            "gte" -> step.greaterThanOrEquals(value)
-            "lt" -> step.lessThan(value)
-            "lte" -> step.lessThanOrEquals(value)
-            else -> throw FilterInvalidException("Not support operator.")
-        }
-    }
+    protected abstract fun empty(): C
+    protected abstract fun and(x: C, y: C): C
+    protected abstract fun create(columnName: String, operator: String, value: Any): C
 }

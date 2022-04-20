@@ -7,7 +7,6 @@ import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
@@ -57,7 +56,7 @@ class ClientController(
 ) {
     private val authorizableContoller = AuthorizableContoller(clientStorage, scopeTokenStorage, mapperContext)
 
-    private val rhsFilterParser = rhsFilterParserFactory.create(ClientData::class)
+    private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ClientData::class)
     private val sortParser = sortParserFactory.create(ClientData::class)
 
     private val offsetPaginator = OffsetPaginator(clientStorage)
