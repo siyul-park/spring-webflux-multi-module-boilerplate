@@ -81,7 +81,7 @@ class AuthController(
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun createToken(@Valid @RequestForm request: CreateTokenRequest): TokenInfo {
         val principal = auth(request)
-        val (accessToken, refreshToken) = createTokens(principal, request)
+        val (accessToken, refreshToken) = issue(principal, request)
 
         return TokenInfo(
             accessToken = accessToken.signature,
@@ -91,7 +91,7 @@ class AuthController(
         )
     }
 
-    suspend fun auth(request: CreateTokenRequest): Principal {
+    private suspend fun auth(request: CreateTokenRequest): Principal {
         authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
             .also {
                 if (!authorizator.authorize(it, tokenScope.get())) {
@@ -107,7 +107,7 @@ class AuthController(
         )
     }
 
-    suspend fun createTokens(principal: Principal, request: CreateTokenRequest): Pair<Token, Token?> {
+    private suspend fun issue(principal: Principal, request: CreateTokenRequest): Pair<Token, Token?> {
         if (!authorizator.authorize(principal, accessTokenScope.get())) {
             throw RequiredPermissionException()
         }
