@@ -96,7 +96,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
         return template
             .findOne(query(criteria), clazz.java)
-            .awaitSingle()
+            .awaitSingleOrNull()
     }
 
     override fun findAll(): Flow<T> {
@@ -302,7 +302,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             clazz.java
         )
             .subscribeOn(scheduler)
-            .awaitSingle()
+            .awaitSingleOrNull()
 
         eventPublisher?.publish(AfterDeleteEvent(entity))
     }
