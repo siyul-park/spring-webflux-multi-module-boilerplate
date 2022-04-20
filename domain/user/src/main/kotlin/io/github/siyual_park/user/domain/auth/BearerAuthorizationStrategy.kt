@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 @Order(Ordered.LOWEST_PRECEDENCE - 1)
 class BearerAuthorizationStrategy(
     private val tokenStorage: TokenStorage
-) : AuthorizationStrategy<UserPrincipal>("bearer") {
+) : AuthorizationStrategy<UserPrincipal>("Bearer") {
     override suspend fun authenticate(credentials: String): UserPrincipal? {
         val token = tokenStorage.loadOrFail(credentials)
         if (token["uid"] == null) {

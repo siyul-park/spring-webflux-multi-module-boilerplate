@@ -35,6 +35,6 @@ class AuthorizationHeaderGenerator(
             Duration.ofDays(1),
             pop = setOf(accessTokenScope.get(), refreshTokenScope.get())
         )
-        return "bearer ${token.signature}"
+        return "Bearer ${token.signature}"
     }
 }

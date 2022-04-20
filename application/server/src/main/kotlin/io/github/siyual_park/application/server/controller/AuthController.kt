@@ -85,7 +85,7 @@ class AuthController(
 
         return TokenInfo(
             accessToken = accessToken.signature,
-            tokenType = "bearer",
+            tokenType = "Bearer",
             expiresIn = tokensProperty.accessToken.age,
             refreshToken = refreshToken?.signature
         )

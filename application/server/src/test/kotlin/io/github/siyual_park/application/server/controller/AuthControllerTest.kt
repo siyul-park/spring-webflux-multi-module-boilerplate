@@ -49,7 +49,7 @@ class AuthControllerTest @Autowired constructor(
         val tokens = tokenResponse.responseBody.awaitSingle()
 
         assertTrue(tokens.accessToken.isNotEmpty())
-        assertEquals("bearer", tokens.tokenType)
+        assertEquals("Bearer", tokens.tokenType)
         assertTrue(tokens.expiresIn.seconds > 0L)
         assertNotNull(tokens.refreshToken)
     }
@@ -134,7 +134,7 @@ class AuthControllerTest @Autowired constructor(
         val tokens = tokenResponse.responseBody.awaitSingle()
 
         assertTrue(tokens.accessToken.isNotEmpty())
-        assertEquals("bearer", tokens.tokenType)
+        assertEquals("Bearer", tokens.tokenType)
         assertTrue(tokens.expiresIn.seconds > 0L)
         assertNull(tokens.refreshToken)
     }
@@ -170,7 +170,7 @@ class AuthControllerTest @Autowired constructor(
         val tokens = response.responseBody.awaitSingle()
 
         assertTrue(tokens.accessToken.isNotEmpty())
-        assertEquals("bearer", tokens.tokenType)
+        assertEquals("Bearer", tokens.tokenType)
         assertTrue(tokens.expiresIn.seconds > 0L)
         assertNull(tokens.refreshToken)
     }
