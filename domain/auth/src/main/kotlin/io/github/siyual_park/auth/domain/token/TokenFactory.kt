@@ -90,8 +90,9 @@ class TokenFactory(
             }
 
             val existed = tokenStorage.load(query, limit = null).toList()
-            if (existed.size >= limit) {
-                existed.subList(0, limit - existed.size + 1).forEach {
+            val removeSize = existed.size - limit + 1
+            if (removeSize > 0) {
+                existed.subList(0, removeSize).forEach {
                     it.clear()
                 }
             }
