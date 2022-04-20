@@ -7,6 +7,7 @@ import java.time.Instant
 
 @Document("tokens")
 data class TokenData(
+    var type: String?,
     @Key("signature")
     var signature: String,
     var claims: Map<String, Any>,

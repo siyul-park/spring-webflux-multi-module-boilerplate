@@ -26,11 +26,9 @@ class Token(
     eventPublisher: EventPublisher
 ) : Persistence<TokenData, ULID>(value, tokenRepository, eventPublisher), Authorizable {
     val id by proxyNotNull(root, TokenData::id)
+    val type by proxy(root, TokenData::type)
     val signature by proxy(root, TokenData::signature)
     val claims by proxy(root, TokenData::claims)
-    var type: String?
-        set(value) { set("type", value) }
-        get() = get("type") as? String?
     private val expiredAt by proxy(root, TokenData::expiredAt)
 
     fun isActivated(): Boolean {

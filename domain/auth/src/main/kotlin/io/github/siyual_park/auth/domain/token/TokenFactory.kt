@@ -7,6 +7,7 @@ import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.util.retry
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.and
 import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
@@ -57,6 +58,7 @@ class TokenFactory(
         val expiredAt = now.plus(age)
         val data = retry(3) {
             TokenData(
+                type = template.type,
                 signature = generateSignature(template.type, 40),
                 claims = finalClaims,
                 expiredAt = expiredAt
@@ -84,7 +86,7 @@ class TokenFactory(
 
             var query = Criteria.where("claims.$key").`is`(value)
             if (template.type != null) {
-                query = query.and("claims.type").`is`(template.type)
+                query = query.and(TokenData::type).`is`(template.type)
             }
 
             val existed = tokenStorage.load(query, limit = null).toList()

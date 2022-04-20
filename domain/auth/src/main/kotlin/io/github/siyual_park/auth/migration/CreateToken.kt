@@ -17,10 +17,10 @@ class CreateToken(
 
     override suspend fun up() {
         template.createCollection(tableName).awaitSingle().apply {
+            createIndex(BasicDBObject("type", 1)).awaitSingle()
             createIndex(BasicDBObject("signature", 1), IndexOptions().unique(true)).awaitSingle()
             createIndex(BasicDBObject("expiredAt", 1), IndexOptions().expireAfter(0, TimeUnit.SECONDS)).awaitSingle()
 
-            createIndex(BasicDBObject("claims.type", 1)).awaitSingle()
             createIndex(BasicDBObject("claims.pid", 1)).awaitSingle()
         }
     }

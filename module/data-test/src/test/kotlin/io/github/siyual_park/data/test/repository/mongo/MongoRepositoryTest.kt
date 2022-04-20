@@ -10,7 +10,6 @@ import io.github.siyual_park.data.repository.mongo.MongoRepository
 import io.github.siyual_park.data.repository.mongo.SimpleMongoRepository
 import io.github.siyual_park.data.repository.mongo.UpdateTimestamp
 import io.github.siyual_park.data.repository.mongo.findOneOrFail
-import io.github.siyual_park.data.repository.mongo.where
 import io.github.siyual_park.data.test.MongoTest
 import io.github.siyual_park.data.test.dummy.DummyPerson
 import io.github.siyual_park.data.test.entity.Person
@@ -24,6 +23,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.springframework.data.mongodb.core.query.where
 
 class MongoRepositoryTest : MongoTest() {
     private val eventEmitter = EventEmitter()
