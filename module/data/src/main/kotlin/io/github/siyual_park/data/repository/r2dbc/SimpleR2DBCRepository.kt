@@ -21,10 +21,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.asFlux
 import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Sort.Order.asc
 import org.springframework.data.domain.Sort.by
@@ -121,13 +121,13 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        return this.entityOperations.selectOne(
+        return this.entityOperations.select(
             query(criteria)
                 .limit(1),
             clazz.java
         )
             .subscribeOn(scheduler)
-            .awaitSingleOrNull()
+            .awaitFirstOrNull()
     }
 
     override fun findAll(): Flow<T> {
@@ -220,13 +220,13 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         if (eventPublisher != null) {
-            val existed = this.entityOperations.selectOne(
+            val existed = this.entityOperations.select(
                 query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
                     .limit(1),
                 clazz.java
             )
                 .subscribeOn(scheduler)
-                .awaitSingleOrNull() ?: return null
+                .awaitFirstOrNull() ?: return null
 
             val exitedOutboundRow = entityManager.getOutboundRow(existed)
             val diff = diff(originOutboundRow, exitedOutboundRow)
