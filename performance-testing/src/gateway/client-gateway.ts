@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check } from 'k6';
 
-import { CreateClientRequest } from '../request';
+import { CreateClientRequest, UpdateClientRequest } from '../request';
 import { ClientInfo } from '../response';
 import { camelToSnake, snakeToCamel } from '../util';
 
@@ -81,6 +81,25 @@ class ClientGateway {
 
         check(response, {
             'GET /clients/{client-id} is status 200': (r) => r.status === 200,
+        });
+
+        return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as ClientInfo;
+    }
+
+    update(clientId: string, request: UpdateClientRequest): ClientInfo {
+        const response = http.patch(
+            `${url}/clients/${clientId}`,
+            JSON.stringify(camelToSnake(request)),
+            {
+                headers: {
+                    'Authorization': this.gatewayAuthorization.getAuthorization(),
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        check(response, {
+            'PATCH /clients/{client-id} is status 200': (r) => r.status === 200,
         });
 
         return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as ClientInfo;

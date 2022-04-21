@@ -155,7 +155,10 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             return emptyFlow()
         }
 
-        return findAll(where(entityManager.idProperty).`in`(ids.toList()))
+        return findAll(
+            where(entityManager.idProperty).`in`(ids.toList()),
+            limit = ids.count()
+        )
             .asFlux()
             .sort { p1, p2 ->
                 val p1Id = entityManager.getId(p1)
@@ -229,7 +232,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         val updateCount = this.entityOperations.update(
-            query(where(entityManager.idProperty).`is`(entityManager.getId(entity))),
+            query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
+                .limit(1),
             Update.from(patch as Map<SqlIdentifier, Any>),
             clazz.java
         )
@@ -280,7 +284,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
 
         val updateCount = this.entityOperations.update(
-            query(where(entityManager.idProperty).`is`(entityManager.getId(entity))),
+            query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
+                .limit(1),
             Update.from(diff as Map<SqlIdentifier, Any>),
             clazz.java
         )

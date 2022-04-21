@@ -2,7 +2,7 @@ import { Options } from 'k6/options';
 
 import { ClientGateway } from './gateway';
 import { ClientInfo } from "./response";
-import { dummyCreateClientRequest } from "./dummy";
+import { dummyCreateClientRequest, dummyUpdateClientRequest } from "./dummy";
 
 import client from './client';
 
@@ -18,5 +18,5 @@ export function setup() {
 }
 
 export default (client: ClientInfo) => {
-  clientGateway.read(client.id);
+  clientGateway.update(client.id, dummyUpdateClientRequest());
 };
