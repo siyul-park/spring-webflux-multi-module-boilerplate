@@ -30,7 +30,7 @@ class GatewayAuthorization {
             return true;
         }
 
-        return this.createdAt.getUTCSeconds() + this.tokens.expiresIn - 60 >= new Date().getUTCSeconds()
+        return (this.createdAt.getUTCSeconds() + this.tokens.expiresIn - 60) <= new Date().getUTCSeconds()
     }
 }
 
