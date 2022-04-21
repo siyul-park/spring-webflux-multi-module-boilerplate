@@ -51,6 +51,40 @@ class ClientGateway {
 
         return JSON.parse(response.body as string).map((it: Record<string, unknown>) => snakeToCamel(it) as ClientInfo);
     }
+
+    readSelf(): ClientInfo {
+        const response = http.get(
+            `${url}/clients/self`,
+            {
+                headers: {
+                    'Authorization': this.gatewayAuthorization.getAuthorization(),
+                },
+            }
+        );
+
+        check(response, {
+            'GET /clients/self is status 200': (r) => r.status === 200,
+        });
+
+        return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as ClientInfo;
+    }
+
+    read(clientId: string): ClientInfo {
+        const response = http.get(
+            `${url}/clients/${clientId}`,
+            {
+                headers: {
+                    'Authorization': this.gatewayAuthorization.getAuthorization(),
+                },
+            }
+        );
+
+        check(response, {
+            'GET /clients/self is status 200': (r) => r.status === 200,
+        });
+
+        return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as ClientInfo;
+    }
 }
 
 export default ClientGateway;

@@ -1,8 +1,6 @@
 import { Options } from 'k6/options';
 
 import { ClientGateway } from './gateway';
-import { dummyCreateClientRequest } from "./dummy";
-
 import client from './client';
 
 export let options: Options = {
@@ -13,5 +11,5 @@ export let options: Options = {
 const clientGateway = new ClientGateway(client);
 
 export default () => {
-  clientGateway.create(dummyCreateClientRequest());
+  clientGateway.readSelf();
 };
