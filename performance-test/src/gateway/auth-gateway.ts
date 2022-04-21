@@ -16,6 +16,7 @@ class AuthGateway {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
+                tags: { type: 'POST_token' },
             }
         );
 

@@ -7,7 +7,11 @@ import client from './client';
 
 export let options: Options = {
   vus: 50,
-  duration: '10s'
+  duration: '10s',
+  thresholds: {
+    'http_req_duration{type:POST_clients}': ['max>=0'],
+    'http_req_duration{type:DELETE_clients_id}': ['max>=0'],
+  },
 };
 
 const clientGateway = new ClientGateway(client);

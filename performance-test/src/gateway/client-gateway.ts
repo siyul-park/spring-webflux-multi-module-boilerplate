@@ -25,6 +25,7 @@ class ClientGateway {
                     'Authorization': this.gatewayAuthorization.getAuthorization(),
                     'Content-Type': 'application/json',
                 },
+                tags: { type: 'POST_clients' },
             }
         );
 
@@ -42,6 +43,7 @@ class ClientGateway {
                 headers: {
                     'Authorization': this.gatewayAuthorization.getAuthorization()
                 },
+                tags: { type: 'GET_clients' },
             }
         );
 
@@ -59,6 +61,7 @@ class ClientGateway {
                 headers: {
                     'Authorization': this.gatewayAuthorization.getAuthorization(),
                 },
+                tags: { type: 'GET_clients_self' },
             }
         );
 
@@ -76,6 +79,7 @@ class ClientGateway {
                 headers: {
                     'Authorization': this.gatewayAuthorization.getAuthorization(),
                 },
+                tags: { type: 'GET_clients_id' },
             }
         );
 
@@ -95,6 +99,7 @@ class ClientGateway {
                     'Authorization': this.gatewayAuthorization.getAuthorization(),
                     'Content-Type': 'application/json',
                 },
+                tags: { type: 'PATCH_clients_id' },
             }
         );
 
@@ -113,6 +118,7 @@ class ClientGateway {
                 headers: {
                     'Authorization': this.gatewayAuthorization.getAuthorization(),
                 },
+                tags: { type: 'DELETE_clients_id' },
             }
         );
 
