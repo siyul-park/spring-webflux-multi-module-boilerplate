@@ -16,7 +16,7 @@ function snakeToCamel(value: string | Record<string, any>): string | Record<stri
         let converted = value
         if (value instanceof Array) {
             converted = value.map((it) => snakeToCamel(it));
-        } else if (typeof value === 'object') {
+        } else if (typeof value === 'object' && value != null) {
             converted = snakeToCamel(value);
         }
 
