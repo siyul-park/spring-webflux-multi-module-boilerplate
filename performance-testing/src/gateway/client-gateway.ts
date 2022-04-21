@@ -80,7 +80,7 @@ class ClientGateway {
         );
 
         check(response, {
-            'GET /clients/self is status 200': (r) => r.status === 200,
+            'GET /clients/{client-id} is status 200': (r) => r.status === 200,
         });
 
         return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as ClientInfo;
