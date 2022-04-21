@@ -1,4 +1,5 @@
 import { Options } from 'k6/options';
+import { group } from "k6";
 
 import { AuthGateway } from './gateway';
 import client from './client';
@@ -11,9 +12,11 @@ export let options: Options = {
 const authGateway = new AuthGateway();
 
 export default () => {
-  authGateway.createToken({
-    grantType: 'client_credentials',
-    clientId: client.id,
-    clientSecret: client.secret
-  })
+  group("grantType: 'client_credentials'", () => {
+    authGateway.createToken({
+      grantType: 'client_credentials',
+      clientId: client.id,
+      clientSecret: client.secret
+    });
+  });
 };
