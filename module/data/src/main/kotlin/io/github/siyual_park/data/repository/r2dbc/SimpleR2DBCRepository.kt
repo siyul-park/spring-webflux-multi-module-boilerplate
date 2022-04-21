@@ -84,7 +84,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
             emitAll(
                 entityOperations.select(
-                    query(where(entityManager.idProperty).`in`(saved)),
+                    query(where(entityManager.idProperty).`in`(saved))
+                        .limit(saved.size),
                     clazz.java
                 )
                     .subscribeOn(scheduler)
@@ -369,7 +370,11 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 return
             }
 
-            this.entityOperations.delete(query(where(entityManager.idProperty).`in`(ids.toList())), clazz.java)
+            this.entityOperations.delete(
+                query(where(entityManager.idProperty).`in`(ids.toList()))
+                    .limit(ids.size),
+                clazz.java
+            )
                 .subscribeOn(scheduler)
                 .awaitSingle()
 
