@@ -1,26 +1,19 @@
-name: Java CI with Gradle
+name: build
 
 on:
-  push:
-    branches: [ master, develop ]
-  pull_request:
-    branches: [ master, develop ]
+  workflow_run:
+    workflows:
+      - check
+    branches:
+      - master
+      - release
+      - develop
+    types:
+      - completed
 
 jobs:
-  check_skip:
-    runs-on: ubuntu-latest
-    outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
-    steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
-        with:
-          concurrent_skipping: 'never'
-          skip_after_successful_duplicate: 'true'
-
   build:
-    needs: check_skip
-    if: ${{ needs.pre_job.outputs.should_skip != 'true' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
