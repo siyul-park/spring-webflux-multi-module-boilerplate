@@ -1,6 +1,8 @@
 import { Options } from 'k6/options';
 
 import { AuthGateway } from './gateway';
+
+import matrixScenarios from "./matrix-scenarios";
 import client from './client';
 
 export let options: Options = {
@@ -19,6 +21,8 @@ export let options: Options = {
     },
   }
 };
+
+matrixScenarios(options);
 
 const authGateway = new AuthGateway();
 
