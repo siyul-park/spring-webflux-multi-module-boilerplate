@@ -104,6 +104,22 @@ class ClientGateway {
 
         return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as ClientInfo;
     }
+
+    delete(clientId: string): void {
+        const response = http.del(
+            `${url}/clients/${clientId}`,
+            null,
+            {
+                headers: {
+                    'Authorization': this.gatewayAuthorization.getAuthorization(),
+                },
+            }
+        );
+
+        check(response, {
+            'DELETE /clients/{client-id} is status 204': (r) => r.status === 204,
+        });
+    }
 }
 
 export default ClientGateway;
