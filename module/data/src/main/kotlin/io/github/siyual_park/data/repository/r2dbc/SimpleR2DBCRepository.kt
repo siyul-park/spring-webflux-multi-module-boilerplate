@@ -64,7 +64,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             .awaitSingle()
 
         return this.entityOperations.select(
-            query(where(entityManager.idProperty).`is`(saved)).limit(1),
+            query(where(entityManager.idProperty).`is`(saved))
+                .limit(1),
             clazz.java
         )
             .subscribeOn(scheduler)
