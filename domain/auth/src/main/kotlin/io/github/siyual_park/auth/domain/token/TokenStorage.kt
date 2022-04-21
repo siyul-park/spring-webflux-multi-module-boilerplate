@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.filter
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.CriteriaDefinition
-import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
 
@@ -21,7 +20,7 @@ class TokenStorage(
 ) : MongoStorage<Token, ULID> {
     private val delegator = SimpleMongoStorage(tokenRepository) { tokenMapper.map(it) }
 
-    fun load(type: String, claims: Map<String, Any>, limit: Int?, offset: Long?, sort: Sort?): Flow<Token> {
+    fun load(type: String, claims: Map<String, Any>, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<Token> {
         var query = where(TokenData::type).`is`(type)
         claims.forEach { (key, value) ->
             query = query.and("claims.$key").`is`(value)
