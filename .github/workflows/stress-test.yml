@@ -3,11 +3,12 @@ name: stress-test
 on:
   workflow_run:
     workflows:
-      - build
-    branches:
-      - master
-      - release
-      - develop
+      - check
+#      - build
+#    branches:
+#      - master
+#      - release
+#      - develop
     types:
       - completed
 
