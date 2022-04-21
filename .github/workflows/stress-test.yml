@@ -17,7 +17,7 @@ jobs:
     name: k6
     runs-on: ubuntu-latest
     env:
-      working-directory: ./stress-test
+      working-directory: stress-test
     steps:
       - name: Checkout
         uses: actions/checkout@v3
