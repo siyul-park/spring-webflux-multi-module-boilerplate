@@ -6,8 +6,6 @@ import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.util.retry
 import kotlinx.coroutines.flow.toList
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.and
 import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
@@ -50,7 +48,7 @@ class TokenFactory(
         val finalClaims = claims?.toMutableMap() ?: mutableMapOf()
         finalClaims.putAll(baseClaims)
         finalClaims["scope"] = scope.map { it.id.toString() }
-        template.type?.let { finalClaims["type"] = it }
+        finalClaims["type"] = template.type
 
         removeOld(finalClaims)
 
@@ -84,12 +82,10 @@ class TokenFactory(
         template.limit?.forEach { (key, limit) ->
             val value = claims[key] ?: return@forEach
 
-            var query = Criteria.where("claims.$key").`is`(value)
-            if (template.type != null) {
-                query = query.and(TokenData::type).`is`(template.type)
-            }
-
-            val existed = tokenStorage.load(query, limit = null).toList()
+            val existed = tokenStorage.load(
+                type = template.type,
+                claims = mapOf(key to value),
+            ).toList()
             val removeSize = existed.size - limit + 1
             if (removeSize > 0) {
                 existed.subList(0, removeSize).forEach {
