@@ -17,7 +17,7 @@ jobs:
     name: k6
     runs-on: ubuntu-latest
     env:
-      working-directory: ./stress-test
+      working-directory: stress-test
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -32,4 +32,4 @@ jobs:
       - name: Run local k6 test
         uses: grafana/k6-action@v0.2.0
         with:
-          filename: ${{ env.working-directory }}/dist/get-200-status-test.js
+          filename: ${{ env.working-directory }}/dist/get-200-status.test.js
