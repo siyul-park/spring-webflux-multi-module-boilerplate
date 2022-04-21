@@ -1,4 +1,4 @@
-name: stress-test
+name: performance-testing
 
 on:
   workflow_run:
@@ -23,11 +23,11 @@ jobs:
           ref: ${{ github.event.workflow_run.head_branch }}
       - name: Install dependencies
         run: npm ci
-        working-directory: ./stress-test
+        working-directory: ./performance-testing
       - name: Transpile and bundle test script
         run: npm run build
-        working-directory: ./stress-test
+        working-directory: ./performance-testing
       - name: Run local k6 test
         uses: grafana/k6-action@v0.2.0
         with:
-          filename: stress-test/dist/get-200-status.test.js
+          filename: performance-testing/dist/get-200-status.test.js
