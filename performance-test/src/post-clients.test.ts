@@ -6,7 +6,7 @@ import { dummyCreateClientRequest } from "./dummy";
 import client from './client';
 
 export let options: Options = {
-  vus: 50,
+  vus: 500,
   duration: '10s'
 };
 

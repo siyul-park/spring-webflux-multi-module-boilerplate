@@ -8,13 +8,13 @@ import client from './client';
 export let options: Options = {
   scenarios: {
     client_credentials: {
-      vus: 50,
+      vus: 200,
       duration: '10s',
       exec: 'client_credentials',
       executor: 'constant-vus',
     },
     refresh_token: {
-      vus: 50,
+      vus: 200,
       duration: '10s',
       exec: 'refresh_token',
       executor: 'constant-vus',
