@@ -6,6 +6,7 @@ import { ClientInfo } from '../response';
 import { camelToSnake, snakeToCamel } from '../util';
 
 import GatewayAuthorization from './gateway-authorization';
+import log from "./log";
 
 const url = __ENV.URL;
 
@@ -29,6 +30,7 @@ class ClientGateway {
             }
         );
 
+        log(response);
         check(response, {
             'POST /clients is status 201': (r) => r.status === 201,
         });
@@ -47,6 +49,7 @@ class ClientGateway {
             }
         );
 
+        log(response);
         check(response, {
             'GET /clients is status 200': (r) => r.status === 200,
         });
@@ -65,6 +68,7 @@ class ClientGateway {
             }
         );
 
+        log(response);
         check(response, {
             'GET /clients/self is status 200': (r) => r.status === 200,
         });
@@ -83,6 +87,7 @@ class ClientGateway {
             }
         );
 
+        log(response);
         check(response, {
             'GET /clients/{client-id} is status 200': (r) => r.status === 200,
         });
@@ -103,6 +108,7 @@ class ClientGateway {
             }
         );
 
+        log(response);
         check(response, {
             'PATCH /clients/{client-id} is status 200': (r) => r.status === 200,
         });
@@ -122,6 +128,7 @@ class ClientGateway {
             }
         );
 
+        log(response);
         check(response, {
             'DELETE /clients/{client-id} is status 204': (r) => r.status === 204,
         });

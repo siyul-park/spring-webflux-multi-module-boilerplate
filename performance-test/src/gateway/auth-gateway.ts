@@ -4,6 +4,7 @@ import { check } from 'k6';
 import { CreateTokenRequest } from '../request';
 import { TokenInfo } from '../response';
 import { camelToSnake, snakeToCamel } from '../util';
+import log from "./log";
 
 const url = __ENV.URL;
 
@@ -20,6 +21,8 @@ class AuthGateway {
             }
         );
 
+        log(response);
+        log(response);
         check(response, {
             [`POST /token ${request.grantType} is status 201`]: (r) => r.status === 201,
         });

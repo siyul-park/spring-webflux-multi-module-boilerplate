@@ -6,6 +6,7 @@ import { UserInfo } from '../response';
 import { camelToSnake, snakeToCamel } from '../util';
 
 import GatewayAuthorization from './gateway-authorization';
+import log from "./log";
 
 const url = __ENV.URL;
 
@@ -29,8 +30,8 @@ class UserGateway {
             }
         );
 
-        check(response, {
-            'POST /users is status 201': (r) => r.status === 201,
+        log(response);
+        check(response, {            'POST /users is status 201': (r) => r.status === 201,
         });
 
         return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as UserInfo;
@@ -47,8 +48,8 @@ class UserGateway {
             }
         );
 
-        check(response, {
-            'GET /users is status 200': (r) => r.status === 200,
+        log(response);
+        check(response, {            'GET /users is status 200': (r) => r.status === 200,
         });
 
         return JSON.parse(response.body as string).map((it: Record<string, unknown>) => snakeToCamel(it) as UserInfo);
@@ -65,6 +66,7 @@ class UserGateway {
             }
         );
 
+        log(response);
         check(response, {
             'GET /users/self is status 200': (r) => r.status === 200,
         });
@@ -83,6 +85,7 @@ class UserGateway {
             }
         );
 
+        log(response);
         check(response, {
             'GET /users/{user-id} is status 200': (r) => r.status === 200,
         });
@@ -103,6 +106,7 @@ class UserGateway {
             }
         );
 
+        log(response);
         check(response, {
             'PATCH /users/{user-id} is status 200': (r) => r.status === 200,
         });
@@ -122,6 +126,7 @@ class UserGateway {
             }
         );
 
+        log(response);
         check(response, {
             'DELETE /users/{user-id} is status 204': (r) => r.status === 204,
         });
