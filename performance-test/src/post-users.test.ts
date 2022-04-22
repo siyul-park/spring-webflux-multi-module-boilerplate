@@ -1,7 +1,7 @@
 import { Options } from 'k6/options';
 
 import { UserGateway } from './gateway';
-import { dummyUserClientRequest } from "./dummy";
+import { dummyCreateUserRequest } from './dummy';
 
 import client from './client';
 
@@ -13,5 +13,5 @@ export let options: Options = {
 const userGateway = new UserGateway(client);
 
 export default () => {
-  userGateway.create(dummyUserClientRequest());
+  userGateway.create(dummyCreateUserRequest());
 };

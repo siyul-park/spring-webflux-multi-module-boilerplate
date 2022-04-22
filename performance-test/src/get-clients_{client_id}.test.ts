@@ -1,8 +1,8 @@
 import { Options } from 'k6/options';
 
 import { ClientGateway } from './gateway';
-import { ClientInfo } from "./response";
-import { dummyCreateClientRequest } from "./dummy";
+import { ClientInfo } from './response';
+import { dummyCreateClientRequest } from './dummy';
 
 import client from './client';
 

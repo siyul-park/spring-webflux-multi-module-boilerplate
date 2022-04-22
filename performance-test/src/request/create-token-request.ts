@@ -11,6 +11,14 @@ type CreateTokenFromRefreshToken = {
     refreshToken: string;
 }
 
-type CreateTokenRequest = CreateTokenFromClientCredentials | CreateTokenFromRefreshToken;
+type CreateTokenFromPassword = {
+    grantType: 'password';
+    clientId: string;
+    clientSecret: string;
+    username: string;
+    password: string;
+}
+
+type CreateTokenRequest = CreateTokenFromClientCredentials | CreateTokenFromRefreshToken | CreateTokenFromPassword;
 
 export default CreateTokenRequest;
