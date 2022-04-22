@@ -21,7 +21,7 @@ class AuthGateway {
         );
 
         check(response, {
-            'POST /token is status 201': (r) => r.status === 201,
+            [`POST /token ${request.grantType} is status 201`]: (r) => r.status === 201,
         });
 
         return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as TokenInfo;
