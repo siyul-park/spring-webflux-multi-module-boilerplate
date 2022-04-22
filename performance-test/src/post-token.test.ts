@@ -13,20 +13,25 @@ export let options: Options = {
     client_credentials: {
       vus: 200,
       duration: '10s',
+      gracefulStop: '0s',
       exec: 'client_credentials',
       executor: 'constant-vus',
     },
     password: {
       vus: 200,
       duration: '10s',
+      gracefulStop: '0s',
       exec: 'password',
       executor: 'constant-vus',
+      startTime: '10s',
     },
     refresh_token: {
       vus: 200,
       duration: '10s',
+      gracefulStop: '0s',
       exec: 'refresh_token',
       executor: 'constant-vus',
+      startTime: '20s',
     },
   }
 };
