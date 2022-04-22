@@ -2,6 +2,10 @@ function camelToSnake(value: string): string
 function camelToSnake(value: Record<string, unknown>): Record<string, unknown>
 
 function camelToSnake(value: string | Record<string, any>): string | Record<string, unknown> {
+    if (value == null) {
+        return value;
+    }
+
     if (typeof value === 'string') {
         return value.replace(/[\w]([A-Z])/g, (m) => {
             return m[0] + '_' + m[1];
