@@ -1,4 +1,4 @@
-name: performance-test-build
+name: k6-tests-build
 
 on:
   - push
@@ -15,6 +15,6 @@ jobs:
           ref: ${{ github.event.workflow_run.head_branch }}
       - name: Install dependencies
         run: npm ci
-        working-directory: ./performance-test
+        working-directory: ./k6-tests
       - name: Transpile and bundle test script
         run: npm run build
