@@ -19,7 +19,7 @@ object DummyCreateClientPayload {
         return CreateClientPayload(
             name = t.flatMap { it.name }.orElseGet { DummyNameFactory.create(10) },
             type = t.flatMap { it.type }.orElseGet { ClientType.CONFIDENTIAL },
-            origin = t.flatMap { it.origin }.orElseGet { URL("https://localhost:8080") },
+            origin = t.flatMap { it.origin }.orElseGet { URL("http://localhost:8080") },
             scope = t.flatMap { it.scope }.orElseGet { null }
         )
     }

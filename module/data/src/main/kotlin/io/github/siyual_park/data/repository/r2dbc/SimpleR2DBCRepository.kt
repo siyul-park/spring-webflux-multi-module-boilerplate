@@ -21,10 +21,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.asFlux
 import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Sort.Order.asc
 import org.springframework.data.domain.Sort.by
@@ -64,7 +64,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             .awaitSingle()
 
         return this.entityOperations.select(
-            query(where(entityManager.idProperty).`is`(saved)).limit(1),
+            query(where(entityManager.idProperty).`is`(saved))
+                .limit(1),
             clazz.java
         )
             .subscribeOn(scheduler)
@@ -84,7 +85,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
             emitAll(
                 entityOperations.select(
-                    query(where(entityManager.idProperty).`in`(saved)),
+                    query(where(entityManager.idProperty).`in`(saved))
+                        .limit(saved.size),
                     clazz.java
                 )
                     .subscribeOn(scheduler)
@@ -119,13 +121,13 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        return this.entityOperations.selectOne(
+        return this.entityOperations.select(
             query(criteria)
                 .limit(1),
             clazz.java
         )
             .subscribeOn(scheduler)
-            .awaitSingleOrNull()
+            .awaitFirstOrNull()
     }
 
     override fun findAll(): Flow<T> {
@@ -155,7 +157,10 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             return emptyFlow()
         }
 
-        return findAll(where(entityManager.idProperty).`in`(ids.toList()))
+        return findAll(
+            where(entityManager.idProperty).`in`(ids.toList()),
+            limit = ids.count()
+        )
             .asFlux()
             .sort { p1, p2 ->
                 val p1Id = entityManager.getId(p1)
@@ -215,13 +220,13 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         if (eventPublisher != null) {
-            val existed = this.entityOperations.selectOne(
+            val existed = this.entityOperations.select(
                 query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
                     .limit(1),
                 clazz.java
             )
                 .subscribeOn(scheduler)
-                .awaitSingleOrNull() ?: return null
+                .awaitFirstOrNull() ?: return null
 
             val exitedOutboundRow = entityManager.getOutboundRow(existed)
             val diff = diff(originOutboundRow, exitedOutboundRow)
@@ -229,7 +234,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         val updateCount = this.entityOperations.update(
-            query(where(entityManager.idProperty).`is`(entityManager.getId(entity))),
+            query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
+                .limit(1),
             Update.from(patch as Map<SqlIdentifier, Any>),
             clazz.java
         )
@@ -280,7 +286,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
 
         val updateCount = this.entityOperations.update(
-            query(where(entityManager.idProperty).`is`(entityManager.getId(entity))),
+            query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
+                .limit(1),
             Update.from(diff as Map<SqlIdentifier, Any>),
             clazz.java
         )
@@ -364,7 +371,11 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 return
             }
 
-            this.entityOperations.delete(query(where(entityManager.idProperty).`in`(ids.toList())), clazz.java)
+            this.entityOperations.delete(
+                query(where(entityManager.idProperty).`in`(ids.toList()))
+                    .limit(ids.size),
+                clazz.java
+            )
                 .subscribeOn(scheduler)
                 .awaitSingle()
 

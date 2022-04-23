@@ -16,6 +16,7 @@ class UserInfoMapper : Mapper<User, UserInfo> {
         return UserInfo(
             id = raw.id,
             name = raw.name,
+            email = raw.email,
             createdAt = raw.createdAt!!,
             updatedAt = raw.updatedAt
         )
