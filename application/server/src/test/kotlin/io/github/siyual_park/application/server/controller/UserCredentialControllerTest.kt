@@ -8,7 +8,6 @@ import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.UserCredentialControllerGateway
 import io.github.siyual_park.coroutine.test.CoroutineTest
 import io.github.siyual_park.user.domain.UserFactory
-import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,8 +38,6 @@ class UserCredentialControllerTest @Autowired constructor(
         val response = userCredentialControllerGateway.update(user.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
-
-        response.responseBody.awaitSingle()
     }
 
     @Test
@@ -83,8 +80,6 @@ class UserCredentialControllerTest @Autowired constructor(
         val response = userCredentialControllerGateway.update(otherUser.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
-
-        response.responseBody.awaitSingle()
     }
 
     @Test

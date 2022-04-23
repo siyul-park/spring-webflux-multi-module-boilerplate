@@ -40,6 +40,8 @@ class ScopeTokenConfiguration(
 
         scopeTokenFactory.upsert(name = "users.contact:read")
         scopeTokenFactory.upsert(name = "users[self].contact:read").also { granted(it, listOf(userScope)) }
+        scopeTokenFactory.upsert(name = "users.contact:update")
+        scopeTokenFactory.upsert(name = "users[self].contact:update").also { granted(it, listOf(userScope)) }
 
         scopeTokenFactory.upsert(name = "clients:create")
         scopeTokenFactory.upsert(name = "clients:read")

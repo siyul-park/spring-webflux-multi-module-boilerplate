@@ -19,7 +19,8 @@ import org.springframework.stereotype.Component
         "users[self]:delete",
         "users[self].scope:read",
         "users[self].credential:update",
-        "users[self].contact:read"
+        "users[self].contact:read",
+        "users[self].contact:update"
     ]
 )
 class UserIdMatchAuthorizeStrategy : AuthorizeStrategy {

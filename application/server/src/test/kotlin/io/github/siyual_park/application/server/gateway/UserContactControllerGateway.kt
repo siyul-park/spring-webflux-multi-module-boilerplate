@@ -1,5 +1,6 @@
 package io.github.siyual_park.application.server.gateway
 
+import io.github.siyual_park.application.server.dto.request.UpdateUserContactRequest
 import io.github.siyual_park.application.server.dto.response.UserContactInfo
 import io.github.siyual_park.ulid.ULID
 import org.springframework.http.HttpHeaders
@@ -16,6 +17,15 @@ class UserContactControllerGateway(
     suspend fun read(userId: ULID): FluxExchangeResult<UserContactInfo> {
         return client.get()
             .uri("/users/$userId/contact")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult(UserContactInfo::class.java)
+    }
+
+    suspend fun update(userId: ULID, request: UpdateUserContactRequest): FluxExchangeResult<UserContactInfo> {
+        return client.patch()
+            .uri("/users/$userId/contact")
+            .bodyValue(request)
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult(UserContactInfo::class.java)
