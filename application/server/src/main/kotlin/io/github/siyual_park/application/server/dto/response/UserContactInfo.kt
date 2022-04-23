@@ -4,6 +4,5 @@ import java.time.Instant
 
 data class UserContactInfo(
     val email: String,
-    val createdAt: Instant,
     val updatedAt: Instant?
 )

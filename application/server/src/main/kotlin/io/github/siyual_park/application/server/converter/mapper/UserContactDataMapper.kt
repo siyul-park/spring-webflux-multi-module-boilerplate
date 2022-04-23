@@ -14,7 +14,6 @@ class UserContactDataMapper : Mapper<UserContactData, UserContactInfo> {
     override suspend fun map(source: UserContactData): UserContactInfo {
         return UserContactInfo(
             email = source.email,
-            createdAt = source.createdAt!!,
             updatedAt = source.updatedAt
         )
     }
