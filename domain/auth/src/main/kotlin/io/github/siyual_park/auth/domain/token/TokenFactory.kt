@@ -50,7 +50,7 @@ class TokenFactory(
         finalClaims["scope"] = scope.map { it.id.toString() }
         finalClaims["type"] = template.type
 
-        removeOld(finalClaims)
+        deprecated(finalClaims)
 
         val now = Instant.now()
         val expiredAt = now.plus(age)
@@ -78,18 +78,26 @@ class TokenFactory(
             }
     }
 
-    private suspend fun removeOld(claims: Map<String, Any>) {
+    private suspend fun deprecated(claims: Map<String, Any>) {
+        val now = Instant.now()
+        val expiredAt = now.plus(Duration.ofMinutes(1))
+
         template.limit?.forEach { (key, limit) ->
             val value = claims[key] ?: return@forEach
 
             val existed = tokenStorage.load(
                 type = template.type,
                 claims = mapOf(key to value),
-            ).toList()
+            )
+                .toList()
+
             val removeSize = existed.size - limit + 1
             if (removeSize > 0) {
                 existed.subList(0, removeSize).forEach {
-                    it.clear()
+                    if (it.expiredAt?.isAfter(expiredAt) != false) {
+                        it.expiredAt = expiredAt
+                        it.sync()
+                    }
                 }
             }
         }
