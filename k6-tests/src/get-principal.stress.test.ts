@@ -5,14 +5,14 @@ import client from './client';
 
 export const options: Options = {
   stages: [
-    { duration: '2m', target: 100 },
+    { duration: '2m', target: 200 },
     { duration: '5m', target: 200 },
     { duration: '2m', target: 500 },
     { duration: '5m', target: 500 },
-    { duration: '2m', target: 1000 },
+    { duration: '2m', target: 2000 },
     { duration: '5m', target: 2000 },
     { duration: '2m', target: 3000 },
-    { duration: '5m', target: 3000 },
+    { duration: '5m', target: 4000 },
   ],
   thresholds: {
     'http_req_duration{type:POST_token}': ['max>=0'],
