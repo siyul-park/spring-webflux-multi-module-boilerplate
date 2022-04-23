@@ -2,7 +2,6 @@ import { Options } from 'k6/options';
 
 import { AuthGateway, UserGateway } from './gateway';
 import { TokenInfo, UserInfo } from "./response";
-import { CreateUserRequest } from "./request";
 import { dummyCreateUserRequest } from './dummy';
 
 import matrixScenarios from './matrix-scenarios';
@@ -48,12 +47,14 @@ export function setup() {
     clientSecret: client.secret
   });
   const createUserRequest = dummyCreateUserRequest();
-  const user = userGateway.create(dummyCreateUserRequest());
+  const user = userGateway.create(createUserRequest);
 
   return {
     token,
-    user,
-    createUserRequest
+    user: {
+      ...user,
+      ...createUserRequest
+    },
   }
 }
 
@@ -65,13 +66,13 @@ export function client_credentials() {
   });
 }
 
-export function password({ user, createUserRequest }: { user: UserInfo, createUserRequest: CreateUserRequest }) {
+export function password({ user }: { user: UserInfo & { password: string } }) {
   authGateway.createToken({
     grantType: 'password',
     clientId: client.id,
     clientSecret: client.secret,
     username: user.name,
-    password: createUserRequest.password
+    password: user.password
   });
 }
 
