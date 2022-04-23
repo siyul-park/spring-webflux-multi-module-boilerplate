@@ -2,7 +2,7 @@ import http, { StructuredRequestBody } from 'k6/http';
 import { check } from 'k6';
 
 import { CreateTokenRequest } from '../request';
-import { TokenInfo } from '../response';
+import { PrincipalInfo, TokenInfo } from '../response';
 import { camelToSnake, snakeToCamel } from '../util';
 import log from './log';
 
@@ -22,12 +22,30 @@ class AuthGateway {
     );
 
     log(response);
-    log(response);
     check(response, {
       [`POST /token ${request.grantType} is status 201`]: (r) => r.status === 201,
     });
 
     return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as TokenInfo;
+  }
+
+  read(authorization: string): PrincipalInfo {
+    const response = http.get(
+      `${url}/principal`,
+      {
+        headers: {
+          'Authorization': authorization,
+        },
+        tags: { type: 'GET_principal' },
+      },
+    );
+
+    log(response);
+    check(response, {
+      ['GET /principal is status 200']: (r) => r.status === 200,
+    });
+
+    return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as PrincipalInfo;
   }
 }
 
