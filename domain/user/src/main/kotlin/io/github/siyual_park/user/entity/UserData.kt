@@ -10,7 +10,5 @@ import java.time.Instant
 data class UserData(
     @Key
     var name: String,
-    @Key
-    var email: String,
     override var deletedAt: Instant? = null
 ) : ModifiableULIDEntity(), SoftDeletable

@@ -77,6 +77,7 @@ open class Persistence<T : Any, ID : Any>(
                 }
                 root.raw(it)
             }
+            updated?.let { root.raw(it) }
             eventPublisher?.publish(AfterUpdateEvent(this))
 
             updated != null

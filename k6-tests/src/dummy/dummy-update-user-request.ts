@@ -6,7 +6,6 @@ import { UpdateUserRequest } from '../request';
 function dummyUpdateUserRequest(): UpdateUserRequest {
   return {
     name: randomString(10),
-    email: `${randomString(10)}@test.com`,
   };
 }
 

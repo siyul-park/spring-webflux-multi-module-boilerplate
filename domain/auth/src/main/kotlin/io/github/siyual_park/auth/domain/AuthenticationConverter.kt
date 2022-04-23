@@ -1,4 +1,4 @@
-package io.github.siyual_park.auth.spring
+package io.github.siyual_park.auth.domain
 
 import kotlinx.coroutines.reactor.mono
 import org.springframework.http.HttpHeaders
