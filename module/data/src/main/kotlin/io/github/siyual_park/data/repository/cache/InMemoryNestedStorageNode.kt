@@ -9,8 +9,8 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
     private val idExtractor: Extractor<T, ID>,
     override val parent: NestedStorage<T, ID>
 ) : NestedStorage<T, ID> {
-    private val indexes = mutableMapOf<String, MutableMap<*, ID>>()
-    private val extractors = mutableMapOf<String, Extractor<T, *>>()
+    private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
+    private val extractors = Maps.newConcurrentMap<String, Extractor<T, *>>()
 
     private val data = Maps.newConcurrentMap<ID, T>()
     private val forceRemoved = Sets.newConcurrentHashSet<ID>()

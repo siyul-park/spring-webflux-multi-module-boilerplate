@@ -75,18 +75,18 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         return flow {
             val storage = storageManager.getCurrent()
             val result = mutableListOf<T>()
-            val notCachedKey = mutableListOf<ID>()
-            ids.forEach { key ->
-                val cached = storage.getIfPresent(key)
+            val notCachedIds = mutableListOf<ID>()
+            ids.forEach { id ->
+                val cached = storage.getIfPresent(id)
                 if (cached == null) {
-                    notCachedKey.add(key)
+                    notCachedIds.add(id)
                 } else {
                     result.add(cached)
                 }
             }
 
-            if (notCachedKey.isNotEmpty()) {
-                delegator.findAllById(notCachedKey)
+            if (notCachedIds.isNotEmpty()) {
+                delegator.findAllById(notCachedIds)
                     .collect { result.add(it) }
             }
 

@@ -2,6 +2,8 @@ package io.github.siyual_park.data.repository.cache
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
+import com.google.common.collect.Maps
+import kotlinx.coroutines.sync.Semaphore
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
@@ -9,8 +11,9 @@ class InMemoryStorage<T : Any, ID : Any>(
     cacheBuilder: CacheBuilder<ID, T>,
     private val idExtractor: Extractor<T, ID>
 ) : Storage<T, ID> {
-    private val indexes = mutableMapOf<String, MutableMap<*, ID>>()
-    private val extractors = mutableMapOf<String, Extractor<T, *>>()
+    private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
+    private val extractors = Maps.newConcurrentMap<String, Extractor<T, *>>()
+    private val semaphores = Maps.newConcurrentMap<ID, Semaphore>()
 
     private val cache: Cache<ID, T> = cacheBuilder
         .removalListener<ID, T> {
@@ -19,6 +22,9 @@ class InMemoryStorage<T : Any, ID : Any>(
                     val extractor = extractors[name] ?: return@forEach
                     index.remove(extractor.getKey(entity))
                 }
+            }
+            it.key?.let { id ->
+                semaphores.remove(id)
             }
         }.build()
 
@@ -75,7 +81,7 @@ class InMemoryStorage<T : Any, ID : Any>(
                 null
             } else {
                 idExtractor.getKey(entity)?.let {
-                    this.getIfPresentAsync(it) { entity }
+                    this.getIfPresent(it) { entity }
                 }
             }
         } else {
@@ -93,8 +99,19 @@ class InMemoryStorage<T : Any, ID : Any>(
     }
 
     override suspend fun getIfPresentAsync(id: ID, loader: suspend () -> T?): T? {
-        return cache.getIfPresent(id)
-            ?: loader()?.also { put(it) }
+        val existed = cache.getIfPresent(id)
+        if (existed != null) {
+            return existed
+        }
+
+        val semaphore = semaphores.getOrPut(id) { Semaphore(1) }
+        semaphore.acquire()
+        return try {
+            cache.getIfPresent(id)
+                ?: loader()?.also { put(it) }
+        } finally {
+            semaphore.release()
+        }
     }
 
     override fun remove(id: ID) {
