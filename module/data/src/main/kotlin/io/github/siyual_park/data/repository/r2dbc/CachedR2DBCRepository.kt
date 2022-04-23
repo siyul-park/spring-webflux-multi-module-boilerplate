@@ -103,7 +103,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
                         value.forEach { key ->
-                            val cached = key?.let { storage.getIfPresent(indexName, it) }
+                            val cached = key?.let { storage.getIfPresent(indexName, ArrayList<Any?>().apply { add(it) }) }
                             if (cached == null) {
                                 notCachedKey.add(key)
                             } else {

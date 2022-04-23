@@ -37,7 +37,7 @@ class UserInfosMapper(
     override suspend fun map(source: Collection<User>): Collection<UserInfo> {
         val principal = principalProvider.get()
         val canContactInfoRead = principal?.let {
-            authorizator.authorize(it, listOf(contactReadScopeToken.get()), listOf(null))
+            authorizator.authorize(it, contactReadScopeToken.get(), null)
         } ?: false
 
         val readContactUserIds = source.mapNotNull { user ->
@@ -45,7 +45,7 @@ class UserInfosMapper(
                 true
             } else {
                 principal?.let {
-                    authorizator.authorize(it, listOf(contactSelfReadScopeToken.get()), listOf(null))
+                    authorizator.authorize(it, contactSelfReadScopeToken.get(), user.id)
                 } ?: false
             }
 

@@ -116,7 +116,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
                         value.forEach { key ->
-                            val cached = key?.let { storage.getIfPresent(column, it) }
+                            val cached = key?.let { storage.getIfPresent(column, ArrayList<Any?>().apply { add(it) }) }
                             if (cached == null) {
                                 notCachedKey.add(key)
                             } else {
