@@ -40,7 +40,6 @@ class CreateUser(
                     "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
-                    "email VARCHAR(64) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +

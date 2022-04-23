@@ -140,8 +140,13 @@ class User(
             operator.executeAndAwait {
                 eventPublisher.publish(BeforeDeleteEvent(this))
                 userScopeRepository.deleteAllByUserId(id)
+
+                contact.get().clear()
+                contact.clear()
+
                 credential.get().clear()
                 credential.clear()
+
                 userRepository.delete(root.raw())
                 root.clear()
                 eventPublisher.publish(AfterDeleteEvent(this))

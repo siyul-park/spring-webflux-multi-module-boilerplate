@@ -9,5 +9,6 @@ import org.springframework.data.relational.core.mapping.Table
 data class UserContactData(
     @Key
     val userId: ULID,
+    @Key
     var email: String,
 ) : ModifiableLongIDEntity()
