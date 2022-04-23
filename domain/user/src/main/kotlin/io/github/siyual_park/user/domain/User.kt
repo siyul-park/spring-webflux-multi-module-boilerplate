@@ -16,6 +16,7 @@ import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
 import io.github.siyual_park.user.entity.UserScopeData
+import io.github.siyual_park.user.repository.UserContactRepository
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
 import io.github.siyual_park.user.repository.UserScopeRepository
@@ -32,6 +33,7 @@ import org.springframework.transaction.reactive.executeAndAwait
 class User(
     value: UserData,
     private val userRepository: UserRepository,
+    private val userContactRepository: UserContactRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
@@ -41,8 +43,18 @@ class User(
     val id by proxy(root, UserData::id)
     override val userId by proxy(root, UserData::id)
     var name by proxy(root, UserData::name)
-    var email by proxy(root, UserData::email)
 
+    private val contact = AsyncLazy {
+        UserContact(
+            userContactRepository.findByUserIdOrFail(id),
+            userContactRepository,
+            eventPublisher
+        ).also {
+            doBeforeSync {
+                it.sync()
+            }
+        }
+    }
     private val credential = AsyncLazy {
         UserCredential(
             userCredentialRepository.findByUserIdOrFail(id),
@@ -74,6 +86,11 @@ class User(
             where(UserScopeData::userId).`is`(id)
                 .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
         )
+    }
+
+    suspend fun getContact(): UserContact {
+        return contact.get()
+            .also { it.link() }
     }
 
     suspend fun getCredential(): UserCredential {

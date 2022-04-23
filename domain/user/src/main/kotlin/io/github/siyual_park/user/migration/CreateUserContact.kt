@@ -1,35 +1,31 @@
 package io.github.siyual_park.user.migration
 
-import com.mongodb.BasicDBObject
 import io.github.siyual_park.data.migration.Migration
 import io.github.siyual_park.data.migration.createUniqueIndex
 import io.github.siyual_park.data.migration.createUpdatedAtTrigger
 import io.github.siyual_park.data.migration.dropTable
 import io.github.siyual_park.data.migration.fetchSQL
 import io.github.siyual_park.data.migration.isDriver
-import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.reactor.awaitSingle
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 
-class CreateUser(
-    private val entityOperations: R2dbcEntityOperations,
-    private val mongoTemplate: ReactiveMongoTemplate
+class CreateUserContact(
+    private val entityOperations: R2dbcEntityOperations
 ) : Migration {
-    private val tableName = "users"
+    private val tableName = "user_contacts"
 
     override suspend fun up() {
         if (entityOperations.isDriver("PostgreSQL")) {
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BYTEA PRIMARY KEY, " +
+                    "id SERIAL PRIMARY KEY, " +
 
-                    "name VARCHAR(64) NOT NULL, " +
+                    "user_id BYTEA NOT NULL REFERENCES users (id), " +
+
+                    "email VARCHAR(64) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
+                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
                     ")"
             )
             entityOperations.createUpdatedAtTrigger(tableName)
@@ -37,30 +33,23 @@ class CreateUser(
             entityOperations.fetchSQL(
                 "CREATE TABLE $tableName" +
                     "(" +
-                    "id BINARY(16) NOT NULL PRIMARY KEY, " +
+                    "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
 
-                    "name VARCHAR(64) NOT NULL, " +
+                    "user_id BINARY(16) NOT NULL REFERENCES users (id), " +
+
                     "email VARCHAR(64) NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
+                    "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" +
                     ")"
             )
         }
 
-        entityOperations.createUniqueIndex(tableName, listOf("name"))
-
-        mongoTemplate.getCollection("tokens").awaitSingle().apply {
-            createIndex(BasicDBObject("claims.uid", 1)).awaitSingle()
-        }
+        entityOperations.createUniqueIndex(tableName, listOf("user_id"))
+        entityOperations.createUniqueIndex(tableName, listOf("email"))
     }
 
     override suspend fun down() {
         entityOperations.dropTable(tableName)
-
-        mongoTemplate.getCollection("tokens").awaitSingle().apply {
-            dropIndex(BasicDBObject("claims.uid", 1)).awaitSingle()
-        }
     }
 }
