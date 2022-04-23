@@ -31,7 +31,8 @@ class UserGateway {
         );
 
         log(response);
-        check(response, {            'POST /users is status 201': (r) => r.status === 201,
+        check(response, {
+            'POST /users is status 201': (r) => r.status === 201,
         });
 
         return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as UserInfo;
