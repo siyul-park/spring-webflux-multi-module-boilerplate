@@ -125,7 +125,7 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("users:read")
+            push = listOf("users:read"),
         )
 
         val response = userControllerGateway.readAll(
@@ -213,7 +213,8 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("users[self]:read")
+            push = listOf("users[self]:read"),
+            pop = listOf("users[self].contact:read", "users.contact:read")
         )
 
         val response = userControllerGateway.read(user.id)
@@ -224,6 +225,31 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(user.id, responseUser.id)
         assertEquals(user.name, responseUser.name)
+        assertEquals(null, responseUser.contact)
+        assertNotNull(responseUser.createdAt)
+        assertNotNull(responseUser.updatedAt)
+    }
+
+    @Test
+    fun `GET users_{self-id}, status = 200, with contract`() = blocking {
+        val payload = DummyCreateUserPayload.create()
+        val user = userFactory.create(payload)
+        val principal = user.toPrincipal()
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("users[self]:read", "users[self].contact:read", "users.contact:read"),
+        )
+
+        val response = userControllerGateway.read(user.id)
+
+        assertEquals(HttpStatus.OK, response.status)
+
+        val responseUser = response.responseBody.awaitSingle()
+
+        assertEquals(user.id, responseUser.id)
+        assertEquals(user.name, responseUser.name)
+        assertNotNull(responseUser.contact)
         assertNotNull(responseUser.createdAt)
         assertNotNull(responseUser.updatedAt)
     }
