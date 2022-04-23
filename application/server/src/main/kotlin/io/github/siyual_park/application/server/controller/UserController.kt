@@ -2,8 +2,10 @@ package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
+import io.github.siyual_park.application.server.dto.request.UpdateUserCredentialRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
+import io.github.siyual_park.application.server.dto.response.UserCredentialInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.json.patch.PropertyOverridePatch
@@ -40,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
+import javax.validation.ValidationException
 
 @Api(tags = ["user"])
 @RestController
@@ -170,5 +173,22 @@ class UserController(
         @PathVariable("scope-id") scopeId: ULID
     ) {
         return authorizableContoller.revokeScope(userId, scopeId)
+    }
+
+    @PatchMapping("/{user-id}/credential")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasPermission({null, #userId}, {'users.credential:update', 'users[self].credential:update'})")
+    suspend fun updateCredential(
+        @PathVariable("user-id") userId: ULID,
+        @Valid @RequestBody request: UpdateUserCredentialRequest
+    ): UserCredentialInfo {
+        val user = userStorage.loadOrFail(userId)
+        val credential = user.getCredential()
+        request.password?.let {
+            credential.setPassword(it.orElseThrow { throw ValidationException("password is cannot be null") })
+            credential.sync()
+        }
+
+        return mapperContext.map(credential)
     }
 }

@@ -35,6 +35,9 @@ class ScopeTokenConfiguration(
         scopeTokenFactory.upsert(name = "users[self]:update").also { granted(it, listOf(userScope)) }
         scopeTokenFactory.upsert(name = "users[self]:delete").also { granted(it, listOf(userScope)) }
 
+        scopeTokenFactory.upsert(name = "users.credential:update")
+        scopeTokenFactory.upsert(name = "users[self].credential:update").also { granted(it, listOf(userScope)) }
+
         scopeTokenFactory.upsert(name = "clients:create")
         scopeTokenFactory.upsert(name = "clients:read")
         scopeTokenFactory.upsert(name = "clients:update")
