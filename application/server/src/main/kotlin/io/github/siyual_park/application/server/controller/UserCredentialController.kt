@@ -8,7 +8,6 @@ import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.UserStorage
 import io.swagger.annotations.Api
-import kotlinx.coroutines.flow.map
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PatchMapping
@@ -30,7 +29,7 @@ class UserCredentialController(
     @PatchMapping("")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users.credential:update', 'users[self].credential:update'})")
-    suspend fun updateCredential(
+    suspend fun update(
         @PathVariable("user-id") userId: ULID,
         @Valid @RequestBody request: UpdateUserCredentialRequest
     ): UserCredentialInfo {
