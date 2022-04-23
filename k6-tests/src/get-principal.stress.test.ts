@@ -13,7 +13,6 @@ export const options: Options = {
     { duration: '5m', target: 2000 },
     { duration: '2m', target: 3000 },
     { duration: '5m', target: 3000 },
-    { duration: '10m', target: 0 }, // scale down. Recovery stage.
   ],
   thresholds: {
     'http_req_duration{type:POST_token}': ['max>=0'],
