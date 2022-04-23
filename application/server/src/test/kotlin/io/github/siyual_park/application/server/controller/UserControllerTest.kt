@@ -58,7 +58,6 @@ class UserControllerTest @Autowired constructor(
 
         assertNotNull(user.id)
         assertEquals(request.name, user.name)
-        assertEquals(request.email, user.email)
         assertNotNull(user.createdAt)
         assertNotNull(user.updatedAt)
     }

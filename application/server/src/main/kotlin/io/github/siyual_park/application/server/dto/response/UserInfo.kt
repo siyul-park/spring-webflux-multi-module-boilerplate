@@ -6,7 +6,6 @@ import java.time.Instant
 data class UserInfo(
     val id: ULID,
     val name: String,
-    val email: String,
     val createdAt: Instant,
     val updatedAt: Instant?
 )
