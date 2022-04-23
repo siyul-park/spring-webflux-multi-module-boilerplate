@@ -1,4 +1,4 @@
-package io.github.siyual_park.auth.spring
+package io.github.siyual_park.auth.domain
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import org.springframework.security.core.GrantedAuthority

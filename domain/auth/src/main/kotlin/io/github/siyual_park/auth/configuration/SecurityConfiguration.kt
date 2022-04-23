@@ -1,8 +1,8 @@
 package io.github.siyual_park.auth.configuration
 
-import io.github.siyual_park.auth.spring.AuthenticationConverter
-import io.github.siyual_park.auth.spring.AuthenticationManager
-import io.github.siyual_park.auth.spring.ScopeEvaluator
+import io.github.siyual_park.auth.domain.AuthenticationConverter
+import io.github.siyual_park.auth.domain.AuthenticationManager
+import io.github.siyual_park.auth.domain.ScopeEvaluator
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
