@@ -5,6 +5,8 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.util.retry
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import java.security.SecureRandom
 import java.time.Duration
@@ -93,7 +95,7 @@ class TokenFactory(
 
             val removeSize = existed.size - limit + 1
             if (removeSize > 0) {
-                existed.subList(0, removeSize).forEach {
+                existed.subList(0, removeSize).asFlow().collect {
                     if (it.expiredAt?.isAfter(expiredAt) != false) {
                         it.expiredAt = expiredAt
                         it.sync()
