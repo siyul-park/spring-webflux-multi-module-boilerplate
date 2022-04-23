@@ -18,6 +18,7 @@ class PropertyOverridePatch<S : Any, T : Any>(
 
     init {
         target.memberProperties.forEach { targetProperty ->
+            val updatedValue = targetProperty.get(value) as? Optional<Any?>? ?: return@forEach
             val sourceProperty = source.memberProperties.find { it.name == targetProperty.name } ?: throw IllegalArgumentException("${target.simpleName}.${targetProperty.name} is not exists.")
             if (sourceProperty !is KMutableProperty1) {
                 throw IllegalArgumentException("${source.simpleName}.${sourceProperty.name} is must mutable.")
@@ -28,8 +29,7 @@ class PropertyOverridePatch<S : Any, T : Any>(
                 throw IllegalArgumentException("${target.simpleName}.${targetProperty.name} is must optional.")
             }
 
-            val updatedValue = targetProperty.get(value) as? Optional<Any?>?
-            if (!sourceProperty.returnType.isMarkedNullable && updatedValue != null && updatedValue.isEmpty) {
+            if (!sourceProperty.returnType.isMarkedNullable && updatedValue.isEmpty) {
                 throw ValidationException("${sourceProperty.name} is cannot be null")
             }
 
