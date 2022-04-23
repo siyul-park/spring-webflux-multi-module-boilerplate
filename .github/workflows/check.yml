@@ -37,3 +37,4 @@ jobs:
         working-directory: ./k6-tests
       - name: Transpile and bundle test script
         run: npm run build
+        working-directory: ./k6-tests
