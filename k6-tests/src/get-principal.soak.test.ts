@@ -5,8 +5,8 @@ import client from './client';
 
 export const options: Options = {
   stages: [
-    { duration: '2m', target: 2000 },
-    { duration: '3h56m', target: 2000 },
+    { duration: '2m', target: 4000 },
+    { duration: '3h56m', target: 4000 },
     { duration: '2m', target: 0 },
   ],
   thresholds: {
