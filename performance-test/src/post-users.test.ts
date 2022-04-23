@@ -10,7 +10,11 @@ export let options: Options = {
   duration: '10s'
 };
 
-const userGateway = new UserGateway(client);
+const userGateway = new UserGateway({
+  grantType: 'client_credentials',
+  clientId: client.id,
+  clientSecret: client.secret
+});
 
 export default () => {
   userGateway.create(dummyCreateUserRequest());

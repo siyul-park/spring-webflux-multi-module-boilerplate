@@ -8,7 +8,11 @@ export let options: Options = {
   duration: '10s'
 };
 
-const clientGateway = new ClientGateway(client);
+const clientGateway = new ClientGateway({
+  grantType: 'client_credentials',
+  clientId: client.id,
+  clientSecret: client.secret
+});
 
 export default () => {
   clientGateway.readSelf();

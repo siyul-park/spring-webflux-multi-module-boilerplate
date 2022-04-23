@@ -1,5 +1,6 @@
 import AuthGateway from './auth-gateway';
 import { TokenInfo } from '../response';
+import { CreateTokenRequest } from "../request";
 
 class GatewayAuthorization {
     private readonly authGateway = new AuthGateway();
@@ -8,17 +9,13 @@ class GatewayAuthorization {
     private createdAt: Date | null = null
 
     constructor(
-        private readonly client: { id: string, secret: string }
+        private readonly request: CreateTokenRequest
     ) {
     }
 
     getAuthorization(): string {
         if (this.isExpired()) {
-            this.tokens = this.authGateway.createToken({
-                grantType: 'client_credentials',
-                clientId: this.client.id,
-                clientSecret: this.client.secret
-            });
+            this.tokens = this.authGateway.createToken(this.request);
             this.createdAt = new Date();
         }
 

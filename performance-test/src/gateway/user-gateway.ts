@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check } from 'k6';
 
-import { CreateUserRequest, UpdateClientRequest } from '../request';
+import { CreateTokenRequest, CreateUserRequest, UpdateClientRequest } from '../request';
 import { UserInfo } from '../response';
 import { camelToSnake, snakeToCamel } from '../util';
 
@@ -13,8 +13,8 @@ const url = __ENV.URL;
 class UserGateway {
     private readonly gatewayAuthorization: GatewayAuthorization;
 
-    constructor(client: { id: string, secret: string }) {
-        this.gatewayAuthorization = new GatewayAuthorization(client);
+    constructor(request: CreateTokenRequest) {
+        this.gatewayAuthorization = new GatewayAuthorization(request);
     }
 
     create(request: CreateUserRequest): UserInfo {

@@ -38,7 +38,11 @@ export let options: Options = {
 matrixScenarios(options);
 
 const authGateway = new AuthGateway();
-const userGateway = new UserGateway(client);
+const userGateway = new UserGateway({
+  grantType: 'client_credentials',
+  clientId: client.id,
+  clientSecret: client.secret
+});
 
 export function setup() {
   const token = authGateway.createToken({
