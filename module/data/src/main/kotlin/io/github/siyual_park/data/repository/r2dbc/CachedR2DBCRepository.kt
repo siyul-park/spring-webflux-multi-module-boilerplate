@@ -113,10 +113,8 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
                         if (notCachedKey.isNotEmpty()) {
                             delegator.findAll(Criteria.where(indexName).`in`(notCachedKey))
-                                .collect { entity ->
-                                    storage.put(entity)
-                                    result.add(entity)
-                                }
+                                .onEach { storage.put(it) }
+                                .collect { result.add(it) }
                         }
 
                         return@flow emitAll(result.asFlow())

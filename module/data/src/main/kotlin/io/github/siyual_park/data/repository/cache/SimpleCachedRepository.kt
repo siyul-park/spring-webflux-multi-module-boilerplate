@@ -87,6 +87,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
 
             if (notCachedIds.isNotEmpty()) {
                 delegator.findAllById(notCachedIds)
+                    .onEach { storage.put(it) }
                     .collect { result.add(it) }
             }
 
