@@ -2,7 +2,7 @@ import { Options } from 'k6/options';
 
 function matrixScenarios(options: Options): void {
   Array.from(Object.entries(options.scenarios ?? {})).forEach(([key]) => {
-    let thresholdName = `http_req_duration{scenario:${key}}`;
+    const thresholdName = `http_req_duration{scenario:${key}}`;
     if (options.thresholds == null) {
       options.thresholds = {};
     }

@@ -1,0 +1,5 @@
+script
+node_modules
+dist
+*.js
+*.json

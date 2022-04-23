@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "clean": "rm -rf ./dist",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "package-json:sort": "sort-package-json \"package.json\""
   },
   "devDependencies": {
     "@babel/core": "7.13.16",
@@ -13,9 +17,15 @@
     "@babel/preset-typescript": "7.13.0",
     "@types/k6": "~0.37.0",
     "@types/webpack": "5.28.0",
+    "@typescript-eslint/eslint-plugin": "^5.19.0",
+    "@typescript-eslint/parser": "^5.19.0",
     "babel-loader": "8.2.2",
     "clean-webpack-plugin": "4.0.0-alpha.0",
     "copy-webpack-plugin": "^9.0.1",
+    "eslint": "^8.13.0",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "sort-package-json": "^1.55.0",
     "typescript": "4.2.4",
     "webpack": "5.35.1",
     "webpack-cli": "4.6.0",

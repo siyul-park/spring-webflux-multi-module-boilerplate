@@ -1,11 +1,11 @@
 import { Options } from 'k6/options';
 
 import { UserGateway } from './gateway';
-import { UserInfo } from "./response";
-import { dummyCreateUserRequest } from "./dummy";
+import { UserInfo } from './response';
+import { dummyCreateUserRequest } from './dummy';
 import client from './client';
 
-export let options: Options = {
+export const options: Options = {
   vus: 200,
   duration: '10s',
   thresholds: {
@@ -19,14 +19,14 @@ export function setup() {
   const userGateway = new UserGateway({
     grantType: 'client_credentials',
     clientId: client.id,
-    clientSecret: client.secret
+    clientSecret: client.secret,
   });
   const createUserRequest = dummyCreateUserRequest();
   const user = userGateway.create(createUserRequest);
 
   return {
     ...user,
-    ...createUserRequest
+    ...createUserRequest,
   };
 }
 
@@ -36,7 +36,7 @@ export default (user: UserInfo & { password: string }) => {
     clientId: client.id,
     clientSecret: client.secret,
     username: user.name,
-    password: user.password
+    password: user.password,
   });
   userGateway.readSelf();
 };

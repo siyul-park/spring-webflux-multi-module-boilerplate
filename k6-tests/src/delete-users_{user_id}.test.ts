@@ -5,7 +5,7 @@ import { dummyCreateUserRequest } from './dummy';
 
 import client from './client';
 
-export let options: Options = {
+export const options: Options = {
   vus: 200,
   duration: '10s',
   thresholds: {
@@ -17,7 +17,7 @@ export let options: Options = {
 const userGateway = new UserGateway({
   grantType: 'client_credentials',
   clientId: client.id,
-  clientSecret: client.secret
+  clientSecret: client.secret,
 });
 
 export default () => {
