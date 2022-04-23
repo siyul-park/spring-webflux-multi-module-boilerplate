@@ -28,6 +28,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '16'
+          cache: "npm"
       - run: npm ci
         working-directory: ./k6-tests
       - run: npm run build
