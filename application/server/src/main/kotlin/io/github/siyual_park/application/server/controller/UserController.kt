@@ -2,18 +2,14 @@ package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
-import io.github.siyual_park.application.server.dto.request.UpdateUserContactRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
-import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.search.filter.RHSFilterParserFactory
 import io.github.siyual_park.search.pagination.OffsetPage
@@ -22,7 +18,6 @@ import io.github.siyual_park.search.sort.SortParserFactory
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.User
-import io.github.siyual_park.user.domain.UserContact
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.auth.UserPrincipal
@@ -54,7 +49,7 @@ import javax.validation.ValidationException
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val authorizator: Authorizator,
+    private val userContactController: UserContactController,
     private val userFactory: UserFactory,
     private val userStorage: UserStorage,
     scopeTokenStorage: ScopeTokenStorage,
@@ -69,13 +64,6 @@ class UserController(
     private val sortParser = sortParserFactory.create(UserData::class)
 
     private val offsetPaginator = OffsetPaginator(userStorage)
-
-    private val contactSelfUpdateScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("users[self].contact:update")
-    }
-    private val contactUpdateScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("users.contact:update")
-    }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
@@ -143,31 +131,18 @@ class UserController(
         @Valid @RequestBody request: UpdateUserRequest,
         @AuthenticationPrincipal principal: UserPrincipal
     ): UserInfo = operator.executeAndAwait {
-        val contactRequest = request.contact
-        request.contact = null
-
-        if (contactRequest != null && !authorizator.authorize(
-                principal,
-                listOf(contactSelfUpdateScopeToken.get(), contactUpdateScopeToken.get()),
-                listOf(userId, null)
-            )
-        ) {
-            throw RequiredPermissionException()
-        }
-
-        val userPatch = PropertyOverridePatch.of<User, UpdateUserRequest>(request)
-        val contactPatch = contactRequest?.let {
-            PropertyOverridePatch.of<UserContact, UpdateUserContactRequest>(
+        request.contact?.let {
+            userContactController.update(
+                userId,
                 it.orElseThrow { throw ValidationException("contact is cannot be null") }
             )
         }
+        request.contact = null
 
+        val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(request)
         val user = userStorage.loadOrFail(userId)
-        val contact = user.getContact()
 
-        userPatch.apply(user)
-        contactPatch?.apply(contact)
-
+        patch.apply(user)
         user.sync()
 
         mapperContext.map(user)
