@@ -6,7 +6,7 @@ val reactor_kotlin_extensions_version: String by project
 val guava_version: String by project
 val jackson_version: String by project
 val json_patch_version: String by project
-val springfox_version: String by project
+val springdoc_version: String by project
 val sentry_logback_version: String by project
 val embed_mongo_version: String by project
 
@@ -107,8 +107,10 @@ allprojects {
 
         implementation("com.github.java-json-tools:json-patch:$json_patch_version")
 
-        implementation("io.springfox:springfox-boot-starter:$springfox_version")
-        implementation("io.springfox:springfox-swagger-ui:$springfox_version")
+        implementation("org.springdoc:springdoc-openapi-ui:$springdoc_version")
+        implementation("org.springdoc:springdoc-openapi-webflux-ui:$springdoc_version")
+        implementation("org.springdoc:springdoc-openapi-security:$springdoc_version")
+        implementation("org.springdoc:springdoc-openapi-kotlin:$springdoc_version")
     }
 
     tasks.withType<Copy> {

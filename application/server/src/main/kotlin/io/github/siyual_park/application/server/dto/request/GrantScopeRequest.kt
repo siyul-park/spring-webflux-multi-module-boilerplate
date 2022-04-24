@@ -2,7 +2,7 @@ package io.github.siyual_park.application.server.dto.request
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.github.siyual_park.ulid.ULID
-import io.swagger.annotations.ApiModelProperty
+import io.swagger.v3.oas.annotations.media.Schema
 import javax.validation.constraints.AssertTrue
 import javax.validation.constraints.Size
 
@@ -11,7 +11,7 @@ data class GrantScopeRequest(
     @Size(max = 64)
     val name: String? = null,
 ) {
-    @ApiModelProperty(hidden = true)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     @JsonIgnore
     @AssertTrue
     fun isValid(): Boolean {

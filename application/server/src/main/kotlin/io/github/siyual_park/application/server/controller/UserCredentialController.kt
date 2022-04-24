@@ -7,7 +7,9 @@ import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.UserStorage
-import io.swagger.annotations.Api
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PatchMapping
@@ -19,13 +21,15 @@ import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 import javax.validation.ValidationException
 
-@Api(tags = ["user"])
+@Tag(name = "user")
 @RestController
 @RequestMapping("/users/{user-id}/credential")
 class UserCredentialController(
     private val userStorage: UserStorage,
     private val mapperContext: MapperContext
 ) {
+    @Operation(security = [SecurityRequirement(name = "bearer")])
+
     @PatchMapping("")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users.credential:update', 'users[self].credential:update'})")
