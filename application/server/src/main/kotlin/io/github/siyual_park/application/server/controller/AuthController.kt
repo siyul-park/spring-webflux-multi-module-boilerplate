@@ -124,7 +124,7 @@ class AuthController(
             refreshTokenFactory.get().create(
                 principal,
                 tokensProperty.refreshToken.age,
-                filter = setOf(refreshTokenScope.get()),
+                filter = setOf(accessTokenScope.get()),
             )
         } else {
             null

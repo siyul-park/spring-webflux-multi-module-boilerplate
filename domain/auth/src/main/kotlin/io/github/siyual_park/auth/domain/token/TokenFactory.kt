@@ -7,7 +7,7 @@ import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.expansion.fieldName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.util.retry
-import org.springframework.data.mongodb.core.query.where
+import org.springframework.data.mongodb.core.query.Criteria
 import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
@@ -85,8 +85,8 @@ class TokenFactory(
 
         template.limit?.forEach { (key, limit) ->
             val value = claims[key] ?: return@forEach
-            val query = where(TokenData::type).`is`(template.type)
-                .and("claims.$key").`is`(value)
+            val query = Criteria("claims.$key").`is`(value)
+                .and(fieldName(TokenData::type)).`is`(template.type)
 
             val count = tokenRepository.count(query)
 
