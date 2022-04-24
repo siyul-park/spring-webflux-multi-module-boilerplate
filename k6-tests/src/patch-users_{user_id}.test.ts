@@ -5,16 +5,14 @@ import { UserInfo } from './response';
 import { dummyCreateUserRequest, dummyUpdateUserRequest } from './dummy';
 
 import client from './client';
+import matrixType from './matrix-type';
 
 export const options: Options = {
   vus: 200,
   duration: '10s',
-  thresholds: {
-    'http_req_duration{type:POST_token}': ['max>=0'],
-    'http_req_duration{type:POST_users}': ['max>=0'],
-    'http_req_duration{type:PATCH_users_id}': ['max>=0'],
-  },
 };
+
+matrixType(options, ['POST_token', 'POST_users', 'PATCH_users_id']);
 
 export function setup() {
   const userGateway = new UserGateway({
