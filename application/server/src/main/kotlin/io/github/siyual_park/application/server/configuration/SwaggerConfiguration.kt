@@ -5,7 +5,6 @@ import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.security.SecurityScheme
-import io.swagger.v3.oas.models.tags.Tag
 import org.springdoc.core.SpringDocUtils.getConfig
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -31,6 +30,6 @@ class SwaggerConfiguration {
                         "bearer",
                         SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
                     )
-            ).addTagsItem(Tag().name("utility"))
+            )
     }
 }
