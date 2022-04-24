@@ -12,8 +12,7 @@ export const options: Options = {
     clientCredentials: {
       gracefulStop: '0s',
       exec: 'clientCredentials',
-      executor: 'ramping-arrival-rate',
-      preAllocatedVUs: 10000,
+      executor: 'ramping-vus',
       stages: [
         { duration: '2m', target: 4000 },
         { duration: '5m', target: 4000 },
@@ -30,8 +29,7 @@ export const options: Options = {
       gracefulStop: '0s',
       startTime: '38m',
       exec: 'password',
-      executor: 'ramping-arrival-rate',
-      preAllocatedVUs: 10000,
+      executor: 'ramping-vus',
       stages: [
         { duration: '2m', target: 4000 },
         { duration: '5m', target: 4000 },
@@ -48,8 +46,7 @@ export const options: Options = {
       gracefulStop: '0s',
       startTime: '76m',
       exec: 'refreshToken',
-      executor: 'ramping-arrival-rate',
-      preAllocatedVUs: 10000,
+      executor: 'ramping-vus',
       stages: [
         { duration: '2m', target: 4000 },
         { duration: '5m', target: 4000 },
