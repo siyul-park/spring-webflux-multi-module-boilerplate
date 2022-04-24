@@ -29,7 +29,7 @@ class Token(
     val type by proxy(root, TokenData::type)
     val signature by proxy(root, TokenData::signature)
     val claims by proxy(root, TokenData::claims)
-    private val expiredAt by proxy(root, TokenData::expiredAt)
+    var expiredAt by proxy(root, TokenData::expiredAt)
 
     fun isActivated(): Boolean {
         val expiredAt = expiredAt ?: return true

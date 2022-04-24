@@ -67,8 +67,10 @@ class Client(
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
-        val scope = getScope().toSet()
-        return scope.contains(scopeToken)
+        return clientScopeRepository.exists(
+            where(ClientScopeData::clientId).`is`(id)
+                .and(where(ClientScopeData::scopeTokenId).`is`(scopeToken.id))
+        )
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {

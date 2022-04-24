@@ -215,8 +215,8 @@ class MongoRepositoryTest : MongoTest() {
         assertEquals(person.id, updatedPerson.id)
         assertNotNull(updatedPerson.updatedAt)
 
-        assertEquals(person.name, updatedPerson.name)
-        assertEquals(person.age, updatedPerson.age)
+        assertEquals(person2.name, updatedPerson.name)
+        assertEquals(person2.age, updatedPerson.age)
     }
 
     @Test
@@ -236,8 +236,8 @@ class MongoRepositoryTest : MongoTest() {
         assertEquals(person.id, updatedPerson.id)
         assertNotNull(updatedPerson.updatedAt)
 
-        assertEquals(person.name, updatedPerson.name)
-        assertEquals(person.age, updatedPerson.age)
+        assertEquals(person2.name, updatedPerson.name)
+        assertEquals(person2.age, updatedPerson.age)
     }
 
     @Test
@@ -281,10 +281,10 @@ class MongoRepositoryTest : MongoTest() {
             .let { personRepository.createAll(it) }
             .toList()
 
+        val person2 = DummyPerson.create()
         val updatedPersons = personRepository.updateAll(
             persons,
             Patch.with {
-                val person2 = DummyPerson.create()
                 it.name = person2.name
                 it.age = person2.age
             }
@@ -299,8 +299,8 @@ class MongoRepositoryTest : MongoTest() {
             assertNotNull(updatedPerson.createdAt)
             assertNotNull(updatedPerson.updatedAt)
 
-            assertEquals(person.name, updatedPerson.name)
-            assertEquals(person.age, updatedPerson.age)
+            assertEquals(person2.name, updatedPerson.name)
+            assertEquals(person2.age, updatedPerson.age)
         }
     }
 
@@ -313,10 +313,10 @@ class MongoRepositoryTest : MongoTest() {
             .let { personRepository.createAll(it) }
             .toList()
 
+        val person2 = DummyPerson.create()
         val updatedPersons = personRepository.updateAll(
             persons,
             AsyncPatch.with {
-                val person2 = DummyPerson.create()
                 it.name = person2.name
                 it.age = person2.age
             }
@@ -324,15 +324,14 @@ class MongoRepositoryTest : MongoTest() {
 
         assertEquals(persons.size, updatedPersons.size)
         for (i in 0 until numOfPerson) {
-            val person = persons[i]
             val updatedPerson = updatedPersons[i]!!
 
             assertNotNull(updatedPerson.id)
             assertNotNull(updatedPerson.createdAt)
             assertNotNull(updatedPerson.updatedAt)
 
-            assertEquals(person.name, updatedPerson.name)
-            assertEquals(person.age, updatedPerson.age)
+            assertEquals(person2.name, updatedPerson.name)
+            assertEquals(person2.age, updatedPerson.age)
         }
     }
 

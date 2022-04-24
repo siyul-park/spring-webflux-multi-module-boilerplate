@@ -1,6 +1,7 @@
 package io.github.siyual_park.persistence
 
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.transaction.currentContextOrNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -27,18 +28,20 @@ class SimpleR2DBCStorage<T : Any, ID : Any, P : Persistence<T, ID>>(
 
     override fun load(ids: Iterable<ID>): Flow<P> {
         return flow {
+            val context = currentContextOrNull()
             repository.findAllById(ids)
                 .map { mapper(it) }
-                .onEach { it.link() }
+                .onEach { if (context != null) it.link() }
                 .collect { emit(it) }
         }
     }
 
     override fun load(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<P> {
         return flow {
+            val context = currentContextOrNull()
             repository.findAll(criteria, limit, offset, sort)
                 .map { mapper(it) }
-                .onEach { it.link() }
+                .onEach { if (context != null) it.link() }
                 .collect { emit(it) }
         }
     }

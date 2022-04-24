@@ -3,29 +3,29 @@ package io.github.siyual_park.application.server.dto.request
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.github.siyual_park.application.server.dto.GrantType
 import io.github.siyual_park.ulid.ULID
-import io.swagger.annotations.ApiModelProperty
+import io.swagger.v3.oas.annotations.media.Schema
 import javax.validation.constraints.AssertTrue
 
 data class CreateTokenRequest(
-    @ApiModelProperty(name = "grant_type")
+    @Schema(name = "grant_type")
     val grantType: GrantType,
-    @ApiModelProperty(name = "scope")
+    @Schema(name = "scope")
     val scope: String? = null,
 
-    @ApiModelProperty(name = "username")
+    @Schema(name = "username")
     val username: String? = null,
-    @ApiModelProperty(name = "password")
+    @Schema(name = "password")
     val password: String? = null,
 
-    @ApiModelProperty(name = "refresh_token")
+    @Schema(name = "refresh_token")
     val refreshToken: String? = null,
 
-    @ApiModelProperty(name = "client_id")
+    @Schema(name = "client_id")
     val clientId: ULID,
-    @ApiModelProperty(name = "client_secret")
+    @Schema(name = "client_secret")
     val clientSecret: String? = null
 ) {
-    @ApiModelProperty(hidden = true)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     @JsonIgnore
     @AssertTrue
     fun isValid(): Boolean {

@@ -19,7 +19,7 @@ class UserPrincipalRefreshStrategy(
         return UserPrincipal(
             id = principal.id,
             clientId = principal.clientId,
-            scope = principal.scope.filter { userScope.contains(it) }.toSet()
+            scope = userScope
         )
     }
 }

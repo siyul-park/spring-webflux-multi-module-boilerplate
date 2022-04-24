@@ -1,4 +1,4 @@
-package io.github.siyual_park.auth.spring
+package io.github.siyual_park.auth.domain
 
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload

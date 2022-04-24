@@ -23,13 +23,15 @@ import kotlin.reflect.KClass
 class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     clazz: KClass<T>,
-    scheduler: Scheduler = Schedulers.boundedElastic(),
+    subscriber: Scheduler = Schedulers.parallel(),
+    publisher: Scheduler = Schedulers.boundedElastic(),
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val filteredRepository = FilteredR2DBCRepository<T, ID>(
         entityOperations,
         clazz,
-        scheduler,
+        subscriber,
+        publisher,
         { where(SoftDeletable::deletedAt).isNull },
         eventPublisher
     )
@@ -37,7 +39,8 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
     private val simpleRepository = SimpleR2DBCRepository<T, ID>(
         entityOperations,
         clazz,
-        scheduler
+        subscriber,
+        publisher
     )
 
     override val entityManager: EntityManager<T, ID>
@@ -123,12 +126,12 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
         return filteredRepository.update(criteria, patch)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return filteredRepository.updateAll(criteria, patch)
+    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return filteredRepository.updateAll(criteria, patch, limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
-        return filteredRepository.updateAll(criteria, patch)
+    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return filteredRepository.updateAll(criteria, patch, limit, offset, sort)
     }
 
     override suspend fun update(entity: T): T? {

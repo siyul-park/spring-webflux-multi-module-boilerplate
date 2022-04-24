@@ -8,6 +8,7 @@ import io.github.siyual_park.client.migration.CreateClientCredential
 import io.github.siyual_park.client.migration.CreateClientScope
 import io.github.siyual_park.data.migration.MigrationManager
 import io.github.siyual_park.user.migration.CreateUser
+import io.github.siyual_park.user.migration.CreateUserContact
 import io.github.siyual_park.user.migration.CreateUserCredential
 import io.github.siyual_park.user.migration.CreateUserScope
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,6 +31,7 @@ class MigrationConfiguration(
             .register(CreateClientCredential(entityOperations))
             .register(CreateClientScope(entityOperations))
             .register(CreateUser(entityOperations, mongoTemplate))
+            .register(CreateUserContact(entityOperations))
             .register(CreateUserCredential(entityOperations))
             .register(CreateUserScope(entityOperations))
     }

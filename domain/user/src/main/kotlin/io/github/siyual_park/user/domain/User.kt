@@ -6,6 +6,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.data.event.AfterDeleteEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
+import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.AsyncLazy
@@ -16,6 +17,7 @@ import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
 import io.github.siyual_park.user.entity.UserScopeData
+import io.github.siyual_park.user.repository.UserContactRepository
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
 import io.github.siyual_park.user.repository.UserScopeRepository
@@ -32,6 +34,7 @@ import org.springframework.transaction.reactive.executeAndAwait
 class User(
     value: UserData,
     private val userRepository: UserRepository,
+    private val userContactRepository: UserContactRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
@@ -41,8 +44,18 @@ class User(
     val id by proxy(root, UserData::id)
     override val userId by proxy(root, UserData::id)
     var name by proxy(root, UserData::name)
-    var email by proxy(root, UserData::email)
 
+    private val contact = AsyncLazy {
+        UserContact(
+            userContactRepository.findByUserIdOrFail(id),
+            userContactRepository,
+            eventPublisher
+        ).also {
+            doBeforeSync {
+                it.sync()
+            }
+        }
+    }
     private val credential = AsyncLazy {
         UserCredential(
             userCredentialRepository.findByUserIdOrFail(id),
@@ -56,8 +69,10 @@ class User(
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
-        val scope = getScope().toSet()
-        return scope.contains(scopeToken)
+        return userScopeRepository.exists(
+            where(UserScopeData::userId).`is`(id)
+                .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
+        )
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {
@@ -70,10 +85,16 @@ class User(
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
-        userScopeRepository.deleteAll(
+        val userScope = userScopeRepository.findOneOrFail(
             where(UserScopeData::userId).`is`(id)
                 .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
         )
+        userScopeRepository.delete(userScope)
+    }
+
+    suspend fun getContact(): UserContact {
+        return contact.get()
+            .also { it.link() }
     }
 
     suspend fun getCredential(): UserCredential {
@@ -123,8 +144,13 @@ class User(
             operator.executeAndAwait {
                 eventPublisher.publish(BeforeDeleteEvent(this))
                 userScopeRepository.deleteAllByUserId(id)
+
+                contact.get().clear()
+                contact.clear()
+
                 credential.get().clear()
                 credential.clear()
+
                 userRepository.delete(root.raw())
                 root.clear()
                 eventPublisher.publish(AfterDeleteEvent(this))

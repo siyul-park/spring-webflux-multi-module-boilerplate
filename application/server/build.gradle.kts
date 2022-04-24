@@ -11,7 +11,6 @@ dependencies {
     implementation(project(":module:data"))
     implementation(project(":module:mapper"))
     implementation(project(":module:json"))
-    implementation(project(":module:swagger"))
     implementation(project(":module:event"))
     implementation(project(":module:search"))
     implementation(project(":module:validation"))

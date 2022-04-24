@@ -22,7 +22,9 @@ import io.github.siyual_park.search.pagination.OffsetPage
 import io.github.siyual_park.search.pagination.OffsetPaginator
 import io.github.siyual_park.search.sort.SortParserFactory
 import io.github.siyual_park.ulid.ULID
-import io.swagger.annotations.Api
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -43,7 +45,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
-@Api(tags = ["client"])
+@Tag(name = "client")
 @RestController
 @RequestMapping("/clients")
 class ClientController(
@@ -61,6 +63,7 @@ class ClientController(
 
     private val offsetPaginator = OffsetPaginator(clientStorage)
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'clients:create')")
@@ -74,6 +77,7 @@ class ClientController(
         return mapperContext.map(client)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'clients:read')")
@@ -108,6 +112,7 @@ class ClientController(
         return offsetPage.mapDataAsync { mapperContext.map(it) }
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/self")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'clients[self]:read')")
@@ -115,6 +120,7 @@ class ClientController(
         return read(principal.clientId ?: throw EmptyResultDataAccessException(1))
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
@@ -123,6 +129,7 @@ class ClientController(
         return mapperContext.map(client)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PatchMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:update', 'clients[self]:update'})")
@@ -138,6 +145,7 @@ class ClientController(
         return mapperContext.map(client)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @DeleteMapping("/{client-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:delete', 'clients[self]:delete'})")
@@ -148,6 +156,7 @@ class ClientController(
         client.clear()
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/{client-id}/scope")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients.scope:read', 'clients[self].scope:read'})")
@@ -159,6 +168,7 @@ class ClientController(
             emitAll(client.getScope(deep = false))
         }.map { mapperContext.map(it) }
     }
+    @Operation(security = [SecurityRequirement(name = "bearer")])
 
     @PostMapping("/{client-id}/scope")
     @ResponseStatus(HttpStatus.CREATED)
@@ -169,6 +179,7 @@ class ClientController(
     ): ScopeTokenInfo {
         return authorizableContoller.grantScope(clientId, request)
     }
+    @Operation(security = [SecurityRequirement(name = "bearer")])
 
     @DeleteMapping("/{client-id}/scope/{scope-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

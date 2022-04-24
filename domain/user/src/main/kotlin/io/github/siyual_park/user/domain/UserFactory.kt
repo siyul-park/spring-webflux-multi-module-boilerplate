@@ -6,8 +6,10 @@ import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.AsyncLazy
+import io.github.siyual_park.user.entity.UserContactData
 import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.entity.UserData
+import io.github.siyual_park.user.repository.UserContactRepository
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
 import org.springframework.stereotype.Component
@@ -18,6 +20,7 @@ import java.security.MessageDigest
 @Component
 class UserFactory(
     private val userRepository: UserRepository,
+    private val userContactRepository: UserContactRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userMapper: UserMapper,
     private val scopeTokenStorage: ScopeTokenStorage,
@@ -34,6 +37,7 @@ class UserFactory(
             val user = createUser(payload)
 
             user.link()
+            createContact(user, payload)
             createCredential(user, payload)
 
             if (payload.scope == null) {
@@ -51,9 +55,18 @@ class UserFactory(
         }!!
 
     private suspend fun createUser(payload: CreateUserPayload): User {
-        return UserData(payload.name, payload.email)
+        return UserData(payload.name)
             .let { userRepository.create(it) }
             .let { userMapper.map(it) }
+    }
+
+    private suspend fun createContact(user: User, payload: CreateUserPayload): UserContactData {
+        return userContactRepository.create(
+            UserContactData(
+                userId = user.id,
+                email = payload.email
+            )
+        )
     }
 
     private suspend fun createCredential(user: User, payload: CreateUserPayload): UserCredentialData {
