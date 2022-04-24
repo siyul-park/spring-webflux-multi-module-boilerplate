@@ -6,11 +6,9 @@ import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.update
+import io.github.siyual_park.data.transaction.currentContextOrNull
 import io.github.siyual_park.event.EventPublisher
-import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
-import org.springframework.transaction.NoTransactionException
-import org.springframework.transaction.reactive.TransactionContextManager
 import org.springframework.transaction.reactive.TransactionSynchronization
 import reactor.core.publisher.Mono
 import java.util.Collections
@@ -46,16 +44,12 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     override suspend fun link(): Boolean {
-        try {
-            val context = TransactionContextManager.currentContext().awaitSingleOrNull() ?: return false
-            val synchronizations = context.synchronizations ?: return false
+        val context = currentContextOrNull() ?: return false
+        val synchronizations = context.synchronizations ?: return false
 
-            synchronizations.add(synchronization)
+        synchronizations.add(synchronization)
 
-            return true
-        } catch (e: NoTransactionException) {
-            return false
-        }
+        return true
     }
 
     override suspend fun clear() {
