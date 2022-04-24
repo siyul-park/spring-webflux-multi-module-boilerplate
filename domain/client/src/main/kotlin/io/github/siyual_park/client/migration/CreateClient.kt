@@ -55,7 +55,7 @@ class CreateClient(
         entityOperations.createUniqueIndex(tableName, listOf("name"))
 
         mongoTemplate.getCollection("tokens").awaitSingle().apply {
-            createIndex(BasicDBObject("claims.cid", 1)).awaitSingle()
+            createIndex(BasicDBObject("type", 1).append("claims.cid", 1)).awaitSingle()
         }
     }
 
@@ -63,7 +63,7 @@ class CreateClient(
         entityOperations.dropTable(tableName)
 
         mongoTemplate.getCollection("tokens").awaitSingle().apply {
-            dropIndex(BasicDBObject("claims.cid", 1)).awaitSingle()
+            dropIndex(BasicDBObject("type", 1).append("claims.cid", 1)).awaitSingle()
         }
     }
 }
