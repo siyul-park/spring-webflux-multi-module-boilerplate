@@ -6,8 +6,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.CriteriaDefinition
+import org.springframework.transaction.reactive.TransactionContextManager
 
 class SimpleR2DBCStorage<T : Any, ID : Any, P : Persistence<T, ID>>(
     private val repository: R2DBCRepository<T, ID>,
@@ -27,18 +29,20 @@ class SimpleR2DBCStorage<T : Any, ID : Any, P : Persistence<T, ID>>(
 
     override fun load(ids: Iterable<ID>): Flow<P> {
         return flow {
+            val context = TransactionContextManager.currentContext().awaitSingleOrNull()
             repository.findAllById(ids)
                 .map { mapper(it) }
-                .onEach { it.link() }
+                .onEach { if (context != null) it.link() }
                 .collect { emit(it) }
         }
     }
 
     override fun load(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<P> {
         return flow {
+            val context = TransactionContextManager.currentContext().awaitSingleOrNull()
             repository.findAll(criteria, limit, offset, sort)
                 .map { mapper(it) }
-                .onEach { it.link() }
+                .onEach { if (context != null) it.link() }
                 .collect { emit(it) }
         }
     }
