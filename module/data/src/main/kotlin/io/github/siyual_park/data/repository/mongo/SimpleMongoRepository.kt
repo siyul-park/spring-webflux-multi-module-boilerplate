@@ -86,7 +86,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        return template.exists(query(criteria), clazz.java).awaitSingle()
+        return template.exists(query(criteria).limit(1), clazz.java).awaitSingle()
     }
 
     override suspend fun findById(id: ID): T? {
@@ -95,7 +95,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
         return template
-            .findOne(query(criteria), clazz.java)
+            .findOne(query(criteria).limit(1), clazz.java)
             .awaitSingleOrNull()
     }
 
@@ -130,7 +130,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             return emptyFlow()
         }
 
-        return findAll(where(idProperty).`in`(ids.toList()))
+        return findAll(where(idProperty).`in`(ids.toList()), limit = ids.count())
             .asFlux()
             .sort { p1, p2 ->
                 val p1Id = idProperty.get(p1)
@@ -152,7 +152,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         }
 
         return template.findAndModify(
-            query(where(idProperty).`is`(idProperty.get(entity))),
+            query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
             update,
             FindAndModifyOptions().returnNew(true),
             clazz.java
@@ -189,7 +189,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
 
         return template.findAndModify(
-            query(where(idProperty).`is`(idProperty.get(entity))),
+            query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
             Update().also {
                 propertyDiff.forEach { (key, value) ->
                     it[fieldName(key)] = value
@@ -217,12 +217,12 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         val propertyDiff = diff(sourceDump, target)
 
         if (eventPublisher != null) {
-            findOne(where(idProperty).`is`(idProperty.get(entity)))
+            findById(idProperty.get(entity))
                 ?.let { eventPublisher.publish(BeforeUpdateEvent(it, propertyDiff)) }
         }
 
         return template.findAndModify(
-            query(where(idProperty).`is`(idProperty.get(entity))),
+            query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
             Update().also {
                 propertyDiff.forEach { (key, value) ->
                     it[fieldName(key)] = value
@@ -283,7 +283,11 @@ class SimpleMongoRepository<T : Any, ID : Any>(
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
         return template.count(
-            if (criteria == null) Query() else query(criteria),
+            if (criteria == null) {
+                Query()
+            } else {
+                query(criteria)
+            },
             clazz.java
         )
             .subscribeOn(scheduler)
@@ -298,7 +302,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeDeleteEvent(entity))
 
         template.findAndRemove(
-            query(where(idProperty).`is`(idProperty.get(entity))),
+            query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
             clazz.java
         )
             .subscribeOn(scheduler)
@@ -312,7 +316,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             return
         }
 
-        deleteAll(where(idProperty).`in`(ids.toList()))
+        deleteAll(where(idProperty).`in`(ids.toList()), limit = ids.count())
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
@@ -356,7 +360,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             }
 
             template.findAllAndRemove(
-                query(where(idProperty).`in`(ids.toList())),
+                query(where(idProperty).`in`(ids.toList())).limit(ids.size),
                 clazz.java
             )
                 .subscribeOn(scheduler)

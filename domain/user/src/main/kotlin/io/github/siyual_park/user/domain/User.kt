@@ -6,6 +6,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.data.event.AfterDeleteEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
+import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.AsyncLazy
@@ -68,8 +69,10 @@ class User(
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
-        val scope = getScope().toSet()
-        return scope.contains(scopeToken)
+        return userScopeRepository.exists(
+            where(UserScopeData::userId).`is`(id)
+                .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
+        )
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {
@@ -82,10 +85,11 @@ class User(
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
-        userScopeRepository.deleteAll(
+        val userScope = userScopeRepository.findOneOrFail(
             where(UserScopeData::userId).`is`(id)
                 .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
         )
+        userScopeRepository.delete(userScope)
     }
 
     suspend fun getContact(): UserContact {
