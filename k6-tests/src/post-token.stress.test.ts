@@ -27,7 +27,6 @@ export const options: Options = {
     },
     password: {
       gracefulStop: '0s',
-      startTime: '38m',
       exec: 'password',
       executor: 'ramping-vus',
       stages: [
@@ -44,7 +43,6 @@ export const options: Options = {
     },
     refreshToken: {
       gracefulStop: '0s',
-      startTime: '76m',
       exec: 'refreshToken',
       executor: 'ramping-vus',
       stages: [

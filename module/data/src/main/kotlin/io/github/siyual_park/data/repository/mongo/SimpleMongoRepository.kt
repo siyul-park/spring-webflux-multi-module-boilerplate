@@ -115,7 +115,9 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         offset?.let {
             query = query.skip(it)
         }
-        query = query.with(sort ?: Sort.by(Sort.Order.asc(fieldName(idProperty))))
+        sort?.let {
+            query = query.with(sort)
+        }
 
         return template.find(
             query,

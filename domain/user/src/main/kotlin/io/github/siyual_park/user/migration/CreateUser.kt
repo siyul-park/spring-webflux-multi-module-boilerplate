@@ -51,7 +51,7 @@ class CreateUser(
         entityOperations.createUniqueIndex(tableName, listOf("name"))
 
         mongoTemplate.getCollection("tokens").awaitSingle().apply {
-            createIndex(BasicDBObject("type", 1).append("claims.uid", 1)).awaitSingle()
+            createIndex(BasicDBObject("claims.uid", 1)).awaitSingle()
         }
     }
 
@@ -59,7 +59,7 @@ class CreateUser(
         entityOperations.dropTable(tableName)
 
         mongoTemplate.getCollection("tokens").awaitSingle().apply {
-            dropIndex(BasicDBObject("type", 1).append("claims.uid", 1)).awaitSingle()
+            dropIndex(BasicDBObject("claims.uid", 1)).awaitSingle()
         }
     }
 }

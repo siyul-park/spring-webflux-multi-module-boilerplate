@@ -351,7 +351,9 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         offset?.let {
             query = query.offset(it)
         }
-        query = query.sort(sort ?: by(asc(entityManager.idProperty)))
+        sort?.let {
+            query = query.sort(sort)
+        }
 
         if (eventPublisher == null) {
             this.entityOperations.delete(query, clazz.java)
