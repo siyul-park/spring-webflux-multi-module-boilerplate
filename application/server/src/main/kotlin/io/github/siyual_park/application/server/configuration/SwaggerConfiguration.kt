@@ -9,14 +9,19 @@ import io.swagger.v3.oas.models.tags.Tag
 import org.springdoc.core.SpringDocUtils.getConfig
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.time.Duration
+import java.time.Instant
 
 @Configuration
 class SwaggerConfiguration {
     init {
         getConfig()
+            .replaceWithClass(Instant::class.java, Long::class.java)
+            .replaceWithClass(Duration::class.java, Long::class.java)
             .replaceWithClass(ULID::class.java, String::class.java)
             .replaceWithClass(OffsetPage::class.java, List::class.java)
     }
+
     @Bean
     fun openAPI(): OpenAPI {
         return OpenAPI()

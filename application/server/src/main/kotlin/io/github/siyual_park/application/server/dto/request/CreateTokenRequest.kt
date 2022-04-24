@@ -3,27 +3,26 @@ package io.github.siyual_park.application.server.dto.request
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.github.siyual_park.application.server.dto.GrantType
 import io.github.siyual_park.ulid.ULID
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Schema
 import javax.validation.constraints.AssertTrue
 
 data class CreateTokenRequest(
-    @Parameter(name = "grant_type")
+    @Schema(name = "grant_type")
     val grantType: GrantType,
-    @Parameter(name = "scope")
+    @Schema(name = "scope")
     val scope: String? = null,
 
-    @Parameter(name = "username")
+    @Schema(name = "username")
     val username: String? = null,
-    @Parameter(name = "password")
+    @Schema(name = "password")
     val password: String? = null,
 
-    @Parameter(name = "refresh_token")
+    @Schema(name = "refresh_token")
     val refreshToken: String? = null,
 
-    @Parameter(name = "client_id")
+    @Schema(name = "client_id")
     val clientId: ULID,
-    @Parameter(name = "client_secret")
+    @Schema(name = "client_secret")
     val clientSecret: String? = null
 ) {
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
