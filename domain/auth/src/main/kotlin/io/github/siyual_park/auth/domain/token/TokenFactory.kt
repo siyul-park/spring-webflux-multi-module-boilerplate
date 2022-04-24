@@ -4,12 +4,10 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
+import io.github.siyual_park.data.expansion.fieldName
+import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.util.retry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.toList
+import org.springframework.data.mongodb.core.query.where
 import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
@@ -17,7 +15,6 @@ import java.time.Instant
 class TokenFactory(
     private val template: TokenTemplate,
     private val claimEmbedder: ClaimEmbedder,
-    private val tokenStorage: TokenStorage,
     private val tokenRepository: TokenRepository,
     private val tokenMapper: TokenMapper,
 ) {
@@ -88,24 +85,18 @@ class TokenFactory(
 
         template.limit?.forEach { (key, limit) ->
             val value = claims[key] ?: return@forEach
+            val query = where(TokenData::type).`is`(template.type)
+                .and("claims.$key").`is`(value)
 
-            val existed = tokenStorage.load(
-                type = template.type,
-                claims = mapOf(key to value),
+            val count = tokenRepository.count(query)
+
+            tokenRepository.updateAll(
+                query.and(fieldName(TokenData::expiredAt)).gt(expiredAt),
+                AsyncPatch.with {
+                    it.expiredAt = expiredAt
+                },
+                limit = (count - limit + 1).toInt()
             )
-                .toList()
-
-            val removeSize = existed.size - limit + 1
-            if (removeSize > 0) {
-                existed.subList(0, removeSize).map {
-                    CoroutineScope(Dispatchers.IO).async {
-                        if (it.expiredAt?.isAfter(expiredAt) != false) {
-                            it.expiredAt = expiredAt
-                            it.sync()
-                        }
-                    }
-                }.awaitAll()
-            }
         }
     }
 

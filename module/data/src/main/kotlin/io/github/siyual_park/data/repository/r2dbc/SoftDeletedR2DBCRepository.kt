@@ -123,12 +123,12 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
         return filteredRepository.update(criteria, patch)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return filteredRepository.updateAll(criteria, patch)
+    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return filteredRepository.updateAll(criteria, patch, limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
-        return filteredRepository.updateAll(criteria, patch)
+    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return filteredRepository.updateAll(criteria, patch, limit, offset, sort)
     }
 
     override suspend fun update(entity: T): T? {

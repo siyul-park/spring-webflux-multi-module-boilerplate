@@ -26,9 +26,9 @@ interface R2DBCRepository<T : Any, ID : Any> : Repository<T, ID> {
 
     suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T?
 
-    fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T>
+    fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<T>
 
-    fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T>
+    fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<T>
 
     suspend fun count(criteria: CriteriaDefinition? = null): Long
 

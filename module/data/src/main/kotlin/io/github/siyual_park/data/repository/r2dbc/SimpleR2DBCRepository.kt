@@ -261,12 +261,12 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         return findOne(criteria)?.let { update(it, patch) }
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return updateAll(criteria, patch.async())
+    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
-        return findAll(criteria)
+    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return findAll(criteria, limit, offset, sort)
             .map { update(it, patch) }
             .filterNotNull()
     }

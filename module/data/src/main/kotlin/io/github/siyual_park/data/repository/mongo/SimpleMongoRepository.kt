@@ -38,6 +38,7 @@ import org.springframework.data.mongodb.core.query.where
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaField
@@ -86,16 +87,20 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        return template.exists(query(criteria).limit(1), clazz.java).awaitSingle()
+        return template.exists(query(criteria), clazz.java)
+            .subscribeOn(scheduler)
+            .awaitSingle()
     }
 
     override suspend fun findById(id: ID): T? {
-        return findOne(where(idProperty).`is`(id))
+        return template.findById(id, clazz.java)
+            .subscribeOn(scheduler)
+            .awaitSingleOrNull()
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        return template
-            .findOne(query(criteria).limit(1), clazz.java)
+        return template.findOne(query(criteria), clazz.java)
+            .subscribeOn(scheduler)
             .awaitSingleOrNull()
     }
 
@@ -210,7 +215,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
-        val sourceDump = mutableMapOf<KProperty1<T, *>, Any?>()
+        val sourceDump = mutableMapOf<KProperty1<T, Any?>, Any?>()
         clazz.memberProperties.forEach {
             sourceDump[it] = it.get(entity)
         }
@@ -219,8 +224,12 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         val propertyDiff = diff(sourceDump, target)
 
         if (eventPublisher != null) {
-            findById(idProperty.get(entity))
-                ?.let { eventPublisher.publish(BeforeUpdateEvent(it, propertyDiff)) }
+            sourceDump.forEach { (key, value) ->
+                if (key is KMutableProperty1<T, Any?>) {
+                    key.set(target, value)
+                }
+            }
+            eventPublisher.publish(BeforeUpdateEvent(target, propertyDiff))
         }
 
         return template.findAndModify(
@@ -269,12 +278,12 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             .map { update(it, patch) }
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return updateAll(criteria, patch.async())
+    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
-        return findAll(criteria)
+    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return findAll(criteria, limit, offset, sort)
             .map { update(it, patch) }
             .filterNotNull()
     }

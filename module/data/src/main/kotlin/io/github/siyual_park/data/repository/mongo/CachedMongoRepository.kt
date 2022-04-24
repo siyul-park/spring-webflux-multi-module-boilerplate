@@ -140,11 +140,17 @@ class CachedMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: CriteriaDefinition, update: Update): T? {
+        val storage = storageManager.getCurrent()
+
         return delegator.update(criteria, update)
+            ?.also { storage.put(it) }
     }
 
     override suspend fun update(entity: T, update: Update): T? {
+        val storage = storageManager.getCurrent()
+
         return delegator.update(entity, update)
+            ?.also { storage.put(it) }
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
@@ -158,16 +164,16 @@ class CachedMongoRepository<T : Any, ID : Any>(
             ?.also { storage.put(it) }
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return updateAll(criteria, patch.async())
+    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
+    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return flow {
             val storage = storageManager.getCurrent()
 
             emitAll(
-                delegator.updateAll(criteria, patch)
+                delegator.updateAll(criteria, patch, limit, offset, sort)
                     .onEach { storage.put(it) }
             )
         }

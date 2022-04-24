@@ -137,16 +137,16 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             ?.also { storage.put(it) }
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return updateAll(criteria, patch.async())
+    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
+    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return flow {
             val storage = storageManager.getCurrent()
 
             emitAll(
-                delegator.updateAll(criteria, patch)
+                delegator.updateAll(criteria, patch, limit, offset, sort)
                     .onEach { storage.put(it) }
             )
         }

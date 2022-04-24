@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component
 @Component
 class TokenFactoryProvider(
     private val claimEmbedder: ClaimEmbedder,
-    private val tokenStorage: TokenStorage,
     private val tokenRepository: TokenRepository,
     private val tokenMapper: TokenMapper,
 ) {
@@ -14,7 +13,6 @@ class TokenFactoryProvider(
         return TokenFactory(
             tokenTemplate,
             claimEmbedder,
-            tokenStorage,
             tokenRepository,
             tokenMapper
         )
