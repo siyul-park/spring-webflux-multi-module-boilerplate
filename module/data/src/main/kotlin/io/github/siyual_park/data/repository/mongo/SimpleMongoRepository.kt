@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactive.collect
 import kotlinx.coroutines.reactor.asFlux
 import kotlinx.coroutines.reactor.awaitSingle
@@ -47,7 +46,8 @@ import kotlin.reflect.jvm.javaField
 class SimpleMongoRepository<T : Any, ID : Any>(
     override val template: ReactiveMongoTemplate,
     override val clazz: KClass<T>,
-    private val scheduler: Scheduler = Schedulers.boundedElastic(),
+    private val subscriber: Scheduler = Schedulers.parallel(),
+    private val publisher: Scheduler = Schedulers.boundedElastic(),
     private val eventPublisher: EventPublisher? = null,
 ) : MongoRepository<T, ID> {
     private val idProperty = (
@@ -59,7 +59,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeCreateEvent(entity))
 
         return template.insert(entity)
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
             .also { eventPublisher?.publish(AfterCreateEvent(it)) }
     }
@@ -71,7 +72,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
                     entities.onEach { eventPublisher?.publish(BeforeCreateEvent(it)) }
                         .toList()
                 )
-                    .subscribeOn(scheduler)
+                    .subscribeOn(subscriber)
+                    .publishOn(publisher)
                     .asFlow()
                     .onEach { eventPublisher?.publish(AfterCreateEvent(it)) }
             )
@@ -88,19 +90,22 @@ class SimpleMongoRepository<T : Any, ID : Any>(
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
         return template.exists(query(criteria), clazz.java)
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
     }
 
     override suspend fun findById(id: ID): T? {
         return template.findById(id, clazz.java)
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingleOrNull()
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
         return template.findOne(query(criteria), clazz.java)
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingleOrNull()
     }
 
@@ -128,7 +133,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             query,
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .asFlow()
     }
 
@@ -164,7 +170,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             FindAndModifyOptions().returnNew(true),
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingleOrNull()
             ?.also { target ->
                 val propertyDiff = diff(sourceDump, target)
@@ -205,7 +212,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             FindAndModifyOptions().returnNew(true),
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingleOrNull()
             ?.also { eventPublisher?.publish(AfterUpdateEvent(it, propertyDiff)) }
     }
@@ -242,7 +250,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             FindAndModifyOptions().returnNew(true),
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingleOrNull()
             ?.also { eventPublisher?.publish(AfterUpdateEvent(it, propertyDiff)) }
     }
@@ -301,7 +310,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             },
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
     }
 
@@ -316,7 +326,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingleOrNull()
 
         eventPublisher?.publish(AfterDeleteEvent(entity))
@@ -358,7 +369,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
                 query,
                 clazz.java
             )
-                .subscribeOn(scheduler)
+                .subscribeOn(subscriber)
+                .publishOn(publisher)
                 .collect { }
         } else {
             val entities = template.find(query, clazz.java)
@@ -374,7 +386,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
                 query(where(idProperty).`in`(ids.toList())).limit(ids.size),
                 clazz.java
             )
-                .subscribeOn(scheduler)
+                .subscribeOn(subscriber)
+                .publishOn(publisher)
                 .collect { eventPublisher.publish(AfterDeleteEvent(it)) }
         }
     }

@@ -45,7 +45,8 @@ import kotlin.reflect.KProperty1
 class SimpleR2DBCRepository<T : Any, ID : Any>(
     private val entityOperations: R2dbcEntityOperations,
     private val clazz: KClass<T>,
-    private val scheduler: Scheduler = Schedulers.boundedElastic(),
+    private val subscriber: Scheduler = Schedulers.parallel(),
+    private val publisher: Scheduler = Schedulers.boundedElastic(),
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val generatedValueColumn: Set<SqlIdentifier>
@@ -60,7 +61,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeCreateEvent(entity))
 
         val saved = this.entityOperations.insert(entity)
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
 
         return this.entityOperations.select(
@@ -68,7 +70,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 .limit(1),
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
             .also { eventPublisher?.publish(AfterCreateEvent(it)) }
     }
@@ -79,7 +82,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 eventPublisher?.publish(BeforeCreateEvent(it))
 
                 entityOperations.insert(it)
-                    .subscribeOn(scheduler)
+                    .subscribeOn(subscriber)
+                    .publishOn(publisher)
                     .awaitSingle()
             }.toList()
 
@@ -89,7 +93,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                         .limit(saved.size),
                     clazz.java
                 )
-                    .subscribeOn(scheduler)
+                    .subscribeOn(subscriber)
+                    .publishOn(publisher)
                     .sort { p1, p2 ->
                         saved.indexOf(p1) - saved.indexOf(p2)
                     }
@@ -112,7 +117,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             query(criteria),
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
     }
 
@@ -126,7 +132,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 .limit(1),
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitFirstOrNull()
     }
 
@@ -148,7 +155,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             query,
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .asFlow()
     }
 
@@ -225,7 +233,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                     .limit(1),
                 clazz.java
             )
-                .subscribeOn(scheduler)
+                .subscribeOn(subscriber)
+                .publishOn(publisher)
                 .awaitFirstOrNull() ?: return null
 
             val exitedOutboundRow = entityManager.getOutboundRow(existed)
@@ -239,7 +248,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             Update.from(patch as Map<SqlIdentifier, Any>),
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
         if (updateCount == 0) {
             return null
@@ -291,7 +301,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             Update.from(diff as Map<SqlIdentifier, Any>),
             clazz.java
         )
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
         if (updateCount == 0) {
             return null
@@ -307,7 +318,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
         return this.entityOperations.count(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
     }
 
@@ -320,7 +332,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
         val id = entityManager.getId(entity)
         this.entityOperations.delete(query(where(entityManager.idProperty).`is`(id)), clazz.java)
-            .subscribeOn(scheduler)
+            .subscribeOn(subscriber)
+            .publishOn(publisher)
             .awaitSingle()
 
         eventPublisher?.publish(AfterDeleteEvent(entity))
@@ -357,14 +370,16 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
         if (eventPublisher == null) {
             this.entityOperations.delete(query, clazz.java)
-                .subscribeOn(scheduler)
+                .subscribeOn(subscriber)
+                .publishOn(publisher)
                 .awaitSingle()
         } else {
             val entities = this.entityOperations.select(
                 query,
                 clazz.java
             )
-                .subscribeOn(scheduler)
+                .subscribeOn(subscriber)
+                .publishOn(publisher)
                 .asFlow()
                 .onEach { eventPublisher.publish(BeforeDeleteEvent(it)) }
                 .toList()
@@ -378,7 +393,8 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                     .limit(ids.size),
                 clazz.java
             )
-                .subscribeOn(scheduler)
+                .subscribeOn(subscriber)
+                .publishOn(publisher)
                 .awaitSingle()
 
             entities.forEach {

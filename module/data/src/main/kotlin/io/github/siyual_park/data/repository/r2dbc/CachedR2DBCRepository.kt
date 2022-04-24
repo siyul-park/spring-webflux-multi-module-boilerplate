@@ -256,10 +256,11 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             entityOperations: R2dbcEntityOperations,
             clazz: KClass<T>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-            scheduler: Scheduler = Schedulers.boundedElastic(),
+            subscriber: Scheduler = Schedulers.parallel(),
+            publisher: Scheduler = Schedulers.boundedElastic(),
             eventPublisher: EventPublisher? = null
         ): CachedR2DBCRepository<T, ID> {
-            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, scheduler, eventPublisher)
+            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, subscriber, publisher, eventPublisher)
             val idExtractor = createIdExtractor(repository)
 
             return CachedR2DBCRepository(

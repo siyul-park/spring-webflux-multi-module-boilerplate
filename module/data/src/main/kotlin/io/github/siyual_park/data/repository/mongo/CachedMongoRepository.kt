@@ -267,10 +267,11 @@ class CachedMongoRepository<T : Any, ID : Any>(
             template: ReactiveMongoTemplate,
             clazz: KClass<T>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-            scheduler: Scheduler = Schedulers.boundedElastic(),
+            subscriber: Scheduler = Schedulers.parallel(),
+            publisher: Scheduler = Schedulers.boundedElastic(),
             eventPublisher: EventPublisher? = null
         ): CachedMongoRepository<T, ID> {
-            val repository = SimpleMongoRepository<T, ID>(template, clazz, scheduler, eventPublisher)
+            val repository = SimpleMongoRepository<T, ID>(template, clazz, subscriber, publisher, eventPublisher)
             val idExtractor = createIdExtractor(repository)
 
             return CachedMongoRepository(
