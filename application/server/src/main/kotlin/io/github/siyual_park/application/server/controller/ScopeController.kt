@@ -18,7 +18,9 @@ import io.github.siyual_park.search.pagination.OffsetPage
 import io.github.siyual_park.search.pagination.OffsetPaginator
 import io.github.siyual_park.search.sort.SortParserFactory
 import io.github.siyual_park.ulid.ULID
-import io.swagger.annotations.Api
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -37,7 +39,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
-@Api(tags = ["scope"])
+@Tag(name = "scope")
 @RestController
 @RequestMapping("/scope")
 class ScopeController(
@@ -54,6 +56,7 @@ class ScopeController(
 
     private val offsetPaginator = OffsetPaginator(scopeTokenStorage)
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'scope:create')")
@@ -67,6 +70,7 @@ class ScopeController(
         return mapperContext.map(scopeToken)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope:read')")
@@ -97,6 +101,7 @@ class ScopeController(
         return offsetPage.mapDataAsync { mapperContext.map(it) }
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope:read')")
@@ -105,6 +110,7 @@ class ScopeController(
         return mapperContext.map(scopeToken)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PatchMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope:update')")
@@ -119,6 +125,7 @@ class ScopeController(
 
         return mapperContext.map(scopeToken)
     }
+    @Operation(security = [SecurityRequirement(name = "bearer")])
 
     @DeleteMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -128,6 +135,7 @@ class ScopeController(
         scopeToken.clear()
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/{scope-id}/children")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope.children:read')")
@@ -138,6 +146,7 @@ class ScopeController(
         }.map { mapperContext.map(it) }
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("/{scope-id}/children")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'scope.children:create')")
@@ -148,6 +157,7 @@ class ScopeController(
         return authorizableContoller.grantScope(scopeId, request)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @DeleteMapping("/{scope-id}/children/{child-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'scope.children:delete')")

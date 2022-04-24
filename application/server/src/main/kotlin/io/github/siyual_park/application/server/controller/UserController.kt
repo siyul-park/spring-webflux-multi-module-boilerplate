@@ -22,7 +22,9 @@ import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
-import io.swagger.annotations.Api
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -45,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 import javax.validation.ValidationException
 
-@Api(tags = ["user"])
+@Tag(name = "user")
 @RestController
 @RequestMapping("/users")
 class UserController(
@@ -65,6 +67,7 @@ class UserController(
 
     private val offsetPaginator = OffsetPaginator(userStorage)
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'users:create')")
@@ -78,6 +81,7 @@ class UserController(
         return mapperContext.map(user)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'users:read')")
@@ -108,6 +112,7 @@ class UserController(
         return offsetPage.mapDataAsync { mapperContext.map(it) }
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/self")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'users[self]:read')")
@@ -115,6 +120,7 @@ class UserController(
         return read(principal.userId)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
@@ -123,6 +129,7 @@ class UserController(
         return mapperContext.map(user)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PatchMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users:update', 'users[self]:update'})")
@@ -148,6 +155,7 @@ class UserController(
         mapperContext.map(user)
     }!!
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @DeleteMapping("/{user-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #userId}, {'users:delete', 'users[self]:delete'})")
@@ -156,6 +164,7 @@ class UserController(
         user.clear()
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/{user-id}/scope")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users.scope:read', 'users[self].scope:read'})")
@@ -168,6 +177,7 @@ class UserController(
         }.map { mapperContext.map(it) }
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("/{user-id}/scope")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'users.scope:create')")
@@ -178,6 +188,7 @@ class UserController(
         return authorizableContoller.grantScope(userId, request)
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @DeleteMapping("/{user-id}/scope/{scope-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'users.scope:delete')")
