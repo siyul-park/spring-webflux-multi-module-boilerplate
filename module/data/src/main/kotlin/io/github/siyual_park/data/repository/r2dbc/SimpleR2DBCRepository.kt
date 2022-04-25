@@ -59,12 +59,12 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     override suspend fun create(entity: T): T {
         eventPublisher?.publish(BeforeCreateEvent(entity))
 
-        val saved = this.entityOperations.insert(entity)
+        val saved = entityOperations.insert(entity)
             .subscribeOn(subscriber)
             .publishOn(publisher)
             .awaitSingle()
 
-        return this.entityOperations.select(
+        return entityOperations.select(
             query(where(entityManager.idProperty).`is`(saved))
                 .limit(1),
             clazz.java
@@ -112,7 +112,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        return this.entityOperations.exists(
+        return entityOperations.exists(
             query(criteria),
             clazz.java
         )
@@ -126,7 +126,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        return this.entityOperations.select(
+        return entityOperations.select(
             query(criteria)
                 .limit(1),
             clazz.java
@@ -227,7 +227,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         if (eventPublisher != null) {
-            val existed = this.entityOperations.select(
+            val existed = entityOperations.select(
                 query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
                     .limit(1),
                 clazz.java
@@ -241,7 +241,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             eventPublisher.publish(BeforeUpdateEvent(entity, toProperty(diff)))
         }
 
-        val updateCount = this.entityOperations.update(
+        val updateCount = entityOperations.update(
             query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
                 .limit(1),
             Update.from(patch as Map<SqlIdentifier, Any>),
@@ -294,7 +294,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         val propertyDiff = toProperty(diff)
         eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
 
-        val updateCount = this.entityOperations.update(
+        val updateCount = entityOperations.update(
             query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
                 .limit(1),
             Update.from(diff as Map<SqlIdentifier, Any>),
@@ -316,7 +316,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
-        return this.entityOperations.count(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
+        return entityOperations.count(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
             .subscribeOn(subscriber)
             .publishOn(publisher)
             .awaitSingle()
@@ -330,7 +330,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeDeleteEvent(entity))
 
         val id = entityManager.getId(entity)
-        this.entityOperations.delete(query(where(entityManager.idProperty).`is`(id)), clazz.java)
+        entityOperations.delete(query(where(entityManager.idProperty).`is`(id)), clazz.java)
             .subscribeOn(subscriber)
             .publishOn(publisher)
             .awaitSingle()
@@ -368,12 +368,12 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         if (eventPublisher == null) {
-            this.entityOperations.delete(query, clazz.java)
+            entityOperations.delete(query, clazz.java)
                 .subscribeOn(subscriber)
                 .publishOn(publisher)
                 .awaitSingle()
         } else {
-            val entities = this.entityOperations.select(
+            val entities = entityOperations.select(
                 query,
                 clazz.java
             )
@@ -387,7 +387,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 return
             }
 
-            this.entityOperations.delete(
+            entityOperations.delete(
                 query(where(entityManager.idProperty).`in`(ids.toList()))
                     .limit(ids.size),
                 clazz.java
