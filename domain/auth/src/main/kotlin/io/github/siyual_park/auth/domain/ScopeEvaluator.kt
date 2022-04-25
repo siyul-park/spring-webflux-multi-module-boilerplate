@@ -16,12 +16,12 @@ class ScopeEvaluator(
     private val authorizator: Authorizator,
 ) : PermissionEvaluator {
     override fun hasPermission(authentication: Authentication, targetDomainObject: Any?, permission: Any): Boolean {
-        return runBlocking {
-            val principal = authentication.principal
-            if (principal !is Principal) {
-                return@runBlocking false
-            }
+        val principal = authentication.principal
+        if (principal !is Principal) {
+            return false
+        }
 
+        return runBlocking {
             try {
                 val scope: List<*> = getScope(permission)?.let {
                     when (it) {
