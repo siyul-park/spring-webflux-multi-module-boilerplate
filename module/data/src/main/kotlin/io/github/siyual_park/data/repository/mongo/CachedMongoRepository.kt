@@ -10,8 +10,6 @@ import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
 import io.github.siyual_park.data.repository.cache.createIndexes
-import io.github.siyual_park.data.repository.dataIOSchedulers
-import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -27,7 +25,6 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.CriteriaDefinition
 import org.springframework.data.mongodb.core.query.Update
-import reactor.core.scheduler.Scheduler
 import java.time.Duration
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -268,11 +265,9 @@ class CachedMongoRepository<T : Any, ID : Any>(
             template: ReactiveMongoTemplate,
             clazz: KClass<T>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-            subscriber: Scheduler = dataIOSchedulers,
-            publisher: Scheduler = dataSchedulers,
             eventPublisher: EventPublisher? = null
         ): CachedMongoRepository<T, ID> {
-            val repository = SimpleMongoRepository<T, ID>(template, clazz, subscriber, publisher, eventPublisher)
+            val repository = SimpleMongoRepository<T, ID>(template, clazz, eventPublisher)
             val idExtractor = createIdExtractor(repository)
 
             return CachedMongoRepository(

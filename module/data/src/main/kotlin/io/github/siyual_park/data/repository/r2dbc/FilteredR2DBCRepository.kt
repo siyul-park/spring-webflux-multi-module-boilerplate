@@ -3,8 +3,6 @@ package io.github.siyual_park.data.repository.r2dbc
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
-import io.github.siyual_park.data.repository.dataIOSchedulers
-import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -18,19 +16,16 @@ import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.CriteriaDefinition
-import reactor.core.scheduler.Scheduler
 import kotlin.reflect.KClass
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
 class FilteredR2DBCRepository<T : Any, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     clazz: KClass<T>,
-    subscriber: Scheduler = dataIOSchedulers,
-    publisher: Scheduler = dataSchedulers,
     private val filter: () -> Criteria,
     eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
-    private val delegator = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, subscriber, publisher, eventPublisher)
+    private val delegator = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, eventPublisher)
 
     override val entityManager: EntityManager<T, ID>
         get() = delegator.entityManager

@@ -5,8 +5,6 @@ import io.github.siyual_park.data.event.AfterDeleteEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
-import io.github.siyual_park.data.repository.dataIOSchedulers
-import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -16,7 +14,6 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.CriteriaDefinition
-import reactor.core.scheduler.Scheduler
 import java.time.Instant
 import kotlin.reflect.KClass
 
@@ -24,15 +21,11 @@ import kotlin.reflect.KClass
 class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     clazz: KClass<T>,
-    subscriber: Scheduler = dataIOSchedulers,
-    publisher: Scheduler = dataSchedulers,
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val filteredRepository = FilteredR2DBCRepository<T, ID>(
         entityOperations,
         clazz,
-        subscriber,
-        publisher,
         { where(SoftDeletable::deletedAt).isNull },
         eventPublisher
     )
@@ -40,8 +33,6 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
     private val simpleRepository = SimpleR2DBCRepository<T, ID>(
         entityOperations,
         clazz,
-        subscriber,
-        publisher
     )
 
     override val entityManager: EntityManager<T, ID>

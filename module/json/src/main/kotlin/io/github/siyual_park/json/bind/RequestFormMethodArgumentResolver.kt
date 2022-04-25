@@ -7,7 +7,6 @@ import org.springframework.web.reactive.BindingContext
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.ServerWebInputException
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 
 @Component
 class RequestFormMethodArgumentResolver(
@@ -23,18 +22,16 @@ class RequestFormMethodArgumentResolver(
         exchange: ServerWebExchange
     ): Mono<Any> {
         return exchange.formData
-            .flatMap {
-                Mono.fromCallable {
-                    try {
-                        val map = mutableMapOf<String, String?>()
-                        it.map { (key, value) ->
-                            map[key] = value.firstOrNull()
-                        }
-                        objectMapper.convertValue(map, parameter.parameterType)
-                    } catch (e: Exception) {
-                        throw ServerWebInputException(e.message ?: "")
+            .map {
+                try {
+                    val map = mutableMapOf<String, String?>()
+                    it.map { (key, value) ->
+                        map[key] = value.firstOrNull()
                     }
-                }.subscribeOn(Schedulers.boundedElastic())
+                    objectMapper.convertValue(map, parameter.parameterType)
+                } catch (e: Exception) {
+                    throw ServerWebInputException(e.message ?: "")
+                }
             }.doOnNext {
                 val hints = extractValidationHints(parameter)
                 if (hints != null) {

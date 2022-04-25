@@ -10,8 +10,6 @@ import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
 import io.github.siyual_park.data.repository.cache.createIndexes
-import io.github.siyual_park.data.repository.dataIOSchedulers
-import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -24,7 +22,6 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria
 import org.springframework.data.relational.core.query.CriteriaDefinition
-import reactor.core.scheduler.Scheduler
 import java.time.Duration
 import kotlin.reflect.KClass
 
@@ -257,11 +254,9 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             entityOperations: R2dbcEntityOperations,
             clazz: KClass<T>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-            subscriber: Scheduler = dataIOSchedulers,
-            publisher: Scheduler = dataSchedulers,
             eventPublisher: EventPublisher? = null
         ): CachedR2DBCRepository<T, ID> {
-            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, subscriber, publisher, eventPublisher)
+            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, eventPublisher)
             val idExtractor = createIdExtractor(repository)
 
             return CachedR2DBCRepository(

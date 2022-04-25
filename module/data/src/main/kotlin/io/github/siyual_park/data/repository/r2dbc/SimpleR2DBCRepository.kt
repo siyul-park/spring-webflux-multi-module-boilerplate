@@ -10,8 +10,6 @@ import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
-import io.github.siyual_park.data.repository.dataIOSchedulers
-import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -36,7 +34,7 @@ import org.springframework.data.relational.core.query.Query.query
 import org.springframework.data.relational.core.query.Update
 import org.springframework.data.relational.core.sql.SqlIdentifier
 import org.springframework.r2dbc.core.Parameter
-import reactor.core.scheduler.Scheduler
+import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
@@ -44,8 +42,6 @@ import kotlin.reflect.KProperty1
 class SimpleR2DBCRepository<T : Any, ID : Any>(
     private val entityOperations: R2dbcEntityOperations,
     private val clazz: KClass<T>,
-    private val subscriber: Scheduler = dataIOSchedulers,
-    private val publisher: Scheduler = dataSchedulers,
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val generatedValueColumn: Set<SqlIdentifier>
@@ -60,8 +56,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeCreateEvent(entity))
 
         val saved = entityOperations.insert(entity)
-            .subscribeOn(subscriber)
-            .publishOn(publisher)
+            .subscribeOn(Schedulers.parallel())
             .awaitSingle()
 
         return entityOperations.select(
@@ -69,8 +64,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 .limit(1),
             clazz.java
         )
-            .subscribeOn(subscriber)
-            .publishOn(publisher)
+            .subscribeOn(Schedulers.parallel())
             .awaitSingle()
             .also { eventPublisher?.publish(AfterCreateEvent(it)) }
     }
@@ -81,8 +75,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 eventPublisher?.publish(BeforeCreateEvent(it))
 
                 entityOperations.insert(it)
-                    .subscribeOn(subscriber)
-                    .publishOn(publisher)
+                    .subscribeOn(Schedulers.parallel())
                     .awaitSingle()
             }.toList()
 
@@ -92,8 +85,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                         .limit(saved.size),
                     clazz.java
                 )
-                    .subscribeOn(subscriber)
-                    .publishOn(publisher)
+                    .subscribeOn(Schedulers.parallel())
                     .sort { p1, p2 ->
                         saved.indexOf(p1) - saved.indexOf(p2)
                     }
@@ -116,8 +108,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             query(criteria),
             clazz.java
         )
-            .subscribeOn(subscriber)
-            .publishOn(publisher)
+            .subscribeOn(Schedulers.parallel())
             .awaitSingle()
     }
 
@@ -131,8 +122,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 .limit(1),
             clazz.java
         )
-            .subscribeOn(subscriber)
-            .publishOn(publisher)
+            .subscribeOn(Schedulers.parallel())
             .awaitFirstOrNull()
     }
 
@@ -156,8 +146,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             query,
             clazz.java
         )
-            .subscribeOn(subscriber)
-            .publishOn(publisher)
+            .subscribeOn(Schedulers.parallel())
             .asFlow()
     }
 
@@ -232,8 +221,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                     .limit(1),
                 clazz.java
             )
-                .subscribeOn(subscriber)
-                .publishOn(publisher)
+                .subscribeOn(Schedulers.parallel())
                 .awaitFirstOrNull() ?: return null
 
             val exitedOutboundRow = entityManager.getOutboundRow(existed)
@@ -247,8 +235,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             Update.from(patch as Map<SqlIdentifier, Any>),
             clazz.java
         )
-            .subscribeOn(subscriber)
-            .publishOn(publisher)
+            .subscribeOn(Schedulers.parallel())
             .awaitSingle()
         if (updateCount == 0) {
             return null
@@ -300,8 +287,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             Update.from(diff as Map<SqlIdentifier, Any>),
             clazz.java
         )
-            .subscribeOn(subscriber)
-            .publishOn(publisher)
+            .subscribeOn(Schedulers.parallel())
             .awaitSingle()
         if (updateCount == 0) {
             return null
@@ -317,8 +303,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
     override suspend fun count(criteria: CriteriaDefinition?): Long {
         return entityOperations.count(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
-            .subscribeOn(subscriber)
-            .publishOn(publisher)
+            .subscribeOn(Schedulers.parallel())
             .awaitSingle()
     }
 
@@ -331,8 +316,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
         val id = entityManager.getId(entity)
         entityOperations.delete(query(where(entityManager.idProperty).`is`(id)), clazz.java)
-            .subscribeOn(subscriber)
-            .publishOn(publisher)
+            .subscribeOn(Schedulers.parallel())
             .awaitSingle()
 
         eventPublisher?.publish(AfterDeleteEvent(entity))
@@ -369,16 +353,14 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
         if (eventPublisher == null) {
             entityOperations.delete(query, clazz.java)
-                .subscribeOn(subscriber)
-                .publishOn(publisher)
+                .subscribeOn(Schedulers.parallel())
                 .awaitSingle()
         } else {
             val entities = entityOperations.select(
                 query,
                 clazz.java
             )
-                .subscribeOn(subscriber)
-                .publishOn(publisher)
+                .subscribeOn(Schedulers.parallel())
                 .asFlow()
                 .onEach { eventPublisher.publish(BeforeDeleteEvent(it)) }
                 .toList()
@@ -392,8 +374,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                     .limit(ids.size),
                 clazz.java
             )
-                .subscribeOn(subscriber)
-                .publishOn(publisher)
+                .subscribeOn(Schedulers.parallel())
                 .awaitSingle()
 
             entities.forEach {
