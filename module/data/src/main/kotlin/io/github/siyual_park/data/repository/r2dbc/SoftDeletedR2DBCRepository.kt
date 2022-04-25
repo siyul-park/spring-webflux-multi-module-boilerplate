@@ -6,6 +6,7 @@ import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.dataIOSchedulers
+import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -24,7 +25,7 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     clazz: KClass<T>,
     subscriber: Scheduler = dataIOSchedulers,
-    publisher: Scheduler = dataIOSchedulers,
+    publisher: Scheduler = dataSchedulers,
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val filteredRepository = FilteredR2DBCRepository<T, ID>(

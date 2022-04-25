@@ -4,6 +4,7 @@ import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.dataIOSchedulers
+import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -25,7 +26,7 @@ class FilteredR2DBCRepository<T : Any, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     clazz: KClass<T>,
     subscriber: Scheduler = dataIOSchedulers,
-    publisher: Scheduler = dataIOSchedulers,
+    publisher: Scheduler = dataSchedulers,
     private val filter: () -> Criteria,
     eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {

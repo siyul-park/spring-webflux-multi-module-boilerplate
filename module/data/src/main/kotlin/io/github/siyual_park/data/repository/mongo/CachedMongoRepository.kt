@@ -11,6 +11,7 @@ import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
 import io.github.siyual_park.data.repository.cache.createIndexes
 import io.github.siyual_park.data.repository.dataIOSchedulers
+import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -268,7 +269,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
             clazz: KClass<T>,
             cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
             subscriber: Scheduler = dataIOSchedulers,
-            publisher: Scheduler = dataIOSchedulers,
+            publisher: Scheduler = dataSchedulers,
             eventPublisher: EventPublisher? = null
         ): CachedMongoRepository<T, ID> {
             val repository = SimpleMongoRepository<T, ID>(template, clazz, subscriber, publisher, eventPublisher)

@@ -11,7 +11,9 @@ import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.dataIOSchedulers
+import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -47,7 +49,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     override val template: ReactiveMongoTemplate,
     override val clazz: KClass<T>,
     private val subscriber: Scheduler = dataIOSchedulers,
-    private val publisher: Scheduler = dataIOSchedulers,
+    private val publisher: Scheduler = dataSchedulers,
     private val eventPublisher: EventPublisher? = null,
 ) : MongoRepository<T, ID> {
     private val idProperty = (

@@ -11,6 +11,7 @@ import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.dataIOSchedulers
+import io.github.siyual_park.data.repository.dataSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -44,7 +45,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     private val entityOperations: R2dbcEntityOperations,
     private val clazz: KClass<T>,
     private val subscriber: Scheduler = dataIOSchedulers,
-    private val publisher: Scheduler = dataIOSchedulers,
+    private val publisher: Scheduler = dataSchedulers,
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val generatedValueColumn: Set<SqlIdentifier>
@@ -190,8 +191,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
-        return findAllById(ids)
-            .map { update(it, patch) }
+        return updateAllById(ids, patch.async())
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
@@ -205,8 +205,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
-        return entity.asFlow()
-            .map { update(it, patch) }
+        return updateAll(entity, patch.async())
     }
 
     override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
