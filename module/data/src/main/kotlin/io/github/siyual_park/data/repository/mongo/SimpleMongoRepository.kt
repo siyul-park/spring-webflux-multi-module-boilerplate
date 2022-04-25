@@ -10,6 +10,7 @@ import io.github.siyual_park.data.expansion.fieldName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.data.repository.dataIOSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -35,7 +36,6 @@ import org.springframework.data.mongodb.core.query.Query.query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.where
 import reactor.core.scheduler.Scheduler
-import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
@@ -46,8 +46,8 @@ import kotlin.reflect.jvm.javaField
 class SimpleMongoRepository<T : Any, ID : Any>(
     override val template: ReactiveMongoTemplate,
     override val clazz: KClass<T>,
-    private val subscriber: Scheduler = Schedulers.parallel(),
-    private val publisher: Scheduler = Schedulers.boundedElastic(),
+    private val subscriber: Scheduler = dataIOSchedulers,
+    private val publisher: Scheduler = dataIOSchedulers,
     private val eventPublisher: EventPublisher? = null,
 ) : MongoRepository<T, ID> {
     private val idProperty = (

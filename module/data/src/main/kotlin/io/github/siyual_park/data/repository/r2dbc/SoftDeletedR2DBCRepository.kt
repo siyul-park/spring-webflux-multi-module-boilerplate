@@ -5,6 +5,7 @@ import io.github.siyual_park.data.event.AfterDeleteEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.repository.dataIOSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -15,7 +16,6 @@ import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.CriteriaDefinition
 import reactor.core.scheduler.Scheduler
-import reactor.core.scheduler.Schedulers
 import java.time.Instant
 import kotlin.reflect.KClass
 
@@ -23,8 +23,8 @@ import kotlin.reflect.KClass
 class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     clazz: KClass<T>,
-    subscriber: Scheduler = Schedulers.parallel(),
-    publisher: Scheduler = Schedulers.boundedElastic(),
+    subscriber: Scheduler = dataIOSchedulers,
+    publisher: Scheduler = dataIOSchedulers,
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val filteredRepository = FilteredR2DBCRepository<T, ID>(

@@ -10,6 +10,7 @@ import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.data.repository.dataIOSchedulers
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -26,8 +27,6 @@ import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.asFlux
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.domain.Sort
-import org.springframework.data.domain.Sort.Order.asc
-import org.springframework.data.domain.Sort.by
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.r2dbc.mapping.OutboundRow
 import org.springframework.data.relational.core.query.Criteria.where
@@ -37,7 +36,6 @@ import org.springframework.data.relational.core.query.Update
 import org.springframework.data.relational.core.sql.SqlIdentifier
 import org.springframework.r2dbc.core.Parameter
 import reactor.core.scheduler.Scheduler
-import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
@@ -45,8 +43,8 @@ import kotlin.reflect.KProperty1
 class SimpleR2DBCRepository<T : Any, ID : Any>(
     private val entityOperations: R2dbcEntityOperations,
     private val clazz: KClass<T>,
-    private val subscriber: Scheduler = Schedulers.parallel(),
-    private val publisher: Scheduler = Schedulers.boundedElastic(),
+    private val subscriber: Scheduler = dataIOSchedulers,
+    private val publisher: Scheduler = dataIOSchedulers,
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val generatedValueColumn: Set<SqlIdentifier>
@@ -149,7 +147,9 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         offset?.let {
             query = query.offset(it)
         }
-        query = query.sort(sort ?: by(asc(entityManager.idProperty)))
+        sort?.let {
+            query = query.sort(sort)
+        }
 
         return this.entityOperations.select(
             query,
