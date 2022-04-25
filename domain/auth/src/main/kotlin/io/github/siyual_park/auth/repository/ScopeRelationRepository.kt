@@ -30,6 +30,10 @@ class ScopeRelationRepository(
         return findAll(where(ScopeRelationData::childId).`is`(childId))
     }
 
+    fun findAllByParentId(parentIds: Iterable<ULID>): Flow<ScopeRelationData> {
+        return findAll(where(ScopeRelationData::parentId).`in`(parentIds.toList()))
+    }
+
     fun findAllByParentId(parentId: ULID): Flow<ScopeRelationData> {
         return findAll(where(ScopeRelationData::parentId).`is`(parentId))
     }

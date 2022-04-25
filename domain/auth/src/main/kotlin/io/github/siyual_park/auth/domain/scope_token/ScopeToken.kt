@@ -16,13 +16,13 @@ import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
+import java.util.Collections
 
 class ScopeToken(
     value: ScopeTokenData,
@@ -81,14 +81,24 @@ class ScopeToken(
             if (!isPacked()) {
                 emit(self)
             } else {
-                children()
-                    .collect {
-                        if (it.isPacked()) {
-                            emitAll(it.resolve())
-                        } else {
-                            emit(it)
-                        }
+                val queue = Collections.synchronizedList(mutableListOf<ScopeToken>())
+                children().collect { queue.add(it) }
+
+                val context = currentContextOrNull()
+                while (queue.isNotEmpty()) {
+                    val packed = queue.filter { it.isPacked() }
+                    val notPacked = queue.filter { !it.isPacked() }
+
+                    queue.clear()
+
+                    notPacked.onEach { if (context != null) it.link() }.forEach { emit(it) }
+                    if (packed.isNotEmpty()) {
+                        val relations = scopeRelationRepository.findAllByParentId(packed.map { it.id })
+                        scopeTokenRepository.findAllById(relations.map { it.childId }.toList())
+                            .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository, operator, eventPublisher) }
+                            .collect { queue.add(it) }
                     }
+                }
             }
         }
     }
