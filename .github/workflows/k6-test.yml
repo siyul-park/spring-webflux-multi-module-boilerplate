@@ -37,11 +37,14 @@ jobs:
         working-directory: ./k6-tests
       - run: npm run build
         working-directory: ./k6-tests
-      - name: Install k6
-        run: |
-          curl https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-linux64.tar.gz -L | tar xvz --strip-components 1
       - run: npm i wait-on -g
         working-directory: ./k6-tests
-      - run: npx wait-on http://localhost:8080 && ./k6 ./k6-tests/dist/get-principal.test.js
+      - name: Install k6
+        run: |
+          curl https://github.com/grafana/k6/releases/download/v0.37.0/k6-v0.37.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
+      - run: chmod +x ./k6-tests/start.sh
+      - run: npx wait-on http://localhost:8080 && ./k6-tests/start.sh
         env:
           URL: http://localhost:8080
+          CLIENT_ID: 01G1G1DN4JVHEKN7BHQH0F62TG
+          CLIENT_SECRET: d9keQxhgVDDF8JJLDIPZ8uq159ffOAFV
