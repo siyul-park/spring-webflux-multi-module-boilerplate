@@ -6,7 +6,7 @@ RUN ./gradlew bootJar -x test
 FROM openjdk:19-slim
 ARG APPLICATION
 ARG PORT
-ENV SERVER_PORT $PORT
+ENV PORT $PORT
 COPY --from=builder application/$APPLICATION/build/libs/*.jar application.jar
 EXPOSE $PORT
 ENTRYPOINT ["java", "-jar", "/application.jar"]
