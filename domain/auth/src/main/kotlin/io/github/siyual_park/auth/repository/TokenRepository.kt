@@ -21,6 +21,6 @@ class TokenRepository(
         .softValues()
         .expireAfterAccess(Duration.ofMinutes(1))
         .expireAfterWrite(Duration.ofMinutes(2))
-        .maximumSize(100_000),
+        .maximumSize(10_000),
     eventPublisher = eventPublisher
 )
