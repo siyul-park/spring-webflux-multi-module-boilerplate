@@ -1,7 +1,7 @@
 FROM openjdk:19-jdk AS builder
 COPY . .
 RUN chmod +x gradlew
-RUN ./gradlew bootJar
+RUN ./gradlew bootJar -x test
 
 FROM openjdk:19-slim
 ARG APPLICATION
