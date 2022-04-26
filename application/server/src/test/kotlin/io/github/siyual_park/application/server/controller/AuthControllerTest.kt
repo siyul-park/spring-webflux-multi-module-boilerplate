@@ -293,4 +293,19 @@ class AuthControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
+
+    @Test
+    fun `DELETE principal, status = 204`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("principal[self]:delete")
+        )
+
+        val response = authControllerGateway.deleteSelf()
+
+        assertEquals(HttpStatus.NO_CONTENT, response.status)
+    }
 }

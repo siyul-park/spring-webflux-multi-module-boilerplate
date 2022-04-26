@@ -35,6 +35,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Query.query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.where
+import org.springframework.data.mongodb.core.remove
 import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -310,7 +311,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     override suspend fun delete(entity: T) {
         eventPublisher?.publish(BeforeDeleteEvent(entity))
 
-        template.findAndRemove(
+        template.remove(
             query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
             clazz.java
         )

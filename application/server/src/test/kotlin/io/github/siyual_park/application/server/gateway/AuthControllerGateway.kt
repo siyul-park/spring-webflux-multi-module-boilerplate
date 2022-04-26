@@ -9,6 +9,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.test.web.reactive.server.FluxExchangeResult
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.returnResult
 
 @Component
 class AuthControllerGateway(
@@ -31,5 +32,13 @@ class AuthControllerGateway(
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult(PrincipalInfo::class.java)
+    }
+
+    suspend fun deleteSelf(): FluxExchangeResult<Unit> {
+        return client.delete()
+            .uri("/principal")
+            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
+            .exchange()
+            .returnResult()
     }
 }
