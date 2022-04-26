@@ -38,7 +38,7 @@ jobs:
         run: ./gradlew bootJar -x test
       - run: cp application/server/build/libs/*.jar application.jar
       - name: Run server
-        run: java -jar application.jar
+        run: java -jar application.jar &
         env:
           PORT: 8080
           SPRING_R2DBC_URL: r2dbc:h2:mem://:/tmp/testdb
