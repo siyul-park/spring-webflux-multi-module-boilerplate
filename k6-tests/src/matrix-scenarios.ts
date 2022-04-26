@@ -1,6 +1,6 @@
 import { Options } from 'k6/options';
 
-function matrixScenarios(options: Options): void {
+function matrixScenarios(options: Options, thresholds: string[] = []): void {
   Array.from(Object.entries(options.scenarios ?? {})).forEach(([key]) => {
     const thresholdNames = [
       `http_req_duration{scenario:${key}}`,
@@ -15,7 +15,7 @@ function matrixScenarios(options: Options): void {
         options.thresholds = {};
       }
       if (!options.thresholds[thresholdName]) {
-        options.thresholds[thresholdName] = [];
+        options.thresholds[thresholdName] = thresholds;
       }
     });
   });

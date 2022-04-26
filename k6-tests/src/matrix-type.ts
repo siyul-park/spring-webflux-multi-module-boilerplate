@@ -1,6 +1,6 @@
 import { Options } from 'k6/options';
 
-function matrixType(options: Options, types: string[]): void {
+function matrixType(options: Options, types: string[], thresholds: string[] = []): void {
   types.forEach((type) => {
     const thresholdNames = [
       `http_req_duration{type:${type}}`,
@@ -15,7 +15,7 @@ function matrixType(options: Options, types: string[]): void {
         options.thresholds = {};
       }
       if (!options.thresholds[thresholdName]) {
-        options.thresholds[thresholdName] = [];
+        options.thresholds[thresholdName] = thresholds;
       }
     });
   });
