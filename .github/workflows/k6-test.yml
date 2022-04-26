@@ -22,7 +22,7 @@ jobs:
       - name: Build docker images
         run: docker build --tag server --build-arg APPLICATION=server --build-arg PORT=8080 .
       - name: Run server
-        run: docker run -d server
+        run: docker run -d -p 8080:8080 server
         env:
           SPRING_R2DBC_URL: r2dbc:h2:mem://:/tmp/testdb
           APPLICATION_AUTH_SECRET: SWPL0iBW7DHkuxRjgwhsOyA2bEvo9BjtJzQj2zF79kYgXGpygvU8Ol5hrFy3lVAeTnNP4ppvH9bulL0tcfa8kovgv2xkAdcZq5VqWj3c_UPmq89iNf0YDPY5Oq5bewf5WPInVRQ5GK29d_iyrMA9C7c0ERc6ZBkXEtjNtENlfyXeQFpqBaBKDuwcVjl-DQ61sigGoTCEH0i3zSKm15zSH9VbN26g_LnXkViBW2O0DEnxvJcEs8XJNxMPrIyuoOXLxAiNc-qobVrH2nyGFKI4_Ti3qchY6o8W43hA4BVWXLNuW16AcqiSR--aScnXosQIUk3Yj5D05FQbSsFAmsrhA
@@ -39,6 +39,7 @@ jobs:
         working-directory: ./k6-tests
       - run: npm run build
         working-directory: ./k6-tests
+      - run: npm i wait-on -g
       - name: Install k6
         run: |
           sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
@@ -46,7 +47,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install k6
       - run: chmod +x ./k6-tests/start.sh
-      - run: ./k6-tests/start.sh
+      - run: npx wait-on http://localhost:8080 && ./k6-tests/start.sh
         env:
           URL: http://localhost:8080
           CLIENT_ID: 01G1G1DN4JVHEKN7BHQH0F62TG
