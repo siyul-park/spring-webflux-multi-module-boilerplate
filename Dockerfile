@@ -4,9 +4,9 @@ RUN chmod +x gradlew
 RUN ./gradlew bootJar
 
 FROM openjdk:19-slim
-ARG application
-ARG port
-ENV SERVER_PORT $port
-COPY --from=builder application/$application/build/libs/*.jar application.jar
-EXPOSE $port
+ARG APPLICATION
+ARG PORT
+ENV SERVER_PORT $PORT
+COPY --from=builder application/$APPLICATION/build/libs/*.jar application.jar
+EXPOSE $PORT
 ENTRYPOINT ["java", "-jar", "/application.jar"]

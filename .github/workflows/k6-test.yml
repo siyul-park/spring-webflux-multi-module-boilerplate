@@ -1,0 +1,44 @@
+name: k6-test
+
+on:
+  workflow_run:
+    workflows:
+      - build
+    branches:
+      - master
+      - release
+      - develop
+    types:
+      - completed
+
+jobs:
+  k6-test:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build docker images
+        run: docker build --tag server --build-arg APPLICATION=server --build-arg PORT=8080 .
+      - name: Run server
+        run: docker run -d server
+        env:
+          SPRING_R2DBC_URL: r2dbc:h2:mem://:/tmp/testdb
+          APPLICATION_AUTH_SECRET: SWPL0iBW7DHkuxRjgwhsOyA2bEvo9BjtJzQj2zF79kYgXGpygvU8Ol5hrFy3lVAeTnNP4ppvH9bulL0tcfa8kovgv2xkAdcZq5VqWj3c_UPmq89iNf0YDPY5Oq5bewf5WPInVRQ5GK29d_iyrMA9C7c0ERc6ZBkXEtjNtENlfyXeQFpqBaBKDuwcVjl-DQ61sigGoTCEH0i3zSKm15zSH9VbN26g_LnXkViBW2O0DEnxvJcEs8XJNxMPrIyuoOXLxAiNc-qobVrH2nyGFKI4_Ti3qchY6o8W43hA4BVWXLNuW16AcqiSR--aScnXosQIUk3Yj5D05FQbSsFAmsrhA
+          SPRING_R2DBC_USERNAME: test
+          SPRING_R2DBC_PASSWORD: test
+          SPRING_MONGODB_URI: mongodb://localhost/test
+          SPRING_MONGODB_EMBEDDED_ENABLE: true
+          APPLICATION_CLIENT_ROOT_ID: 01G1G1DN4JVHEKN7BHQH0F62TG
+          APPLICATION_CLIENT_ROOT_SECRET: d9keQxhgVDDF8JJLDIPZ8uq159ffOAFV
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - run: npm ci
+        working-directory: ./k6-tests
+      - run: npm run build
+        working-directory: ./k6-tests
+      - uses: grafana/k6-action@v0.2.0
+        with:
+          filename: ./k6-tests/dist/get-principal.test.js
+        env:
+          URL: http://localhost:8080

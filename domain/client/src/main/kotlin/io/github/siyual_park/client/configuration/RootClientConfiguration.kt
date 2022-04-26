@@ -6,6 +6,7 @@ import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.property.RootClientProperty
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -36,7 +37,8 @@ class RootClientConfiguration(
                     property.name,
                     ClientType.CONFIDENTIAL,
                     origin = property.origin,
-                    scope = scopeTokenStorage.load().toList()
+                    scope = scopeTokenStorage.load().toList(),
+                    id = if (property.id.isNotEmpty()) ULID.fromString(property.id) else null
                 )
                     .let { clientFactory.create(it) }
                     .also {
