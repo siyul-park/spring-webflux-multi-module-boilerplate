@@ -6,8 +6,8 @@ import matrixType from './matrix-type';
 
 export const options: Options = {
   stages: [
-    { duration: '2m', target: 4000 },
-    { duration: '3h56m', target: 4000 },
+    { duration: '2m', target: 6000 },
+    { duration: '3h56m', target: 6000 },
     { duration: '2m', target: 0 },
   ],
 };
