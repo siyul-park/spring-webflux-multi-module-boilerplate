@@ -2,6 +2,7 @@ package io.github.siyual_park.auth.domain
 
 import kotlinx.coroutines.reactor.mono
 import org.springframework.http.HttpHeaders
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
@@ -18,7 +19,7 @@ class AuthenticationConverter : ServerAuthenticationConverter {
 
             val token = authorization.split(" ")
             if (token.size != 2) {
-                return@mono null
+                throw AuthenticationCredentialsNotFoundException("authorization format must to be '{schema} {credentials}'.")
             }
 
             UsernamePasswordAuthenticationToken(token[0], token[1])

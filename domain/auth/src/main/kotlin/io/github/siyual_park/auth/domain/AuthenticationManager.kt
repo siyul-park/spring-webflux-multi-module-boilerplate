@@ -3,6 +3,7 @@ package io.github.siyual_park.auth.domain
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import kotlinx.coroutines.reactor.mono
+import org.springframework.security.authentication.InternalAuthenticationServiceException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
@@ -24,7 +25,7 @@ class AuthenticationManager(
                 AuthenticationAdapter(principal, credentials)
             } catch (exception: Exception) {
                 authentication.isAuthenticated = false
-                authentication
+                throw InternalAuthenticationServiceException(exception.message ?: "", exception)
             }
         }
     }

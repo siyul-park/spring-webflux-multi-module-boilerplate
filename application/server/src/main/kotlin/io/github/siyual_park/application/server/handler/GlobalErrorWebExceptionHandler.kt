@@ -7,8 +7,8 @@ import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
-import org.springframework.core.NestedRuntimeException
 import org.springframework.core.annotation.Order
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.ServerWebExchange
@@ -23,28 +23,16 @@ class GlobalErrorWebExceptionHandler(
 
     override fun handle(exchange: ServerWebExchange, ex: Throwable): Mono<Void> {
         return mono {
-            val statusCode = if (ex is ResponseStatusException) {
-                ex.status
-            } else {
-                exchange.response.statusCode
-            }
-            val current = if (ex is NestedRuntimeException) {
-                ex.cause ?: ex
-            } else {
-                ex
-            }
-            val reason = if (ex is ResponseStatusException) {
-                ex.reason ?: ex.message
-            } else {
-                ex.message
-            }
+            val statusCode = getStatus(ex) ?: HttpStatus.INTERNAL_SERVER_ERROR
+            val cause = getCause(ex)
+            val reason = getReason(ex)
 
-            val error = if (statusCode?.is5xxServerError != false) {
+            val error = if (statusCode.is5xxServerError) {
                 logger.error(ex.message, ex)
                 ErrorInfo(error = "internal_server_error", description = null)
             } else {
                 logger.warn(ex.message, ex)
-                ErrorInfo(error = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, current.javaClass.simpleName), description = reason)
+                ErrorInfo(error = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, cause.javaClass.simpleName), description = reason)
             }
 
             if (exchange.response.isCommitted) {
@@ -54,5 +42,25 @@ class GlobalErrorWebExceptionHandler(
             exchange.response.statusCode = statusCode
             dataBufferWriter.write(exchange.response, error).awaitSingleOrNull()
         }
+    }
+
+    private fun getStatus(ex: Throwable): HttpStatus? {
+        return if (ex is ResponseStatusException) {
+            ex.status
+        } else {
+            ex.cause?.let { getStatus(it) }
+        }
+    }
+
+    private fun getReason(ex: Throwable): String? {
+        return if (ex is ResponseStatusException) {
+            ex.reason ?: ex.message
+        } else {
+            ex.cause?.let { getReason(it) } ?: ex.message
+        }
+    }
+
+    private fun getCause(ex: Throwable): Throwable {
+        return ex.cause?.let { getCause(it) } ?: ex
     }
 }

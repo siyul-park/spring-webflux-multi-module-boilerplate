@@ -15,6 +15,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.web.cors.reactive.CorsConfigurationSource
+import reactor.core.publisher.Mono
 
 @Configuration
 @EnableWebFluxSecurity
@@ -36,6 +37,7 @@ class SecurityConfiguration(
 
         val authenticationWebFilter = AuthenticationWebFilter(authenticationManager)
         authenticationWebFilter.setServerAuthenticationConverter(authenticationConverter)
+        authenticationWebFilter.setAuthenticationFailureHandler { _, exception -> Mono.error(exception) }
 
         return httpSecurity
             .cors().configurationSource(corsConfigurationSource).and()

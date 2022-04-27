@@ -32,4 +32,9 @@ class VilificationExceptionHandler {
     fun handle(exception: ValidationException) {
         throw ResponseStatusException(HttpStatus.BAD_REQUEST, exception.message, exception)
     }
+
+    @ExceptionHandler(UnsupportedOperationException::class)
+    fun handle(exception: UnsupportedOperationException) {
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST, exception.message, exception)
+    }
 }
