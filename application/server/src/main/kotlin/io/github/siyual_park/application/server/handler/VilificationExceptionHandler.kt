@@ -1,12 +1,13 @@
 package io.github.siyual_park.application.server.handler
 
-import io.github.siyual_park.application.server.exception.BadRequestException
 import io.github.siyual_park.search.exception.InvalidRequestException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.bind.support.WebExchangeBindException
+import org.springframework.web.server.ResponseStatusException
 import javax.validation.ValidationException
 
 @RestControllerAdvice
@@ -14,21 +15,21 @@ import javax.validation.ValidationException
 class VilificationExceptionHandler {
     @ExceptionHandler(WebExchangeBindException::class)
     fun handle(exception: WebExchangeBindException) {
-        throw BadRequestException(exception.message)
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST, exception.message, exception)
     }
 
     @ExceptionHandler(InvalidRequestException::class)
     fun handle(exception: InvalidRequestException) {
-        throw BadRequestException(exception.message)
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST, exception.message, exception)
     }
 
     @ExceptionHandler(IllegalStateException::class)
     fun handle(exception: IllegalStateException) {
-        throw BadRequestException(exception.message)
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST, exception.message, exception)
     }
 
     @ExceptionHandler(ValidationException::class)
     fun handle(exception: ValidationException) {
-        throw BadRequestException(exception.message)
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST, exception.message, exception)
     }
 }

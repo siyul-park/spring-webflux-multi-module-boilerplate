@@ -1,66 +1,58 @@
 package io.github.siyual_park.application.server.handler
 
+import com.google.common.base.CaseFormat
 import io.github.siyual_park.application.server.dto.response.ErrorInfo
+import io.github.siyual_park.json.bind.DataBufferWriter
+import kotlinx.coroutines.reactor.awaitSingleOrNull
+import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.web.WebProperties
-import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler
-import org.springframework.boot.web.error.ErrorAttributeOptions
-import org.springframework.boot.web.reactive.error.ErrorAttributes
-import org.springframework.context.ApplicationContext
+import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
+import org.springframework.core.NestedRuntimeException
 import org.springframework.core.annotation.Order
-import org.springframework.http.MediaType
-import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.server.RequestPredicates
-import org.springframework.web.reactive.function.server.RouterFunction
-import org.springframework.web.reactive.function.server.RouterFunctions
-import org.springframework.web.reactive.function.server.ServerRequest
-import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
-@Suppress("LeakingThis")
 @Component
 @Order(-2)
 class GlobalErrorWebExceptionHandler(
-    errorAttributes: ErrorAttributes,
-    webProperties: WebProperties,
-    applicationContext: ApplicationContext,
-    configurer: ServerCodecConfigurer
-) : AbstractErrorWebExceptionHandler(errorAttributes, webProperties.resources, applicationContext) {
+    private val dataBufferWriter: DataBufferWriter
+) : ErrorWebExceptionHandler {
     private val logger = LoggerFactory.getLogger(GlobalErrorWebExceptionHandler::class.java)
 
-    init {
-        setMessageWriters(configurer.writers)
-    }
+    override fun handle(exchange: ServerWebExchange, ex: Throwable): Mono<Void> {
+        return mono {
+            val statusCode = if (ex is ResponseStatusException) {
+                ex.status
+            } else {
+                exchange.response.statusCode
+            }
+            val current = if (ex is NestedRuntimeException) {
+                ex.cause ?: ex
+            } else {
+                ex
+            }
+            val reason = if (ex is ResponseStatusException) {
+                ex.reason ?: ex.message
+            } else {
+                ex.message
+            }
 
-    override fun getRoutingFunction(errorAttributes: ErrorAttributes): RouterFunction<ServerResponse> {
-        return RouterFunctions.route(RequestPredicates.all(), this::renderErrorResponse)
-    }
+            val error = if (statusCode?.is5xxServerError != false) {
+                logger.error(ex.message, ex)
+                ErrorInfo(error = "internal_server_error", description = null)
+            } else {
+                logger.warn(ex.message, ex)
+                ErrorInfo(error = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, current.javaClass.simpleName), description = reason)
+            }
 
-    private fun renderErrorResponse(request: ServerRequest): Mono<ServerResponse> {
-        val errorAttributes = getErrorAttributes(request, ErrorAttributeOptions.defaults())
-        val status = errorAttributes["status"] as Int
-        val path = errorAttributes["path"] as String
-        val error = errorAttributes["error"] as String
-        val throwable = getError(request)
+            if (exchange.response.isCommitted) {
+                throw ex
+            }
 
-        return ServerResponse.status(status)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(
-                BodyInserters.fromValue(
-                    if (isInternalError(status)) {
-                        logger.error(throwable.message, error)
-                        ErrorInfo(path = path, error = error, description = null)
-                    } else {
-                        logger.warn(throwable.message, error)
-                        ErrorInfo(path = path, error = error, description = throwable.message)
-                    }
-                )
-            )
-    }
-
-    private fun isInternalError(status: Int): Boolean {
-        return status in 500..599
+            exchange.response.statusCode = statusCode
+            dataBufferWriter.write(exchange.response, error).awaitSingleOrNull()
+        }
     }
 }
