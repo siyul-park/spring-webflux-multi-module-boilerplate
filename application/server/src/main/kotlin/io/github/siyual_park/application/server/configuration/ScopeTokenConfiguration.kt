@@ -67,7 +67,6 @@ class ScopeTokenConfiguration(
         scopeTokenFactory.upsert(name = "scope:update")
         scopeTokenFactory.upsert(name = "scope:delete")
 
-        scopeTokenFactory.upsert(name = "scope.children:read").also { granted(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
         scopeTokenFactory.upsert(name = "scope.children:create")
         scopeTokenFactory.upsert(name = "scope.children:delete")
     }

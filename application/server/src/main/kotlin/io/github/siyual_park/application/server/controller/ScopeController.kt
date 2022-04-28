@@ -21,9 +21,6 @@ import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
@@ -125,25 +122,14 @@ class ScopeController(
 
         return mapperContext.map(scopeToken)
     }
-    @Operation(security = [SecurityRequirement(name = "bearer")])
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @DeleteMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'scope:delete')")
     suspend fun delete(@PathVariable("scope-id") scopeId: ULID) {
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
         scopeToken.clear()
-    }
-
-    @Operation(security = [SecurityRequirement(name = "bearer")])
-    @GetMapping("/{scope-id}/children")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'scope.children:read')")
-    fun readChildren(@PathVariable("scope-id") scopeId: ULID): Flow<ScopeTokenInfo> {
-        return flow {
-            val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-            emitAll(scopeToken.children())
-        }.map { mapperContext.map(it) }
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
