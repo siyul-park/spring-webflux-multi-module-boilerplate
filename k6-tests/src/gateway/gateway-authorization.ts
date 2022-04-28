@@ -16,8 +16,8 @@ class GatewayAuthorization {
 
   getAuthorization(): string {
     if (this.isExpired()) {
-      this.tokens = this.authGateway.createToken(this.request);
       this.createdAt = new Date();
+      this.tokens = this.authGateway.createToken(this.request);
     }
 
     return `${this.tokens?.tokenType} ${this.tokens?.accessToken}`;
@@ -28,7 +28,7 @@ class GatewayAuthorization {
       return true;
     }
 
-    return (this.createdAt.getUTCSeconds() + this.tokens.expiresIn - 60) <= new Date().getUTCSeconds();
+    return (this.createdAt.getTime() / 1000 + this.tokens.expiresIn - 60) <= (new Date().getTime() / 1000);
   }
 }
 
