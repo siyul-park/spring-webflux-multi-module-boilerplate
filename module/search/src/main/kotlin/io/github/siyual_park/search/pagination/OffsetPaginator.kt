@@ -14,10 +14,12 @@ class OffsetPaginator<T : Any, ID : Any>(
         page: Int = 0,
         perPage: Int = 15
     ): OffsetPage<T> {
+        val finalPerPage = perPage.coerceAtMost(150)
+
         val data = storage.load(
             criteria,
-            limit = perPage,
-            offset = (page * perPage).toLong(),
+            limit = finalPerPage,
+            offset = (page * finalPerPage).toLong(),
             sort = sort
         ).toList()
 
@@ -26,7 +28,7 @@ class OffsetPaginator<T : Any, ID : Any>(
         return OffsetPage(
             data = data,
             total = total,
-            perPage = perPage,
+            perPage = finalPerPage,
             page = page
         )
     }
