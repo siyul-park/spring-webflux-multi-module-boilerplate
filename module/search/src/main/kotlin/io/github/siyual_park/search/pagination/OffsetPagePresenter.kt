@@ -21,16 +21,23 @@ class OffsetPagePresenter(
         val returnValue = (result.returnValue as Mono<OffsetPage<*>>).awaitSingleOrNull()
         if (returnValue != null) {
             val headers = exchange.response.headers
+            val additional = mutableListOf<String>()
 
-            headers["Total-Count"] = returnValue.total.toString()
-            headers["Page"] = returnValue.page.toString()
+            if (returnValue.total != null) {
+                headers["Total-Count"] = returnValue.total.toString()
+                additional.add("Total-Count")
+            }
+            if (returnValue.page != null) {
+                headers["Page"] = returnValue.page.toString()
+                additional.add("Page")
+            }
             headers["Per-Page"] = returnValue.perPage.toString()
-            headers[HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS] = "Total-Count, Page, Per-Page"
+            additional.add("Per-Page")
 
+            headers[HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS] = additional.joinToString(", ")
             headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
 
             val response = exchange.response
-
             val dataBuffer = response.bufferFactory().wrap(objectMapper.writeValueAsBytes(returnValue.data))
             response.writeWith(Mono.just(dataBuffer)).awaitSingleOrNull()
         }

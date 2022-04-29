@@ -11,19 +11,24 @@ class OffsetPaginator<T : Any, ID : Any>(
     suspend fun paginate(
         criteria: CriteriaDefinition? = null,
         sort: Sort? = null,
-        page: Int = 0,
-        perPage: Int = 15
+        page: Int?,
+        perPage: Int?
     ): OffsetPage<T> {
-        val finalPerPage = perPage.coerceAtMost(150)
+        val finalPage = page ?: 0
+        val finalPerPage = (perPage ?: 15).coerceAtMost(150)
 
         val data = storage.load(
             criteria,
             limit = finalPerPage,
-            offset = (page * finalPerPage).toLong(),
+            offset = (finalPage * finalPerPage).toLong(),
             sort = sort
         ).toList()
 
-        val total = storage.count(criteria)
+        val total = if (page == null) {
+            null
+        } else {
+            storage.count(criteria)
+        }
 
         return OffsetPage(
             data = data,

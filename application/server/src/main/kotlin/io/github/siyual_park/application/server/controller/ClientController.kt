@@ -105,8 +105,8 @@ class ClientController(
         val offsetPage = offsetPaginator.paginate(
             criteria = criteria,
             sort = sort?.let { sortParser.parse(it) },
-            perPage = perPage ?: 15,
-            page = page ?: 0
+            perPage = perPage,
+            page = page
         )
 
         return offsetPage.mapDataAsync { mapperContext.map(it) }

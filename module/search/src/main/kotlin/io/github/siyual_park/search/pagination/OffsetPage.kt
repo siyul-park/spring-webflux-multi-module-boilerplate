@@ -2,9 +2,9 @@ package io.github.siyual_park.search.pagination
 
 data class OffsetPage<T>(
     val data: Collection<T>,
-    val total: Long,
+    val total: Long?,
     val perPage: Int,
-    val page: Int
+    val page: Int?
 ) {
     fun <U> mapData(
         func: (Collection<T>) -> Collection<U>

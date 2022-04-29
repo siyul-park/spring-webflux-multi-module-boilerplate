@@ -50,7 +50,8 @@ class UserGateway {
     );
 
     log(response);
-    check(response, {            'GET /users is status 200': (r) => r.status === 200,
+    check(response, {
+      'GET /users is status 200': (r) => r.status === 200
     });
 
     return JSON.parse(response.body as string).map((it: Record<string, unknown>) => snakeToCamel(it) as UserInfo);
