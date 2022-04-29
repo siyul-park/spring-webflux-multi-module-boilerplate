@@ -28,8 +28,8 @@ class UserCredentialController(
     private val userStorage: UserStorage,
     private val mapperContext: MapperContext
 ) {
-    @Operation(security = [SecurityRequirement(name = "bearer")])
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PatchMapping("")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users.credential:update', 'users[self].credential:update'})")

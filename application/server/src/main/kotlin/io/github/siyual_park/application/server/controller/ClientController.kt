@@ -168,8 +168,8 @@ class ClientController(
             emitAll(client.getScope(deep = false))
         }.map { mapperContext.map(it) }
     }
-    @Operation(security = [SecurityRequirement(name = "bearer")])
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("/{client-id}/scope")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'clients.scope:create')")
