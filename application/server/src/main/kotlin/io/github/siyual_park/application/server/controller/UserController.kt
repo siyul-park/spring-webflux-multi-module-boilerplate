@@ -88,11 +88,11 @@ class UserController(
     suspend fun readAll(
         @RequestParam("id", required = false) id: String? = null,
         @RequestParam("name", required = false) name: String? = null,
-        @RequestParam("created-at", required = false) createdAt: String? = null,
-        @RequestParam("updated-at", required = false) updatedAt: String? = null,
+        @RequestParam("created_at", required = false) createdAt: String? = null,
+        @RequestParam("updated_at", required = false) updatedAt: String? = null,
         @RequestParam("sort", required = false) sort: String? = null,
         @RequestParam("page", required = false) page: Int? = null,
-        @RequestParam("per-page", required = false) perPage: Int? = null
+        @RequestParam("per_page", required = false) perPage: Int? = null
     ): OffsetPage<UserInfo> {
         val criteria = rhsFilterParser.parse(
             mapOf(

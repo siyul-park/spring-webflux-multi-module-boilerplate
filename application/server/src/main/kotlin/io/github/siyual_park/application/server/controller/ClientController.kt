@@ -86,11 +86,11 @@ class ClientController(
         @RequestParam("name", required = false) name: String? = null,
         @RequestParam("type", required = false) type: String? = null,
         @RequestParam("origin", required = false) origin: String? = null,
-        @RequestParam("created-at", required = false) createdAt: String? = null,
-        @RequestParam("updated-at", required = false) updatedAt: String? = null,
+        @RequestParam("created_at", required = false) createdAt: String? = null,
+        @RequestParam("updated_at", required = false) updatedAt: String? = null,
         @RequestParam("sort", required = false) sort: String? = null,
         @RequestParam("page", required = false) page: Int? = null,
-        @RequestParam("per-page", required = false) perPage: Int? = null
+        @RequestParam("per_page", required = false) perPage: Int? = null
     ): OffsetPage<ClientInfo> {
         val criteria = rhsFilterParser.parse(
             mapOf(
