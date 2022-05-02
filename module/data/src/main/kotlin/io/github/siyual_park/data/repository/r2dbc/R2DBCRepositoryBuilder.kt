@@ -9,6 +9,7 @@ import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria
 import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 
 class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     private val entityOperations: R2dbcEntityOperations,
@@ -52,7 +53,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
                 filter,
                 eventPublisher
             )
-        } else if (softDelete) {
+        } else if (softDelete && clazz.isSubclassOf(SoftDeletable::class)) {
             SoftDeletedR2DBCRepository<SoftDeletable, ID>(
                 entityOperations,
                 clazz as KClass<SoftDeletable>,
