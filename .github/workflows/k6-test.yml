@@ -42,7 +42,6 @@ jobs:
         env:
           PORT: 8080
           SPRING_R2DBC_URL: r2dbc:h2:mem://:/tmp/testdb
-          APPLICATION_AUTH_SECRET: SWPL0iBW7DHkuxRjgwhsOyA2bEvo9BjtJzQj2zF79kYgXGpygvU8Ol5hrFy3lVAeTnNP4ppvH9bulL0tcfa8kovgv2xkAdcZq5VqWj3c_UPmq89iNf0YDPY5Oq5bewf5WPInVRQ5GK29d_iyrMA9C7c0ERc6ZBkXEtjNtENlfyXeQFpqBaBKDuwcVjl-DQ61sigGoTCEH0i3zSKm15zSH9VbN26g_LnXkViBW2O0DEnxvJcEs8XJNxMPrIyuoOXLxAiNc-qobVrH2nyGFKI4_Ti3qchY6o8W43hA4BVWXLNuW16AcqiSR--aScnXosQIUk3Yj5D05FQbSsFAmsrhA
           SPRING_R2DBC_USERNAME: test
           SPRING_R2DBC_PASSWORD: test
           SPRING_MONGODB_URI: mongodb://localhost/test
