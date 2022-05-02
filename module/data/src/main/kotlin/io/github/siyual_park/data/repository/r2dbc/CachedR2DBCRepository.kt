@@ -1,16 +1,13 @@
 package io.github.siyual_park.data.repository.r2dbc
 
-import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.cache.Extractor
-import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
 import io.github.siyual_park.data.repository.cache.createIndexes
-import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -19,11 +16,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
-import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.relational.core.query.Criteria
 import org.springframework.data.relational.core.query.CriteriaDefinition
-import java.time.Duration
-import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
 class CachedR2DBCRepository<T : Any, ID : Any>(
@@ -229,58 +223,5 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
     private fun isSingleCriteria(criteria: CriteriaDefinition?): Boolean {
         return criteria != null && !criteria.hasPrevious() && !criteria.isGroup
-    }
-
-    companion object {
-        fun <T : Any, ID : Any> of(
-            repository: R2DBCRepository<T, ID>,
-            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-        ): CachedR2DBCRepository<T, ID> {
-            val idExtractor = createIdExtractor(repository)
-
-            return CachedR2DBCRepository(
-                repository,
-                TransactionalStorageManager(
-                    InMemoryNestedStorage(
-                        cacheBuilder as CacheBuilder<ID, T>,
-                        idExtractor
-                    )
-                ),
-                idExtractor,
-            )
-        }
-
-        fun <T : Any, ID : Any> of(
-            entityOperations: R2dbcEntityOperations,
-            clazz: KClass<T>,
-            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-            eventPublisher: EventPublisher? = null
-        ): CachedR2DBCRepository<T, ID> {
-            val repository = SimpleR2DBCRepository<T, ID>(entityOperations, clazz, eventPublisher)
-            val idExtractor = createIdExtractor(repository)
-
-            return CachedR2DBCRepository(
-                repository,
-                TransactionalStorageManager(
-                    InMemoryNestedStorage(
-                        cacheBuilder as CacheBuilder<ID, T>,
-                        idExtractor
-                    )
-                ),
-                idExtractor,
-            )
-        }
-
-        private fun defaultCacheBuilder() = CacheBuilder.newBuilder()
-            .softValues()
-            .expireAfterAccess(Duration.ofMinutes(2))
-            .expireAfterWrite(Duration.ofMinutes(5))
-            .maximumSize(1_000)
-
-        private fun <T : Any, ID : Any> createIdExtractor(repository: R2DBCRepository<T, ID>) = object : Extractor<T, ID> {
-            override fun getKey(entity: T): ID {
-                return repository.entityManager.getId(entity)
-            }
-        }
     }
 }

@@ -1,25 +1,32 @@
 package io.github.siyual_park.client.repository
 
+import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.data.patch.AsyncPatch
-import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
+import java.time.Duration
 
 @Repository
 class ClientCredentialRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<ClientCredentialData, Long> by CachedR2DBCRepository.of(
-    entityOperations,
-    ClientCredentialData::class,
-    eventPublisher = eventPublisher
-) {
+) : R2DBCRepository<ClientCredentialData, Long> by R2DBCRepositoryBuilder<ClientCredentialData, Long>(entityOperations, ClientCredentialData::class)
+    .set(eventPublisher)
+    .set(
+        CacheBuilder.newBuilder()
+            .softValues()
+            .expireAfterAccess(Duration.ofMinutes(2))
+            .expireAfterWrite(Duration.ofMinutes(5))
+            .maximumSize(1_000)
+    )
+    .build() {
     suspend fun findByClientIdOrFail(clientId: ULID): ClientCredentialData {
         return findByClientId(clientId) ?: throw EmptyResultDataAccessException(1)
     }

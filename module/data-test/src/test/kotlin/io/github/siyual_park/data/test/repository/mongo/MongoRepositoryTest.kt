@@ -1,12 +1,13 @@
 package io.github.siyual_park.data.test.repository.mongo
 
+import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.event.BeforeCreateEvent
 import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
-import io.github.siyual_park.data.repository.mongo.CachedMongoRepository
 import io.github.siyual_park.data.repository.mongo.CreateTimestamp
 import io.github.siyual_park.data.repository.mongo.MongoRepository
+import io.github.siyual_park.data.repository.mongo.MongoRepositoryBuilder
 import io.github.siyual_park.data.repository.mongo.SimpleMongoRepository
 import io.github.siyual_park.data.repository.mongo.UpdateTimestamp
 import io.github.siyual_park.data.repository.mongo.findOneOrFail
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.query.where
+import java.time.Duration
 
 class MongoRepositoryTest : MongoTest() {
     private val eventEmitter = EventEmitter()
@@ -420,7 +422,16 @@ class MongoRepositoryTest : MongoTest() {
     private fun repositories(): List<MongoRepository<Person, ULID>> {
         return listOf(
             SimpleMongoRepository(mongoTemplate, Person::class, eventPublisher = eventEmitter),
-            CachedMongoRepository.of(mongoTemplate, Person::class, eventPublisher = eventEmitter)
+            MongoRepositoryBuilder<Person, ULID>(mongoTemplate, Person::class)
+                .set(eventEmitter)
+                .set(
+                    CacheBuilder.newBuilder()
+                        .softValues()
+                        .expireAfterAccess(Duration.ofMinutes(1))
+                        .expireAfterWrite(Duration.ofMinutes(2))
+                        .maximumSize(1_000)
+                )
+                .build()
         )
     }
 }

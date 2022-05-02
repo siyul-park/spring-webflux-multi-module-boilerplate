@@ -2,8 +2,8 @@ package io.github.siyual_park.auth.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.entity.ScopeRelationData
-import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
@@ -16,16 +16,16 @@ import java.time.Duration
 class ScopeRelationRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<ScopeRelationData, Long> by CachedR2DBCRepository.of(
-    entityOperations,
-    ScopeRelationData::class,
-    CacheBuilder.newBuilder()
-        .softValues()
-        .expireAfterAccess(Duration.ofMinutes(10))
-        .expireAfterWrite(Duration.ofMinutes(30))
-        .maximumSize(1_000),
-    eventPublisher = eventPublisher
-) {
+) : R2DBCRepository<ScopeRelationData, Long> by R2DBCRepositoryBuilder<ScopeRelationData, Long>(entityOperations, ScopeRelationData::class)
+    .set(eventPublisher)
+    .set(
+        CacheBuilder.newBuilder()
+            .softValues()
+            .expireAfterAccess(Duration.ofMinutes(10))
+            .expireAfterWrite(Duration.ofMinutes(30))
+            .maximumSize(1_000),
+    )
+    .build() {
     fun findAllByChildId(childId: ULID): Flow<ScopeRelationData> {
         return findAll(where(ScopeRelationData::childId).`is`(childId))
     }
