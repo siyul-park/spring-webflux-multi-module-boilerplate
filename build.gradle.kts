@@ -1,5 +1,6 @@
 val kotlin_version: String by project
 val junit_version: String by project
+val mockk_version: String by project
 val jacoco_version: String by project
 val coroutines_version: String by project
 val projectreactor_version: String by project
@@ -82,6 +83,7 @@ allprojects {
 
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+        testImplementation("io.mockk:mockk:$mockk_version")
 
         implementation("io.sentry:sentry-logback:$sentry_logback_version")
 

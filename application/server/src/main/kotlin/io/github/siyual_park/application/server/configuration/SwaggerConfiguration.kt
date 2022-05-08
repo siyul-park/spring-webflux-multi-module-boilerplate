@@ -3,9 +3,8 @@ package io.github.siyual_park.application.server.configuration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.fasterxml.jackson.module.kotlin.SingletonSupport
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.github.siyual_park.search.pagination.OffsetPage
+import io.github.siyual_park.present.pagination.OffsetPage
 import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.core.jackson.ModelResolver
 import io.swagger.v3.oas.models.Components
