@@ -22,24 +22,28 @@ class SortParser<T : Any>(
     }
 
     fun parse(sort: String): Sort {
-        val result = regex.find(sort) ?: throw SortInvalidException()
-        val (direction, property) = result.destructured
+        try {
+            val result = regex.find(sort) ?: throw SortInvalidException()
+            val (direction, property) = result.destructured
 
-        val memberProperty = clazz.memberProperties.find {
-            exportedPropertyName(it) == property
-        } ?: throw SortInvalidException()
+            val memberProperty = clazz.memberProperties.find {
+                exportedPropertyName(it) == property
+            } ?: throw SortInvalidException()
 
-        return Sort.by(
-            Sort.Direction.fromString(direction),
-            columnName(memberProperty)
-        )
+            return Sort.by(
+                Sort.Direction.fromString(direction),
+                columnName(memberProperty)
+            )
+        } catch (e: IllegalArgumentException) {
+            throw SortInvalidException(e.message, e)
+        }
     }
 
     private fun exportedPropertyName(property: KProperty<*>): String {
-        return objectMapper.propertyNamingStrategy.nameForField(
+        return objectMapper.propertyNamingStrategy?.nameForField(
             objectMapper.serializationConfig,
             AnnotatedField(null, property.javaField, null),
             property.name
-        )
+        ) ?: property.name
     }
 }
