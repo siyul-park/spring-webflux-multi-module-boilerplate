@@ -1,14 +1,10 @@
 package io.github.siyual_park.presentation.sort
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.github.siyual_park.presentation.entity.Person
 import org.junit.jupiter.api.Test
 
 class SortParserFactoryTest {
-    internal data class Person(
-        var name: String,
-        var age: Int
-    )
-
     private val objectMapper = ObjectMapper()
     private val sortParserFactory = SortParserFactory(objectMapper)
 
