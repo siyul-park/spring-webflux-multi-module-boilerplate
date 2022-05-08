@@ -23,7 +23,6 @@ jobs:
       - run: chmod +x gradlew
       - run: ./gradlew check codeCoverageReport
       - uses: codecov/codecov-action@v1
-        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
