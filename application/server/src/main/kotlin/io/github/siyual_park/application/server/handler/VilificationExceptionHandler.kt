@@ -1,6 +1,6 @@
 package io.github.siyual_park.application.server.handler
 
-import io.github.siyual_park.search.exception.InvalidRequestException
+import io.github.siyual_park.present.exception.InvalidRequestException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
