@@ -21,11 +21,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - run: chmod +x gradlew
-      - run: ./gradlew check
+      - run: ./gradlew check codeCoverageReport
       - uses: codecov/codecov-action@v1
+        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./build/reports/jacoco/test/jacocoTestReport.xml
+          file: ./build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml
 
   k6-tests-check:
     runs-on: ubuntu-latest
