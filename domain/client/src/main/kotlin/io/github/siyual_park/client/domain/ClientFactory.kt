@@ -60,6 +60,7 @@ class ClientFactory(
 
     private suspend fun createClient(payload: CreateClientPayload): Client {
         return ClientData(payload.name, payload.type, payload.origin)
+            .apply { if (payload.id != null) id = payload.id }
             .let { clientRepository.create(it) }
             .let { clientMapper.map(it) }
     }

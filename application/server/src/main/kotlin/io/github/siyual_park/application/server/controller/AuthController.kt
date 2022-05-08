@@ -21,13 +21,18 @@ import io.github.siyual_park.json.bind.RequestForm
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.AsyncLazy
+import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.user.domain.auth.PasswordGrantPayload
-import io.swagger.annotations.Api
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.toSet
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -35,7 +40,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
-@Api(tags = ["auth"])
+@Tag(name = "auth")
 @RestController
 @RequestMapping("")
 class AuthController(
@@ -122,7 +127,7 @@ class AuthController(
             refreshTokenFactory.get().create(
                 principal,
                 tokensProperty.refreshToken.age,
-                filter = scope,
+                filter = setOf(accessTokenScope.get()),
             )
         } else {
             null
@@ -141,10 +146,21 @@ class AuthController(
         }
     }
 
+    @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/principal")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'principal[self]:read')")
     suspend fun readSelf(@AuthenticationPrincipal principal: Principal): PrincipalInfo {
         return mapperContext.map(principal)
+    }
+
+    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @DeleteMapping("/principal")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasPermission(null, 'principal[self]:delete')")
+    suspend fun deleteSelf(authentication: Authentication) {
+        val credential = authentication.credentials.toString()
+        val token = tokenStorage.loadOrFail(credential)
+        token.clear()
     }
 }

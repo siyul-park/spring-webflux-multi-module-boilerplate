@@ -308,55 +308,6 @@ class ScopeControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET scope_{scope-id}_children, status = 200`() = blocking {
-        val principal = DummyCreateUserPayload.create()
-            .let { userFactory.create(it).toPrincipal() }
-
-        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
-
-        parent.grant(child)
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("scope.children:read")
-        )
-
-        val response = scopeControllerGateway.readChildren(parent.id)
-
-        assertEquals(HttpStatus.OK, response.status)
-
-        val responseScope = response.responseBody.asFlow().toList()
-        assertEquals(responseScope.size, 1)
-
-        val responseScopeToken = responseScope[0]
-        assertEquals(child.id, responseScopeToken.id)
-        assertEquals(child.name, responseScopeToken.name)
-        assertNotNull(responseScopeToken.createdAt)
-        assertNotNull(responseScopeToken.updatedAt)
-    }
-
-    @Test
-    fun `GET scope_{scope-id}_children, status = 403`() = blocking {
-        val principal = DummyCreateUserPayload.create()
-            .let { userFactory.create(it).toPrincipal() }
-
-        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
-
-        parent.grant(child)
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            pop = listOf("scope.children:read")
-        )
-
-        val response = scopeControllerGateway.readChildren(parent.id)
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
     fun `DELETE scope_{scope-id}_children, status = 200`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }

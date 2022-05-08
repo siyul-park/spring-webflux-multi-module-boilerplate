@@ -1,6 +1,7 @@
 package io.github.siyual_park.auth.migration
 
 import io.github.siyual_park.data.migration.Migration
+import io.github.siyual_park.data.migration.createIndex
 import io.github.siyual_park.data.migration.createUniqueIndex
 import io.github.siyual_park.data.migration.createUpdatedAtTrigger
 import io.github.siyual_park.data.migration.dropTable
@@ -44,6 +45,8 @@ class CreateScopeRelation(
         }
 
         entityOperations.createUniqueIndex(tableName, listOf("parent_id", "child_id"))
+        entityOperations.createIndex(tableName, listOf("parent_id"))
+        entityOperations.createIndex(tableName, listOf("child_id"))
     }
 
     override suspend fun down() {

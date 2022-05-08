@@ -2,8 +2,8 @@ package io.github.siyual_park.auth.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.entity.TokenData
-import io.github.siyual_park.data.repository.mongo.CachedMongoRepository
 import io.github.siyual_park.data.repository.mongo.MongoRepository
+import io.github.siyual_park.data.repository.mongo.MongoRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -14,13 +14,13 @@ import java.time.Duration
 class TokenRepository(
     template: ReactiveMongoTemplate,
     eventPublisher: EventPublisher? = null
-) : MongoRepository<TokenData, ULID> by CachedMongoRepository.of(
-    template,
-    TokenData::class,
-    CacheBuilder.newBuilder()
-        .softValues()
-        .expireAfterAccess(Duration.ofMinutes(2))
-        .expireAfterWrite(Duration.ofMinutes(1))
-        .maximumSize(10_000),
-    eventPublisher = eventPublisher
-)
+) : MongoRepository<TokenData, ULID> by MongoRepositoryBuilder<TokenData, ULID>(template, TokenData::class)
+    .set(eventPublisher)
+    .set(
+        CacheBuilder.newBuilder()
+            .softValues()
+            .expireAfterAccess(Duration.ofMinutes(1))
+            .expireAfterWrite(Duration.ofMinutes(2))
+            .maximumSize(10_000)
+    )
+    .build()

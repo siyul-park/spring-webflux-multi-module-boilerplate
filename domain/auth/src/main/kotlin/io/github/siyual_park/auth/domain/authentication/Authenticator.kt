@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.authentication
 
 import io.github.siyual_park.auth.domain.Principal
-import io.github.siyual_park.auth.exception.UnsupportedAuthorizationTypeException
+import io.github.siyual_park.auth.exception.UnauthorizatedException
 import org.springframework.stereotype.Component
 
 @Suppress("UNCHECKED_CAST")
@@ -43,6 +43,6 @@ class Authenticator {
             }
         }
 
-        throw UnsupportedAuthorizationTypeException(exception?.message)
+        throw UnauthorizatedException(exception?.message, exception)
     }
 }

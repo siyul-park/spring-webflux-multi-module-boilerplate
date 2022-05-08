@@ -1,16 +1,13 @@
 package io.github.siyual_park.data.repository.mongo
 
-import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.cache.Extractor
-import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
 import io.github.siyual_park.data.repository.cache.createIndexes
-import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -19,19 +16,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.bson.Document
-import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.CriteriaDefinition
 import org.springframework.data.mongodb.core.query.Update
-import reactor.core.scheduler.Scheduler
-import reactor.core.scheduler.Schedulers
-import java.time.Duration
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.javaField
 
 @Suppress("UNCHECKED_CAST")
 class CachedMongoRepository<T : Any, ID : Any>(
@@ -116,7 +106,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
                         value.forEach { key ->
-                            val cached = key?.let { storage.getIfPresent(column, it) }
+                            val cached = key?.let { storage.getIfPresent(column, ArrayList<Any?>().apply { add(it) }) }
                             if (cached == null) {
                                 notCachedKey.add(key)
                             } else {
@@ -140,11 +130,17 @@ class CachedMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: CriteriaDefinition, update: Update): T? {
+        val storage = storageManager.getCurrent()
+
         return delegator.update(criteria, update)
+            ?.also { storage.put(it) }
     }
 
     override suspend fun update(entity: T, update: Update): T? {
+        val storage = storageManager.getCurrent()
+
         return delegator.update(entity, update)
+            ?.also { storage.put(it) }
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
@@ -158,16 +154,16 @@ class CachedMongoRepository<T : Any, ID : Any>(
             ?.also { storage.put(it) }
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>): Flow<T> {
-        return updateAll(criteria, patch.async())
+    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>): Flow<T> {
+    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return flow {
             val storage = storageManager.getCurrent()
 
             emitAll(
-                delegator.updateAll(criteria, patch)
+                delegator.updateAll(criteria, patch, limit, offset, sort)
                     .onEach { storage.put(it) }
             )
         }
@@ -236,66 +232,5 @@ class CachedMongoRepository<T : Any, ID : Any>(
 
     private fun isSingleCriteria(criteria: CriteriaDefinition?): Boolean {
         return criteria != null && criteria.criteriaObject.size == 1 && criteria.key != null
-    }
-
-    companion object {
-        fun <T : Any, ID : Any> of(
-            repository: MongoRepository<T, ID>,
-            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-        ): CachedMongoRepository<T, ID> {
-            val idExtractor = createIdExtractor(repository)
-
-            return CachedMongoRepository(
-                repository,
-                TransactionalStorageManager(
-                    InMemoryNestedStorage(
-                        cacheBuilder as CacheBuilder<ID, T>,
-                        idExtractor
-                    )
-                ),
-                idExtractor,
-            )
-        }
-
-        fun <T : Any, ID : Any> of(
-            template: ReactiveMongoTemplate,
-            clazz: KClass<T>,
-            cacheBuilder: CacheBuilder<Any, Any> = defaultCacheBuilder(),
-            scheduler: Scheduler = Schedulers.boundedElastic(),
-            eventPublisher: EventPublisher? = null
-        ): CachedMongoRepository<T, ID> {
-            val repository = SimpleMongoRepository<T, ID>(template, clazz, scheduler, eventPublisher)
-            val idExtractor = createIdExtractor(repository)
-
-            return CachedMongoRepository(
-                repository,
-                TransactionalStorageManager(
-                    InMemoryNestedStorage(
-                        cacheBuilder as CacheBuilder<ID, T>,
-                        idExtractor
-                    )
-                ),
-                idExtractor,
-            )
-        }
-
-        private fun defaultCacheBuilder() = CacheBuilder.newBuilder()
-            .softValues()
-            .expireAfterAccess(Duration.ofMinutes(2))
-            .expireAfterWrite(Duration.ofMinutes(5))
-            .maximumSize(1_000)
-
-        private fun <T : Any, ID : Any> createIdExtractor(repository: MongoRepository<T, ID>): Extractor<T, ID> {
-            val idProperty = (
-                repository.clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
-                    ?: throw RuntimeException()
-                ) as KProperty1<T, ID>
-
-            return object : Extractor<T, ID> {
-                override fun getKey(entity: T): ID {
-                    return idProperty.get(entity)
-                }
-            }
-        }
     }
 }

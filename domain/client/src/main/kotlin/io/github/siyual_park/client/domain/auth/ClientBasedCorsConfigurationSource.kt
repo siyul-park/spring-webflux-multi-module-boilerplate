@@ -17,16 +17,16 @@ class ClientBasedCorsConfigurationSource(
     private val clientStorage: ClientStorage,
 ) : CorsConfigurationSource {
     override fun getCorsConfiguration(exchange: ServerWebExchange): CorsConfiguration? {
-        return runBlocking {
-            try {
-                val headers = exchange.request.headers
-                val authorization = headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return@runBlocking null
+        try {
+            val headers = exchange.request.headers
+            val authorization = headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return null
 
-                val token = authorization.split(" ")
-                if (token.size != 2) {
-                    return@runBlocking null
-                }
+            val token = authorization.split(" ")
+            if (token.size != 2) {
+                return null
+            }
 
+            return runBlocking {
                 val payload = AuthorizationPayload(token[0], token[1])
                 val principal = authenticator.authenticate(payload)
 
@@ -40,11 +40,10 @@ class ClientBasedCorsConfigurationSource(
                             allowCredentials = true
                         }
                 }
-
-                return@runBlocking null
-            } catch (e: Exception) {
                 return@runBlocking null
             }
+        } catch (e: Exception) {
+            return null
         }
     }
 }

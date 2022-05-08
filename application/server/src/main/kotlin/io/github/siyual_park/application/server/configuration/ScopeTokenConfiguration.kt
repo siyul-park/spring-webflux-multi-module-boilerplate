@@ -26,6 +26,7 @@ class ScopeTokenConfiguration(
         scopeTokenFactory.upsert(name = "refresh-token:create").also { granted(it, listOf(userScope)) }
 
         scopeTokenFactory.upsert(name = "principal[self]:read").also { granted(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
+        scopeTokenFactory.upsert(name = "principal[self]:delete").also { granted(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
 
         scopeTokenFactory.upsert(name = "users:create").also { granted(it, listOf(confidentialClientScope, publicClientScope)) }
         scopeTokenFactory.upsert(name = "users:read").also { granted(it, listOf(userScope, confidentialClientScope)) }
@@ -37,6 +38,11 @@ class ScopeTokenConfiguration(
 
         scopeTokenFactory.upsert(name = "users.credential:update")
         scopeTokenFactory.upsert(name = "users[self].credential:update").also { granted(it, listOf(userScope)) }
+
+        scopeTokenFactory.upsert(name = "users.contact:read")
+        scopeTokenFactory.upsert(name = "users[self].contact:read").also { granted(it, listOf(userScope)) }
+        scopeTokenFactory.upsert(name = "users.contact:update")
+        scopeTokenFactory.upsert(name = "users[self].contact:update").also { granted(it, listOf(userScope)) }
 
         scopeTokenFactory.upsert(name = "clients:create")
         scopeTokenFactory.upsert(name = "clients:read")
@@ -61,7 +67,6 @@ class ScopeTokenConfiguration(
         scopeTokenFactory.upsert(name = "scope:update")
         scopeTokenFactory.upsert(name = "scope:delete")
 
-        scopeTokenFactory.upsert(name = "scope.children:read").also { granted(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
         scopeTokenFactory.upsert(name = "scope.children:create")
         scopeTokenFactory.upsert(name = "scope.children:delete")
     }

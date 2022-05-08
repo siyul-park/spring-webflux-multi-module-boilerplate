@@ -1,8 +1,8 @@
 package io.github.siyual_park.auth.configuration
 
-import io.github.siyual_park.auth.spring.AuthenticationConverter
-import io.github.siyual_park.auth.spring.AuthenticationManager
-import io.github.siyual_park.auth.spring.ScopeEvaluator
+import io.github.siyual_park.auth.domain.AuthenticationConverter
+import io.github.siyual_park.auth.domain.AuthenticationManager
+import io.github.siyual_park.auth.domain.ScopeEvaluator
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -15,6 +15,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.web.cors.reactive.CorsConfigurationSource
+import reactor.core.publisher.Mono
 
 @Configuration
 @EnableWebFluxSecurity
@@ -36,6 +37,7 @@ class SecurityConfiguration(
 
         val authenticationWebFilter = AuthenticationWebFilter(authenticationManager)
         authenticationWebFilter.setServerAuthenticationConverter(authenticationConverter)
+        authenticationWebFilter.setAuthenticationFailureHandler { _, exception -> Mono.error(exception) }
 
         return httpSecurity
             .cors().configurationSource(corsConfigurationSource).and()

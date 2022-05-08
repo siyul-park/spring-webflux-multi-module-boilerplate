@@ -4,15 +4,14 @@ import { UserGateway } from './gateway';
 import { dummyCreateUserRequest } from './dummy';
 
 import client from './client';
+import matrixType from './matrix-type';
 
 export const options: Options = {
   vus: 200,
   duration: '10s',
-  thresholds: {
-    'http_req_duration{type:POST_users}': ['max>=0'],
-    'http_req_duration{type:DELETE_users_id}': ['max>=0'],
-  },
 };
+
+matrixType(options, ['POST_users', 'DELETE_users_id']);
 
 const userGateway = new UserGateway({
   grantType: 'client_credentials',

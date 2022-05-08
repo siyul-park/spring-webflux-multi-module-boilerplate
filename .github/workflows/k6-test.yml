@@ -1,0 +1,71 @@
+name: k6-test
+
+on:
+  workflow_run:
+    workflows:
+      - check
+    branches:
+      - master
+      - release
+      - develop
+    types:
+      - completed
+
+jobs:
+  k6-test:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Cache gradle modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew bootJar -x test
+      - run: cp application/server/build/libs/*.jar application.jar
+      - name: Run server
+        run: java -jar application.jar &
+        env:
+          PORT: 8080
+          SPRING_R2DBC_URL: r2dbc:h2:mem://:/tmp/testdb
+          SPRING_R2DBC_USERNAME: test
+          SPRING_R2DBC_PASSWORD: test
+          SPRING_MONGODB_URI: mongodb://localhost/test
+          SPRING_MONGODB_EMBEDDED_ENABLE: true
+          APPLICATION_CLIENT_ROOT_ID: 01G1G1DN4JVHEKN7BHQH0F62TG
+          APPLICATION_CLIENT_ROOT_SECRET: d9keQxhgVDDF8JJLDIPZ8uq159ffOAFV
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - run: npm ci
+        working-directory: ./k6-tests
+      - run: npm run build
+        working-directory: ./k6-tests
+      - run: npm i wait-on -g
+      - name: Install k6
+        run: |
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+      - run: chmod +x ./k6-tests/start.sh
+      - run: npx wait-on http://localhost:8080 && ./k6-tests/start.sh
+        env:
+          URL: http://localhost:8080
+          CLIENT_ID: 01G1G1DN4JVHEKN7BHQH0F62TG
+          CLIENT_SECRET: d9keQxhgVDDF8JJLDIPZ8uq159ffOAFV

@@ -2,10 +2,8 @@ package io.github.siyual_park.application.server.gateway
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
 import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
-import io.github.siyual_park.application.server.dto.request.UpdateUserCredentialRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
-import io.github.siyual_park.application.server.dto.response.UserCredentialInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.ulid.ULID
 import org.springframework.http.HttpHeaders
@@ -43,11 +41,11 @@ class UserControllerGateway(
                 it.path("/users")
                     .queryParamIfPresent("id", Optional.ofNullable(id))
                     .queryParamIfPresent("name", Optional.ofNullable(name))
-                    .queryParamIfPresent("created-at", Optional.ofNullable(createdAt))
+                    .queryParamIfPresent("created_at", Optional.ofNullable(createdAt))
                     .queryParamIfPresent("updated-at", Optional.ofNullable(updatedAt))
                     .queryParamIfPresent("sort", Optional.ofNullable(sort))
                     .queryParamIfPresent("page", Optional.ofNullable(page))
-                    .queryParamIfPresent("per-page", Optional.ofNullable(perPage))
+                    .queryParamIfPresent("per_page", Optional.ofNullable(perPage))
                     .build()
             }
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
@@ -111,14 +109,5 @@ class UserControllerGateway(
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult()
-    }
-
-    suspend fun updateCredential(userId: ULID, request: UpdateUserCredentialRequest): FluxExchangeResult<UserCredentialInfo> {
-        return client.patch()
-            .uri("/users/$userId/credential")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .bodyValue(request)
-            .exchange()
-            .returnResult(UserCredentialInfo::class.java)
     }
 }

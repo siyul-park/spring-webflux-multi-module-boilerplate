@@ -1,66 +1,66 @@
 package io.github.siyual_park.application.server.handler
 
+import com.google.common.base.CaseFormat
 import io.github.siyual_park.application.server.dto.response.ErrorInfo
+import io.github.siyual_park.json.bind.DataBufferWriter
+import kotlinx.coroutines.reactor.awaitSingleOrNull
+import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.web.WebProperties
-import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler
-import org.springframework.boot.web.error.ErrorAttributeOptions
-import org.springframework.boot.web.reactive.error.ErrorAttributes
-import org.springframework.context.ApplicationContext
+import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
 import org.springframework.core.annotation.Order
-import org.springframework.http.MediaType
-import org.springframework.http.codec.ServerCodecConfigurer
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.server.RequestPredicates
-import org.springframework.web.reactive.function.server.RouterFunction
-import org.springframework.web.reactive.function.server.RouterFunctions
-import org.springframework.web.reactive.function.server.ServerRequest
-import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
-@Suppress("LeakingThis")
 @Component
 @Order(-2)
 class GlobalErrorWebExceptionHandler(
-    errorAttributes: ErrorAttributes,
-    webProperties: WebProperties,
-    applicationContext: ApplicationContext,
-    configurer: ServerCodecConfigurer
-) : AbstractErrorWebExceptionHandler(errorAttributes, webProperties.resources, applicationContext) {
+    private val dataBufferWriter: DataBufferWriter
+) : ErrorWebExceptionHandler {
     private val logger = LoggerFactory.getLogger(GlobalErrorWebExceptionHandler::class.java)
 
-    init {
-        setMessageWriters(configurer.writers)
+    override fun handle(exchange: ServerWebExchange, ex: Throwable): Mono<Void> {
+        return mono {
+            val statusCode = getStatus(ex) ?: HttpStatus.INTERNAL_SERVER_ERROR
+            val cause = getCause(ex)
+            val reason = getReason(ex)
+
+            val error = if (statusCode.is5xxServerError) {
+                logger.error(ex.message, ex)
+                ErrorInfo(error = "internal_server_error", description = null)
+            } else {
+                logger.warn(ex.message, ex)
+                ErrorInfo(error = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, cause.javaClass.simpleName), description = reason)
+            }
+
+            if (exchange.response.isCommitted) {
+                throw ex
+            }
+
+            exchange.response.statusCode = statusCode
+            dataBufferWriter.write(exchange.response, error).awaitSingleOrNull()
+        }
     }
 
-    override fun getRoutingFunction(errorAttributes: ErrorAttributes): RouterFunction<ServerResponse> {
-        return RouterFunctions.route(RequestPredicates.all(), this::renderErrorResponse)
+    private fun getStatus(ex: Throwable): HttpStatus? {
+        return if (ex is ResponseStatusException) {
+            ex.status
+        } else {
+            ex.cause?.let { getStatus(it) }
+        }
     }
 
-    private fun renderErrorResponse(request: ServerRequest): Mono<ServerResponse> {
-        val errorAttributes = getErrorAttributes(request, ErrorAttributeOptions.defaults())
-        val status = errorAttributes["status"] as Int
-        val path = errorAttributes["path"] as String
-        val error = errorAttributes["error"] as String
-        val throwable = getError(request)
-
-        return ServerResponse.status(status)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(
-                BodyInserters.fromValue(
-                    if (isInternalError(status)) {
-                        logger.error(throwable.message, error)
-                        ErrorInfo(path = path, error = error, description = null)
-                    } else {
-                        logger.warn(throwable.message, error)
-                        ErrorInfo(path = path, error = error, description = throwable.message)
-                    }
-                )
-            )
+    private fun getReason(ex: Throwable): String? {
+        return if (ex is ResponseStatusException) {
+            ex.reason ?: ex.message
+        } else {
+            ex.cause?.let { getReason(it) } ?: ex.message
+        }
     }
 
-    private fun isInternalError(status: Int): Boolean {
-        return status in 500..599
+    private fun getCause(ex: Throwable): Throwable {
+        return ex.cause?.let { getCause(it) } ?: ex
     }
 }

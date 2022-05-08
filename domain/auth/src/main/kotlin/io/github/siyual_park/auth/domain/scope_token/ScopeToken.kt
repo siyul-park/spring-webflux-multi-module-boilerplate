@@ -9,18 +9,20 @@ import io.github.siyual_park.data.event.AfterDeleteEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
+import io.github.siyual_park.data.transaction.currentContextOrNull
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
+import java.util.Collections
 
 class ScopeToken(
     value: ScopeTokenData,
@@ -29,13 +31,6 @@ class ScopeToken(
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
 ) : Persistence<ScopeTokenData, ULID>(value, scopeTokenRepository, eventPublisher), Authorizable {
-    private val scopeTokenMapper = ScopeTokenMapper(
-        scopeTokenRepository,
-        scopeRelationRepository,
-        operator,
-        eventPublisher
-    )
-    private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
 
     val id by proxy(root, ScopeTokenData::id)
     var name by proxy(root, ScopeTokenData::name)
@@ -86,14 +81,24 @@ class ScopeToken(
             if (!isPacked()) {
                 emit(self)
             } else {
-                children()
-                    .collect {
-                        if (it.isPacked()) {
-                            emitAll(it.resolve())
-                        } else {
-                            emit(it)
-                        }
+                val queue = Collections.synchronizedList(mutableListOf<ScopeToken>())
+                children().collect { queue.add(it) }
+
+                val context = currentContextOrNull()
+                while (queue.isNotEmpty()) {
+                    val packed = queue.filter { it.isPacked() }
+                    val notPacked = queue.filter { !it.isPacked() }
+
+                    queue.clear()
+
+                    notPacked.onEach { if (context != null) it.link() }.forEach { emit(it) }
+                    if (packed.isNotEmpty()) {
+                        val relations = scopeRelationRepository.findAllByParentId(packed.map { it.id })
+                        scopeTokenRepository.findAllById(relations.map { it.childId }.toList())
+                            .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository, operator, eventPublisher) }
+                            .collect { queue.add(it) }
                     }
+                }
             }
         }
     }
@@ -103,9 +108,11 @@ class ScopeToken(
             if (!isPacked()) {
                 throw UnsupportedOperationException("Scope[$id] is not support pack operator")
             }
-
+            val context = currentContextOrNull()
             val relations = scopeRelationRepository.findAllByParentId(id)
-            scopeTokenStorage.load(relations.map { it.childId }.toList())
+            scopeTokenRepository.findAllById(relations.map { it.childId }.toList())
+                .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository, operator, eventPublisher) }
+                .onEach { if (context != null) it.link() }
                 .collect { emit(it) }
         }
     }

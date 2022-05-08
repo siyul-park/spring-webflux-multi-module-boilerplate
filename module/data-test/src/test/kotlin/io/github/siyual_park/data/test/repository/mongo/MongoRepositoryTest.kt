@@ -1,12 +1,13 @@
 package io.github.siyual_park.data.test.repository.mongo
 
+import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.event.BeforeCreateEvent
 import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
-import io.github.siyual_park.data.repository.mongo.CachedMongoRepository
 import io.github.siyual_park.data.repository.mongo.CreateTimestamp
 import io.github.siyual_park.data.repository.mongo.MongoRepository
+import io.github.siyual_park.data.repository.mongo.MongoRepositoryBuilder
 import io.github.siyual_park.data.repository.mongo.SimpleMongoRepository
 import io.github.siyual_park.data.repository.mongo.UpdateTimestamp
 import io.github.siyual_park.data.repository.mongo.findOneOrFail
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.query.where
+import java.time.Duration
 
 class MongoRepositoryTest : MongoTest() {
     private val eventEmitter = EventEmitter()
@@ -215,8 +217,8 @@ class MongoRepositoryTest : MongoTest() {
         assertEquals(person.id, updatedPerson.id)
         assertNotNull(updatedPerson.updatedAt)
 
-        assertEquals(person.name, updatedPerson.name)
-        assertEquals(person.age, updatedPerson.age)
+        assertEquals(person2.name, updatedPerson.name)
+        assertEquals(person2.age, updatedPerson.age)
     }
 
     @Test
@@ -236,8 +238,8 @@ class MongoRepositoryTest : MongoTest() {
         assertEquals(person.id, updatedPerson.id)
         assertNotNull(updatedPerson.updatedAt)
 
-        assertEquals(person.name, updatedPerson.name)
-        assertEquals(person.age, updatedPerson.age)
+        assertEquals(person2.name, updatedPerson.name)
+        assertEquals(person2.age, updatedPerson.age)
     }
 
     @Test
@@ -281,10 +283,10 @@ class MongoRepositoryTest : MongoTest() {
             .let { personRepository.createAll(it) }
             .toList()
 
+        val person2 = DummyPerson.create()
         val updatedPersons = personRepository.updateAll(
             persons,
             Patch.with {
-                val person2 = DummyPerson.create()
                 it.name = person2.name
                 it.age = person2.age
             }
@@ -292,15 +294,14 @@ class MongoRepositoryTest : MongoTest() {
 
         assertEquals(persons.size, updatedPersons.size)
         for (i in 0 until numOfPerson) {
-            val person = persons[i]
             val updatedPerson = updatedPersons[i]!!
 
             assertNotNull(updatedPerson.id)
             assertNotNull(updatedPerson.createdAt)
             assertNotNull(updatedPerson.updatedAt)
 
-            assertEquals(person.name, updatedPerson.name)
-            assertEquals(person.age, updatedPerson.age)
+            assertEquals(person2.name, updatedPerson.name)
+            assertEquals(person2.age, updatedPerson.age)
         }
     }
 
@@ -313,10 +314,10 @@ class MongoRepositoryTest : MongoTest() {
             .let { personRepository.createAll(it) }
             .toList()
 
+        val person2 = DummyPerson.create()
         val updatedPersons = personRepository.updateAll(
             persons,
             AsyncPatch.with {
-                val person2 = DummyPerson.create()
                 it.name = person2.name
                 it.age = person2.age
             }
@@ -324,15 +325,14 @@ class MongoRepositoryTest : MongoTest() {
 
         assertEquals(persons.size, updatedPersons.size)
         for (i in 0 until numOfPerson) {
-            val person = persons[i]
             val updatedPerson = updatedPersons[i]!!
 
             assertNotNull(updatedPerson.id)
             assertNotNull(updatedPerson.createdAt)
             assertNotNull(updatedPerson.updatedAt)
 
-            assertEquals(person.name, updatedPerson.name)
-            assertEquals(person.age, updatedPerson.age)
+            assertEquals(person2.name, updatedPerson.name)
+            assertEquals(person2.age, updatedPerson.age)
         }
     }
 
@@ -421,7 +421,16 @@ class MongoRepositoryTest : MongoTest() {
     private fun repositories(): List<MongoRepository<Person, ULID>> {
         return listOf(
             SimpleMongoRepository(mongoTemplate, Person::class, eventPublisher = eventEmitter),
-            CachedMongoRepository.of(mongoTemplate, Person::class, eventPublisher = eventEmitter)
+            MongoRepositoryBuilder<Person, ULID>(mongoTemplate, Person::class)
+                .set(eventEmitter)
+                .set(
+                    CacheBuilder.newBuilder()
+                        .softValues()
+                        .expireAfterAccess(Duration.ofMinutes(1))
+                        .expireAfterWrite(Duration.ofMinutes(2))
+                        .maximumSize(1_000)
+                )
+                .build()
         )
     }
 }

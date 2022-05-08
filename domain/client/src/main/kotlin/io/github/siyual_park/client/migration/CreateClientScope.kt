@@ -2,6 +2,7 @@ package io.github.siyual_park.client.migration
 
 import io.github.siyual_park.data.migration.Migration
 import io.github.siyual_park.data.migration.createIndex
+import io.github.siyual_park.data.migration.createUniqueIndex
 import io.github.siyual_park.data.migration.createUpdatedAtTrigger
 import io.github.siyual_park.data.migration.dropTable
 import io.github.siyual_park.data.migration.fetchSQL
@@ -43,6 +44,7 @@ class CreateClientScope(
             )
         }
 
+        entityOperations.createUniqueIndex(tableName, listOf("client_id", "scope_token_id"))
         entityOperations.createIndex(tableName, listOf("client_id"))
         entityOperations.createIndex(tableName, listOf("scope_token_id"))
     }

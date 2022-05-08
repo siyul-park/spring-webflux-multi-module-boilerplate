@@ -1,6 +1,7 @@
 package io.github.siyual_park.mapper
 
 import org.springframework.stereotype.Component
+import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
 @Component
@@ -18,6 +19,17 @@ class MapperContext {
         targetType: TypeReference<TARGET>
     ): TARGET {
         val mapper = mappers[MappingInfo(sourceType.type, targetType.type)] ?: throw CantFoundMapperException()
+        mapper as Mapper<SOURCE, TARGET>
+
+        return mapper.map(source)
+    }
+
+    suspend fun <SOURCE : Any, TARGET : Any> map(
+        source: SOURCE,
+        sourceType: KClass<SOURCE>,
+        targetType: KClass<TARGET>
+    ): TARGET {
+        val mapper = mappers[MappingInfo(sourceType.java, targetType.java)] ?: throw CantFoundMapperException()
         mapper as Mapper<SOURCE, TARGET>
 
         return mapper.map(source)

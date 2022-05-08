@@ -1,14 +1,23 @@
 package io.github.siyual_park.auth.domain.authorization
 
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import org.springframework.stereotype.Component
+import java.time.Duration
 
 @Suppress("UNCHECKED_CAST")
 @Component
 class Authorizator(
     private val scopeTokenStorage: ScopeTokenStorage,
+    private val cache: Cache<ArrayList<Any?>, Boolean> = CacheBuilder.newBuilder()
+        .softValues()
+        .expireAfterAccess(Duration.ofMinutes(1))
+        .expireAfterWrite(Duration.ofMinutes(2))
+        .maximumSize(1_0000)
+        .build()
 ) {
     private val strategies = mutableListOf<Pair<AuthorizeFilter, AuthorizeStrategy>>()
 
@@ -94,8 +103,27 @@ class Authorizator(
         scopeToken: ScopeToken,
         targetDomainObject: Any? = null
     ): Boolean {
+        val key = cacheKey(principal, scopeToken, targetDomainObject)
+        val existed = cache.getIfPresent(key)
+        if (existed != null) {
+            return existed
+        }
+
         return strategies.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
             .map { (_, evaluator) -> evaluator }
             .all { it.authorize(principal, scopeToken, targetDomainObject) }
+            .also { cache.put(key, it) }
+    }
+
+    private fun cacheKey(
+        principal: Principal,
+        scopeToken: ScopeToken,
+        targetDomainObject: Any? = null
+    ): ArrayList<Any?> {
+        return ArrayList<Any?>().apply {
+            add(principal)
+            add(scopeToken.raw())
+            add(targetDomainObject)
+        }
     }
 }

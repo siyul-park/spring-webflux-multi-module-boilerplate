@@ -4,8 +4,10 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
+import io.github.siyual_park.data.expansion.fieldName
+import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.util.retry
-import kotlinx.coroutines.flow.toList
+import org.springframework.data.mongodb.core.query.Criteria
 import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
@@ -13,7 +15,6 @@ import java.time.Instant
 class TokenFactory(
     private val template: TokenTemplate,
     private val claimEmbedder: ClaimEmbedder,
-    private val tokenStorage: TokenStorage,
     private val tokenRepository: TokenRepository,
     private val tokenMapper: TokenMapper,
 ) {
@@ -50,7 +51,7 @@ class TokenFactory(
         finalClaims["scope"] = scope.map { it.id.toString() }
         finalClaims["type"] = template.type
 
-        removeOld(finalClaims)
+        deprecated(finalClaims)
 
         val now = Instant.now()
         val expiredAt = now.plus(age)
@@ -78,20 +79,24 @@ class TokenFactory(
             }
     }
 
-    private suspend fun removeOld(claims: Map<String, Any>) {
+    private suspend fun deprecated(claims: Map<String, Any>) {
+        val now = Instant.now()
+        val expiredAt = now.plus(Duration.ofMinutes(1))
+
         template.limit?.forEach { (key, limit) ->
             val value = claims[key] ?: return@forEach
+            val query = Criteria("claims.$key").`is`(value)
+                .and(fieldName(TokenData::type)).`is`(template.type)
 
-            val existed = tokenStorage.load(
-                type = template.type,
-                claims = mapOf(key to value),
-            ).toList()
-            val removeSize = existed.size - limit + 1
-            if (removeSize > 0) {
-                existed.subList(0, removeSize).forEach {
-                    it.clear()
-                }
-            }
+            val count = tokenRepository.count(query)
+
+            tokenRepository.updateAll(
+                query.and(fieldName(TokenData::expiredAt)).gt(expiredAt),
+                AsyncPatch.with {
+                    it.expiredAt = expiredAt
+                },
+                limit = (count - limit + 1).toInt()
+            )
         }
     }
 

@@ -7,6 +7,7 @@ import java.net.URL
 @ConstructorBinding
 @ConfigurationProperties(prefix = "application.client.root")
 data class RootClientProperty(
+    val id: String,
     val name: String,
     val secret: String,
     val origin: URL

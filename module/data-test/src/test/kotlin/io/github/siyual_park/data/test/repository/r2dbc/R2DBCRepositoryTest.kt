@@ -1,9 +1,10 @@
 package io.github.siyual_park.data.test.repository.r2dbc
 
+import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
-import io.github.siyual_park.data.repository.r2dbc.CachedR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.transaction.reactive.executeAndAwait
+import java.time.Duration
 
 class R2DBCRepositoryTest : R2DBCTest() {
     init {
@@ -464,7 +466,15 @@ class R2DBCRepositoryTest : R2DBCTest() {
     private fun repositories(): List<R2DBCRepository<Person, ULID>> {
         return listOf(
             SimpleR2DBCRepository(entityOperations, Person::class),
-            CachedR2DBCRepository.of(entityOperations, Person::class)
+            R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class)
+                .set(
+                    CacheBuilder.newBuilder()
+                        .softValues()
+                        .expireAfterAccess(Duration.ofMinutes(2))
+                        .expireAfterWrite(Duration.ofMinutes(5))
+                        .maximumSize(1_000)
+                )
+                .build()
         )
     }
 }
