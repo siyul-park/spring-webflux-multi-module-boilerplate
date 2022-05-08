@@ -1,5 +1,6 @@
 val kotlin_version: String by project
 val junit_version: String by project
+val jacoco_version: String by project
 val coroutines_version: String by project
 val projectreactor_version: String by project
 val reactor_kotlin_extensions_version: String by project
@@ -30,14 +31,16 @@ plugins {
 
     kotlin("jvm")
     id("org.jlleitschuh.gradle.ktlint")
+    id("jacoco")
 
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     kotlin("plugin.spring")
 }
 
-group = "io.github.siyual-park"
-version = "0.0.0-SNAPSHOT"
+jacoco {
+    toolVersion = jacoco_version
+}
 
 tasks {
     bootJar {
@@ -49,9 +52,13 @@ tasks {
     }
 }
 
+group = "io.github.siyual-park"
+version = "0.0.0-SNAPSHOT"
+
 allprojects {
     apply(plugin = "kotlin")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
+    apply(plugin = "jacoco")
 
     apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
