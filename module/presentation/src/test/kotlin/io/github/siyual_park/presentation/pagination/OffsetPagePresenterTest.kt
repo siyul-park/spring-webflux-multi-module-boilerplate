@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.github.siyual_park.coroutine.test.CoroutineTest
+import io.github.siyual_park.presentation.entity.Person
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.reactor.awaitSingle
@@ -17,11 +18,6 @@ import reactor.core.publisher.Mono
 
 @Suppress("ReactiveStreamsUnusedPublisher")
 class OffsetPagePresenterTest : CoroutineTest() {
-    internal data class Person(
-        var name: String,
-        var age: Int
-    )
-
     private val objectMapper = ObjectMapper().registerModule(
         KotlinModule.Builder()
             .withReflectionCacheSize(512)

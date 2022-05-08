@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":module:persistence"))
     implementation(project(":module:util"))
     testImplementation(project(":module:coroutine-test"))
+    testImplementation(project(":module:ulid"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
