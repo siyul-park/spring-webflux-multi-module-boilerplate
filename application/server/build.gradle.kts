@@ -12,11 +12,11 @@ dependencies {
     implementation(project(":module:mapper"))
     implementation(project(":module:json"))
     implementation(project(":module:event"))
-    implementation(project(":module:present"))
+    implementation(project(":module:presentation"))
     implementation(project(":module:validation"))
     implementation(project(":module:util"))
     implementation(project(":module:persistence"))
-    implementation(project(":module:present"))
+    implementation(project(":module:presentation"))
 
     testImplementation(project(":module:coroutine-test"))
     testImplementation(project(":module:data-test"))
