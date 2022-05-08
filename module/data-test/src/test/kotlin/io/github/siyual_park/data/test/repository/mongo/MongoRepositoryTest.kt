@@ -294,7 +294,6 @@ class MongoRepositoryTest : MongoTest() {
 
         assertEquals(persons.size, updatedPersons.size)
         for (i in 0 until numOfPerson) {
-            val person = persons[i]
             val updatedPerson = updatedPersons[i]!!
 
             assertNotNull(updatedPerson.id)
