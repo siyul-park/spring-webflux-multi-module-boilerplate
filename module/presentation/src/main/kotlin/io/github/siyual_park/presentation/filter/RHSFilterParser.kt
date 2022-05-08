@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 
-abstract class RHSFilterParser<T : Any, C : Any>(
+abstract class RHSFilterParser<T : Any, C : Any?>(
     private val clazz: KClass<T>,
     private val objectMapper: ObjectMapper
 ) {
