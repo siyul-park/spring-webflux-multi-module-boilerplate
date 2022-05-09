@@ -7,11 +7,15 @@ import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.repository.RepositoryTestHelper
 import io.github.siyual_park.data.repository.mongo.migration.CreatePerson
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
+import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.event.TypeMatchEventFilter
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.where
 
 abstract class MongoRepositoryTestHelper(
@@ -76,5 +80,20 @@ abstract class MongoRepositoryTestHelper(
 
         assertEquals(person.name, foundPerson.name)
         assertEquals(person.age, foundPerson.age)
+    }
+
+    companion object {
+        private val helper = MongoTestHelper()
+
+        val mongoTemplate: ReactiveMongoTemplate
+            get() = helper.mongoTemplate
+
+        @BeforeAll
+        @JvmStatic
+        fun setUpAll() = helper.setUp()
+
+        @AfterAll
+        @JvmStatic
+        fun tearDownAll() = helper.tearDown()
     }
 }
