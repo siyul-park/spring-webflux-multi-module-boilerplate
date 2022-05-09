@@ -18,8 +18,6 @@ import de.flapdoodle.embed.process.runtime.Network
 import de.flapdoodle.embed.process.store.ExtractedArtifactStore
 import io.github.siyual_park.data.converter.BinaryToULIDConverter
 import io.github.siyual_park.data.converter.ULIDToBinaryConverter
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.converter.Converter
@@ -39,13 +37,12 @@ class MongoTestHelper : ResourceTestHelper {
 
     private val starter = MongodStarter.getInstance(runtimeConfig)
 
-    lateinit var mongodExecutable: MongodExecutable
-    lateinit var mongoClient: MongoClient
+    private lateinit var mongodExecutable: MongodExecutable
+    private lateinit var mongoClient: MongoClient
     lateinit var mongoTemplate: ReactiveMongoTemplate
 
     private val database = UUID.randomUUID().toString()
 
-    @BeforeAll
     override fun setUp() {
         val mongodExecutableAndClient = createEmbeddedMongoDBClients()
         mongodExecutable = mongodExecutableAndClient.first
@@ -62,7 +59,6 @@ class MongoTestHelper : ResourceTestHelper {
         )
     }
 
-    @AfterAll
     override fun tearDown() {
         mongodExecutable.stop()
     }
@@ -74,7 +70,7 @@ class MongoTestHelper : ResourceTestHelper {
         return Defaults.extractedArtifactStoreFor(Command.MongoD).withDownloadConfig(downloadConfig)
     }
 
-    fun createEmbeddedMongoDBClients(): Pair<MongodExecutable, MongoClient> {
+    private fun createEmbeddedMongoDBClients(): Pair<MongodExecutable, MongoClient> {
         val port = Network.getFreeServerPort()
         val mongodConfig = MongodConfig.builder()
             .version(Version.Main.PRODUCTION)
