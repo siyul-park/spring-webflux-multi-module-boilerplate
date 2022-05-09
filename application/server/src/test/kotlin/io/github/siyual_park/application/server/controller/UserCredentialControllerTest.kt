@@ -6,7 +6,7 @@ import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.DummyStringFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.UserCredentialControllerGateway
-import io.github.siyual_park.coroutine.test.CoroutineTest
+import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.user.domain.UserFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ class UserCredentialControllerTest @Autowired constructor(
     private val gatewayAuthorization: GatewayAuthorization,
     private val userCredentialControllerGateway: UserCredentialControllerGateway,
     private val userFactory: UserFactory,
-) : CoroutineTest() {
+) : CoroutineTestHelper() {
     @Test
     fun `PATCH users_{self-id}_credential, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()

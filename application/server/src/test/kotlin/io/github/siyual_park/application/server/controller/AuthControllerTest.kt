@@ -8,7 +8,7 @@ import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.gateway.AuthControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.client.domain.ClientFactory
-import io.github.siyual_park.coroutine.test.CoroutineTest
+import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.user.domain.UserFactory
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,7 +25,7 @@ class AuthControllerTest @Autowired constructor(
     private val authControllerGateway: AuthControllerGateway,
     private val userFactory: UserFactory,
     private val clientFactory: ClientFactory,
-) : CoroutineTest() {
+) : CoroutineTestHelper() {
 
     @Test
     fun `POST token, status = 201, when grant_type = password`() = blocking {

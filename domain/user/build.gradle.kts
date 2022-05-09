@@ -1,7 +1,6 @@
 dependencies {
     implementation(project(":module:ulid"))
     implementation(project(":module:data"))
-    testImplementation(project(":module:data-test"))
     implementation(project(":module:event"))
     implementation(project(":module:presentation"))
     implementation(project(":module:persistence"))

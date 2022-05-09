@@ -5,7 +5,7 @@ import io.github.siyual_park.data.repository.findByIdOrFail
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
-import io.github.siyual_park.data.test.R2DBCTest
+import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.persistence.domain.Person
 import io.github.siyual_park.persistence.dummy.DummyPerson
 import io.github.siyual_park.persistence.entity.PersonData
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.transaction.reactive.executeAndAwait
 import java.time.Duration
 
-class PersistenceTest : R2DBCTest() {
+class PersistenceTest : DataTestHelper() {
     init {
         migrationManager.register(CreatePerson(entityOperations))
     }

@@ -7,7 +7,6 @@ import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.asFlux
@@ -126,7 +125,7 @@ class FilteredR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
-        return findOne(criteria)?.let { update(it, patch) }
+        return delegator.update(filtered(criteria), patch)
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -134,9 +133,7 @@ class FilteredR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
-        return findAll(criteria, limit, offset, sort)
-            .map { update(it, patch) }
-            .filterNotNull()
+        return delegator.updateAll(filtered(criteria), patch, limit, offset, sort)
     }
 
     override suspend fun update(entity: T): T? {

@@ -1,6 +1,5 @@
 dependencies {
     implementation(project(":module:data"))
-    testImplementation(project(":module:data-test"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

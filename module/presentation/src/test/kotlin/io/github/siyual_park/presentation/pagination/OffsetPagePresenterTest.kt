@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import io.github.siyual_park.coroutine.test.CoroutineTest
+import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.presentation.entity.Person
 import io.mockk.every
 import io.mockk.mockk
@@ -17,7 +17,7 @@ import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
 @Suppress("ReactiveStreamsUnusedPublisher")
-class OffsetPagePresenterTest : CoroutineTest() {
+class OffsetPagePresenterTest : CoroutineTestHelper() {
     private val objectMapper = ObjectMapper().registerModule(
         KotlinModule.Builder()
             .withReflectionCacheSize(512)

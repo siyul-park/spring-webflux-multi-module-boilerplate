@@ -99,7 +99,7 @@ class SoftDeletedR2DBCRepository<T : SoftDeletable, ID : Any>(
     }
 
     override fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
-        return filteredRepository.updateAll(entity)
+        return filteredRepository.updateAll(entity, patch)
     }
 
     override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
