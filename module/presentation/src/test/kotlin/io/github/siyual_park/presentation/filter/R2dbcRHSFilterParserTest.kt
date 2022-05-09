@@ -3,7 +3,7 @@ package io.github.siyual_park.presentation.filter
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import io.github.siyual_park.coroutine.test.CoroutineTest
+import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.presentation.entity.Person
 import io.github.siyual_park.presentation.exception.FilterInvalidException
 import org.junit.jupiter.api.Assertions
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
-class R2dbcRHSFilterParserTest : CoroutineTest() {
+class R2dbcRHSFilterParserTest : CoroutineTestHelper() {
     internal data class TestCase(
         val query: Map<KProperty1<Person, *>, Collection<String?>>,
         val sql: String? = null,

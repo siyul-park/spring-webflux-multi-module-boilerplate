@@ -13,7 +13,7 @@ import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.UserControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.client.domain.ClientFactory
-import io.github.siyual_park.coroutine.test.CoroutineTest
+import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.util.Presence
 import kotlinx.coroutines.flow.toList
@@ -36,7 +36,7 @@ class UserControllerTest @Autowired constructor(
     private val userFactory: UserFactory,
     private val clientFactory: ClientFactory,
     private val scopeTokenFactory: ScopeTokenFactory
-) : CoroutineTest() {
+) : CoroutineTestHelper() {
 
     @Test
     fun `POST users, status = 201`() = blocking {

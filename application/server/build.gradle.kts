@@ -19,7 +19,6 @@ dependencies {
     implementation(project(":module:presentation"))
 
     testImplementation(project(":module:coroutine-test"))
-    testImplementation(project(":module:data-test"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

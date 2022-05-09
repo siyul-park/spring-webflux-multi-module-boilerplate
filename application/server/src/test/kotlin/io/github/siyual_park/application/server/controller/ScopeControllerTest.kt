@@ -11,7 +11,7 @@ import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.ScopeControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.coroutine.test.CoroutineTest
+import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.user.domain.UserFactory
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -31,7 +31,7 @@ class ScopeControllerTest @Autowired constructor(
     private val userFactory: UserFactory,
     private val scopeTokenFactory: ScopeTokenFactory,
     private val scopeTokenStorage: ScopeTokenStorage
-) : CoroutineTest() {
+) : CoroutineTestHelper() {
 
     @Test
     fun `POST scope, status = 201`() = blocking {

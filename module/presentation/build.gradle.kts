@@ -1,6 +1,5 @@
 dependencies {
     implementation(project(":module:data"))
-    testImplementation(project(":module:data-test"))
     implementation(project(":module:persistence"))
     implementation(project(":module:util"))
     testImplementation(project(":module:coroutine-test"))

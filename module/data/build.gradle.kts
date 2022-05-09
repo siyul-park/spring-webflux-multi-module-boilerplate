@@ -1,6 +1,14 @@
+val junit_version: String by project
+
 dependencies {
     implementation(project(":module:ulid"))
     implementation(project(":module:event"))
+    implementation(project(":module:coroutine-test"))
+
+    testImplementation(project(":module:util"))
+
+    implementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
+    runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
