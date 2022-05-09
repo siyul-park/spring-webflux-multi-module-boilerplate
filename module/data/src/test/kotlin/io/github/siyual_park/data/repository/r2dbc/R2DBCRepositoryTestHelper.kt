@@ -1,12 +1,9 @@
-package io.github.siyual_park.data.repository.r2dbc.repository.r2dbc
+package io.github.siyual_park.data.repository.r2dbc
 
-import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
-import io.github.siyual_park.data.repository.r2dbc.dummy.DummyPerson
-import io.github.siyual_park.data.repository.r2dbc.entity.Person
-import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
-import io.github.siyual_park.data.repository.r2dbc.repository.RepositoryTestHelper
-import io.github.siyual_park.data.repository.r2dbc.repository.r2dbc.migration.CreatePerson
-import io.github.siyual_park.data.repository.r2dbc.where
+import io.github.siyual_park.data.dummy.DummyPerson
+import io.github.siyual_park.data.entity.Person
+import io.github.siyual_park.data.repository.RepositoryTestHelper
+import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals

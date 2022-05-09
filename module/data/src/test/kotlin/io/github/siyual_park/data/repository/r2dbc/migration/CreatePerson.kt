@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.r2dbc.repository.r2dbc.migration
+package io.github.siyual_park.data.repository.r2dbc.migration
 
 import io.github.siyual_park.data.migration.Migration
 import io.github.siyual_park.data.migration.createUniqueIndex

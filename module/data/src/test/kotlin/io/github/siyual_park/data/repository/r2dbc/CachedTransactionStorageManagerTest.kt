@@ -1,11 +1,11 @@
-package io.github.siyual_park.data.repository.r2dbc.repository.r2dbc
+package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
+import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.repository.cache.CacheTransactionSynchronization
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
-import io.github.siyual_park.data.repository.r2dbc.entity.Person
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.reactor.awaitSingle

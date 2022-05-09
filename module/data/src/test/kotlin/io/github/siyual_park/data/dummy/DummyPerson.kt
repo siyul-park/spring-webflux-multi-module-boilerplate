@@ -1,6 +1,6 @@
-package io.github.siyual_park.data.repository.r2dbc.dummy
+package io.github.siyual_park.data.dummy
 
-import io.github.siyual_park.data.repository.r2dbc.entity.Person
+import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.util.Presence
 import java.util.UUID
 import kotlin.random.Random

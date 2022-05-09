@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.r2dbc.entity
+package io.github.siyual_park.data.entity
 
 import io.github.siyual_park.data.ModifiableULIDEntity
 import io.github.siyual_park.data.SoftDeletable

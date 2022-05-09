@@ -1,12 +1,10 @@
-package io.github.siyual_park.data.repository.r2dbc.repository.cache
+package io.github.siyual_park.data.repository.cache
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.repository.cache.Extractor
-import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
+import io.github.siyual_park.data.dummy.DummyPerson
+import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
-import io.github.siyual_park.data.repository.r2dbc.dummy.DummyPerson
-import io.github.siyual_park.data.repository.r2dbc.entity.Person
-import io.github.siyual_park.data.repository.r2dbc.repository.r2dbc.migration.CreatePerson
+import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertEquals

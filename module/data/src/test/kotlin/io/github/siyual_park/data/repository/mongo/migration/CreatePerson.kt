@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.r2dbc.repository.mongo.migration
+package io.github.siyual_park.data.repository.mongo.migration
 
 import io.github.siyual_park.data.migration.Migration
 import kotlinx.coroutines.reactor.awaitSingleOrNull

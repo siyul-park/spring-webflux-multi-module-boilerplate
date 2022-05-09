@@ -1,22 +1,10 @@
-package io.github.siyual_park.data.repository.r2dbc.repository.mongo
+package io.github.siyual_park.data.repository
 
-import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.event.BeforeCreateEvent
-import io.github.siyual_park.data.event.BeforeUpdateEvent
+import io.github.siyual_park.data.dummy.DummyPerson
+import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
-import io.github.siyual_park.data.repository.mongo.CreateTimestamp
-import io.github.siyual_park.data.repository.mongo.MongoRepository
-import io.github.siyual_park.data.repository.mongo.MongoRepositoryBuilder
-import io.github.siyual_park.data.repository.mongo.SimpleMongoRepository
-import io.github.siyual_park.data.repository.mongo.UpdateTimestamp
-import io.github.siyual_park.data.repository.mongo.findOneOrFail
-import io.github.siyual_park.data.repository.r2dbc.dummy.DummyPerson
-import io.github.siyual_park.data.repository.r2dbc.entity.Person
-import io.github.siyual_park.data.repository.r2dbc.repository.mongo.migration.CreatePerson
 import io.github.siyual_park.data.test.DataTestHelper
-import io.github.siyual_park.event.EventEmitter
-import io.github.siyual_park.event.TypeMatchEventFilter
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -24,20 +12,12 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.springframework.data.mongodb.core.query.where
-import java.time.Duration
+import org.springframework.core.convert.converter.Converter
 
-class MongoRepositoryTest : DataTestHelper() {
-    private val eventEmitter = EventEmitter()
-
-    init {
-        eventEmitter.on(TypeMatchEventFilter(BeforeCreateEvent::class), CreateTimestamp())
-        eventEmitter.on(TypeMatchEventFilter(BeforeUpdateEvent::class), UpdateTimestamp())
-    }
-
-    init {
-        migrationManager.register(CreatePerson(mongoTemplate))
-    }
+abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
+    protected val repositories: (RepositoryTestHelper<R>) -> List<R>,
+    converters: Collection<Converter<*, *>> = emptyList()
+) : DataTestHelper(converters) {
 
     @Test
     fun create() = parameterized { personRepository ->
@@ -104,57 +84,6 @@ class MongoRepositoryTest : DataTestHelper() {
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
-    }
-
-    @Test
-    fun findAllCustomQuery() = parameterized { personRepository ->
-        val person = DummyPerson.create()
-            .let { personRepository.create(it) }
-        val foundPersons = personRepository.findAll(where(Person::id).`is`(person.id)).toList()
-
-        assertEquals(foundPersons.size, 1)
-        assertEquals(person.id, foundPersons[0].id)
-
-        assertEquals(person.name, foundPersons[0].name)
-        assertEquals(person.age, foundPersons[0].age)
-    }
-
-    @Test
-    fun findAllByNameIs() = parameterized { personRepository ->
-        val person = DummyPerson.create()
-            .let { personRepository.create(it) }
-        val foundPersons = personRepository.findAll(where(Person::name).`is`(person.name)).toList()
-
-        assertEquals(foundPersons.size, 1)
-        assertEquals(person.id, foundPersons[0].id)
-
-        assertEquals(person.name, foundPersons[0].name)
-        assertEquals(person.age, foundPersons[0].age)
-    }
-
-    @Test
-    fun findAllByNameIn() = parameterized { personRepository ->
-        val person = DummyPerson.create()
-            .let { personRepository.create(it) }
-        val foundPersons = personRepository.findAll(where(Person::name).`in`(person.name)).toList()
-
-        assertEquals(foundPersons.size, 1)
-        assertEquals(person.id, foundPersons[0].id)
-
-        assertEquals(person.name, foundPersons[0].name)
-        assertEquals(person.age, foundPersons[0].age)
-    }
-
-    @Test
-    fun findOneByName() = parameterized { personRepository ->
-        val person = DummyPerson.create()
-            .let { personRepository.create(it) }
-        val foundPerson = personRepository.findOneOrFail(where(Person::name).`is`(person.name))
-
-        assertEquals(person.id, foundPerson.id)
-
-        assertEquals(person.name, foundPerson.name)
-        assertEquals(person.age, foundPerson.age)
     }
 
     @Test
@@ -283,25 +212,31 @@ class MongoRepositoryTest : DataTestHelper() {
             .let { personRepository.createAll(it) }
             .toList()
 
-        val person2 = DummyPerson.create()
+        val personPatches = (0 until numOfPerson)
+            .map { DummyPerson.create() }
+            .toList()
+
+        var current = 0
         val updatedPersons = personRepository.updateAll(
             persons,
             Patch.with {
-                it.name = person2.name
-                it.age = person2.age
+                val patch = personPatches[current++]
+                it.name = patch.name
+                it.age = patch.age
             }
         ).toList()
 
         assertEquals(persons.size, updatedPersons.size)
         for (i in 0 until numOfPerson) {
             val updatedPerson = updatedPersons[i]!!
+            val patch = personPatches[i]
 
             assertNotNull(updatedPerson.id)
             assertNotNull(updatedPerson.createdAt)
             assertNotNull(updatedPerson.updatedAt)
 
-            assertEquals(person2.name, updatedPerson.name)
-            assertEquals(person2.age, updatedPerson.age)
+            assertEquals(patch.name, updatedPerson.name)
+            assertEquals(patch.age, updatedPerson.age)
         }
     }
 
@@ -314,25 +249,31 @@ class MongoRepositoryTest : DataTestHelper() {
             .let { personRepository.createAll(it) }
             .toList()
 
-        val person2 = DummyPerson.create()
+        val personPatches = (0 until numOfPerson)
+            .map { DummyPerson.create() }
+            .toList()
+
+        var current = 0
         val updatedPersons = personRepository.updateAll(
             persons,
             AsyncPatch.with {
-                it.name = person2.name
-                it.age = person2.age
+                val patch = personPatches[current++]
+                it.name = patch.name
+                it.age = patch.age
             }
         ).toList()
 
         assertEquals(persons.size, updatedPersons.size)
         for (i in 0 until numOfPerson) {
             val updatedPerson = updatedPersons[i]!!
+            val patch = personPatches[i]
 
             assertNotNull(updatedPerson.id)
             assertNotNull(updatedPerson.createdAt)
             assertNotNull(updatedPerson.updatedAt)
 
-            assertEquals(person2.name, updatedPerson.name)
-            assertEquals(person2.age, updatedPerson.age)
+            assertEquals(patch.name, updatedPerson.name)
+            assertEquals(patch.age, updatedPerson.age)
         }
     }
 
@@ -408,29 +349,13 @@ class MongoRepositoryTest : DataTestHelper() {
         assertEquals(0, personRepository.count())
     }
 
-    private fun parameterized(func: suspend (MongoRepository<Person, ULID>) -> Unit) {
+    protected fun parameterized(func: suspend (R) -> Unit) {
         blocking {
-            repositories().forEach {
+            repositories(this@RepositoryTestHelper).forEach {
                 func(it)
                 migrationManager.revert()
                 migrationManager.run()
             }
         }
-    }
-
-    private fun repositories(): List<MongoRepository<Person, ULID>> {
-        return listOf(
-            SimpleMongoRepository(mongoTemplate, Person::class, eventPublisher = eventEmitter),
-            MongoRepositoryBuilder<Person, ULID>(mongoTemplate, Person::class)
-                .set(eventEmitter)
-                .set(
-                    CacheBuilder.newBuilder()
-                        .softValues()
-                        .expireAfterAccess(Duration.ofMinutes(1))
-                        .expireAfterWrite(Duration.ofMinutes(2))
-                        .maximumSize(1_000)
-                )
-                .build()
-        )
     }
 }
