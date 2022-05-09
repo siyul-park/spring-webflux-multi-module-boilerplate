@@ -6,7 +6,6 @@ import io.github.siyual_park.data.event.BeforeCreateEvent
 import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.repository.RepositoryTestHelper
 import io.github.siyual_park.data.repository.mongo.migration.CreatePerson
-import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.event.TypeMatchEventFilter
 import io.github.siyual_park.ulid.ULID
