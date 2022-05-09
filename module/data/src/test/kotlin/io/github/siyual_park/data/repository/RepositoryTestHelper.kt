@@ -5,6 +5,7 @@ import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.test.DataTestHelper
+import io.github.siyual_park.event.EventEmitter
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,6 +19,7 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
     protected val repositories: (RepositoryTestHelper<R>) -> List<R>,
     converters: Collection<Converter<*, *>> = emptyList()
 ) : DataTestHelper(converters) {
+    val eventEmitter = EventEmitter()
 
     @Test
     fun create() = parameterized { personRepository ->
@@ -26,7 +28,6 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
 
         assertNotNull(savedPerson.id)
         assertNotNull(savedPerson.createdAt)
-        assertNotNull(savedPerson.updatedAt)
 
         assertEquals(person.name, savedPerson.name)
         assertEquals(person.age, savedPerson.age)
@@ -46,7 +47,6 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
 
             assertNotNull(savedPerson.id)
             assertNotNull(savedPerson.createdAt)
-            assertNotNull(savedPerson.updatedAt)
 
             assertEquals(person.name, savedPerson.name)
             assertEquals(person.age, savedPerson.age)
@@ -104,7 +104,6 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
 
             assertNotNull(foundPerson.id)
             assertNotNull(foundPerson.createdAt)
-            assertNotNull(foundPerson.updatedAt)
 
             assertEquals(person.name, foundPerson.name)
             assertEquals(person.age, foundPerson.age)
@@ -195,8 +194,6 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
             val updatedPerson = updatedPersons[i]!!
 
             assertNotNull(updatedPerson.id)
-            assertNotNull(updatedPerson.createdAt)
-            assertNotNull(updatedPerson.updatedAt)
 
             assertEquals(person.name, updatedPerson.name)
             assertEquals(person.age, updatedPerson.age)

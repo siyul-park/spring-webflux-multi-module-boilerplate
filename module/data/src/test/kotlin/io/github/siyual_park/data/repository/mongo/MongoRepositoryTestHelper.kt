@@ -7,7 +7,6 @@ import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.repository.RepositoryTestHelper
 import io.github.siyual_park.data.repository.mongo.migration.CreatePerson
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
-import io.github.siyual_park.event.EventEmitter
 import io.github.siyual_park.event.TypeMatchEventFilter
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
@@ -18,7 +17,6 @@ import org.springframework.data.mongodb.core.query.where
 abstract class MongoRepositoryTestHelper(
     repositories: (RepositoryTestHelper<MongoRepository<Person, ULID>>) -> List<MongoRepository<Person, ULID>>,
 ) : RepositoryTestHelper<MongoRepository<Person, ULID>>(repositories) {
-    private val eventEmitter = EventEmitter()
 
     init {
         eventEmitter.on(TypeMatchEventFilter(BeforeCreateEvent::class), CreateTimestamp())
