@@ -39,7 +39,6 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.where
 import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaField
@@ -194,33 +193,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T): T? {
-        val source = findById(idProperty.get(entity)) ?: return null
-
-        val propertyDiff = mutableMapOf<KProperty1<T, *>, Any?>()
-        clazz.memberProperties.forEach {
-            val sourceValue = it.get(source)
-            val targetValue = it.get(entity)
-
-            if (sourceValue != targetValue) {
-                propertyDiff[it] = targetValue
-            }
-        }
-
-        eventPublisher.publish(BeforeUpdateEvent(entity, propertyDiff))
-
-        return template.findAndModify(
-            query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
-            Update().also {
-                propertyDiff.forEach { (key, value) ->
-                    it[fieldName(key)] = value
-                }
-            },
-            FindAndModifyOptions().returnNew(true),
-            clazz.java
-        )
-            .subscribeOn(Schedulers.parallel())
-            .awaitSingleOrNull()
-            ?.also { eventPublisher.publish(AfterUpdateEvent(it, propertyDiff)) }
+        return updateById(idProperty.get(entity), AsyncPatch.from { entity })
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {
@@ -236,11 +209,6 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         val target = patch.apply(entity)
         val propertyDiff = diff(sourceDump, target)
 
-        sourceDump.forEach { (key, value) ->
-            if (key is KMutableProperty1<T, Any?>) {
-                key.set(target, value)
-            }
-        }
         eventPublisher.publish(BeforeUpdateEvent(target, propertyDiff))
 
         return template.findAndModify(

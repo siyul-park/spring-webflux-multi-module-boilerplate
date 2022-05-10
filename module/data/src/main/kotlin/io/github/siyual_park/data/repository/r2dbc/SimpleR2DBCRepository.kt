@@ -81,7 +81,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
             emitAll(
                 entityOperations.select(
-                    query(where(entityManager.idProperty).`in`(saved))
+                    query(where(entityManager.idProperty).`in`(saved.map { entityManager.getId(it) }))
                         .limit(saved.size),
                     clazz.java
                 )
@@ -207,46 +207,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T): T? {
-        val originOutboundRow = entityManager.getOutboundRow(entity)
-        val patch = mutableMapOf<SqlIdentifier, Parameter>()
-        originOutboundRow.forEach { (key, value) ->
-            if (!generatedValueColumn.contains(key)) {
-                patch[key] = value
-            }
-        }
-
-        if (eventPublisher != null) {
-            val existed = entityOperations.select(
-                query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
-                    .limit(1),
-                clazz.java
-            )
-                .subscribeOn(Schedulers.parallel())
-                .awaitFirstOrNull() ?: return null
-
-            val exitedOutboundRow = entityManager.getOutboundRow(existed)
-            val diff = diff(originOutboundRow, exitedOutboundRow)
-            eventPublisher.publish(BeforeUpdateEvent(entity, toProperty(diff)))
-        }
-
-        val updateCount = entityOperations.update(
-            query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
-                .limit(1),
-            Update.from(patch as Map<SqlIdentifier, Any>),
-            clazz.java
-        )
-            .subscribeOn(Schedulers.parallel())
-            .awaitSingle()
-        if (updateCount == 0) {
-            return null
-        }
-
-        return findById(entityManager.getId(entity))
-            ?.also {
-                val patchedOutboundRow = entityManager.getOutboundRow(it)
-                val diff = diff(originOutboundRow, patchedOutboundRow)
-                eventPublisher?.publish(AfterUpdateEvent(it, toProperty(diff)))
-            }
+        return updateById(entityManager.getId(entity), AsyncPatch.from { entity })
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
