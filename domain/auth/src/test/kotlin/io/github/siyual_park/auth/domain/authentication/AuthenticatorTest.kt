@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class AuthenticatorTest : CoroutineTestHelper() {
-    class TestAuthorizationStrategy(
+    internal class TestAuthorizationStrategy(
         type: String,
         private val credentials: String
     ) : AuthorizationStrategy<Principal>(type) {
@@ -26,7 +26,7 @@ class AuthenticatorTest : CoroutineTestHelper() {
         }
     }
 
-    class TestAuthenticatePipeline : AuthenticatePipeline<Principal> {
+    internal class TestAuthenticatePipeline : AuthenticatePipeline<Principal> {
         override val clazz = Principal::class
 
         override suspend fun pipe(principal: Principal): Principal {
@@ -34,7 +34,7 @@ class AuthenticatorTest : CoroutineTestHelper() {
         }
     }
 
-    private val filter = AllAuthenticateFilter()
+    private val filter = AllowAllAuthenticateFilter()
 
     @Test
     fun registerStrategy() {
