@@ -22,8 +22,8 @@ class Authenticator {
 
     suspend fun <PAYLOAD : Any> authenticate(payload: PAYLOAD): Principal {
         val strategies = strategies
-            .filter { (filter, _) -> filter.isSubscribe(payload) }
             .filter { (_, strategy) -> strategy.clazz.isInstance(payload) }
+            .filter { (filter, _) -> filter.isSubscribe(payload) }
             .map { (_, strategy) -> strategy }
         val pipelines = pipelines
             .filter { (filter, _) -> filter.isSubscribe(payload) }
@@ -36,7 +36,11 @@ class Authenticator {
                 val principal = strategy.authenticate(payload)
                 if (principal != null) {
                     return pipelines.fold(principal) { acc, pipeline ->
-                        (pipeline as AuthenticatePipeline<Principal>).pipe(acc)
+                        if (pipeline.clazz.isInstance(acc)) {
+                            (pipeline as AuthenticatePipeline<Principal>).pipe(acc)
+                        } else {
+                            acc
+                        }
                     }
                 }
             } catch (e: RuntimeException) {
