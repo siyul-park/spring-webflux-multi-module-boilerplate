@@ -23,6 +23,7 @@ class Authenticator {
     suspend fun <PAYLOAD : Any> authenticate(payload: PAYLOAD): Principal {
         val strategies = strategies
             .filter { (filter, _) -> filter.isSubscribe(payload) }
+            .filter { (_, strategy) -> strategy.clazz.isInstance(payload) }
             .map { (_, strategy) -> strategy }
         val pipelines = pipelines
             .filter { (filter, _) -> filter.isSubscribe(payload) }

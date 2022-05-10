@@ -5,7 +5,7 @@ import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import org.springframework.stereotype.Component
 
 @Component
-@AuthenticateMapping(filterBy = RefreshTokenPayload::class)
+@AuthenticateMapping
 class RefreshTokenAuthorizationPipeline(
     private val principalRefresher: PrincipalRefresher
 ) : AuthenticatePipeline<Principal> {

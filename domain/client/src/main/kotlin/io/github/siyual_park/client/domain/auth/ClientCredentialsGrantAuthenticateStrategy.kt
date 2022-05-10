@@ -8,10 +8,12 @@ import io.github.siyual_park.persistence.loadOrFail
 import org.springframework.stereotype.Component
 
 @Component
-@AuthenticateMapping(filterBy = ClientCredentialsGrantPayload::class)
+@AuthenticateMapping
 class ClientCredentialsGrantAuthenticateStrategy(
     private val clientStorage: ClientStorage,
 ) : AuthenticateStrategy<ClientCredentialsGrantPayload, ClientPrincipal> {
+    override val clazz = ClientCredentialsGrantPayload::class
+
     override suspend fun authenticate(payload: ClientCredentialsGrantPayload): ClientPrincipal? {
         val client = clientStorage.loadOrFail(payload.id)
         if (client.isConfidential()) {
