@@ -7,7 +7,6 @@ import io.github.siyual_park.data.repository.mongo.updateOrFail
 import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -97,7 +96,8 @@ abstract class R2DBCRepositoryTestHelper(
         val patch = DummyPerson.create()
 
         val updatedPerson = personRepository.updateOrFail(
-            where(Person::name).`is`(person.name)) {
+            where(Person::name).`is`(person.name)
+        ) {
             it.name = patch.name
             it.age = patch.age
         }
