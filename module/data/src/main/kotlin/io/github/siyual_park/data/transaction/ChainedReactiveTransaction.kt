@@ -7,9 +7,9 @@ import org.springframework.transaction.TransactionDefinition
 import java.util.Collections
 
 class ChainedReactiveTransaction(
-    val mainTransactionManager: ReactiveTransactionManager
+    private val mainTransactionManager: ReactiveTransactionManager
 ) : ReactiveTransaction {
-    val transactions = Collections
+    private val transactions = Collections
         .synchronizedMap(mutableMapOf<ReactiveTransactionManager, ReactiveTransaction>())
 
     suspend fun registerTransactionManager(
@@ -24,7 +24,7 @@ class ChainedReactiveTransaction(
     }
 
     override fun isNewTransaction(): Boolean {
-        return getMainTranslation().isNewTransaction
+        return getMainTranslation()?.isNewTransaction ?: false
     }
 
     override fun setRollbackOnly() {
@@ -32,14 +32,14 @@ class ChainedReactiveTransaction(
     }
 
     override fun isRollbackOnly(): Boolean {
-        return getMainTranslation().isRollbackOnly
+        return getMainTranslation()?.isRollbackOnly ?: false
     }
 
     override fun isCompleted(): Boolean {
-        return getMainTranslation().isCompleted
+        return getMainTranslation()?.isCompleted ?: false
     }
 
-    private fun getMainTranslation(): ReactiveTransaction {
-        return transactions[mainTransactionManager]!!
+    private fun getMainTranslation(): ReactiveTransaction? {
+        return transactions[mainTransactionManager]
     }
 }

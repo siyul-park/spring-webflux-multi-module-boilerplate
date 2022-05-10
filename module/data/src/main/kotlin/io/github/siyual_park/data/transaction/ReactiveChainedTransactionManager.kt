@@ -10,11 +10,12 @@ import org.springframework.transaction.ReactiveTransactionManager
 import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.UnexpectedRollbackException
 import reactor.core.publisher.Mono
+import java.util.Collections
 
 class ReactiveChainedTransactionManager : ReactiveTransactionManager {
     private val logger = LoggerFactory.getLogger(ReactiveChainedTransactionManager::class.java)
 
-    private val transactionManagers: MutableList<ReactiveTransactionManager> = mutableListOf()
+    private val transactionManagers = Collections.synchronizedList(mutableListOf<ReactiveTransactionManager>())
 
     fun registerTransactionManager(transactionManager: ReactiveTransactionManager) {
         transactionManagers.add(transactionManager)
