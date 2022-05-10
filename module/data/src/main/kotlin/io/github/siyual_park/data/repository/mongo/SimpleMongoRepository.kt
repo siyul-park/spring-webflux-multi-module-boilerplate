@@ -14,7 +14,6 @@ import io.github.siyual_park.event.EventConsumer
 import io.github.siyual_park.event.EventMultiplexer
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.event.TypeMatchEventFilter
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -38,7 +37,6 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Query.query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.where
-import org.springframework.data.mongodb.core.remove
 import reactor.core.scheduler.Schedulers
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
