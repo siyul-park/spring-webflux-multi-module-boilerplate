@@ -19,7 +19,7 @@ class AuthenticationConverter : ServerAuthenticationConverter {
 
             val token = authorization.split(" ")
             if (token.size != 2) {
-                throw AuthenticationCredentialsNotFoundException("authorization format must to be '{schema} {credentials}'.")
+                throw AuthenticationCredentialsNotFoundException("authorization format must to be '{type} {credentials}'.")
             }
 
             UsernamePasswordAuthenticationToken(token[0], token[1])
