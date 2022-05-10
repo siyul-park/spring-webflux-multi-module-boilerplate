@@ -49,6 +49,20 @@ suspend fun <T : Any, ID : Any> MongoRepository<T, ID>.findOneOrFail(criteria: C
 
 suspend fun <T : Any, ID : Any> MongoRepository<T, ID>.updateOrFail(
     criteria: CriteriaDefinition,
+    update: Update
+): T {
+    return update(criteria, update) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Any, ID : Any> MongoRepository<T, ID>.updateOrFail(
+    entity: T,
+    update: Update
+): T {
+    return update(entity, update) ?: throw EmptyResultDataAccessException(1)
+}
+
+suspend fun <T : Any, ID : Any> MongoRepository<T, ID>.updateOrFail(
+    criteria: CriteriaDefinition,
     patch: AsyncPatch<T>
 ): T {
     return update(criteria, patch) ?: throw EmptyResultDataAccessException(1)

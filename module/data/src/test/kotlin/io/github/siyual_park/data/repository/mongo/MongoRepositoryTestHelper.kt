@@ -2,6 +2,7 @@ package io.github.siyual_park.data.repository.mongo
 
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
+import io.github.siyual_park.data.expansion.fieldName
 import io.github.siyual_park.data.repository.RepositoryTestHelper
 import io.github.siyual_park.data.repository.mongo.migration.CreatePerson
 import io.github.siyual_park.data.test.MongoTestHelper
@@ -9,9 +10,11 @@ import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.where
 
 abstract class MongoRepositoryTestHelper(
@@ -71,6 +74,62 @@ abstract class MongoRepositoryTestHelper(
 
         assertEquals(person.name, foundPerson.name)
         assertEquals(person.age, foundPerson.age)
+    }
+
+    @Test
+    fun existsByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        assertTrue(personRepository.exists(where(Person::name).`is`(person.name)))
+    }
+
+    @Test
+    fun updateByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+        val patch = DummyPerson.create()
+
+        val updatedPerson = personRepository.updateOrFail(where(Person::name).`is`(person.name)) {
+            it.name = patch.name
+            it.age = patch.age
+        }
+
+        assertEquals(person.id, updatedPerson.id)
+        assertEquals(patch.name, updatedPerson.name)
+        assertEquals(patch.age, updatedPerson.age)
+    }
+
+    @Test
+    fun updateByNameWithUpdate() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+        val patch = DummyPerson.create()
+
+        val updatedPerson = personRepository.updateOrFail(
+            where(Person::name).`is`(person.name),
+            Update.update(fieldName(Person::name), patch.name)
+        )
+
+        assertEquals(person.id, updatedPerson.id)
+        assertEquals(patch.name, updatedPerson.name)
+        assertEquals(person.age, updatedPerson.age)
+    }
+
+    @Test
+    fun updateWithUpdate() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+        val patch = DummyPerson.create()
+
+        val updatedPerson = personRepository.updateOrFail(
+            person,
+            Update.update(fieldName(Person::name), patch.name)
+        )
+
+        assertEquals(person.id, updatedPerson.id)
+        assertEquals(patch.name, updatedPerson.name)
+        assertEquals(person.age, updatedPerson.age)
     }
 
     companion object {
