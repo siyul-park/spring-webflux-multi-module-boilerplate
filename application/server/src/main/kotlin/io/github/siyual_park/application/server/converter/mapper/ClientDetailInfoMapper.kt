@@ -22,7 +22,6 @@ class ClientDetailInfoMapper : Mapper<Client, ClientDetailInfo> {
             secret = secret,
             createdAt = raw.createdAt!!,
             updatedAt = raw.updatedAt,
-            deletedAt = raw.deletedAt
         )
     }
 

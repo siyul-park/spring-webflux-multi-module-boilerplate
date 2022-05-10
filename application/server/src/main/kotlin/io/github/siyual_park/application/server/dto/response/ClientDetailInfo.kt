@@ -13,5 +13,4 @@ data class ClientDetailInfo(
     val secret: String?,
     val createdAt: Instant,
     val updatedAt: Instant?,
-    val deletedAt: Instant?,
 )

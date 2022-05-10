@@ -23,5 +23,4 @@ class ClientRepository(
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
     )
-    .softDelete(true)
     .build()

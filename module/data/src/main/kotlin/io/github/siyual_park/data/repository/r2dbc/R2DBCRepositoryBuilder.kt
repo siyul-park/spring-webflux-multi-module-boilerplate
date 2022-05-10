@@ -1,15 +1,12 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.SoftDeletable
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
-import org.springframework.data.relational.core.query.Criteria
 import kotlin.reflect.KClass
-import kotlin.reflect.full.isSubclassOf
 
 class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     private val entityOperations: R2dbcEntityOperations,
@@ -17,8 +14,6 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
 ) {
     private var eventPublisher: EventPublisher? = null
     private var cacheBuilder: CacheBuilder<Any, Any>? = null
-    private var filter: (() -> Criteria)? = null
-    private var softDelete: Boolean = false
 
     fun set(eventPublisher: EventPublisher?): R2DBCRepositoryBuilder<T, ID> {
         this.eventPublisher = eventPublisher
@@ -30,42 +25,15 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    fun set(filter: (() -> Criteria)?): R2DBCRepositoryBuilder<T, ID> {
-        this.filter = filter
-        return this
-    }
-
-    fun softDelete(softDelete: Boolean): R2DBCRepositoryBuilder<T, ID> {
-        this.softDelete = softDelete
-        return this
-    }
-
     @Suppress("UNCHECKED_CAST")
     fun build(): R2DBCRepository<T, ID> {
-        val filter = filter
         val cacheBuilder = cacheBuilder
-        val softDelete = softDelete
 
-        val current = if (filter != null) {
-            FilteredR2DBCRepository(
-                entityOperations,
-                clazz,
-                filter,
-                eventPublisher
-            )
-        } else if (softDelete && clazz.isSubclassOf(SoftDeletable::class)) {
-            SoftDeletedR2DBCRepository<SoftDeletable, ID>(
-                entityOperations,
-                clazz as KClass<SoftDeletable>,
-                eventPublisher
-            ) as R2DBCRepository<T, ID>
-        } else {
-            SimpleR2DBCRepository(
-                entityOperations,
-                clazz,
-                eventPublisher
-            )
-        }
+        val current = SimpleR2DBCRepository<T, ID>(
+            entityOperations,
+            clazz,
+            eventPublisher
+        )
 
         return if (cacheBuilder != null) {
             val idExtractor = createIdExtractor(current)

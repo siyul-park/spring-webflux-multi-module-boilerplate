@@ -10,7 +10,10 @@ import io.github.siyual_park.data.expansion.fieldName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.event.EventConsumer
+import io.github.siyual_park.event.EventMultiplexer
 import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.event.TypeMatchEventFilter
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -47,32 +50,46 @@ import kotlin.reflect.jvm.javaField
 class SimpleMongoRepository<T : Any, ID : Any>(
     override val template: ReactiveMongoTemplate,
     override val clazz: KClass<T>,
-    private val eventPublisher: EventPublisher? = null,
+    eventPublisher: EventPublisher? = null,
 ) : MongoRepository<T, ID> {
     private val idProperty = (
         clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
             ?: throw RuntimeException()
         ) as KProperty1<T, ID>
 
+    private val eventPublisher = object : EventPublisher {
+        private val eventMultiplexer = EventMultiplexer<Any>()
+
+        init {
+            eventMultiplexer.on(TypeMatchEventFilter(BeforeCreateEvent::class), CreateTimestamp() as EventConsumer<Any>)
+            eventMultiplexer.on(TypeMatchEventFilter(BeforeUpdateEvent::class), UpdateTimestamp() as EventConsumer<Any>)
+        }
+
+        override suspend fun <E : Any> publish(event: E) {
+            eventMultiplexer.consume(event)
+            eventPublisher?.publish(event)
+        }
+    }
+
     override suspend fun create(entity: T): T {
-        eventPublisher?.publish(BeforeCreateEvent(entity))
+        eventPublisher.publish(BeforeCreateEvent(entity))
 
         return template.insert(entity)
             .subscribeOn(Schedulers.parallel())
             .awaitSingle()
-            .also { eventPublisher?.publish(AfterCreateEvent(it)) }
+            .also { eventPublisher.publish(AfterCreateEvent(it)) }
     }
 
     override fun createAll(entities: Flow<T>): Flow<T> {
         return flow {
             emitAll(
                 template.insertAll(
-                    entities.onEach { eventPublisher?.publish(BeforeCreateEvent(it)) }
+                    entities.onEach { eventPublisher.publish(BeforeCreateEvent(it)) }
                         .toList()
                 )
                     .subscribeOn(Schedulers.parallel())
                     .asFlow()
-                    .onEach { eventPublisher?.publish(AfterCreateEvent(it)) }
+                    .onEach { eventPublisher.publish(AfterCreateEvent(it)) }
             )
         }
     }
@@ -167,7 +184,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             .awaitSingleOrNull()
             ?.also { target ->
                 val propertyDiff = diff(sourceDump, target)
-                eventPublisher?.publish(AfterUpdateEvent(target, propertyDiff))
+                eventPublisher.publish(AfterUpdateEvent(target, propertyDiff))
             }
     }
 
@@ -192,7 +209,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             }
         }
 
-        eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
+        eventPublisher.publish(BeforeUpdateEvent(entity, propertyDiff))
 
         return template.findAndModify(
             query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
@@ -206,7 +223,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         )
             .subscribeOn(Schedulers.parallel())
             .awaitSingleOrNull()
-            ?.also { eventPublisher?.publish(AfterUpdateEvent(it, propertyDiff)) }
+            ?.also { eventPublisher.publish(AfterUpdateEvent(it, propertyDiff)) }
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {
@@ -222,14 +239,12 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         val target = patch.apply(entity)
         val propertyDiff = diff(sourceDump, target)
 
-        if (eventPublisher != null) {
-            sourceDump.forEach { (key, value) ->
-                if (key is KMutableProperty1<T, Any?>) {
-                    key.set(target, value)
-                }
+        sourceDump.forEach { (key, value) ->
+            if (key is KMutableProperty1<T, Any?>) {
+                key.set(target, value)
             }
-            eventPublisher.publish(BeforeUpdateEvent(target, propertyDiff))
         }
+        eventPublisher.publish(BeforeUpdateEvent(target, propertyDiff))
 
         return template.findAndModify(
             query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
@@ -243,7 +258,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         )
             .subscribeOn(Schedulers.parallel())
             .awaitSingleOrNull()
-            ?.also { eventPublisher?.publish(AfterUpdateEvent(it, propertyDiff)) }
+            ?.also { eventPublisher.publish(AfterUpdateEvent(it, propertyDiff)) }
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
@@ -309,7 +324,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun delete(entity: T) {
-        eventPublisher?.publish(BeforeDeleteEvent(entity))
+        eventPublisher.publish(BeforeDeleteEvent(entity))
 
         template.remove(
             query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
@@ -318,7 +333,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             .subscribeOn(Schedulers.parallel())
             .awaitSingleOrNull()
 
-        eventPublisher?.publish(AfterDeleteEvent(entity))
+        eventPublisher.publish(AfterDeleteEvent(entity))
     }
 
     override suspend fun deleteAllById(ids: Iterable<ID>) {
@@ -352,30 +367,21 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         }
         query = query.with(sort ?: Sort.by(Sort.Order.asc(fieldName(idProperty))))
 
-        if (eventPublisher == null) {
-            template.findAllAndRemove(
-                query,
-                clazz.java
-            )
-                .subscribeOn(Schedulers.parallel())
-                .collect { }
-        } else {
-            val entities = template.find(query, clazz.java)
-                .asFlow()
-                .onEach { eventPublisher.publish(BeforeDeleteEvent(it)) }
-                .toList()
-            val ids = entities.map { idProperty.get(it) }
-            if (ids.isEmpty()) {
-                return
-            }
-
-            template.findAllAndRemove(
-                query(where(idProperty).`in`(ids.toList())).limit(ids.size),
-                clazz.java
-            )
-                .subscribeOn(Schedulers.parallel())
-                .collect { eventPublisher.publish(AfterDeleteEvent(it)) }
+        val entities = template.find(query, clazz.java)
+            .asFlow()
+            .onEach { eventPublisher.publish(BeforeDeleteEvent(it)) }
+            .toList()
+        val ids = entities.map { idProperty.get(it) }
+        if (ids.isEmpty()) {
+            return
         }
+
+        template.findAllAndRemove(
+            query(where(idProperty).`in`(ids.toList())).limit(ids.size),
+            clazz.java
+        )
+            .subscribeOn(Schedulers.parallel())
+            .collect { eventPublisher.publish(AfterDeleteEvent(it)) }
     }
 
     private fun diff(source: Map<KProperty1<T, *>, Any?>, target: T): Map<KProperty1<T, *>, Any?> {

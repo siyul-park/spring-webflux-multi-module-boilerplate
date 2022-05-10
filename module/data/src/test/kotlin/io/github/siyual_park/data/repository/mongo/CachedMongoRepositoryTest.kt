@@ -16,7 +16,6 @@ class CachedMongoRepositoryTest : MongoRepositoryTestHelper(
                         .expireAfterWrite(Duration.ofMinutes(5))
                         .maximumSize(1_000)
                 )
-                .set(it.eventEmitter)
                 .build()
         )
     }

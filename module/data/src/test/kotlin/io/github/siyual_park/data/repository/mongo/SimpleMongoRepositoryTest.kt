@@ -7,7 +7,6 @@ class SimpleMongoRepositoryTest : MongoRepositoryTestHelper(
     repositories = {
         listOf(
             MongoRepositoryBuilder<Person, ULID>(mongoTemplate, Person::class)
-                .set(it.eventEmitter)
                 .build()
         )
     }
