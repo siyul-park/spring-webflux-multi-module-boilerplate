@@ -3,11 +3,14 @@ package io.github.siyual_park.data.repository.r2dbc
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.repository.RepositoryTestHelper
+import io.github.siyual_park.data.repository.mongo.updateOrFail
 import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -80,6 +83,32 @@ abstract class R2DBCRepositoryTestHelper(
     }
 
     @Test
+    fun existsByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        assertTrue(personRepository.exists(where(Person::name).`is`(person.name)))
+    }
+
+    @Test
+    fun updateByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+        val patch = DummyPerson.create()
+
+        val updatedPerson = personRepository.updateOrFail(
+            where(Person::name).`is`(person.name)) {
+            it.name = patch.name
+            it.age = patch.age
+        }
+
+        assertEquals(person.id, updatedPerson.id)
+        assertEquals(patch.name, updatedPerson.name)
+        assertEquals(patch.age, updatedPerson.age)
+        assertNotNull(updatedPerson.updatedAt)
+    }
+
+    @Test
     fun transactionCommit() = parameterized { personRepository ->
         var person: Person? = null
 
@@ -110,19 +139,4 @@ abstract class R2DBCRepositoryTestHelper(
             assertFalse(personRepository.existsById(person?.id!!))
         }
     }
-
-    // private fun repositories(): List<R2DBCRepository<Person, ULID>> {
-    //     return listOf(
-    //         SimpleR2DBCRepository(entityOperations, Person::class),
-    //         R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class)
-    //             .set(
-    //                 CacheBuilder.newBuilder()
-    //                     .softValues()
-    //                     .expireAfterAccess(Duration.ofMinutes(2))
-    //                     .expireAfterWrite(Duration.ofMinutes(5))
-    //                     .maximumSize(1_000)
-    //             )
-    //             .build()
-    //     )
-    // }
 }

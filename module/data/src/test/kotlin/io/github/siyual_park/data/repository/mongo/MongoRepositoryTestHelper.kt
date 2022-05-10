@@ -9,7 +9,9 @@ import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -98,6 +100,7 @@ abstract class MongoRepositoryTestHelper(
         assertEquals(person.id, updatedPerson.id)
         assertEquals(patch.name, updatedPerson.name)
         assertEquals(patch.age, updatedPerson.age)
+        assertNotNull(updatedPerson.updatedAt)
     }
 
     @Test
@@ -114,6 +117,7 @@ abstract class MongoRepositoryTestHelper(
         assertEquals(person.id, updatedPerson.id)
         assertEquals(patch.name, updatedPerson.name)
         assertEquals(person.age, updatedPerson.age)
+        assertNotNull(updatedPerson.updatedAt)
     }
 
     @Test
@@ -130,6 +134,7 @@ abstract class MongoRepositoryTestHelper(
         assertEquals(person.id, updatedPerson.id)
         assertEquals(patch.name, updatedPerson.name)
         assertEquals(person.age, updatedPerson.age)
+        assertNotNull(updatedPerson.updatedAt)
     }
 
     companion object {
