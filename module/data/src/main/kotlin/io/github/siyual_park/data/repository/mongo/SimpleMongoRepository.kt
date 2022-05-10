@@ -10,8 +10,8 @@ import io.github.siyual_park.data.expansion.fieldName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
-import io.github.siyual_park.event.EventConsumer
-import io.github.siyual_park.event.EventMultiplexer
+import io.github.siyual_park.event.EventBroadcaster
+import io.github.siyual_park.event.EventEmitter
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.event.TypeMatchEventFilter
 import kotlinx.coroutines.flow.Flow
@@ -55,18 +55,17 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             ?: throw RuntimeException()
         ) as KProperty1<T, ID>
 
-    private val eventPublisher = object : EventPublisher {
-        private val eventMultiplexer = EventMultiplexer<Any>()
+    private val eventPublisher = EventBroadcaster()
 
-        init {
-            eventMultiplexer.on(TypeMatchEventFilter(BeforeCreateEvent::class), CreateTimestamp() as EventConsumer<Any>)
-            eventMultiplexer.on(TypeMatchEventFilter(BeforeUpdateEvent::class), UpdateTimestamp() as EventConsumer<Any>)
-        }
+    init {
+        val localEventEmitter = EventEmitter()
+            .apply {
+                on(TypeMatchEventFilter(BeforeCreateEvent::class), CreateTimestamp())
+                on(TypeMatchEventFilter(BeforeUpdateEvent::class), UpdateTimestamp())
+            }
 
-        override suspend fun <E : Any> publish(event: E) {
-            eventMultiplexer.consume(event)
-            eventPublisher?.publish(event)
-        }
+        this.eventPublisher.use(localEventEmitter)
+        eventPublisher?.let { this.eventPublisher.use(it) }
     }
 
     override suspend fun create(entity: T): T {
