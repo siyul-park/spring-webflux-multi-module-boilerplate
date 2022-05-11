@@ -19,6 +19,7 @@ import io.github.siyual_park.event.EventEmitter
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -91,6 +92,27 @@ class TokenTest : DataTestHelper() {
     }
 
     @Test
+    fun setGet() = blocking {
+        val principal = TestPrincipal(DummyStringFactory.create(10), setOf())
+
+        val template = TokenTemplate(
+            type = "test",
+            limit = listOf(
+                "tid" to 1
+            )
+        )
+        val factory = tokenFactoryProvider.get(template)
+
+        val token = factory.create(principal, Duration.ofMinutes(10))
+
+        val key = DummyStringFactory.create(10)
+        val value = DummyStringFactory.create(10)
+
+        token[key] = value
+        assertEquals(value, token[key])
+    }
+
+    @Test
     fun getScope() = blocking {
         val scopeToken = DummyCreateScopeTokenPayload.create()
             .let { scopeTokenFactory.create(it) }
@@ -131,14 +153,11 @@ class TokenTest : DataTestHelper() {
 
         val token = factory.create(principal, Duration.ofMinutes(10))
 
-        val scope1 = token.getScope().toList()
-        assertEquals(0, scope1.size)
+        assertFalse(token.has(scopeToken))
 
         token.grant(scopeToken)
 
-        val scope2 = token.getScope().toList()
-        assertEquals(1, scope2.size)
-        assertTrue(scope2.contains(scopeToken))
+        assertTrue(token.has(scopeToken))
     }
 
     @Test
@@ -157,14 +176,11 @@ class TokenTest : DataTestHelper() {
 
         val token = factory.create(principal, Duration.ofMinutes(10))
 
-        val scope1 = token.getScope().toList()
-        assertEquals(1, scope1.size)
-        assertTrue(scope1.contains(scopeToken))
+        assertTrue(token.has(scopeToken))
 
         token.revoke(scopeToken)
 
-        val scope2 = token.getScope().toList()
-        assertEquals(0, scope2.size)
+        assertFalse(token.has(scopeToken))
     }
 
     companion object {
