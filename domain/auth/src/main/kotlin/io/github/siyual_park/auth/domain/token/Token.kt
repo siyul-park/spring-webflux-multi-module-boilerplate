@@ -97,4 +97,8 @@ class Token(
             .filterIsInstance<String>()
             .map { ULID.fromString(it) }
     }
+
+    suspend fun reload() {
+        tokenRepository.findById(id)?.let { root.raw(it) }
+    }
 }

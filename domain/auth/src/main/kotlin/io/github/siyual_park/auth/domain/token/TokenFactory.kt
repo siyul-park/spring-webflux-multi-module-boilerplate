@@ -7,6 +7,7 @@ import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.expansion.fieldName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.util.retry
+import kotlinx.coroutines.flow.toList
 import org.springframework.data.mongodb.core.query.Criteria
 import java.security.SecureRandom
 import java.time.Duration
@@ -96,7 +97,7 @@ class TokenFactory(
                     it.expiredAt = expiredAt
                 },
                 limit = (count - limit + 1).toInt()
-            )
+            ).toList()
         }
     }
 
