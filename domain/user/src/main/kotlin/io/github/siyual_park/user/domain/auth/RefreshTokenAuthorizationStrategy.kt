@@ -11,11 +11,13 @@ import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
-@AuthenticateMapping(filterBy = RefreshTokenPayload::class)
+@AuthenticateMapping
 @Order(Ordered.LOWEST_PRECEDENCE - 1)
 class RefreshTokenAuthorizationStrategy(
     private val tokenStorage: TokenStorage
 ) : AuthenticateStrategy<RefreshTokenPayload, UserPrincipal> {
+    override val clazz = RefreshTokenPayload::class
+
     override suspend fun authenticate(payload: RefreshTokenPayload): UserPrincipal? {
         val token = tokenStorage.loadOrFail(payload.refreshToken)
         if (token["uid"] == null) {

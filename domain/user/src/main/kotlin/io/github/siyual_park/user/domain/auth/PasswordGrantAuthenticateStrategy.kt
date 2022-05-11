@@ -10,11 +10,13 @@ import io.github.siyual_park.user.exception.IncorrectPasswordException
 import org.springframework.stereotype.Component
 
 @Component
-@AuthenticateMapping(filterBy = PasswordGrantPayload::class)
+@AuthenticateMapping
 class PasswordGrantAuthenticateStrategy(
     private val userStorage: UserStorage,
     private val clientStorage: ClientStorage
 ) : AuthenticateStrategy<PasswordGrantPayload, UserPrincipal> {
+    override val clazz = PasswordGrantPayload::class
+
     override suspend fun authenticate(payload: PasswordGrantPayload): UserPrincipal? {
         val user = userStorage.loadOrFail(payload.username)
         val credential = user.getCredential()

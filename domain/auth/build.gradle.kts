@@ -5,6 +5,8 @@ dependencies {
     implementation(project(":module:persistence"))
     implementation(project(":module:mapper"))
     implementation(project(":module:util"))
+
+    testImplementation(project(":module:coroutine-test"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

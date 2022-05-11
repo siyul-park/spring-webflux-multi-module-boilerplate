@@ -16,7 +16,7 @@ class Authorizator(
         .softValues()
         .expireAfterAccess(Duration.ofMinutes(1))
         .expireAfterWrite(Duration.ofMinutes(2))
-        .maximumSize(1_0000)
+        .maximumSize(10_000)
         .build()
 ) {
     private val strategies = mutableListOf<Pair<AuthorizeFilter, AuthorizeStrategy>>()
@@ -122,7 +122,7 @@ class Authorizator(
     ): ArrayList<Any?> {
         return ArrayList<Any?>().apply {
             add(principal)
-            add(scopeToken.raw())
+            add(scopeToken.raw().id)
             add(targetDomainObject)
         }
     }

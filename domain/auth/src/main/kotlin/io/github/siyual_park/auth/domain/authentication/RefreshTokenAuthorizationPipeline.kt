@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component
 class RefreshTokenAuthorizationPipeline(
     private val principalRefresher: PrincipalRefresher
 ) : AuthenticatePipeline<Principal> {
+    override val clazz = Principal::class
+
     override suspend fun pipe(principal: Principal): Principal {
         return principalRefresher.refresh(principal)
     }
