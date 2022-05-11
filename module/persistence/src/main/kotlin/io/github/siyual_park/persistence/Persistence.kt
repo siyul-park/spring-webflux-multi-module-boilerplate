@@ -97,7 +97,7 @@ open class Persistence<T : Any, ID : Any>(
         }
         mutex.withLock {
             if (!root.isUpdated()) {
-               return@withLock
+                return@withLock
             }
             withTransaction {
                 synchronizations.forEach {
