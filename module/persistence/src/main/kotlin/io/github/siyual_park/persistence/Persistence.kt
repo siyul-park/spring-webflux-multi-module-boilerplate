@@ -57,7 +57,14 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     override suspend fun clear() {
-        if (!isCleared) {
+        if (isCleared) {
+            return
+        }
+
+        mutex.withLock {
+            if (isCleared) {
+                return@withLock
+            }
             isCleared = true
             try {
                 withTransaction {
@@ -85,18 +92,22 @@ open class Persistence<T : Any, ID : Any>(
 
     override suspend fun sync(): Boolean {
         var result = false
+        if (!root.isUpdated()) {
+            return result
+        }
         mutex.withLock {
-            if (root.isUpdated()) {
-                withTransaction {
-                    synchronizations.forEach {
-                        it.beforeSync()
-                    }
-                    eventPublisher?.publish(BeforeUpdateEvent(this))
-                    result = runSync()
-                    eventPublisher?.publish(AfterUpdateEvent(this))
-                    synchronizations.forEach {
-                        it.afterSync()
-                    }
+            if (!root.isUpdated()) {
+               return@withLock
+            }
+            withTransaction {
+                synchronizations.forEach {
+                    it.beforeSync()
+                }
+                eventPublisher?.publish(BeforeUpdateEvent(this))
+                result = runSync()
+                eventPublisher?.publish(AfterUpdateEvent(this))
+                synchronizations.forEach {
+                    it.afterSync()
                 }
             }
         }
