@@ -1,5 +1,7 @@
 package io.github.siyual_park.data.repository.cache
 
+import io.github.siyual_park.data.repository.Extractor
+
 interface Storage<T : Any, ID : Any> {
     val idExtractor: Extractor<T, ID>
 

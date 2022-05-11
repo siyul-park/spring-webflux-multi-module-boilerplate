@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.repository.cache.Extractor
+import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.InMemoryStorage
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager

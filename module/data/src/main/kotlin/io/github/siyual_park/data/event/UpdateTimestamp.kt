@@ -1,9 +1,7 @@
-package io.github.siyual_park.data.repository.mongo
+package io.github.siyual_park.data.event
 
 import io.github.siyual_park.data.Modifiable
-import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.event.EventConsumer
-import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import kotlin.reflect.KProperty1
 
@@ -13,7 +11,7 @@ class UpdateTimestamp : EventConsumer<BeforeUpdateEvent<*>> {
         val entity = event.entity
         val diff = event.diff
 
-        if (entity !is Modifiable || !entity.javaClass.annotations.any { it is Document }) {
+        if (entity !is Modifiable) {
             return
         }
         if (diff == null) {

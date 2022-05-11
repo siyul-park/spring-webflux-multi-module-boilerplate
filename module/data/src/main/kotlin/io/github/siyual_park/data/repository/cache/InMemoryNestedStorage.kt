@@ -1,5 +1,7 @@
 package io.github.siyual_park.data.repository.cache
 
+import io.github.siyual_park.data.repository.Extractor
+
 @Suppress("UNCHECKED_CAST")
 class InMemoryNestedStorage<T : Any, ID : Any>(
     private val delegator: Storage<T, ID>,

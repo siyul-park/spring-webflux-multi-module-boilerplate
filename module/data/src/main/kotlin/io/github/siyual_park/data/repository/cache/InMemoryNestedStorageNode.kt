@@ -2,6 +2,7 @@ package io.github.siyual_park.data.repository.cache
 
 import com.google.common.collect.Maps
 import com.google.common.collect.Sets
+import io.github.siyual_park.data.repository.Extractor
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")

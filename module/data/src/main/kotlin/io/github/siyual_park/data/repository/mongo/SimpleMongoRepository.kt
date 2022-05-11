@@ -6,6 +6,8 @@ import io.github.siyual_park.data.event.AfterUpdateEvent
 import io.github.siyual_park.data.event.BeforeCreateEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.event.BeforeUpdateEvent
+import io.github.siyual_park.data.event.CreateTimestamp
+import io.github.siyual_park.data.event.UpdateTimestamp
 import io.github.siyual_park.data.expansion.fieldName
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
@@ -52,7 +54,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     private val idProperty = (
         clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
             ?: throw RuntimeException()
-        ) as KProperty1<T, ID>
+        ) as KProperty1<T, ID?>
 
     private val eventPublisher = EventBroadcaster()
 
@@ -193,7 +195,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T): T? {
-        return updateById(idProperty.get(entity), AsyncPatch.from { entity })
+        return idProperty.get(entity)?.let { updateById(it, AsyncPatch.from { entity }) }
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {
@@ -310,7 +312,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
-        val ids = entities.map { idProperty.get(it) }
+        val ids = entities.map { idProperty.get(it) }.filterNotNull()
         return deleteAllById(ids)
     }
 
