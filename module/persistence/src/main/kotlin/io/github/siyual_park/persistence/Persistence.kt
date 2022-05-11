@@ -64,7 +64,9 @@ open class Persistence<T : Any, ID : Any>(
                     synchronizations.forEach {
                         it.beforeClear()
                     }
+                    eventPublisher?.publish(BeforeDeleteEvent(this))
                     runClear()
+                    eventPublisher?.publish(AfterDeleteEvent(this))
                     synchronizations.forEach {
                         it.afterClear()
                     }
@@ -77,10 +79,8 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     protected open suspend fun runClear() {
-        eventPublisher?.publish(BeforeDeleteEvent(this))
         repository.delete(root.raw())
         root.clear()
-        eventPublisher?.publish(AfterDeleteEvent(this))
     }
 
     override suspend fun sync(): Boolean {
@@ -91,7 +91,9 @@ open class Persistence<T : Any, ID : Any>(
                     synchronizations.forEach {
                         it.beforeSync()
                     }
+                    eventPublisher?.publish(BeforeUpdateEvent(this))
                     result = runSync()
+                    eventPublisher?.publish(AfterUpdateEvent(this))
                     synchronizations.forEach {
                         it.afterSync()
                     }
@@ -103,7 +105,6 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     protected open suspend fun runSync(): Boolean {
-        eventPublisher?.publish(BeforeUpdateEvent(this))
         val updated = repository.update(root.raw()) {
             val commands = root.checkout()
             commands.forEach { (property, command) ->
@@ -112,8 +113,6 @@ open class Persistence<T : Any, ID : Any>(
             root.raw(it)
         }
         updated?.let { root.raw(it) }
-        eventPublisher?.publish(AfterUpdateEvent(this))
-
         return updated != null
     }
 
