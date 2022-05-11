@@ -11,7 +11,11 @@ class UserContact(
     value: UserContactData,
     userContactRepository: UserContactRepository,
     eventPublisher: EventPublisher
-) : Persistence<UserContactData, Long>(value, userContactRepository, eventPublisher) {
+) : Persistence<UserContactData, Long>(
+    value,
+    userContactRepository,
+    eventPublisher = eventPublisher
+) {
     val id by proxyNotNull(root, UserContactData::id)
     val userId by proxy(root, UserContactData::userId)
     var email by proxy(root, UserContactData::email)

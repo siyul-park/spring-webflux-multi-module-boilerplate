@@ -11,7 +11,11 @@ class ClientCredential(
     value: ClientCredentialData,
     clientCredentialRepository: ClientCredentialRepository,
     eventPublisher: EventPublisher
-) : Persistence<ClientCredentialData, Long>(value, clientCredentialRepository, eventPublisher) {
+) : Persistence<ClientCredentialData, Long>(
+    value,
+    clientCredentialRepository,
+    eventPublisher = eventPublisher
+) {
     val id by proxyNotNull(root, ClientCredentialData::id)
     val clientId by proxy(root, ClientCredentialData::clientId)
 

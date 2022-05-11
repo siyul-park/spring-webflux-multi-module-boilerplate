@@ -11,13 +11,13 @@ import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
-import io.github.siyual_park.data.event.AfterDeleteEvent
-import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.Persistence
+import io.github.siyual_park.persistence.PersistencePropagateSynchronization
+import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
@@ -29,22 +29,42 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 
 class Client(
     value: ClientData,
-    private val clientRepository: ClientRepository,
+    clientRepository: ClientRepository,
     private val clientCredentialRepository: ClientCredentialRepository,
     private val clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
-    private val operator: TransactionalOperator,
+    operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
-) : Persistence<ClientData, ULID>(value, clientRepository, eventPublisher), ClientEntity, Authorizable {
+) : Persistence<ClientData, ULID>(
+    value,
+    clientRepository,
+    operator,
+    eventPublisher
+),
+    ClientEntity,
+    Authorizable {
     val id by proxy(root, ClientData::id)
     override val clientId by proxy(root, ClientData::id)
     var name by proxy(root, ClientData::name)
     val type by proxy(root, ClientData::type)
     var origin by proxy(root, ClientData::origin)
+
+    init {
+        synchronize(
+            object : PersistenceSynchronization {
+                override suspend fun beforeClear() {
+                    clientScopeRepository.deleteAllByClientId(id)
+                }
+
+                override suspend fun afterClear() {
+                    credential.clear()
+                }
+            }
+        )
+    }
 
     private val credential = AsyncLazy {
         ClientCredential(
@@ -52,9 +72,7 @@ class Client(
             clientCredentialRepository,
             eventPublisher
         ).also {
-            doBeforeSync {
-                it.sync()
-            }
+            synchronize(PersistencePropagateSynchronization(it))
         }
     }
 
@@ -130,21 +148,5 @@ class Client(
             id = clientId.toString(),
             scope = scope.toSet()
         )
-    }
-
-    override suspend fun clear() {
-        doClear {
-            operator.executeAndAwait {
-                eventPublisher.publish(BeforeDeleteEvent(this))
-                clientScopeRepository.deleteAllByClientId(id)
-                if (isConfidential()) {
-                    credential.get().clear()
-                    credential.clear()
-                }
-                clientRepository.delete(root.raw())
-                root.clear()
-                eventPublisher.publish(AfterDeleteEvent(this))
-            }
-        }
     }
 }

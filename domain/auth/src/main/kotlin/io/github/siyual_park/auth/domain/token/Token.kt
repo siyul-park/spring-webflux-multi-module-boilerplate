@@ -24,7 +24,12 @@ class Token(
     private val tokenRepository: TokenRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     eventPublisher: EventPublisher
-) : Persistence<TokenData, ULID>(value, tokenRepository, eventPublisher), Authorizable {
+) : Persistence<TokenData, ULID>(
+    value,
+    tokenRepository,
+    eventPublisher = eventPublisher
+),
+    Authorizable {
     val id by proxyNotNull(root, TokenData::id)
     val type by proxy(root, TokenData::type)
     val signature by proxy(root, TokenData::signature)

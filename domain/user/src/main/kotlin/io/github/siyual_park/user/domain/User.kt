@@ -4,13 +4,13 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
-import io.github.siyual_park.data.event.AfterDeleteEvent
-import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.Persistence
+import io.github.siyual_park.persistence.PersistencePropagateSynchronization
+import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.auth.UserPrincipal
@@ -29,21 +29,42 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 
 class User(
     value: UserData,
-    private val userRepository: UserRepository,
+    userRepository: UserRepository,
     private val userContactRepository: UserContactRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
-    private val operator: TransactionalOperator,
+    operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
-) : Persistence<UserData, ULID>(value, userRepository, eventPublisher), UserEntity, Authorizable {
+) : Persistence<UserData, ULID>(
+    value,
+    userRepository,
+    operator,
+    eventPublisher
+),
+    UserEntity,
+    Authorizable {
     val id by proxy(root, UserData::id)
     override val userId by proxy(root, UserData::id)
     var name by proxy(root, UserData::name)
+
+    init {
+        synchronize(
+            object : PersistenceSynchronization {
+                override suspend fun beforeClear() {
+                    userScopeRepository.deleteAllByUserId(id)
+                }
+
+                override suspend fun afterClear() {
+                    contact.clear()
+                    credential.clear()
+                }
+            }
+        )
+    }
 
     private val contact = AsyncLazy {
         UserContact(
@@ -51,9 +72,7 @@ class User(
             userContactRepository,
             eventPublisher
         ).also {
-            doBeforeSync {
-                it.sync()
-            }
+            synchronize(PersistencePropagateSynchronization(it))
         }
     }
     private val credential = AsyncLazy {
@@ -62,9 +81,7 @@ class User(
             userCredentialRepository,
             eventPublisher
         ).also {
-            doBeforeSync {
-                it.sync()
-            }
+            synchronize(PersistencePropagateSynchronization(it))
         }
     }
 
@@ -137,24 +154,5 @@ class User(
             clientId = clientEntity?.clientId,
             scope = scope.toSet()
         )
-    }
-
-    override suspend fun clear() {
-        doClear {
-            operator.executeAndAwait {
-                eventPublisher.publish(BeforeDeleteEvent(this))
-                userScopeRepository.deleteAllByUserId(id)
-
-                contact.get().clear()
-                contact.clear()
-
-                credential.get().clear()
-                credential.clear()
-
-                userRepository.delete(root.raw())
-                root.clear()
-                eventPublisher.publish(AfterDeleteEvent(this))
-            }
-        }
     }
 }

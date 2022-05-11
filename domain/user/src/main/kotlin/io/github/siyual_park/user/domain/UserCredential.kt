@@ -13,7 +13,11 @@ class UserCredential(
     value: UserCredentialData,
     userCredentialRepository: UserCredentialRepository,
     eventPublisher: EventPublisher
-) : Persistence<UserCredentialData, Long>(value, userCredentialRepository, eventPublisher) {
+) : Persistence<UserCredentialData, Long>(
+    value,
+    userCredentialRepository,
+    eventPublisher = eventPublisher
+) {
     val id by proxyNotNull(root, UserCredentialData::id)
     val userId by proxy(root, UserCredentialData::userId)
 

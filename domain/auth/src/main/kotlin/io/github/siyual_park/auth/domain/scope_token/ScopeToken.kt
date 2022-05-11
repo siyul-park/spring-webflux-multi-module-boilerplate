@@ -30,7 +30,12 @@ class ScopeToken(
     private val scopeRelationRepository: ScopeRelationRepository,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
-) : Persistence<ScopeTokenData, ULID>(value, scopeTokenRepository, eventPublisher), Authorizable {
+) : Persistence<ScopeTokenData, ULID>(
+    value,
+    scopeTokenRepository,
+    eventPublisher = eventPublisher
+),
+    Authorizable {
 
     val id by proxy(root, ScopeTokenData::id)
     var name by proxy(root, ScopeTokenData::name)

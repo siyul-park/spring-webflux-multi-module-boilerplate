@@ -9,24 +9,24 @@ import io.github.siyual_park.data.repository.update
 import io.github.siyual_park.data.transaction.currentContextOrNull
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.reactor.mono
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.springframework.transaction.reactive.TransactionSynchronization
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
 import reactor.core.publisher.Mono
 import java.util.Collections
-import java.util.concurrent.ConcurrentLinkedQueue
 
 open class Persistence<T : Any, ID : Any>(
     value: T,
     private val repository: Repository<T, ID>,
-    private val eventPublisher: EventPublisher? = null
+    private val operator: TransactionalOperator? = null,
+    private val eventPublisher: EventPublisher? = null,
 ) : Permanentable {
     protected val root = LazyMutable.from(value)
 
-    private val beforeSyncTmpJobs = ConcurrentLinkedQueue<suspend () -> Unit>()
-    private val afterSyncTmpJobs = ConcurrentLinkedQueue<suspend () -> Unit>()
-
-    private val beforeSyncJobs = Collections.synchronizedList(mutableListOf<suspend () -> Unit>())
-    private val afterSyncJobs = Collections.synchronizedList(mutableListOf<suspend () -> Unit>())
-
+    private val synchronizations = Collections.synchronizedSet(mutableSetOf<PersistenceSynchronization>())
+    private val mutex = Mutex()
     private var isCleared = false
 
     private val synchronization = object : TransactionSynchronization {
@@ -43,6 +43,10 @@ open class Persistence<T : Any, ID : Any>(
         return root.raw()
     }
 
+    fun synchronize(synchronization: PersistenceSynchronization) {
+        synchronizations.add(synchronization)
+    }
+
     override suspend fun link(): Boolean {
         val context = currentContextOrNull() ?: return false
         val synchronizations = context.synchronizations ?: return false
@@ -53,36 +57,18 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     override suspend fun clear() {
-        doClear {
-            eventPublisher?.publish(BeforeDeleteEvent(this))
-            repository.delete(root.raw())
-            root.clear()
-            eventPublisher?.publish(AfterDeleteEvent(this))
-        }
-    }
-
-    override suspend fun sync(): Boolean {
-        return doSync {
-            eventPublisher?.publish(BeforeUpdateEvent(this))
-            val updated = repository.update(root.raw()) {
-                val commands = root.checkout()
-                commands.forEach { (property, command) ->
-                    property.set(it, command)
-                }
-                root.raw(it)
-            }
-            updated?.let { root.raw(it) }
-            eventPublisher?.publish(AfterUpdateEvent(this))
-
-            updated != null
-        }
-    }
-
-    protected suspend fun doClear(job: suspend () -> Unit) {
         if (!isCleared) {
             isCleared = true
             try {
-                job.invoke()
+                inTransaction {
+                    synchronizations.forEach {
+                        it.beforeClear()
+                    }
+                    runClear()
+                    synchronizations.forEach {
+                        it.afterClear()
+                    }
+                }
             } catch (exception: Exception) {
                 isCleared = false
                 throw exception
@@ -90,45 +76,53 @@ open class Persistence<T : Any, ID : Any>(
         }
     }
 
-    protected suspend fun doSync(job: suspend () -> Boolean): Boolean {
-        beforeSyncJobs.forEach {
-            it.invoke()
-        }
+    protected open suspend fun runClear() {
+        eventPublisher?.publish(BeforeDeleteEvent(this))
+        repository.delete(root.raw())
+        root.clear()
+        eventPublisher?.publish(AfterDeleteEvent(this))
+    }
 
-        while (beforeSyncTmpJobs.isNotEmpty()) {
-            beforeSyncTmpJobs.poll().invoke()
-        }
-
+    override suspend fun sync(): Boolean {
         var result = false
-        if (root.isUpdated()) {
-            result = job.invoke()
-        }
-
-        while (afterSyncTmpJobs.isNotEmpty()) {
-            afterSyncTmpJobs.poll().invoke()
-        }
-
-        afterSyncJobs.forEach {
-            it.invoke()
+        mutex.withLock {
+            if (root.isUpdated()) {
+                inTransaction {
+                    synchronizations.forEach {
+                        it.beforeSync()
+                    }
+                    result = runSync()
+                    synchronizations.forEach {
+                        it.afterSync()
+                    }
+                }
+            }
         }
 
         return result
     }
 
-    protected fun doBeforeSyncOne(job: suspend () -> Unit) {
-        this.beforeSyncTmpJobs.add(job)
+    protected open suspend fun runSync(): Boolean {
+        eventPublisher?.publish(BeforeUpdateEvent(this))
+        val updated = repository.update(root.raw()) {
+            val commands = root.checkout()
+            commands.forEach { (property, command) ->
+                property.set(it, command)
+            }
+            root.raw(it)
+        }
+        updated?.let { root.raw(it) }
+        eventPublisher?.publish(AfterUpdateEvent(this))
+
+        return updated != null
     }
 
-    protected fun doAfterSyncOne(job: suspend () -> Unit) {
-        this.beforeSyncTmpJobs.add(job)
-    }
-
-    protected fun doBeforeSync(job: suspend () -> Unit) {
-        this.beforeSyncJobs.add(job)
-    }
-
-    protected fun doAfterSync(job: suspend () -> Unit) {
-        this.beforeSyncJobs.add(job)
+    private suspend fun <U : Any> inTransaction(func: suspend () -> U): U? {
+        return if (operator == null) {
+            func()
+        } else {
+            operator.executeAndAwait { func() }
+        }
     }
 
     override fun hashCode(): Int {
