@@ -56,6 +56,8 @@ class User(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
                     userScopeRepository.deleteAllByUserId(id)
+                    contact.get().clear()
+                    credential.get().clear()
                 }
 
                 override suspend fun afterClear() {

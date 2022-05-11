@@ -60,7 +60,7 @@ open class Persistence<T : Any, ID : Any>(
         if (!isCleared) {
             isCleared = true
             try {
-                inTransaction {
+                withTransaction {
                     synchronizations.forEach {
                         it.beforeClear()
                     }
@@ -87,7 +87,7 @@ open class Persistence<T : Any, ID : Any>(
         var result = false
         mutex.withLock {
             if (root.isUpdated()) {
-                inTransaction {
+                withTransaction {
                     synchronizations.forEach {
                         it.beforeSync()
                     }
@@ -117,7 +117,7 @@ open class Persistence<T : Any, ID : Any>(
         return updated != null
     }
 
-    private suspend fun <U : Any> inTransaction(func: suspend () -> U): U? {
+    private suspend fun <U : Any> withTransaction(func: suspend () -> U): U? {
         return if (operator == null) {
             func()
         } else {
