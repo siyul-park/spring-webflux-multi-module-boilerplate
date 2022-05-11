@@ -19,7 +19,7 @@ class UserCredential(
 
     private val hashAlgorithm by proxy(root, UserCredentialData::hashAlgorithm)
 
-    fun checkPassword(password: String): Boolean {
+    fun isPassword(password: String): Boolean {
         return root[UserCredentialData::password] == encodePassword(password)
     }
 

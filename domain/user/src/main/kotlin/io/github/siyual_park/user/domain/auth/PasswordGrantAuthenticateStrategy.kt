@@ -22,7 +22,7 @@ class PasswordGrantAuthenticateStrategy(
         val credential = user.getCredential()
         val client = payload.clientId?.let { clientStorage.loadOrFail(it) }
 
-        if (!credential.checkPassword(payload.password)) {
+        if (!credential.isPassword(payload.password)) {
             throw IncorrectPasswordException()
         }
 
