@@ -1,6 +1,8 @@
 package io.github.siyual_park.data.repository.cache
 
 interface Storage<T : Any, ID : Any> {
+    val idExtractor: Extractor<T, ID>
+
     fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>)
     fun removeIndex(name: String)
     fun containsIndex(name: String): Boolean

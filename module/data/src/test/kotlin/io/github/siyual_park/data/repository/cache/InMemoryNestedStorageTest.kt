@@ -16,12 +16,14 @@ class InMemoryNestedStorageTest : DataTestHelper() {
     private val personRepository = SimpleR2DBCRepository<Person, ULID>(entityOperations, Person::class)
 
     private val storage = InMemoryNestedStorage(
-        CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
-        object : Extractor<Person, ULID> {
-            override fun getKey(entity: Person): ULID {
-                return entity.id
+        InMemoryStorage(
+            CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+            object : Extractor<Person, ULID> {
+                override fun getKey(entity: Person): ULID {
+                    return entity.id
+                }
             }
-        }
+        )
     ).also {
         it.createIndex(
             "name",

@@ -6,9 +6,10 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class InMemoryNestedStorageNode<T : Any, ID : Any>(
-    private val idExtractor: Extractor<T, ID>,
     override val parent: NestedStorage<T, ID>
 ) : NestedStorage<T, ID> {
+    override val idExtractor = parent.idExtractor
+
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
     private val extractors = Maps.newConcurrentMap<String, Extractor<T, *>>()
 
@@ -21,7 +22,6 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
 
     override fun fork(): NestedStorage<T, ID> {
         return InMemoryNestedStorageNode(
-            idExtractor,
             this
         ).also {
             getExtractors().forEach { (name, extractor) ->

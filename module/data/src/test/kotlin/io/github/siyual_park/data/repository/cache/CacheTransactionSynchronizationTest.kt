@@ -65,12 +65,14 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
         reactiveChainedTransactionManager.registerTransactionManager(reactiveTransactionManager)
 
         val storage = InMemoryNestedStorage(
-            CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
-            object : Extractor<Person, ULID> {
-                override fun getKey(entity: Person): ULID {
-                    return entity.id
+            InMemoryStorage(
+                CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+                object : Extractor<Person, ULID> {
+                    override fun getKey(entity: Person): ULID {
+                        return entity.id
+                    }
                 }
-            }
+            )
         )
 
         transactionalOperator.executeAndAwait {

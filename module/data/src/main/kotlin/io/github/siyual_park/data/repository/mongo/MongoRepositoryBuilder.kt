@@ -3,6 +3,7 @@ package io.github.siyual_park.data.repository.mongo
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
+import io.github.siyual_park.data.repository.cache.InMemoryStorage
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.annotation.Id
@@ -41,15 +42,18 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
 
         return if (cacheBuilder != null) {
             val idExtractor = createIdExtractor(current)
-
-            CachedMongoRepository(
-                current,
-                TransactionalStorageManager(
-                    InMemoryNestedStorage(
+            val transactionalStorageManager = TransactionalStorageManager(
+                InMemoryNestedStorage(
+                    InMemoryStorage(
                         cacheBuilder as CacheBuilder<ID, T>,
                         idExtractor
                     )
-                ),
+                )
+            )
+
+            CachedMongoRepository(
+                current,
+                transactionalStorageManager,
                 idExtractor,
             )
         } else {
