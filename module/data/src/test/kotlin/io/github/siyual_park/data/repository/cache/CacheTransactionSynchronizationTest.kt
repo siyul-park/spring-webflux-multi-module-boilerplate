@@ -32,13 +32,13 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun getOrPut() {
+    fun put() {
         val cacheTransactionSynchronization = CacheTransactionSynchronization<Any, Any>()
         val transactionContext = mockk<TransactionContext>()
         val storage = mockk<NestedStorage<Any, Any>>()
 
         assertEquals(null, cacheTransactionSynchronization.get(transactionContext))
-        assertEquals(storage, cacheTransactionSynchronization.getOrPut(transactionContext) { storage })
+        cacheTransactionSynchronization.put(transactionContext, storage)
         assertEquals(storage, cacheTransactionSynchronization.get(transactionContext))
     }
 
@@ -65,16 +65,18 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
         reactiveChainedTransactionManager.registerTransactionManager(reactiveTransactionManager)
 
         val storage = InMemoryNestedStorage(
-            CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
-            object : Extractor<Person, ULID> {
-                override fun getKey(entity: Person): ULID {
-                    return entity.id
+            InMemoryStorage(
+                CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+                object : Extractor<Person, ULID> {
+                    override fun getKey(entity: Person): ULID {
+                        return entity.id
+                    }
                 }
-            }
+            )
         )
 
         transactionalOperator.executeAndAwait {
-            val child = cacheTransactionSynchronization.getOrPut(currentContextOrNull()!!) { storage.fork() }
+            val child = storage.fork().also { cacheTransactionSynchronization.put(currentContextOrNull()!!, it) }
             val person = DummyPerson.create()
 
             assertNull(child.getIfPresent(person.id))
@@ -94,7 +96,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
         }
 
         transactionalOperator.executeAndAwait {
-            val child = cacheTransactionSynchronization.getOrPut(currentContextOrNull()!!) { storage.fork() }
+            val child = storage.fork().also { cacheTransactionSynchronization.put(currentContextOrNull()!!, it) }
             val person = DummyPerson.create()
 
             assertNull(child.getIfPresent(person.id))

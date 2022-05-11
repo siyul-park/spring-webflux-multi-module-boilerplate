@@ -1,27 +1,25 @@
 package io.github.siyual_park.data.repository.cache
 
 import com.google.common.cache.CacheBuilder
+import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
-import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
-import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
-import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 @Suppress("UNCHECKED_CAST")
-class InMemoryNestedStorageTest : DataTestHelper() {
-    private val personRepository = SimpleR2DBCRepository<Person, ULID>(entityOperations, Person::class)
-
+class InMemoryNestedStorageTest : CoroutineTestHelper() {
     private val storage = InMemoryNestedStorage(
-        CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
-        object : Extractor<Person, ULID> {
-            override fun getKey(entity: Person): ULID {
-                return entity.id
+        InMemoryStorage(
+            CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+            object : Extractor<Person, ULID> {
+                override fun getKey(entity: Person): ULID {
+                    return entity.id
+                }
             }
-        }
+        )
     ).also {
         it.createIndex(
             "name",
@@ -33,15 +31,13 @@ class InMemoryNestedStorageTest : DataTestHelper() {
         )
     }
 
-    init {
-        migrationManager.register(CreatePerson(entityOperations))
-    }
-
     @BeforeEach
     override fun setUp() {
         super.setUp()
 
-        storage.clear()
+        blocking {
+            storage.clear()
+        }
     }
 
     @Test
@@ -50,7 +46,6 @@ class InMemoryNestedStorageTest : DataTestHelper() {
         val child2 = child1.fork()
 
         val person = DummyPerson.create()
-            .let { personRepository.create(it) }
 
         child2.put(person)
 
@@ -92,7 +87,6 @@ class InMemoryNestedStorageTest : DataTestHelper() {
         val child2 = child1.fork()
 
         val person = DummyPerson.create()
-            .let { personRepository.create(it) }
 
         storage.put(person)
 

@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import kotlin.reflect.KProperty1
 
+@Suppress("UNCHECKED_CAST")
 class UpdateTimestamp : EventConsumer<BeforeUpdateEvent<*>> {
     override suspend fun consume(event: BeforeUpdateEvent<*>) {
         val entity = event.entity

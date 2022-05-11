@@ -3,6 +3,7 @@ package io.github.siyual_park.data.repository.r2dbc
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
+import io.github.siyual_park.data.repository.cache.InMemoryStorage
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
@@ -37,15 +38,18 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
 
         return if (cacheBuilder != null) {
             val idExtractor = createIdExtractor(current)
-
-            CachedR2DBCRepository(
-                current,
-                TransactionalStorageManager(
-                    InMemoryNestedStorage(
+            val transactionalStorageManager = TransactionalStorageManager(
+                InMemoryNestedStorage(
+                    InMemoryStorage(
                         cacheBuilder as CacheBuilder<ID, T>,
                         idExtractor
                     )
-                ),
+                )
+            )
+
+            CachedR2DBCRepository(
+                current,
+                transactionalStorageManager,
                 idExtractor,
             )
         } else {

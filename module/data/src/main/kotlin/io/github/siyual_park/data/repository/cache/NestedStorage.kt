@@ -5,6 +5,6 @@ interface NestedStorage<T : Any, ID : Any> : Storage<T, ID> {
 
     fun diff(): Pair<Set<T>, Set<ID>>
 
-    fun fork(): NestedStorage<T, ID>
-    fun merge(storage: NestedStorage<T, ID>)
+    suspend fun fork(): NestedStorage<T, ID>
+    suspend fun merge(storage: NestedStorage<T, ID>)
 }

@@ -6,9 +6,10 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class InMemoryNestedStorageNode<T : Any, ID : Any>(
-    private val idExtractor: Extractor<T, ID>,
     override val parent: NestedStorage<T, ID>
 ) : NestedStorage<T, ID> {
+    override val idExtractor = parent.idExtractor
+
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
     private val extractors = Maps.newConcurrentMap<String, Extractor<T, *>>()
 
@@ -19,9 +20,8 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         return data.values.toSet() to forceRemoved.toSet()
     }
 
-    override fun fork(): NestedStorage<T, ID> {
+    override suspend fun fork(): NestedStorage<T, ID> {
         return InMemoryNestedStorageNode(
-            idExtractor,
             this
         ).also {
             getExtractors().forEach { (name, extractor) ->
@@ -30,7 +30,7 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         }
     }
 
-    override fun merge(storage: NestedStorage<T, ID>) {
+    override suspend fun merge(storage: NestedStorage<T, ID>) {
         val (created, removed) = storage.diff()
         storage.clear()
 
@@ -60,8 +60,8 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         return indexes.keys.contains(name)
     }
 
-    override fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
-        val fallback = {
+    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
+        val fallback = suspend {
             parent.getIfPresent(index, key)
                 ?.let {
                     val id = idExtractor.getKey(it)
@@ -79,7 +79,7 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         return getIfPresent(id)
     }
 
-    override fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: () -> T?): T? {
+    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
         val indexMap = getIndex(index)
         val id = indexMap[key]
 
@@ -98,36 +98,12 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun <KEY : Any> getIfPresentAsync(index: String, key: KEY, loader: suspend () -> T?): T? {
-        val indexMap = getIndex(index)
-        val id = indexMap[key]
-
-        return if (id == null) {
-            (parent.getIfPresent(index, key) ?: loader()?.also { put(it) })
-                ?.let {
-                    val id = idExtractor.getKey(it)
-                    if (!forceRemoved.contains(id)) {
-                        it
-                    } else {
-                        null
-                    }
-                }
-        } else {
-            getIfPresentAsync(id, loader)
-        }
-    }
-
-    override fun getIfPresent(id: ID, loader: () -> T?): T? {
+    override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
         return getIfPresent(id)
             ?: loader()?.also { put(it) }
     }
 
-    override suspend fun getIfPresentAsync(id: ID, loader: suspend () -> T?): T? {
-        return getIfPresent(id)
-            ?: loader()?.also { put(it) }
-    }
-
-    override fun getIfPresent(id: ID): T? {
+    override suspend fun getIfPresent(id: ID): T? {
         return data[id] ?: if (!forceRemoved.contains(id)) {
             parent.getIfPresent(id)
         } else {
@@ -135,7 +111,7 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         }
     }
 
-    override fun remove(id: ID) {
+    override suspend fun remove(id: ID) {
         data[id]?.let { entity ->
             indexes.forEach { (name, index) ->
                 val extractor = extractors[name] ?: return@forEach
@@ -146,11 +122,11 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         forceRemoved.add(id)
     }
 
-    override fun delete(entity: T) {
+    override suspend fun delete(entity: T) {
         idExtractor.getKey(entity)?.let { remove(it) }
     }
 
-    override fun put(entity: T) {
+    override suspend fun put(entity: T) {
         val id = idExtractor.getKey(entity) ?: return
         data[id] = entity
         forceRemoved.remove(id)
@@ -166,7 +142,7 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         }
     }
 
-    override fun clear() {
+    override suspend fun clear() {
         data.clear()
         forceRemoved.clear()
         indexes.forEach { (_, index) -> index.run { clear() } }
