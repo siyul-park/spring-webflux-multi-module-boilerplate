@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -110,6 +111,9 @@ class TokenTest : DataTestHelper() {
 
         token[key] = value
         assertEquals(value, token[key])
+
+        token[key] = null
+        assertNull(token[key])
     }
 
     @Test
