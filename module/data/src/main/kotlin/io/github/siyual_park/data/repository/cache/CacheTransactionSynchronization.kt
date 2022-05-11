@@ -21,8 +21,8 @@ class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchroniz
         return storages[context]
     }
 
-    fun getOrPut(context: TransactionContext, defaultValue: () -> NestedStorage<T, ID>): NestedStorage<T, ID> {
-        return storages.getOrPut(context, defaultValue)
+    fun put(context: TransactionContext, defaultValue: NestedStorage<T, ID>) {
+        storages[context] = defaultValue
     }
 
     override fun afterCompletion(status: Int): Mono<Void> {

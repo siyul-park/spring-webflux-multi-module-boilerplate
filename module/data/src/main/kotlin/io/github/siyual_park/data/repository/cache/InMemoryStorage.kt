@@ -46,32 +46,14 @@ class InMemoryStorage<T : Any, ID : Any>(
         return indexes.keys.contains(name)
     }
 
-    override fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
+    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
         val indexMap = indexes[index] ?: return null
         val id = indexMap[key] ?: return null
 
         return getIfPresent(id)
     }
 
-    override fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: () -> T?): T? {
-        val indexMap = getIndex(index)
-        val id = indexMap[key]
-
-        return if (id == null) {
-            val entity = loader()
-            if (entity == null) {
-                null
-            } else {
-                idExtractor.getKey(entity)?.let {
-                    getIfPresent(it) { entity }
-                }
-            }
-        } else {
-            getIfPresent(id, loader)
-        }
-    }
-
-    override suspend fun <KEY : Any> getIfPresentAsync(index: String, key: KEY, loader: suspend () -> T?): T? {
+    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
         val indexMap = getIndex(index)
         val id = indexMap[key]
 
@@ -85,20 +67,15 @@ class InMemoryStorage<T : Any, ID : Any>(
                 }
             }
         } else {
-            getIfPresentAsync(id, loader)
+            getIfPresent(id, loader)
         }
     }
 
-    override fun getIfPresent(id: ID): T? {
+    override suspend fun getIfPresent(id: ID): T? {
         return cache.getIfPresent(id)
     }
 
-    override fun getIfPresent(id: ID, loader: () -> T?): T? {
-        return cache.getIfPresent(id)
-            ?: loader()?.also { put(it) }
-    }
-
-    override suspend fun getIfPresentAsync(id: ID, loader: suspend () -> T?): T? {
+    override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
         val existed = cache.getIfPresent(id)
         if (existed != null) {
             return existed
@@ -114,15 +91,15 @@ class InMemoryStorage<T : Any, ID : Any>(
         }
     }
 
-    override fun remove(id: ID) {
+    override suspend fun remove(id: ID) {
         cache.invalidate(id)
     }
 
-    override fun delete(entity: T) {
+    override suspend fun delete(entity: T) {
         idExtractor.getKey(entity)?.let { remove(it) }
     }
 
-    override fun put(entity: T) {
+    override suspend fun put(entity: T) {
         val id = idExtractor.getKey(entity) ?: return
         cache.put(id, entity)
 
@@ -137,7 +114,7 @@ class InMemoryStorage<T : Any, ID : Any>(
         }
     }
 
-    override fun clear() {
+    override suspend fun clear() {
         cache.invalidateAll()
         indexes.forEach { (_, index) -> index.run { clear() } }
     }

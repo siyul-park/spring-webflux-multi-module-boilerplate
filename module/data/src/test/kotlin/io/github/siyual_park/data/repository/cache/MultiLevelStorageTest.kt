@@ -60,7 +60,7 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun getIfPresent() {
+    fun getIfPresent() = blocking {
         val nameIndex = object : Extractor<Person, String> {
             override fun getKey(entity: Person): String {
                 return entity.name
@@ -90,29 +90,7 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun getIfPresentAsync() = blocking {
-        val nameIndex = object : Extractor<Person, String> {
-            override fun getKey(entity: Person): String {
-                return entity.name
-            }
-        }
-        storage.createIndex("name", nameIndex)
-
-        val person = DummyPerson.create()
-
-        assertNotNull(storage.getIfPresentAsync(person.id) { person })
-        storage.put(person)
-        assertNotNull(storage.getIfPresentAsync(person.id) { person })
-
-        storage.delete(person)
-        assertNotNull(storage.getIfPresentAsync("name", person.name) { person })
-        storage.delete(person)
-
-        storage.removeIndex("name")
-    }
-
-    @Test
-    fun remove() {
+    fun remove() = blocking {
         val person = DummyPerson.create()
 
         storage.put(person)
@@ -124,7 +102,7 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun delete() {
+    fun delete() = blocking {
         val person = DummyPerson.create()
 
         storage.put(person)
@@ -136,7 +114,7 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun put() {
+    fun put() = blocking {
         val person = DummyPerson.create()
 
         storage.put(person)
@@ -146,7 +124,7 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun clear() {
+    fun clear() = blocking {
         val person = DummyPerson.create()
 
         storage.put(person)

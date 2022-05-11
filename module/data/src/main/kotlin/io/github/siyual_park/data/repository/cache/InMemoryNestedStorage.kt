@@ -10,7 +10,7 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
         return setOf<T>() to setOf()
     }
 
-    override fun fork(): NestedStorage<T, ID> {
+    override suspend fun fork(): NestedStorage<T, ID> {
         return InMemoryNestedStorageNode(
             this
         ).also {
@@ -20,7 +20,7 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
         }
     }
 
-    override fun merge(storage: NestedStorage<T, ID>) {
+    override suspend fun merge(storage: NestedStorage<T, ID>) {
         val (created, removed) = storage.diff()
         storage.clear()
 

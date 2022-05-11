@@ -25,8 +25,10 @@ class TransactionalStorageManager<T : Any, ID : Any>(
             var storage = root
             while (chains.isNotEmpty()) {
                 current = chains.pop()
-                storage = cacheTransactionSynchronization.getOrPut(current) {
+
+                storage = cacheTransactionSynchronization.get(current) ?: run {
                     val child = storage.fork()
+                    cacheTransactionSynchronization.put(current, child)
                     logger.debug("Forked Cache Storage [parent: $storage, child: $child]")
                     child
                 }

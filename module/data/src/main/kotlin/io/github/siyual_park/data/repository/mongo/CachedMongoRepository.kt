@@ -66,7 +66,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
         }
 
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
-        return storage.getIfPresentAsync(indexName, value) { delegator.findOne(criteria) }
+        return storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -82,7 +82,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
                 val indexNameAndValue = getIndexNameAndValue(criteria)
                 if (indexNameAndValue != null) {
                     val (indexName, value) = indexNameAndValue
-                    storage.getIfPresentAsync(indexName, value) { delegator.findOne(criteria) }
+                    storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
                         ?.let { emit(it) }
                     return@flow
                 }

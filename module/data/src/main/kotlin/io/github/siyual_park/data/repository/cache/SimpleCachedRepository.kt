@@ -58,7 +58,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
 
     override suspend fun findById(id: ID): T? {
         val storage = storageManager.getCurrent()
-        return storage.getIfPresentAsync(id) { delegator.findById(id) }
+        return storage.getIfPresent(id) { delegator.findById(id) }
     }
 
     override fun findAll(): Flow<T> {

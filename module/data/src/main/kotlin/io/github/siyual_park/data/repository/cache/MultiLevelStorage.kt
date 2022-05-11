@@ -35,7 +35,7 @@ class MultiLevelStorage<T : Any, ID : Any>(
         return rootStorage().getExtractors()
     }
 
-    override fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
+    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
         for (storage in Reversed(storages)) {
             val value = storage.getIfPresent(index, key)
             if (value != null) {
@@ -46,7 +46,7 @@ class MultiLevelStorage<T : Any, ID : Any>(
         return null
     }
 
-    override fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: () -> T?): T? {
+    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
         val value = getIfPresent(index, key)
         if (value != null) {
             return value
@@ -55,16 +55,7 @@ class MultiLevelStorage<T : Any, ID : Any>(
         return loader()?.also { put(it) }
     }
 
-    override suspend fun <KEY : Any> getIfPresentAsync(index: String, key: KEY, loader: suspend () -> T?): T? {
-        val value = getIfPresent(index, key)
-        if (value != null) {
-            return value
-        }
-
-        return loader()?.also { put(it) }
-    }
-
-    override fun getIfPresent(id: ID): T? {
+    override suspend fun getIfPresent(id: ID): T? {
         for (storage in Reversed(storages)) {
             val value = storage.getIfPresent(id)
             if (value != null) {
@@ -75,7 +66,7 @@ class MultiLevelStorage<T : Any, ID : Any>(
         return null
     }
 
-    override fun getIfPresent(id: ID, loader: () -> T?): T? {
+    override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
         val value = getIfPresent(id)
         if (value != null) {
             return value
@@ -84,34 +75,25 @@ class MultiLevelStorage<T : Any, ID : Any>(
         return loader()?.also { put(it) }
     }
 
-    override suspend fun getIfPresentAsync(id: ID, loader: suspend () -> T?): T? {
-        val value = getIfPresent(id)
-        if (value != null) {
-            return value
-        }
-
-        return loader()?.also { put(it) }
-    }
-
-    override fun remove(id: ID) {
+    override suspend fun remove(id: ID) {
         for (storage in Reversed(storages)) {
             storage.remove(id)
         }
     }
 
-    override fun delete(entity: T) {
+    override suspend fun delete(entity: T) {
         for (storage in Reversed(storages)) {
             storage.delete(entity)
         }
     }
 
-    override fun put(entity: T) {
+    override suspend fun put(entity: T) {
         for (storage in Reversed(storages)) {
             storage.put(entity)
         }
     }
 
-    override fun clear() {
+    override suspend fun clear() {
         for (storage in Reversed(storages)) {
             storage.clear()
         }

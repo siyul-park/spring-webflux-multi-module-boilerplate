@@ -35,7 +35,9 @@ class InMemoryNestedStorageTest : CoroutineTestHelper() {
     override fun setUp() {
         super.setUp()
 
-        storage.clear()
+        blocking {
+            storage.clear()
+        }
     }
 
     @Test
