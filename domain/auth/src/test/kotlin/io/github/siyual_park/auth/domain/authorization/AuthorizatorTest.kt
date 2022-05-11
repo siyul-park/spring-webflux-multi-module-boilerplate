@@ -39,10 +39,12 @@ class AuthorizatorTest : DataTestHelper() {
 
     private val authorizator = Authorizator(scopeTokenStorage)
 
+    init {
+        authorizator.register(AllowAllAuthorizeFilter(), PrincipalHasScopeAuthorizeStrategy())
+    }
+
     @Test
     fun authorize() = blocking {
-        authorizator.register(AllowAllAuthorizeFilter(), PrincipalHasScopeAuthorizeStrategy())
-
         val scopeToken1 = DummyCreateScopeTokenPayload.create()
             .let { scopeTokenFactory.create(it) }
         val scopeToken2 = DummyCreateScopeTokenPayload.create()
