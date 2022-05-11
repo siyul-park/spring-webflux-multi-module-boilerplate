@@ -5,6 +5,7 @@ import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.repository.cache.CacheTransactionSynchronization
 import io.github.siyual_park.data.repository.cache.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
+import io.github.siyual_park.data.repository.cache.InMemoryStorage
 import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.ulid.ULID
@@ -17,12 +18,14 @@ import org.springframework.transaction.reactive.TransactionContextManager
 @Suppress("UNCHECKED_CAST")
 class CachedTransactionStorageManagerTest : DataTestHelper() {
     private val storage = InMemoryNestedStorage(
-        CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
-        object : Extractor<Person, ULID> {
-            override fun getKey(entity: Person): ULID {
-                return entity.id
+        InMemoryStorage(
+            CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+            object : Extractor<Person, ULID> {
+                override fun getKey(entity: Person): ULID {
+                    return entity.id
+                }
             }
-        }
+        )
     )
     private val cacheTransactionSynchronization = CacheTransactionSynchronization<Person, ULID>()
     private val manager = TransactionalStorageManager(storage, cacheTransactionSynchronization)
