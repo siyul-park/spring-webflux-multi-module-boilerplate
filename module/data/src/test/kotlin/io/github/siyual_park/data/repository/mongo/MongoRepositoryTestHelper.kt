@@ -9,6 +9,7 @@ import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -24,6 +25,14 @@ abstract class MongoRepositoryTestHelper(
 
     init {
         migrationManager.register(CreatePerson(mongoTemplate))
+    }
+
+    @Test
+    fun existsByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        assertTrue(personRepository.exists(where(Person::name).`is`(person.name)))
     }
 
     @Test
@@ -78,14 +87,6 @@ abstract class MongoRepositoryTestHelper(
     }
 
     @Test
-    fun existsByName() = parameterized { personRepository ->
-        val person = DummyPerson.create()
-            .let { personRepository.create(it) }
-
-        assertTrue(personRepository.exists(where(Person::name).`is`(person.name)))
-    }
-
-    @Test
     fun updateByName() = parameterized { personRepository ->
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
@@ -134,6 +135,23 @@ abstract class MongoRepositoryTestHelper(
         assertEquals(patch.name, updatedPerson.name)
         assertEquals(person.age, updatedPerson.age)
         assertNotNull(updatedPerson.updatedAt)
+    }
+
+    @Test
+    fun countByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        assertEquals(1, personRepository.count(where(Person::name).`is`(person.name)))
+    }
+
+    @Test
+    fun deleteAllByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        personRepository.deleteAll(where(Person::name).`is`(person.name))
+        Assertions.assertFalse(personRepository.existsById(person.id))
     }
 
     companion object {

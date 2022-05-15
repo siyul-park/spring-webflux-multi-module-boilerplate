@@ -23,6 +23,14 @@ abstract class R2DBCRepositoryTestHelper(
     }
 
     @Test
+    fun existsByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        assertTrue(personRepository.exists(where(Person::name).`is`(person.name)))
+    }
+
+    @Test
     fun findAllCustomQuery() = parameterized { personRepository ->
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
@@ -79,14 +87,6 @@ abstract class R2DBCRepositoryTestHelper(
 
         assertEquals(person.name, foundPerson.name)
         assertEquals(person.age, foundPerson.age)
-    }
-
-    @Test
-    fun existsByName() = parameterized { personRepository ->
-        val person = DummyPerson.create()
-            .let { personRepository.create(it) }
-
-        assertTrue(personRepository.exists(where(Person::name).`is`(person.name)))
     }
 
     @Test
