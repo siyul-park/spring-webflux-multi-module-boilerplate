@@ -131,6 +131,23 @@ abstract class R2DBCRepositoryTestHelper(
     }
 
     @Test
+    fun countByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        assertEquals(1, personRepository.count(where(Person::name).`is`(person.name)))
+    }
+
+    @Test
+    fun deleteAllByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        personRepository.deleteAll(where(Person::name).`is`(person.name))
+        assertFalse(personRepository.existsById(person.id))
+    }
+
+    @Test
     fun transactionCommit() = parameterized { personRepository ->
         var person: Person? = null
 
