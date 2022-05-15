@@ -45,7 +45,6 @@ class ScopeToken(
             override suspend fun beforeClear() {
                 scopeRelationRepository.deleteAllByChildId(id)
                 scopeRelationRepository.deleteAllByParentId(id)
-                scopeTokenRepository.delete(root.raw())
             }
         })
     }
