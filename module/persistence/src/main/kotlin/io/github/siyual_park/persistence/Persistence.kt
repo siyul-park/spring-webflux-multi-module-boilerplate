@@ -22,7 +22,7 @@ open class Persistence<T : Any, ID : Any>(
     private val repository: Repository<T, ID>,
     private val operator: TransactionalOperator? = null,
     private val eventPublisher: EventPublisher? = null,
-) : Permanentable {
+) {
     protected val root = LazyMutable.from(value)
 
     private val synchronizations = Collections.synchronizedSet(mutableSetOf<PersistenceSynchronization>())
@@ -47,7 +47,7 @@ open class Persistence<T : Any, ID : Any>(
         synchronizations.add(synchronization)
     }
 
-    override suspend fun link(): Boolean {
+    suspend fun link(): Boolean {
         val context = currentContextOrNull() ?: return false
         val synchronizations = context.synchronizations ?: return false
 
@@ -56,7 +56,7 @@ open class Persistence<T : Any, ID : Any>(
         return true
     }
 
-    override suspend fun clear() {
+    suspend fun clear() {
         if (isCleared) {
             return
         }
@@ -90,7 +90,7 @@ open class Persistence<T : Any, ID : Any>(
         root.clear()
     }
 
-    override suspend fun sync(): Boolean {
+    suspend fun sync(): Boolean {
         var result = false
         if (!root.isUpdated()) {
             return result

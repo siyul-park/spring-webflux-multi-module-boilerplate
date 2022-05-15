@@ -1,21 +1,17 @@
 package io.github.siyual_park.persistence
 
-import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class AsyncLazy<T : Any>(
     private val loader: suspend () -> T
 ) {
     private var value: T? = null
-    private val semaphore = Semaphore(1)
+    private val mutex = Mutex()
 
     suspend fun get(): T {
         return this.value
-            ?: try {
-                semaphore.acquire()
-                this.value ?: loader().also { this.value = it }
-            } finally {
-                semaphore.release()
-            }
+            ?: mutex.withLock { this.value ?: loader().also { this.value = it } }
     }
 
     fun clear() {
