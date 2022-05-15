@@ -4,7 +4,8 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.Maps
 import io.github.siyual_park.data.repository.Extractor
-import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
@@ -14,7 +15,7 @@ class InMemoryStorage<T : Any, ID : Any>(
 ) : Storage<T, ID> {
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
     private val extractors = Maps.newConcurrentMap<String, Extractor<T, *>>()
-    private val semaphores = Maps.newConcurrentMap<ID, Semaphore>()
+    private val mutexes = Maps.newConcurrentMap<ID, Mutex>()
 
     private val cache: Cache<ID, T> = cacheBuilder
         .removalListener<ID, T> {
@@ -25,7 +26,7 @@ class InMemoryStorage<T : Any, ID : Any>(
                 }
             }
             it.key?.let { id ->
-                semaphores.remove(id)
+                mutexes.remove(id)
             }
         }.build()
 
@@ -82,13 +83,10 @@ class InMemoryStorage<T : Any, ID : Any>(
             return existed
         }
 
-        val semaphore = semaphores.getOrPut(id) { Semaphore(1) }
-        semaphore.acquire()
-        return try {
+        val mutex = mutexes.getOrPut(id) { Mutex() }
+        return mutex.withLock {
             cache.getIfPresent(id)
                 ?: loader()?.also { put(it) }
-        } finally {
-            semaphore.release()
         }
     }
 

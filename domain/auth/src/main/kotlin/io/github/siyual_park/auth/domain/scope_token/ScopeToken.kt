@@ -5,13 +5,12 @@ import io.github.siyual_park.auth.entity.ScopeRelationData
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.data.event.AfterDeleteEvent
-import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.data.transaction.currentContextOrNull
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
+import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +20,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 import java.util.Collections
 
 class ScopeToken(
@@ -33,6 +31,7 @@ class ScopeToken(
 ) : Persistence<ScopeTokenData, ULID>(
     value,
     scopeTokenRepository,
+    operator = operator,
     eventPublisher = eventPublisher
 ),
     Authorizable {
@@ -40,6 +39,15 @@ class ScopeToken(
     val id by proxy(root, ScopeTokenData::id)
     var name by proxy(root, ScopeTokenData::name)
     var description by proxy(root, ScopeTokenData::description)
+
+    init {
+        synchronize(object : PersistenceSynchronization {
+            override suspend fun beforeClear() {
+                scopeRelationRepository.deleteAllByChildId(id)
+                scopeRelationRepository.deleteAllByParentId(id)
+            }
+        })
+    }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
         if (id == scopeToken.id) {
@@ -128,16 +136,5 @@ class ScopeToken(
 
     fun isSystem(): Boolean {
         return root[ScopeTokenData::system]
-    }
-
-    override suspend fun clear() {
-        operator.executeAndAwait {
-            eventPublisher.publish(BeforeDeleteEvent(this))
-            scopeRelationRepository.deleteAllByChildId(id)
-            scopeRelationRepository.deleteAllByParentId(id)
-            scopeTokenRepository.delete(root.raw())
-            root.clear()
-            eventPublisher.publish(AfterDeleteEvent(this))
-        }
     }
 }
