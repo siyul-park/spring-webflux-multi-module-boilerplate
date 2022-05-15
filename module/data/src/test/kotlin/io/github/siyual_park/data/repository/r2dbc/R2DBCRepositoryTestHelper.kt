@@ -2,8 +2,8 @@ package io.github.siyual_park.data.repository.r2dbc
 
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
+import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.RepositoryTestHelper
-import io.github.siyual_park.data.repository.mongo.updateOrFail
 import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
@@ -102,6 +102,28 @@ abstract class R2DBCRepositoryTestHelper(
             it.age = patch.age
         }
 
+        assertEquals(person.id, updatedPerson.id)
+        assertEquals(patch.name, updatedPerson.name)
+        assertEquals(patch.age, updatedPerson.age)
+        assertNotNull(updatedPerson.updatedAt)
+    }
+
+    @Test
+    fun updateAllByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+        val patch = DummyPerson.create()
+
+        val updatedPersons = personRepository.updateAll(
+            where(Person::name).`is`(person.name),
+            Patch.with {
+                it.name = patch.name
+                it.age = patch.age
+            }
+        ).toList()
+
+        assertEquals(1, updatedPersons.size)
+        val updatedPerson = updatedPersons[0]
         assertEquals(person.id, updatedPerson.id)
         assertEquals(patch.name, updatedPerson.name)
         assertEquals(patch.age, updatedPerson.age)
