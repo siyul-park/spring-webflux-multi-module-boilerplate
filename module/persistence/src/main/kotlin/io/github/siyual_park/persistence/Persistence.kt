@@ -92,20 +92,16 @@ open class Persistence<T : Any, ID : Any>(
 
     suspend fun sync(): Boolean {
         var result = false
-        if (!root.isUpdated()) {
-            return result
-        }
         mutex.withLock {
-            if (!root.isUpdated()) {
-                return@withLock
-            }
             withTransaction {
                 synchronizations.forEach {
                     it.beforeSync()
                 }
-                eventPublisher?.publish(BeforeUpdateEvent(this))
-                result = runSync()
-                eventPublisher?.publish(AfterUpdateEvent(this))
+                if (root.isUpdated()) {
+                    eventPublisher?.publish(BeforeUpdateEvent(this))
+                    result = runSync()
+                    eventPublisher?.publish(AfterUpdateEvent(this))
+                }
                 synchronizations.forEach {
                     it.afterSync()
                 }
