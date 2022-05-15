@@ -171,7 +171,6 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
         assertEquals(person2.age, updatedPerson.age)
     }
 
-
     @Test
     fun update() = parameterized { personRepository ->
         val person = DummyPerson.create()
