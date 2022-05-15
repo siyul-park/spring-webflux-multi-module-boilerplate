@@ -4,10 +4,6 @@ on:
   workflow_run:
     workflows:
       - check
-    branches:
-      - master
-      - release
-      - develop
     types:
       - completed
 
