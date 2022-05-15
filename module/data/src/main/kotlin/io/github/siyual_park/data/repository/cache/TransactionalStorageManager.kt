@@ -22,6 +22,11 @@ class TransactionalStorageManager<T : Any, ID : Any>(
             val synchronizations = context.synchronizations ?: return root
             synchronizations.add(cacheTransactionSynchronization)
 
+            val currentStorage = cacheTransactionSynchronization.get(context)
+            if (currentStorage != null) {
+                return currentStorage
+            }
+
             val chains = chains(context)
 
             var current: TransactionContext?
