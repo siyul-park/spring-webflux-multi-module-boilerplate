@@ -138,8 +138,10 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     override fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
         return flow {
             val storage = storageManager.getCurrent()
-            delegator.updateAllById(ids, patch)
-                .onEach { it?.let { storage.put(it) } }
+            emitAll(
+                delegator.updateAllById(ids, patch)
+                    .onEach { it?.let { storage.put(it) } }
+            )
         }
     }
 

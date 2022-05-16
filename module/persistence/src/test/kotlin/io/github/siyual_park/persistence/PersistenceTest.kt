@@ -12,6 +12,7 @@ import io.github.siyual_park.persistence.entity.PersonData
 import io.github.siyual_park.persistence.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.transaction.reactive.executeAndAwait
@@ -23,7 +24,7 @@ class PersistenceTest : DataTestHelper() {
     }
 
     @Test
-    fun testSync() = parameterized { personRepository ->
+    fun sync() = parameterized { personRepository ->
         val originPerson = DummyPerson.create()
         val person = personRepository.create(originPerson)
             .let { Person(it, personRepository) }
@@ -58,7 +59,7 @@ class PersistenceTest : DataTestHelper() {
     }
 
     @Test
-    fun testLink() = blocking {
+    fun link() = blocking {
         repositories().forEach { personRepository ->
             val person = DummyPerson.create()
                 .let { personRepository.create(it) }
@@ -77,6 +78,17 @@ class PersistenceTest : DataTestHelper() {
             assertEquals(updatedPerson.name, oldPerson.name)
             assertEquals(updatedPerson.age, oldPerson.age)
         }
+    }
+
+    @Test
+    fun clear() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+            .let { Person(it, personRepository) }
+
+        assertTrue(personRepository.existsById(person.id))
+        person.clear()
+        assertFalse(personRepository.existsById(person.id))
     }
 
     private fun parameterized(func: suspend (R2DBCRepository<PersonData, ULID>) -> Unit) {

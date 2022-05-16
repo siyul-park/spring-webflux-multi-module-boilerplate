@@ -2,8 +2,8 @@ package io.github.siyual_park.data.repository.r2dbc
 
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
+import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.RepositoryTestHelper
-import io.github.siyual_park.data.repository.mongo.updateOrFail
 import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toList
@@ -20,6 +20,14 @@ abstract class R2DBCRepositoryTestHelper(
 ) : RepositoryTestHelper<R2DBCRepository<Person, ULID>>(repositories) {
     init {
         migrationManager.register(CreatePerson(entityOperations))
+    }
+
+    @Test
+    fun existsByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        assertTrue(personRepository.exists(where(Person::name).`is`(person.name)))
     }
 
     @Test
@@ -82,14 +90,6 @@ abstract class R2DBCRepositoryTestHelper(
     }
 
     @Test
-    fun existsByName() = parameterized { personRepository ->
-        val person = DummyPerson.create()
-            .let { personRepository.create(it) }
-
-        assertTrue(personRepository.exists(where(Person::name).`is`(person.name)))
-    }
-
-    @Test
     fun updateByName() = parameterized { personRepository ->
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
@@ -106,6 +106,45 @@ abstract class R2DBCRepositoryTestHelper(
         assertEquals(patch.name, updatedPerson.name)
         assertEquals(patch.age, updatedPerson.age)
         assertNotNull(updatedPerson.updatedAt)
+    }
+
+    @Test
+    fun updateAllByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+        val patch = DummyPerson.create()
+
+        val updatedPersons = personRepository.updateAll(
+            where(Person::name).`is`(person.name),
+            Patch.with {
+                it.name = patch.name
+                it.age = patch.age
+            }
+        ).toList()
+
+        assertEquals(1, updatedPersons.size)
+        val updatedPerson = updatedPersons[0]
+        assertEquals(person.id, updatedPerson.id)
+        assertEquals(patch.name, updatedPerson.name)
+        assertEquals(patch.age, updatedPerson.age)
+        assertNotNull(updatedPerson.updatedAt)
+    }
+
+    @Test
+    fun countByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        assertEquals(1, personRepository.count(where(Person::name).`is`(person.name)))
+    }
+
+    @Test
+    fun deleteAllByName() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+
+        personRepository.deleteAll(where(Person::name).`is`(person.name))
+        assertFalse(personRepository.existsById(person.id))
     }
 
     @Test

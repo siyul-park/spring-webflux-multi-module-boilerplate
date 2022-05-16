@@ -6,6 +6,7 @@ import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.ulid.ULID
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -32,7 +33,27 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
     }
 
     @Test
-    fun createAll() = parameterized { personRepository ->
+    fun createAllWithFlow() = parameterized { personRepository ->
+        val numOfPerson = 10
+
+        val persons = (0 until numOfPerson).map { DummyPerson.create() }
+        val savedPersons = personRepository.createAll(persons.asFlow()).toList()
+
+        assertEquals(persons.size, savedPersons.size)
+        for (i in 0 until numOfPerson) {
+            val person = persons[i]
+            val savedPerson = savedPersons[i]
+
+            assertNotNull(savedPerson.id)
+            assertNotNull(savedPerson.createdAt)
+
+            assertEquals(person.name, savedPerson.name)
+            assertEquals(person.age, savedPerson.age)
+        }
+    }
+
+    @Test
+    fun createAllWithIterable() = parameterized { personRepository ->
         val numOfPerson = 10
 
         val persons = (0 until numOfPerson).map { DummyPerson.create() }
@@ -109,6 +130,48 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
     }
 
     @Test
+    fun updateByIdWithPatch() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+        val person2 = DummyPerson.create()
+
+        val updatedPerson = personRepository.updateById(
+            person.id,
+            Patch.with {
+                it.name = person2.name
+                it.age = person2.age
+            }
+        )!!
+
+        assertEquals(person.id, updatedPerson.id)
+        assertNotNull(updatedPerson.updatedAt)
+
+        assertEquals(person2.name, updatedPerson.name)
+        assertEquals(person2.age, updatedPerson.age)
+    }
+
+    @Test
+    fun updateByIdWithAsyncPatch() = parameterized { personRepository ->
+        val person = DummyPerson.create()
+            .let { personRepository.create(it) }
+        val person2 = DummyPerson.create()
+
+        val updatedPerson = personRepository.updateById(
+            person.id,
+            AsyncPatch.with {
+                it.name = person2.name
+                it.age = person2.age
+            }
+        )!!
+
+        assertEquals(person.id, updatedPerson.id)
+        assertNotNull(updatedPerson.updatedAt)
+
+        assertEquals(person2.name, updatedPerson.name)
+        assertEquals(person2.age, updatedPerson.age)
+    }
+
+    @Test
     fun update() = parameterized { personRepository ->
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
@@ -127,7 +190,7 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
     }
 
     @Test
-    fun updateByPatch() = parameterized { personRepository ->
+    fun updateWithPatch() = parameterized { personRepository ->
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
         val person2 = DummyPerson.create()
@@ -148,7 +211,7 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
     }
 
     @Test
-    fun updateByAsyncPatch() = parameterized { personRepository ->
+    fun updateWithAsyncPatch() = parameterized { personRepository ->
         val person = DummyPerson.create()
             .let { personRepository.create(it) }
         val person2 = DummyPerson.create()
@@ -166,6 +229,80 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
 
         assertEquals(person2.name, updatedPerson.name)
         assertEquals(person2.age, updatedPerson.age)
+    }
+
+    @Test
+    fun updateAllByIdWithPatch() = parameterized { personRepository ->
+        val numOfPerson = 10
+
+        val persons = (0 until numOfPerson)
+            .map { DummyPerson.create() }
+            .let { personRepository.createAll(it) }
+            .toList()
+
+        val personPatches = (0 until numOfPerson)
+            .map { DummyPerson.create() }
+            .toList()
+
+        var current = 0
+        val updatedPersons = personRepository.updateAllById(
+            persons.map { it.id },
+            Patch.with {
+                val patch = personPatches[current++]
+                it.name = patch.name
+                it.age = patch.age
+            }
+        ).toList()
+
+        assertEquals(persons.size, updatedPersons.size)
+        for (i in 0 until numOfPerson) {
+            val updatedPerson = updatedPersons[i]!!
+            val patch = personPatches[i]
+
+            assertNotNull(updatedPerson.id)
+            assertNotNull(updatedPerson.createdAt)
+            assertNotNull(updatedPerson.updatedAt)
+
+            assertEquals(patch.name, updatedPerson.name)
+            assertEquals(patch.age, updatedPerson.age)
+        }
+    }
+
+    @Test
+    fun updateAllByIdWithAsyncPatch() = parameterized { personRepository ->
+        val numOfPerson = 10
+
+        val persons = (0 until numOfPerson)
+            .map { DummyPerson.create() }
+            .let { personRepository.createAll(it) }
+            .toList()
+
+        val personPatches = (0 until numOfPerson)
+            .map { DummyPerson.create() }
+            .toList()
+
+        var current = 0
+        val updatedPersons = personRepository.updateAllById(
+            persons.map { it.id },
+            AsyncPatch.with {
+                val patch = personPatches[current++]
+                it.name = patch.name
+                it.age = patch.age
+            }
+        ).toList()
+
+        assertEquals(persons.size, updatedPersons.size)
+        for (i in 0 until numOfPerson) {
+            val updatedPerson = updatedPersons[i]!!
+            val patch = personPatches[i]
+
+            assertNotNull(updatedPerson.id)
+            assertNotNull(updatedPerson.createdAt)
+            assertNotNull(updatedPerson.updatedAt)
+
+            assertEquals(patch.name, updatedPerson.name)
+            assertEquals(patch.age, updatedPerson.age)
+        }
     }
 
     @Test
@@ -199,7 +336,7 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
     }
 
     @Test
-    fun updateAllByPatch() = parameterized { personRepository ->
+    fun updateAllWithPatch() = parameterized { personRepository ->
         val numOfPerson = 10
 
         val persons = (0 until numOfPerson)
@@ -236,7 +373,7 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
     }
 
     @Test
-    fun updateAllByAsyncPatch() = parameterized { personRepository ->
+    fun updateAllWithAsyncPatch() = parameterized { personRepository ->
         val numOfPerson = 10
 
         val persons = (0 until numOfPerson)

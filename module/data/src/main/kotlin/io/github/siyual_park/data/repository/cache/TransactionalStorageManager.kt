@@ -1,6 +1,8 @@
 package io.github.siyual_park.data.repository.cache
 
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.NoTransactionException
 import org.springframework.transaction.reactive.TransactionContext
@@ -12,6 +14,7 @@ class TransactionalStorageManager<T : Any, ID : Any>(
     private val cacheTransactionSynchronization: CacheTransactionSynchronization<T, ID> = CacheTransactionSynchronization()
 ) : StorageManager<T, ID> {
     private val logger = LoggerFactory.getLogger(TransactionalStorageManager::class.java)
+    private val mutex = Mutex()
 
     override suspend fun getCurrent(): NestedStorage<T, ID> {
         try {
@@ -19,18 +22,24 @@ class TransactionalStorageManager<T : Any, ID : Any>(
             val synchronizations = context.synchronizations ?: return root
             synchronizations.add(cacheTransactionSynchronization)
 
+            val currentStorage = cacheTransactionSynchronization.get(context)
+            if (currentStorage != null) {
+                return currentStorage
+            }
+
             val chains = chains(context)
 
             var current: TransactionContext?
             var storage = root
             while (chains.isNotEmpty()) {
                 current = chains.pop()
-
-                storage = cacheTransactionSynchronization.get(current) ?: run {
-                    val child = storage.fork()
-                    cacheTransactionSynchronization.put(current, child)
-                    logger.debug("Forked Cache Storage [parent: $storage, child: $child]")
-                    child
+                storage = cacheTransactionSynchronization.get(current) ?: mutex.withLock {
+                    cacheTransactionSynchronization.get(current) ?: run {
+                        val child = storage.fork()
+                        cacheTransactionSynchronization.put(current, child)
+                        logger.debug("Forked Cache Storage [parent: $storage, child: $child]")
+                        child
+                    }
                 }
             }
 
