@@ -6,7 +6,7 @@ import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
-import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
+import io.github.siyual_park.data.repository.cache.Storage
 import io.github.siyual_park.data.repository.cache.createIndexes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -26,12 +26,12 @@ import kotlin.reflect.KClass
 @Suppress("UNCHECKED_CAST")
 class CachedMongoRepository<T : Any, ID : Any>(
     private val delegator: MongoRepository<T, ID>,
-    private val storageManager: TransactionalStorageManager<T, ID>,
+    private val storage: Storage<T, ID>,
     private val idExtractor: Extractor<T, ID>,
 ) : MongoRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(
         delegator,
-        storageManager,
+        storage,
         idExtractor,
     ) {
 
@@ -41,12 +41,10 @@ class CachedMongoRepository<T : Any, ID : Any>(
         get() = delegator.clazz
 
     init {
-        storageManager.createIndexes(clazz)
+        storage.createIndexes(clazz)
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
-        val storage = storageManager.getCurrent()
-
         val fallback = suspend { delegator.exists(criteria) }
         val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
 
@@ -58,8 +56,6 @@ class CachedMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
-        val storage = storageManager.getCurrent()
-
         val fallback = suspend {
             delegator.findOne(criteria)
                 ?.also { storage.put(it) }
@@ -71,8 +67,6 @@ class CachedMongoRepository<T : Any, ID : Any>(
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return flow {
-            val storage = storageManager.getCurrent()
-
             val fallback = {
                 delegator.findAll(criteria, limit, offset, sort)
                     .onEach { storage.put(it) }
@@ -130,15 +124,11 @@ class CachedMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: CriteriaDefinition, update: Update): T? {
-        val storage = storageManager.getCurrent()
-
         return delegator.update(criteria, update)
             ?.also { storage.put(it) }
     }
 
     override suspend fun update(entity: T, update: Update): T? {
-        val storage = storageManager.getCurrent()
-
         return delegator.update(entity, update)
             ?.also { storage.put(it) }
     }
@@ -148,8 +138,6 @@ class CachedMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
-        val storage = storageManager.getCurrent()
-
         return delegator.update(criteria, patch)
             ?.also { storage.put(it) }
     }
@@ -160,8 +148,6 @@ class CachedMongoRepository<T : Any, ID : Any>(
 
     override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return flow {
-            val storage = storageManager.getCurrent()
-
             emitAll(
                 delegator.updateAll(criteria, patch, limit, offset, sort)
                     .onEach { storage.put(it) }
@@ -174,8 +160,6 @@ class CachedMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
-        val storage = storageManager.getCurrent()
-
         if (criteria == null) {
             storage.clear()
             delegator.deleteAll()
@@ -188,9 +172,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
         }
     }
 
-    private suspend fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
-        val storage = storageManager.getCurrent()
-
+    private fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
         if (criteria == null) return null
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null

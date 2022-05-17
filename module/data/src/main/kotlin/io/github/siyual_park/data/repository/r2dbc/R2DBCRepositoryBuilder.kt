@@ -4,7 +4,7 @@ import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.InMemoryStorage
-import io.github.siyual_park.data.repository.cache.TransactionalStorageManager
+import io.github.siyual_park.data.repository.cache.TransactionalStorage
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import kotlin.reflect.KClass
@@ -38,7 +38,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
 
         return if (cacheBuilder != null) {
             val idExtractor = createIdExtractor(current)
-            val transactionalStorageManager = TransactionalStorageManager(
+            val storage = TransactionalStorage(
                 InMemoryNestedStorage(
                     InMemoryStorage(
                         cacheBuilder as CacheBuilder<ID, T>,
@@ -49,7 +49,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
 
             CachedR2DBCRepository(
                 current,
-                transactionalStorageManager,
+                storage,
                 idExtractor,
             )
         } else {
