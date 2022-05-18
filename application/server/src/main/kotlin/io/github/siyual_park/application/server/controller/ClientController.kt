@@ -1,12 +1,13 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateClientRequest
-import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
-import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
+import io.github.siyual_park.auth.domain.authorization.Authorizator
+import io.github.siyual_park.auth.domain.authorization.withAuthorize
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
@@ -16,6 +17,7 @@ import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
+import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.presentation.filter.RHSFilterParserFactory
 import io.github.siyual_park.presentation.pagination.OffsetPage
@@ -26,10 +28,13 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toSet
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -48,17 +53,24 @@ import javax.validation.Valid
 class ClientController(
     private val clientFactory: ClientFactory,
     private val clientStorage: ClientStorage,
-    scopeTokenStorage: ScopeTokenStorage,
+    private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
+    private val authorizator: Authorizator,
+    private val transactionalOperator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
-    private val authorizableContoller = AuthorizableContoller(clientStorage, scopeTokenStorage, mapperContext)
-
     private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ClientData::class)
     private val sortParser = sortParserFactory.create(ClientData::class)
 
     private val offsetPaginator = OffsetPaginator(clientStorage)
+
+    private val scopeCreateScopeToken = AsyncLazy {
+        scopeTokenStorage.loadOrFail("clients.scope:create")
+    }
+    private val scopeDeleteScopeToken = AsyncLazy {
+        scopeTokenStorage.loadOrFail("clients.scope:delete")
+    }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("")
@@ -133,14 +145,23 @@ class ClientController(
     suspend fun update(
         @PathVariable("client-id") clientId: ULID,
         @Valid @RequestBody request: UpdateClientRequest
-    ): ClientInfo {
-        val patch = PropertyOverridePatch.of<Client, UpdateClientRequest>(request)
+    ): ClientInfo = transactionalOperator.executeAndAwait {
         val client = clientStorage.loadOrFail(clientId)
-            .let { patch.apply(it) }
-            .also { it.sync() }
 
-        return mapperContext.map(client)
-    }
+        if (request.scope != null) {
+            if (request.scope.isPresent) {
+                syncScope(clientId, request.scope.get())
+            } else {
+                val existsScope = client.getScope(deep = false).toSet()
+                existsScope.forEach { client.revoke(it) }
+            }
+        }
+
+        val patch = PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null))
+        patch.apply(client).sync()
+
+        mapperContext.map(client)
+    }!!
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
     @DeleteMapping("/{client-id}")
@@ -153,25 +174,37 @@ class ClientController(
         client.clear()
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
-    @PostMapping("/{client-id}/scope")
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasPermission(null, 'clients.scope:create')")
-    suspend fun grantScope(
-        @PathVariable("client-id") clientId: ULID,
-        @Valid @RequestBody request: GrantScopeRequest
-    ): ScopeTokenInfo {
-        return authorizableContoller.grantScope(clientId, request)
-    }
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    suspend fun syncScope(
+        clientId: ULID,
+        scope: Collection<ULID>
+    ) = transactionalOperator.executeAndAwait {
+        val client = clientStorage.loadOrFail(clientId)
 
-    @DeleteMapping("/{client-id}/scope/{scope-id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'clients.scope:delete')")
-    suspend fun revokeScope(
-        @PathVariable("client-id") clientId: ULID,
-        @PathVariable("scope-id") scopeId: ULID
-    ) {
-        return authorizableContoller.revokeScope(clientId, scopeId)
+        val existsScope = client.getScope(deep = false).toSet()
+        val requestScope = scopeTokenStorage.load(scope).toSet()
+
+        val toGrantScope = requestScope.filter { !existsScope.contains(it) }
+        val toRevokeScope = existsScope.filter { !requestScope.contains(it) }
+
+        toGrantScope.forEach { grant(clientId, it.id) }
+        toRevokeScope.forEach { revoke(clientId, it.id) }
+    }
+
+    suspend fun grant(
+        clientId: ULID,
+        scopeId: ULID
+    ) = authorizator.withAuthorize(listOf(scopeCreateScopeToken.get()), null) {
+        val client = clientStorage.loadOrFail(clientId)
+        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+        client.grant(scopeToken)
+    }
+
+    suspend fun revoke(
+        clientId: ULID,
+        scopeId: ULID
+    ) = authorizator.withAuthorize(listOf(scopeDeleteScopeToken.get()), null) {
+        val client = clientStorage.loadOrFail(clientId)
+        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+        client.revoke(scopeToken)
     }
 }

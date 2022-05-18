@@ -1,7 +1,6 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.IntegrationTest
-import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
@@ -259,7 +258,7 @@ class ClientControllerTest @Autowired constructor(
         assertEquals(client.name, responseClient.name)
         assertEquals(client.type, responseClient.type)
         assertEquals(client.origin, responseClient.origin)
-        assertEquals(client.getScope().toList().size, responseClient.scope?.size)
+        assertEquals(client.getScope(deep = false).toList().size, responseClient.scope?.size)
         assertNotNull(responseClient.createdAt)
         assertNotNull(responseClient.updatedAt)
     }
@@ -480,7 +479,7 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `POST clients_{client-id}_scope, status = 201`() = blocking {
+    fun `PATCH clients_{client-id}, status = 200, with grant scope`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
@@ -491,22 +490,19 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("clients.scope:create")
+            push = listOf("clients:update", "clients.scope:create")
         )
 
-        val request = GrantScopeRequest(id = scope.id)
-        val response = clientControllerGateway.grantScope(otherClient.id, request)
+        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.add(scope) }
+        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = clientControllerGateway.update(otherClient.id, request)
 
-        assertEquals(HttpStatus.CREATED, response.status)
-
-        val responseScope = response.responseBody.awaitSingle()
-
-        assertEquals(scope.id, responseScope.id)
+        assertEquals(HttpStatus.OK, response.status)
         assertTrue(otherClient.has(scope))
     }
 
     @Test
-    fun `POST clients_{client-id}_scope, status = 403`() = blocking {
+    fun `PATCH clients_{client-id}, status = 403, with grant scope`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
@@ -517,17 +513,19 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
+            push = listOf("clients:update"),
             pop = listOf("clients.scope:create")
         )
 
-        val request = GrantScopeRequest(id = scope.id)
-        val response = clientControllerGateway.grantScope(otherClient.id, request)
+        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.add(scope) }
+        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = clientControllerGateway.update(otherClient.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
     @Test
-    fun `DELETE clients_{client-id}_scope, status = 204`() = blocking {
+    fun `PATCH clients_{client-id}, status = 200, with revoke scope`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
@@ -540,17 +538,19 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("clients.scope:delete")
+            push = listOf("clients:update", "clients.scope:delete")
         )
 
-        val response = clientControllerGateway.revokeScope(otherClient.id, scope.id)
+        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.remove(scope) }
+        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = clientControllerGateway.update(otherClient.id, request)
 
-        assertEquals(HttpStatus.NO_CONTENT, response.status)
+        assertEquals(HttpStatus.OK, response.status)
         assertFalse(otherClient.has(scope))
     }
 
     @Test
-    fun `DELETE clients_{client-id}_scope, status = 403`() = blocking {
+    fun `PATCH clients_{client-id}, status = 403, with revoke scope`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
 
@@ -563,10 +563,13 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
+            push = listOf("clients:update"),
             pop = listOf("clients.scope:delete")
         )
 
-        val response = clientControllerGateway.revokeScope(otherClient.id, scope.id)
+        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.remove(scope) }
+        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = clientControllerGateway.update(otherClient.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

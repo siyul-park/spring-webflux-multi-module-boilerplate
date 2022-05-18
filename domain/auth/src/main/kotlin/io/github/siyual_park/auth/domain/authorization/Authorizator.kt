@@ -3,15 +3,16 @@ package io.github.siyual_park.auth.domain.authorization
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.domain.Principal
+import io.github.siyual_park.auth.domain.getPrincipal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.exception.PrincipalIdNotExistsException
+import io.github.siyual_park.auth.exception.RequiredPermissionException
 import org.springframework.stereotype.Component
 import java.time.Duration
 
 @Suppress("UNCHECKED_CAST")
 @Component
 class Authorizator(
-    private val scopeTokenStorage: ScopeTokenStorage,
     private val cache: Cache<ArrayList<Any?>, Boolean> = CacheBuilder.newBuilder()
         .softValues()
         .expireAfterAccess(Duration.ofMinutes(1))
@@ -90,16 +91,6 @@ class Authorizator(
 
     suspend fun authorize(
         principal: Principal,
-        scopeToken: String,
-        targetDomainObject: Any? = null
-    ): Boolean {
-        return scopeTokenStorage.load(scopeToken)?.let {
-            authorize(principal, it, targetDomainObject)
-        } ?: return false
-    }
-
-    suspend fun authorize(
-        principal: Principal,
         scopeToken: ScopeToken,
         targetDomainObject: Any? = null
     ): Boolean {
@@ -126,4 +117,17 @@ class Authorizator(
             add(targetDomainObject)
         }
     }
+}
+
+suspend fun <T> Authorizator.withAuthorize(
+    scope: List<*>,
+    targetDomainObjects: List<*>? = null,
+    func: suspend () -> T
+): T {
+    val principal = getPrincipal() ?: throw PrincipalIdNotExistsException()
+    if (!authorize(principal, scope, targetDomainObjects)) {
+        throw RequiredPermissionException()
+    }
+
+    return func()
 }

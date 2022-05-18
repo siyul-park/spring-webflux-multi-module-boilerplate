@@ -2,8 +2,8 @@ package io.github.siyual_park.application.server.converter.mapper
 
 import io.github.siyual_park.application.server.dto.response.UserContactInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
-import io.github.siyual_park.auth.domain.PrincipalProvider
 import io.github.siyual_park.auth.domain.authorization.Authorizator
+import io.github.siyual_park.auth.domain.getPrincipal
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.mapper.Mapper
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component
 @Component
 class UserInfoMapper(
     private val mapperContext: MapperContext,
-    private val principalProvider: PrincipalProvider,
     private val authorizator: Authorizator,
     private val scopeTokenStorage: ScopeTokenStorage
 ) : Mapper<User, UserInfo> {
@@ -32,7 +31,7 @@ class UserInfoMapper(
     }
 
     override suspend fun map(source: User): UserInfo {
-        val principal = principalProvider.get()
+        val principal = getPrincipal()
         val contact: UserContactInfo? = if (
             principal != null &&
             authorizator.authorize(

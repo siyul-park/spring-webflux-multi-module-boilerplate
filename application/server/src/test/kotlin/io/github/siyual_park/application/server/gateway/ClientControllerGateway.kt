@@ -1,11 +1,9 @@
 package io.github.siyual_park.application.server.gateway
 
 import io.github.siyual_park.application.server.dto.request.CreateClientRequest
-import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
-import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.ulid.ULID
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
@@ -86,23 +84,6 @@ class ClientControllerGateway(
     suspend fun delete(clientId: ULID): FluxExchangeResult<Unit> {
         return client.delete()
             .uri("/clients/$clientId")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .exchange()
-            .returnResult()
-    }
-
-    suspend fun grantScope(clientId: ULID, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
-        return client.post()
-            .uri("/clients/$clientId/scope")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .bodyValue(request)
-            .exchange()
-            .returnResult(ScopeTokenInfo::class.java)
-    }
-
-    suspend fun revokeScope(clientId: ULID, scopeId: ULID): FluxExchangeResult<Unit> {
-        return client.delete()
-            .uri("/clients/$clientId/scope/$scopeId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult()

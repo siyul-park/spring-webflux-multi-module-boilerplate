@@ -2,8 +2,8 @@ package io.github.siyual_park.application.server.converter.mapper
 
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
-import io.github.siyual_park.auth.domain.PrincipalProvider
 import io.github.siyual_park.auth.domain.authorization.Authorizator
+import io.github.siyual_park.auth.domain.getPrincipal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component
 @Component
 class ClientDetailInfoMapper(
     private val mapperContext: MapperContext,
-    private val principalProvider: PrincipalProvider,
     private val authorizator: Authorizator,
     private val scopeTokenStorage: ScopeTokenStorage
 ) : Mapper<Client, ClientDetailInfo> {
@@ -35,7 +34,7 @@ class ClientDetailInfoMapper(
     }
 
     override suspend fun map(source: Client): ClientDetailInfo {
-        val principal = principalProvider.get()
+        val principal = getPrincipal()
         val scope: Collection<ScopeTokenInfo>? = if (
             principal != null &&
             authorizator.authorize(
@@ -44,7 +43,7 @@ class ClientDetailInfoMapper(
                 listOf(source.id, null)
             )
         ) {
-            mapperContext.map(source.getScope().toList() as Collection<ScopeToken>)
+            mapperContext.map(source.getScope(deep = false).toList() as Collection<ScopeToken>)
         } else {
             null
         }
