@@ -22,6 +22,7 @@ class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchroniz
     }
 
     fun put(context: TransactionContext, defaultValue: NestedStorage<T, ID>) {
+        context.synchronizations?.add(this)
         storages[context] = defaultValue
     }
 

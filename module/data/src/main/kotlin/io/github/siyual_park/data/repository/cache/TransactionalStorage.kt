@@ -72,9 +72,6 @@ class TransactionalStorage<T : Any, ID : Any>(
     private suspend fun getCurrent(): NestedStorage<T, ID> {
         try {
             val context = TransactionContextManager.currentContext().awaitSingleOrNull() ?: return root
-            val synchronizations = context.synchronizations ?: return root
-            synchronizations.add(cacheTransactionSynchronization)
-
             val currentStorage = cacheTransactionSynchronization.get(context)
             if (currentStorage != null) {
                 return currentStorage
