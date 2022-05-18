@@ -38,6 +38,8 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
         val transactionContext = mockk<TransactionContext>()
         val storage = mockk<NestedStorage<Any, Any>>()
 
+        every { transactionContext.synchronizations } returns mutableSetOf()
+
         assertEquals(null, cacheTransactionSynchronization.get(transactionContext))
         cacheTransactionSynchronization.put(transactionContext, storage)
         assertEquals(storage, cacheTransactionSynchronization.get(transactionContext))
