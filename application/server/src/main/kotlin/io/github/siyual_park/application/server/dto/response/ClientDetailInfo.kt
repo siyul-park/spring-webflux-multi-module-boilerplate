@@ -11,6 +11,7 @@ data class ClientDetailInfo(
     val type: ClientType,
     var origin: URL,
     val secret: String?,
+    val scope: Collection<ScopeTokenInfo>?,
     val createdAt: Instant,
     val updatedAt: Instant?,
 )

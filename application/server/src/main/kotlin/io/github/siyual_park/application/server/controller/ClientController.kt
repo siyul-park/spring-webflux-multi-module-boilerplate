@@ -25,9 +25,6 @@ import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
@@ -154,19 +151,6 @@ class ClientController(
     ) {
         val client = clientStorage.loadOrFail(clientId)
         client.clear()
-    }
-
-    @Operation(security = [SecurityRequirement(name = "bearer")])
-    @GetMapping("/{client-id}/scope")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission({null, #clientId}, {'clients.scope:read', 'clients[self].scope:read'})")
-    fun readScope(
-        @PathVariable("client-id") clientId: ULID
-    ): Flow<ScopeTokenInfo> {
-        return flow {
-            val client = clientStorage.loadOrFail(clientId)
-            emitAll(client.getScope(deep = false))
-        }.map { mapperContext.map(it) }
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])

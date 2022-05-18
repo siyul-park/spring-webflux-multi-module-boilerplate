@@ -91,14 +91,6 @@ class ClientControllerGateway(
             .returnResult()
     }
 
-    suspend fun readScope(clientId: ULID): FluxExchangeResult<ScopeTokenInfo> {
-        return client.get()
-            .uri("/clients/$clientId/scope")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .exchange()
-            .returnResult(ScopeTokenInfo::class.java)
-    }
-
     suspend fun grantScope(clientId: ULID, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
         return client.post()
             .uri("/clients/$clientId/scope")
