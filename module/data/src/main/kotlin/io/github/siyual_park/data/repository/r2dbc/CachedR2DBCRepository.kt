@@ -151,7 +151,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         }
     }
 
-    private suspend fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+    private fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
         if (criteria == null) return null
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
