@@ -57,7 +57,9 @@ class Client(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
                     clientScopeRepository.deleteAllByClientId(id)
-                    credential.get().clear()
+                    if (isConfidential()) {
+                        credential.get().clear()
+                    }
                 }
 
                 override suspend fun afterClear() {
