@@ -1,13 +1,20 @@
 package io.github.siyual_park.application.server.converter.mapper
 
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.mapper.Mapper
+import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.TypeReference
+import io.github.siyual_park.mapper.map
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 
 @Component
-class ClientDetailInfoMapper : Mapper<Client, ClientDetailInfo> {
+class ClientDetailInfoMapper(
+    private val mapperContext: MapperContext
+) : Mapper<Client, ClientDetailInfo> {
     override val sourceType = object : TypeReference<Client>() {}
     override val targetType = object : TypeReference<ClientDetailInfo>() {}
 
@@ -20,6 +27,7 @@ class ClientDetailInfoMapper : Mapper<Client, ClientDetailInfo> {
             type = raw.type,
             origin = raw.origin,
             secret = secret,
+            scope = mapperContext.map(source.getScope(deep = false).toList() as Collection<ScopeToken>),
             createdAt = raw.createdAt!!,
             updatedAt = raw.updatedAt,
         )

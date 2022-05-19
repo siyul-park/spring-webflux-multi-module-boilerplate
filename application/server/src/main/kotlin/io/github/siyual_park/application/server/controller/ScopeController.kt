@@ -1,9 +1,10 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateScopeTokenRequest
-import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateScopeTokenRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
+import io.github.siyual_park.auth.domain.authorization.Authorizator
+import io.github.siyual_park.auth.domain.authorization.withAuthorize
 import io.github.siyual_park.auth.domain.scope_token.CreateScopeTokenPayload
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
@@ -21,8 +22,11 @@ import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.toSet
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -43,10 +47,10 @@ class ScopeController(
     private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
+    private val authorizator: Authorizator,
+    private val transactionalOperator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
-    private val authorizableContoller = AuthorizableContoller(scopeTokenStorage, scopeTokenStorage, mapperContext)
-
     private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ScopeTokenData::class)
     private val sortParser = sortParserFactory.create(ScopeTokenData::class)
 
@@ -114,10 +118,19 @@ class ScopeController(
         @PathVariable("scope-id") scopeId: ULID,
         @Valid @RequestBody request: UpdateScopeTokenRequest
     ): ScopeTokenInfo {
-        val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request)
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-            .let { patch.apply(it) }
-            .also { it.sync() }
+
+        request.children?.let {
+            if (it.isPresent) {
+                syncScope(scopeId, it.get())
+            } else {
+                val existsScope = scopeToken.children().toSet()
+                existsScope.forEach { scopeToken.revoke(it) }
+            }
+        }
+
+        val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
+        patch.apply(scopeToken).sync()
 
         return mapperContext.map(scopeToken)
     }
@@ -131,25 +144,37 @@ class ScopeController(
         scopeToken.clear()
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
-    @PostMapping("/{scope-id}/children")
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasPermission(null, 'scope.children:create')")
-    suspend fun grantScope(
-        @PathVariable("scope-id") scopeId: ULID,
-        @Valid @RequestBody request: GrantScopeRequest
-    ): ScopeTokenInfo {
-        return authorizableContoller.grantScope(scopeId, request)
+    suspend fun syncScope(
+        clientId: ULID,
+        scope: Collection<ULID>
+    ) = transactionalOperator.executeAndAwait {
+        val parent = scopeTokenStorage.loadOrFail(clientId)
+
+        val existsScope = parent.children().toSet()
+        val requestScope = scopeTokenStorage.load(scope).toSet()
+
+        val toGrantScope = requestScope.filter { !existsScope.contains(it) }
+        val toRevokeScope = existsScope.filter { !requestScope.contains(it) }
+
+        toGrantScope.forEach { grant(clientId, it.id) }
+        toRevokeScope.forEach { revoke(clientId, it.id) }
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
-    @DeleteMapping("/{scope-id}/children/{child-id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'scope.children:delete')")
-    suspend fun revokeScope(
-        @PathVariable("scope-id") scopeId: ULID,
-        @PathVariable("child-id") childId: ULID
-    ) {
-        return authorizableContoller.revokeScope(scopeId, childId)
+    private suspend fun grant(
+        clientId: ULID,
+        scopeId: ULID
+    ) = authorizator.withAuthorize(listOf("scope.children:create"), null) {
+        val parent = scopeTokenStorage.loadOrFail(clientId)
+        val child = scopeTokenStorage.loadOrFail(scopeId)
+        parent.grant(child)
+    }
+
+    private suspend fun revoke(
+        clientId: ULID,
+        scopeId: ULID
+    ) = authorizator.withAuthorize(listOf("scope.children:delete"), null) {
+        val parent = scopeTokenStorage.loadOrFail(clientId)
+        val child = scopeTokenStorage.loadOrFail(scopeId)
+        parent.revoke(child)
     }
 }

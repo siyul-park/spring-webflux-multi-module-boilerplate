@@ -3,8 +3,12 @@ package io.github.siyual_park.auth.domain.authorization
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.domain.Principal
+import io.github.siyual_park.auth.domain.getPrincipal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.domain.scope_token.loadOrFail
+import io.github.siyual_park.auth.exception.PrincipalIdNotExistsException
+import io.github.siyual_park.auth.exception.RequiredPermissionException
 import org.springframework.stereotype.Component
 import java.time.Duration
 
@@ -49,6 +53,10 @@ class Authorizator(
                 if (authorize(principal, scopeToken, targetDomainObjects?.get(i))) {
                     return true
                 }
+            } else if (scopeToken is String) {
+                if (authorize(principal, scopeTokenStorage.loadOrFail(scopeToken), targetDomainObjects?.get(i))) {
+                    return true
+                }
             } else if (scopeToken is List<*>) {
                 if (authorizeWithAnd(principal, scopeToken, targetDomainObjects?.get(i) as? List<Any?>?)) {
                     return true
@@ -76,6 +84,10 @@ class Authorizator(
                 if (!authorize(principal, scopeToken, targetDomainObjects?.get(i))) {
                     return false
                 }
+            } else if (scopeToken is String) {
+                if (authorize(principal, scopeTokenStorage.loadOrFail(scopeToken), targetDomainObjects?.get(i))) {
+                    return true
+                }
             } else if (scopeToken is List<*>) {
                 if (!authorizeWithOr(principal, scopeToken, targetDomainObjects?.get(i) as? List<Any?>?)) {
                     return false
@@ -93,9 +105,7 @@ class Authorizator(
         scopeToken: String,
         targetDomainObject: Any? = null
     ): Boolean {
-        return scopeTokenStorage.load(scopeToken)?.let {
-            authorize(principal, it, targetDomainObject)
-        } ?: return false
+        return authorize(principal, scopeTokenStorage.loadOrFail(scopeToken), targetDomainObject)
     }
 
     suspend fun authorize(
@@ -126,4 +136,17 @@ class Authorizator(
             add(targetDomainObject)
         }
     }
+}
+
+suspend inline fun <T> Authorizator.withAuthorize(
+    scope: List<*>,
+    targetDomainObjects: List<*>? = null,
+    func: () -> T
+): T {
+    val principal = getPrincipal() ?: throw PrincipalIdNotExistsException()
+    if (!authorize(principal, scope, targetDomainObjects)) {
+        throw RequiredPermissionException()
+    }
+
+    return func()
 }

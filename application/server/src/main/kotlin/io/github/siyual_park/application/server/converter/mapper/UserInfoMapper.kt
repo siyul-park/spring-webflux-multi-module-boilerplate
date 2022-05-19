@@ -1,47 +1,37 @@
 package io.github.siyual_park.application.server.converter.mapper
 
-import io.github.siyual_park.application.server.dto.response.UserContactInfo
+import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
-import io.github.siyual_park.auth.domain.PrincipalProvider
 import io.github.siyual_park.auth.domain.authorization.Authorizator
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.domain.scope_token.loadOrFail
+import io.github.siyual_park.auth.domain.getPrincipal
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.TypeReference
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.user.domain.User
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 
 @Component
 class UserInfoMapper(
     private val mapperContext: MapperContext,
-    private val principalProvider: PrincipalProvider,
     private val authorizator: Authorizator,
-    private val scopeTokenStorage: ScopeTokenStorage
 ) : Mapper<User, UserInfo> {
     override val sourceType = object : TypeReference<User>() {}
     override val targetType = object : TypeReference<UserInfo>() {}
 
-    private val contactSelfReadScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("users[self].contact:read")
-    }
-    private val contactReadScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("users.contact:read")
-    }
-
     override suspend fun map(source: User): UserInfo {
-        val principal = principalProvider.get()
-        val contact: UserContactInfo? = if (
+        val principal = getPrincipal()
+        val scope: Collection<ScopeTokenInfo>? = if (
             principal != null &&
             authorizator.authorize(
                 principal,
-                listOf(contactSelfReadScopeToken.get(), contactReadScopeToken.get()),
+                listOf("users[self].scope:read", "users.scope:read"),
                 listOf(source.id, null)
             )
         ) {
-            mapperContext.map(source.getContact())
+            mapperContext.map(source.getScope(deep = false).toList() as Collection<ScopeToken>)
         } else {
             null
         }
@@ -50,7 +40,8 @@ class UserInfoMapper(
         return UserInfo(
             id = raw.id,
             name = raw.name,
-            contact = contact,
+            email = raw.email,
+            scope = scope,
             createdAt = raw.createdAt!!,
             updatedAt = raw.updatedAt
         )

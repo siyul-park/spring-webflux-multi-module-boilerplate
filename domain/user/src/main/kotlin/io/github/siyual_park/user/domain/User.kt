@@ -17,7 +17,6 @@ import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
 import io.github.siyual_park.user.entity.UserScopeData
-import io.github.siyual_park.user.repository.UserContactRepository
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
 import io.github.siyual_park.user.repository.UserScopeRepository
@@ -33,7 +32,6 @@ import org.springframework.transaction.reactive.TransactionalOperator
 class User(
     value: UserData,
     userRepository: UserRepository,
-    private val userContactRepository: UserContactRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
@@ -48,35 +46,26 @@ class User(
     UserEntity,
     Authorizable {
     val id by proxy(root, UserData::id)
-    override val userId by proxy(root, UserData::id)
+    var email by proxy(root, UserData::email)
     var name by proxy(root, UserData::name)
+
+    override val userId by proxy(root, UserData::id)
 
     init {
         synchronize(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
                     userScopeRepository.deleteAllByUserId(id)
-                    contact.get().clear()
                     credential.get().clear()
                 }
 
                 override suspend fun afterClear() {
-                    contact.clear()
                     credential.clear()
                 }
             }
         )
     }
 
-    private val contact = AsyncLazy {
-        UserContact(
-            userContactRepository.findByUserIdOrFail(id),
-            userContactRepository,
-            eventPublisher
-        ).also {
-            synchronize(PersistencePropagateSynchronization(it))
-        }
-    }
     private val credential = AsyncLazy {
         UserCredential(
             userCredentialRepository.findByUserIdOrFail(id),
@@ -109,11 +98,6 @@ class User(
                 .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
         )
         userScopeRepository.delete(userScope)
-    }
-
-    suspend fun getContact(): UserContact {
-        return contact.get()
-            .also { it.link() }
     }
 
     suspend fun getCredential(): UserCredential {

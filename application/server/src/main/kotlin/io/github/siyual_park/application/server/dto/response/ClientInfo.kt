@@ -10,6 +10,7 @@ data class ClientInfo(
     val name: String,
     val type: ClientType,
     val origin: URL,
+    val scope: Collection<ScopeTokenInfo>?,
     val createdAt: Instant,
     val updatedAt: Instant?
 )

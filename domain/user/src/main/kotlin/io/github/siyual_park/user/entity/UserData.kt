@@ -8,4 +8,6 @@ import org.springframework.data.relational.core.mapping.Table
 data class UserData(
     @Key
     var name: String,
+    @Key
+    var email: String,
 ) : ModifiableULIDEntity()

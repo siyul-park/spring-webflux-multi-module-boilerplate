@@ -1,10 +1,10 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
-import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
-import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
+import io.github.siyual_park.auth.domain.authorization.Authorizator
+import io.github.siyual_park.auth.domain.authorization.withAuthorize
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
@@ -24,10 +24,8 @@ import io.github.siyual_park.user.entity.UserData
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toSet
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -50,17 +48,15 @@ import javax.validation.ValidationException
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userContactController: UserContactController,
     private val userFactory: UserFactory,
     private val userStorage: UserStorage,
-    scopeTokenStorage: ScopeTokenStorage,
+    private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
+    private val authorizator: Authorizator,
     private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
-    private val authorizableContoller = AuthorizableContoller(userStorage, scopeTokenStorage, mapperContext)
-
     private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(UserData::class)
     private val sortParser = sortParserFactory.create(UserData::class)
 
@@ -137,19 +133,27 @@ class UserController(
         @Valid @RequestBody request: UpdateUserRequest,
         @AuthenticationPrincipal principal: UserPrincipal
     ): UserInfo = operator.executeAndAwait {
-        request.contact?.let {
-            userContactController.update(
-                userId,
-                it.orElseThrow { throw ValidationException("contact is cannot be null") }
-            )
-        }
-        request.contact = null
-
-        val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(request)
         val user = userStorage.loadOrFail(userId)
 
-        patch.apply(user)
-        user.sync()
+        request.password?.let {
+            updateCredentials(
+                userId,
+                it.orElseThrow { throw ValidationException("password is cannot be null") }
+            )
+        }
+        request.scope?.let {
+            if (it.isPresent) {
+                syncScope(userId, it.get())
+            } else {
+                val existsScope = user.getScope(deep = false).toSet()
+                existsScope.forEach { user.revoke(it) }
+            }
+        }
+
+        val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(
+            request.copy(password = null, scope = null)
+        )
+        patch.apply(user).sync()
 
         mapperContext.map(user)
     }!!
@@ -163,38 +167,51 @@ class UserController(
         user.clear()
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
-    @GetMapping("/{user-id}/scope")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission({null, #userId}, {'users.scope:read', 'users[self].scope:read'})")
-    fun readScope(
-        @PathVariable("user-id") userId: ULID
-    ): Flow<ScopeTokenInfo> {
-        return flow {
-            val user = userStorage.loadOrFail(userId)
-            emitAll(user.getScope(deep = false))
-        }.map { mapperContext.map(it) }
-    }
-
-    @Operation(security = [SecurityRequirement(name = "bearer")])
-    @PostMapping("/{user-id}/scope")
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasPermission(null, 'users.scope:create')")
-    suspend fun grantScope(
-        @PathVariable("user-id") userId: ULID,
-        @Valid @RequestBody request: GrantScopeRequest
-    ): ScopeTokenInfo {
-        return authorizableContoller.grantScope(userId, request)
-    }
-
-    @Operation(security = [SecurityRequirement(name = "bearer")])
-    @DeleteMapping("/{user-id}/scope/{scope-id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'users.scope:delete')")
-    suspend fun revokeScope(
-        @PathVariable("user-id") userId: ULID,
-        @PathVariable("scope-id") scopeId: ULID
+    private suspend fun updateCredentials(
+        userId: ULID,
+        password: String
+    ) = authorizator.withAuthorize(
+        listOf("users.credential:update", "users[self].credential:update"),
+        listOf(null, userId)
     ) {
-        return authorizableContoller.revokeScope(userId, scopeId)
+        val user = userStorage.loadOrFail(userId)
+        val credential = user.getCredential()
+
+        credential.setPassword(password)
+        credential.sync()
+    }
+
+    private suspend fun syncScope(
+        userId: ULID,
+        scope: Collection<ULID>
+    ) = operator.executeAndAwait {
+        val user = userStorage.loadOrFail(userId)
+
+        val existsScope = user.getScope(deep = false).toSet()
+        val requestScope = scopeTokenStorage.load(scope).toSet()
+
+        val toGrantScope = requestScope.filter { !existsScope.contains(it) }
+        val toRevokeScope = existsScope.filter { !requestScope.contains(it) }
+
+        toGrantScope.forEach { grant(userId, it.id) }
+        toRevokeScope.forEach { revoke(userId, it.id) }
+    }
+
+    private suspend fun grant(
+        userId: ULID,
+        scopeId: ULID
+    ) = authorizator.withAuthorize(listOf("users.scope:create"), null) {
+        val user = userStorage.loadOrFail(userId)
+        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+        user.grant(scopeToken)
+    }
+
+    private suspend fun revoke(
+        userId: ULID,
+        scopeId: ULID
+    ) = authorizator.withAuthorize(listOf("users.scope:delete"), null) {
+        val user = userStorage.loadOrFail(userId)
+        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+        user.revoke(scopeToken)
     }
 }
