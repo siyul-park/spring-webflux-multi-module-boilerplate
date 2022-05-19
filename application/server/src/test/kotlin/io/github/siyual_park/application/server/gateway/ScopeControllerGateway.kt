@@ -1,7 +1,6 @@
 package io.github.siyual_park.application.server.gateway
 
 import io.github.siyual_park.application.server.dto.request.CreateScopeTokenRequest
-import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateScopeTokenRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.ulid.ULID
@@ -72,31 +71,6 @@ class ScopeControllerGateway(
     suspend fun delete(scopeId: ULID): FluxExchangeResult<Unit> {
         return client.delete()
             .uri("/scope/$scopeId")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .exchange()
-            .returnResult()
-    }
-
-    suspend fun readChildren(scopeId: ULID): FluxExchangeResult<ScopeTokenInfo> {
-        return client.get()
-            .uri("/scope/$scopeId/children")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .exchange()
-            .returnResult(ScopeTokenInfo::class.java)
-    }
-
-    suspend fun grantScope(scopeId: ULID, request: GrantScopeRequest): FluxExchangeResult<ScopeTokenInfo> {
-        return client.post()
-            .uri("/scope/$scopeId/children")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .bodyValue(request)
-            .exchange()
-            .returnResult(ScopeTokenInfo::class.java)
-    }
-
-    suspend fun revokeScope(scopeId: ULID, childId: ULID): FluxExchangeResult<Unit> {
-        return client.delete()
-            .uri("/scope/$scopeId/children/$childId")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult()

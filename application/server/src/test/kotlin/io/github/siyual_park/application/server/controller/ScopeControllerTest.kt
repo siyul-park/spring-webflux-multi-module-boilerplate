@@ -1,7 +1,6 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.IntegrationTest
-import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateScopeTokenRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateScopeTokenRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
@@ -14,11 +13,13 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.user.domain.UserFactory
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -263,7 +264,7 @@ class ScopeControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `POST scope_{scope-id}_children, status = 201`() = blocking {
+    fun `PATCH scope_{scope-id}, status = 200, when add child`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -272,24 +273,19 @@ class ScopeControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("scope.children:create")
+            push = listOf("scope:update", "scope.children:create")
         )
 
-        val request = GrantScopeRequest(id = child.id)
-        val response = scopeControllerGateway.grantScope(parent.id, request)
+        val finalScope = parent.children().toSet().toMutableSet().also { it.add(child) }
+        val request = UpdateScopeTokenRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = scopeControllerGateway.update(parent.id, request)
 
-        assertEquals(HttpStatus.CREATED, response.status)
-
-        val responseScopeToken = response.responseBody.awaitSingle()
-
-        assertEquals(child.id, responseScopeToken.id)
-        assertEquals(child.name, responseScopeToken.name)
-        assertNotNull(responseScopeToken.createdAt)
-        assertNotNull(responseScopeToken.updatedAt)
+        assertEquals(HttpStatus.OK, response.status)
+        assertTrue(parent.has(child))
     }
 
     @Test
-    fun `POST scope_{scope-id}_children, status = 403`() = blocking {
+    fun `PATCH scope_{scope-id}, status = 403, when add child`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -298,17 +294,19 @@ class ScopeControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
+            push = listOf("scope:update"),
             pop = listOf("scope.children:create")
         )
 
-        val request = GrantScopeRequest(id = child.id)
-        val response = scopeControllerGateway.grantScope(parent.id, request)
+        val finalScope = parent.children().toSet().toMutableSet().also { it.add(child) }
+        val request = UpdateScopeTokenRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = scopeControllerGateway.update(parent.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
 
     @Test
-    fun `DELETE scope_{scope-id}_children, status = 200`() = blocking {
+    fun `PATCH scope_{scope-id}, status = 200, when delete child`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -319,17 +317,19 @@ class ScopeControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("scope.children:delete")
+            push = listOf("scope:update", "scope.children:delete")
         )
 
-        val response = scopeControllerGateway.revokeScope(parent.id, child.id)
+        val finalScope = parent.children().toSet().toMutableSet().also { it.remove(child) }
+        val request = UpdateScopeTokenRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = scopeControllerGateway.update(parent.id, request)
 
-        assertEquals(HttpStatus.NO_CONTENT, response.status)
+        assertEquals(HttpStatus.OK, response.status)
         assertFalse(parent.has(child))
     }
 
     @Test
-    fun `DELETE scope_{scope-id}_children, status = 403`() = blocking {
+    fun `PATCH scope_{scope-id}, status = 403, when remove child`() = blocking {
         val principal = DummyCreateUserPayload.create()
             .let { userFactory.create(it).toPrincipal() }
 
@@ -340,10 +340,13 @@ class ScopeControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
+            push = listOf("scope:update"),
             pop = listOf("scope.children:delete")
         )
 
-        val response = scopeControllerGateway.revokeScope(parent.id, child.id)
+        val finalScope = parent.children().toSet().toMutableSet().also { it.remove(child) }
+        val request = UpdateScopeTokenRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = scopeControllerGateway.update(parent.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }
