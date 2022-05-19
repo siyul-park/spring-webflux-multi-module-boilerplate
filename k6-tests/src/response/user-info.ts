@@ -1,4 +1,4 @@
-import ScopeTokenInfo from "./scope-token-info";
+import ScopeTokenInfo from './scope-token-info';
 
 type UserInfo = {
   id: string;
