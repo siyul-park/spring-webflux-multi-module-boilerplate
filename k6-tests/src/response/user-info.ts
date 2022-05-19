@@ -1,7 +1,7 @@
 type UserInfo = {
   id: string;
   name: string;
-  contact?: { email: string };
+  email: string;
   createdAt: number;
   updatedAt?: number;
 };

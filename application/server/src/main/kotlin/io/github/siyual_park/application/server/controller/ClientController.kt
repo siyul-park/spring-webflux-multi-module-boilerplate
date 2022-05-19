@@ -148,9 +148,9 @@ class ClientController(
     ): ClientInfo = transactionalOperator.executeAndAwait {
         val client = clientStorage.loadOrFail(clientId)
 
-        if (request.scope != null) {
-            if (request.scope.isPresent) {
-                syncScope(clientId, request.scope.get())
+        request.scope?.let {
+            if (it.isPresent) {
+                syncScope(clientId, it.get())
             } else {
                 val existsScope = client.getScope(deep = false).toSet()
                 existsScope.forEach { client.revoke(it) }
@@ -174,7 +174,7 @@ class ClientController(
         client.clear()
     }
 
-    suspend fun syncScope(
+    private suspend fun syncScope(
         clientId: ULID,
         scope: Collection<ULID>
     ) = transactionalOperator.executeAndAwait {
@@ -190,7 +190,7 @@ class ClientController(
         toRevokeScope.forEach { revoke(clientId, it.id) }
     }
 
-    suspend fun grant(
+    private suspend fun grant(
         clientId: ULID,
         scopeId: ULID
     ) = authorizator.withAuthorize(listOf(scopeCreateScopeToken.get()), null) {
@@ -199,7 +199,7 @@ class ClientController(
         client.grant(scopeToken)
     }
 
-    suspend fun revoke(
+    private suspend fun revoke(
         clientId: ULID,
         scopeId: ULID
     ) = authorizator.withAuthorize(listOf(scopeDeleteScopeToken.get()), null) {

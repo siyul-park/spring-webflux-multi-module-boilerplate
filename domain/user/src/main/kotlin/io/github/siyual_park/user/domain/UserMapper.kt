@@ -5,7 +5,6 @@ import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
 import io.github.siyual_park.user.entity.UserData
-import io.github.siyual_park.user.repository.UserContactRepository
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
 import io.github.siyual_park.user.repository.UserScopeRepository
@@ -15,7 +14,6 @@ import org.springframework.transaction.reactive.TransactionalOperator
 @Component
 class UserMapper(
     private val userRepository: UserRepository,
-    private val userContactRepository: UserContactRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
@@ -29,7 +27,6 @@ class UserMapper(
         return User(
             source,
             userRepository,
-            userContactRepository,
             userCredentialRepository,
             userScopeRepository,
             scopeTokenStorage,

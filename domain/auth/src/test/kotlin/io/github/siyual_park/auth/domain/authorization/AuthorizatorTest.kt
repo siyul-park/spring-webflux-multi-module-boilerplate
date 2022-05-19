@@ -3,7 +3,6 @@ package io.github.siyual_park.auth.domain.authorization
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.dummy.DummyCreateScopeTokenPayload
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
@@ -35,9 +34,8 @@ class AuthorizatorTest : DataTestHelper() {
     )
 
     private val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper, eventEmitter)
-    private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
 
-    private val authorizator = Authorizator(scopeTokenStorage)
+    private val authorizator = Authorizator()
 
     init {
         authorizator.register(AllowAllAuthorizeFilter(), PrincipalHasScopeAuthorizeStrategy())

@@ -5,10 +5,14 @@ import io.github.siyual_park.application.server.dto.request.GrantScopeRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.application.server.dto.response.UserInfo
+import io.github.siyual_park.auth.domain.authorization.Authorizator
+import io.github.siyual_park.auth.domain.authorization.withAuthorize
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
+import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.presentation.filter.RHSFilterParserFactory
 import io.github.siyual_park.presentation.pagination.OffsetPage
@@ -50,12 +54,12 @@ import javax.validation.ValidationException
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userContactController: UserContactController,
     private val userFactory: UserFactory,
     private val userStorage: UserStorage,
     scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
+    private val authorizator: Authorizator,
     private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
@@ -65,6 +69,13 @@ class UserController(
     private val sortParser = sortParserFactory.create(UserData::class)
 
     private val offsetPaginator = OffsetPaginator(userStorage)
+
+    private val credentialUpdateScopeToken = AsyncLazy {
+        scopeTokenStorage.loadOrFail("users.credential:update")
+    }
+    private val credentialSelfUpdateScopeToken = AsyncLazy {
+        scopeTokenStorage.loadOrFail("users[self].credential:update")
+    }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("")
@@ -137,15 +148,14 @@ class UserController(
         @Valid @RequestBody request: UpdateUserRequest,
         @AuthenticationPrincipal principal: UserPrincipal
     ): UserInfo = operator.executeAndAwait {
-        request.contact?.let {
-            userContactController.update(
+        request.password?.let {
+            updateCredentials(
                 userId,
-                it.orElseThrow { throw ValidationException("contact is cannot be null") }
+                it.orElseThrow { throw ValidationException("password is cannot be null") }
             )
         }
-        request.contact = null
 
-        val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(request)
+        val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(request.copy(password = null))
         val user = userStorage.loadOrFail(userId)
 
         patch.apply(user)
@@ -196,5 +206,19 @@ class UserController(
         @PathVariable("scope-id") scopeId: ULID
     ) {
         return authorizableContoller.revokeScope(userId, scopeId)
+    }
+
+    private suspend fun updateCredentials(
+        userId: ULID,
+        password: String
+    ) = authorizator.withAuthorize(
+        listOf(credentialUpdateScopeToken.get(), credentialSelfUpdateScopeToken.get()),
+        listOf(null, userId)
+    ) {
+        val user = userStorage.loadOrFail(userId)
+        val credential = user.getCredential()
+
+        credential.setPassword(password)
+        credential.sync()
     }
 }

@@ -129,9 +129,9 @@ class ScopeController(
     ): ScopeTokenInfo {
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
 
-        if (request.scope != null) {
-            if (request.scope.isPresent) {
-                syncScope(scopeId, request.scope.get())
+        request.scope?.let {
+            if (it.isPresent) {
+                syncScope(scopeId, it.get())
             } else {
                 val existsScope = scopeToken.children().toSet()
                 existsScope.forEach { scopeToken.revoke(it) }
@@ -169,7 +169,7 @@ class ScopeController(
         toRevokeScope.forEach { revoke(clientId, it.id) }
     }
 
-    suspend fun grant(
+    private suspend fun grant(
         clientId: ULID,
         scopeId: ULID
     ) = authorizator.withAuthorize(listOf(scopeCreateScopeToken.get()), null) {
@@ -178,7 +178,7 @@ class ScopeController(
         parent.grant(child)
     }
 
-    suspend fun revoke(
+    private suspend fun revoke(
         clientId: ULID,
         scopeId: ULID
     ) = authorizator.withAuthorize(listOf(scopeDeleteScopeToken.get()), null) {
