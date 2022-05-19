@@ -138,10 +138,10 @@ class Authorizator(
     }
 }
 
-suspend fun <T> Authorizator.withAuthorize(
+suspend inline fun <T> Authorizator.withAuthorize(
     scope: List<*>,
     targetDomainObjects: List<*>? = null,
-    func: suspend () -> T
+    func: () -> T
 ): T {
     val principal = getPrincipal() ?: throw PrincipalIdNotExistsException()
     if (!authorize(principal, scope, targetDomainObjects)) {
