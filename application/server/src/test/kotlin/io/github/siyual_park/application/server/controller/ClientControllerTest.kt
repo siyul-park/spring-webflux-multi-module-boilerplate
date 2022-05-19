@@ -22,7 +22,6 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -46,47 +45,7 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            pop = listOf("clients[self].scope:read", "clients.scope:read"),
             push = listOf("clients:create")
-        )
-
-        ClientType.values().forEach {
-            val request = DummyCreateClientRequest.create(
-                DummyCreateClientRequest.Template(
-                    type = Presence.Exist(it)
-                )
-            )
-            val response = clientControllerGateway.create(request)
-
-            assertEquals(HttpStatus.CREATED, response.status)
-
-            val clientInfo = response.responseBody.awaitSingle()
-            val client = clientStorage.load(clientInfo.id)
-
-            assertNotNull(client)
-            assertNotNull(clientInfo.id)
-            assertEquals(request.name, clientInfo.name)
-            assertEquals(request.type, clientInfo.type)
-            assertEquals(request.origin, clientInfo.origin)
-            assertNull(clientInfo.scope)
-            if (request.type == ClientType.CONFIDENTIAL) {
-                assertNotNull(clientInfo.secret)
-            } else {
-                assertEquals(clientInfo.secret, null)
-            }
-            assertNotNull(clientInfo.createdAt)
-            assertNotNull(clientInfo.updatedAt)
-        }
-    }
-
-    @Test
-    fun `POST clients, status = 201, with scope`() = blocking {
-        val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it).toPrincipal() }
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("clients:create", "clients[self].scope:read")
         )
 
         ClientType.values().forEach {
