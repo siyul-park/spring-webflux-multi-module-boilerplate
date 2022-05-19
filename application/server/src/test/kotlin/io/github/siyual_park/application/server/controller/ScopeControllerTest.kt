@@ -277,7 +277,7 @@ class ScopeControllerTest @Autowired constructor(
         )
 
         val finalScope = parent.children().toSet().toMutableSet().also { it.add(child) }
-        val request = UpdateScopeTokenRequest(scope = Optional.of(finalScope.map { it.id }))
+        val request = UpdateScopeTokenRequest(children = Optional.of(finalScope.map { it.id }))
         val response = scopeControllerGateway.update(parent.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
@@ -299,7 +299,7 @@ class ScopeControllerTest @Autowired constructor(
         )
 
         val finalScope = parent.children().toSet().toMutableSet().also { it.add(child) }
-        val request = UpdateScopeTokenRequest(scope = Optional.of(finalScope.map { it.id }))
+        val request = UpdateScopeTokenRequest(children = Optional.of(finalScope.map { it.id }))
         val response = scopeControllerGateway.update(parent.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
@@ -321,7 +321,7 @@ class ScopeControllerTest @Autowired constructor(
         )
 
         val finalScope = parent.children().toSet().toMutableSet().also { it.remove(child) }
-        val request = UpdateScopeTokenRequest(scope = Optional.of(finalScope.map { it.id }))
+        val request = UpdateScopeTokenRequest(children = Optional.of(finalScope.map { it.id }))
         val response = scopeControllerGateway.update(parent.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
@@ -345,7 +345,7 @@ class ScopeControllerTest @Autowired constructor(
         )
 
         val finalScope = parent.children().toSet().toMutableSet().also { it.remove(child) }
-        val request = UpdateScopeTokenRequest(scope = Optional.of(finalScope.map { it.id }))
+        val request = UpdateScopeTokenRequest(children = Optional.of(finalScope.map { it.id }))
         val response = scopeControllerGateway.update(parent.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)

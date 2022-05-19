@@ -171,19 +171,6 @@ class UserController(
         user.clear()
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
-    @GetMapping("/{user-id}/scope")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission({null, #userId}, {'users.scope:read', 'users[self].scope:read'})")
-    fun readScope(
-        @PathVariable("user-id") userId: ULID
-    ): Flow<ScopeTokenInfo> {
-        return flow {
-            val user = userStorage.loadOrFail(userId)
-            emitAll(user.getScope(deep = false))
-        }.map { mapperContext.map(it) }
-    }
-
     private suspend fun updateCredentials(
         userId: ULID,
         password: String

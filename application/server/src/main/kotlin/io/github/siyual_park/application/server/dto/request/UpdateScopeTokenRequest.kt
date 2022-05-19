@@ -9,5 +9,5 @@ import javax.validation.constraints.Size
 data class UpdateScopeTokenRequest(
     val name: Optional<@Size(min = 3, max = 20) String>? = null,
     val description: Optional<@Size(min = 3, max = 128) String>? = null,
-    val scope: Optional<Collection<ULID>>? = null
+    val children: Optional<Collection<ULID>>? = null
 )

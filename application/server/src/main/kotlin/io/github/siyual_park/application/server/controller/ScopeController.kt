@@ -9,7 +9,6 @@ import io.github.siyual_park.auth.domain.scope_token.CreateScopeTokenPayload
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
@@ -121,7 +120,7 @@ class ScopeController(
     ): ScopeTokenInfo {
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
 
-        request.scope?.let {
+        request.children?.let {
             if (it.isPresent) {
                 syncScope(scopeId, it.get())
             } else {
@@ -130,7 +129,7 @@ class ScopeController(
             }
         }
 
-        val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(scope = null))
+        val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
         patch.apply(scopeToken).sync()
 
         return mapperContext.map(scopeToken)
