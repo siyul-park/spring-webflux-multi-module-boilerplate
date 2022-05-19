@@ -107,7 +107,7 @@ class ClientControllerTest @Autowired constructor(
             assertEquals(request.name, clientInfo.name)
             assertEquals(request.type, clientInfo.type)
             assertEquals(request.origin, clientInfo.origin)
-            assertEquals(client?.getScope(deep = false)?.toList()?.size, clientInfo.scope?.size)
+            assertEquals(client?.getScope(deep = false)?.toList()?.size, clientInfo.scope.size)
             if (request.type == ClientType.CONFIDENTIAL) {
                 assertNotNull(clientInfo.secret)
             } else {
