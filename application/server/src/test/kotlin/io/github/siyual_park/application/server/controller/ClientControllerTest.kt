@@ -375,6 +375,102 @@ class ClientControllerTest @Autowired constructor(
     }
 
     @Test
+    fun `PATCH clients_{client-id}, status = 200, with grant scope`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients:update", "clients.scope:create")
+        )
+
+        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.add(scope) }
+        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = clientControllerGateway.update(otherClient.id, request)
+
+        assertEquals(HttpStatus.OK, response.status)
+        assertTrue(otherClient.has(scope))
+    }
+
+    @Test
+    fun `PATCH clients_{client-id}, status = 403, with grant scope`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients:update"),
+            pop = listOf("clients.scope:create")
+        )
+
+        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.add(scope) }
+        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = clientControllerGateway.update(otherClient.id, request)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
+    fun `PATCH clients_{client-id}, status = 200, with revoke scope`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+
+        otherClient.grant(scope)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients:update", "clients.scope:delete")
+        )
+
+        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.remove(scope) }
+        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = clientControllerGateway.update(otherClient.id, request)
+
+        assertEquals(HttpStatus.OK, response.status)
+        assertFalse(otherClient.has(scope))
+    }
+
+    @Test
+    fun `PATCH clients_{client-id}, status = 403, with revoke scope`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        val otherClient = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it) }
+
+        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+
+        otherClient.grant(scope)
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients:update"),
+            pop = listOf("clients.scope:delete")
+        )
+
+        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.remove(scope) }
+        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+        val response = clientControllerGateway.update(otherClient.id, request)
+
+        assertEquals(HttpStatus.FORBIDDEN, response.status)
+    }
+
+    @Test
     fun `PATCH clients_{client-id}, status = 400, when name is null`() = blocking {
         val principal = DummyCreateClientPayload.create()
             .let { clientFactory.create(it).toPrincipal() }
@@ -474,102 +570,6 @@ class ClientControllerTest @Autowired constructor(
         )
 
         val response = clientControllerGateway.delete(otherClient.id)
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
-    fun `PATCH clients_{client-id}, status = 200, with grant scope`() = blocking {
-        val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it).toPrincipal() }
-
-        val otherClient = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-
-        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("clients:update", "clients.scope:create")
-        )
-
-        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.add(scope) }
-        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
-        val response = clientControllerGateway.update(otherClient.id, request)
-
-        assertEquals(HttpStatus.OK, response.status)
-        assertTrue(otherClient.has(scope))
-    }
-
-    @Test
-    fun `PATCH clients_{client-id}, status = 403, with grant scope`() = blocking {
-        val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it).toPrincipal() }
-
-        val otherClient = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-
-        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("clients:update"),
-            pop = listOf("clients.scope:create")
-        )
-
-        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.add(scope) }
-        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
-        val response = clientControllerGateway.update(otherClient.id, request)
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
-    fun `PATCH clients_{client-id}, status = 200, with revoke scope`() = blocking {
-        val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it).toPrincipal() }
-
-        val otherClient = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-
-        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
-
-        otherClient.grant(scope)
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("clients:update", "clients.scope:delete")
-        )
-
-        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.remove(scope) }
-        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
-        val response = clientControllerGateway.update(otherClient.id, request)
-
-        assertEquals(HttpStatus.OK, response.status)
-        assertFalse(otherClient.has(scope))
-    }
-
-    @Test
-    fun `PATCH clients_{client-id}, status = 403, with revoke scope`() = blocking {
-        val principal = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it).toPrincipal() }
-
-        val otherClient = DummyCreateClientPayload.create()
-            .let { clientFactory.create(it) }
-
-        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
-
-        otherClient.grant(scope)
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("clients:update"),
-            pop = listOf("clients.scope:delete")
-        )
-
-        val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.remove(scope) }
-        val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
-        val response = clientControllerGateway.update(otherClient.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

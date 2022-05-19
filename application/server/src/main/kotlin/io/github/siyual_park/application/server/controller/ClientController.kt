@@ -7,7 +7,6 @@ import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.authorization.withAuthorize
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
@@ -26,7 +25,6 @@ import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toSet
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
@@ -56,7 +54,7 @@ class ClientController(
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
     private val authorizator: Authorizator,
-    private val transactionalOperator: TransactionalOperator,
+    private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
     private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ClientData::class)
@@ -137,7 +135,7 @@ class ClientController(
     suspend fun update(
         @PathVariable("client-id") clientId: ULID,
         @Valid @RequestBody request: UpdateClientRequest
-    ): ClientInfo = transactionalOperator.executeAndAwait {
+    ): ClientInfo = operator.executeAndAwait {
         val client = clientStorage.loadOrFail(clientId)
 
         request.scope?.let {
@@ -169,7 +167,7 @@ class ClientController(
     private suspend fun syncScope(
         clientId: ULID,
         scope: Collection<ULID>
-    ) = transactionalOperator.executeAndAwait {
+    ) = operator.executeAndAwait {
         val client = clientStorage.loadOrFail(clientId)
 
         val existsScope = client.getScope(deep = false).toSet()

@@ -7,6 +7,7 @@ data class UserInfo(
     val id: ULID,
     val name: String,
     val email: String,
+    val scope: Collection<ScopeTokenInfo>?,
     val createdAt: Instant,
     val updatedAt: Instant?
 )

@@ -5,14 +5,11 @@ import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.getPrincipal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.TypeReference
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.persistence.AsyncLazy
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
@@ -21,17 +18,9 @@ import org.springframework.stereotype.Component
 class ClientDetailInfoMapper(
     private val mapperContext: MapperContext,
     private val authorizator: Authorizator,
-    private val scopeTokenStorage: ScopeTokenStorage
 ) : Mapper<Client, ClientDetailInfo> {
     override val sourceType = object : TypeReference<Client>() {}
     override val targetType = object : TypeReference<ClientDetailInfo>() {}
-
-    private val scopeSelfReadScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("clients[self].scope:read")
-    }
-    private val scopeReadScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("clients.scope:read")
-    }
 
     override suspend fun map(source: Client): ClientDetailInfo {
         val principal = getPrincipal()
@@ -39,7 +28,7 @@ class ClientDetailInfoMapper(
             principal != null &&
             authorizator.authorize(
                 principal,
-                listOf(scopeSelfReadScopeToken.get(), scopeReadScopeToken.get()),
+                listOf("clients[self].scope:read", "clients.scope:read"),
                 listOf(source.id, null)
             )
         ) {
