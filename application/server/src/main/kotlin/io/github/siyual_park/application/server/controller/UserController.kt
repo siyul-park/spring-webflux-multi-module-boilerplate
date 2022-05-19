@@ -12,7 +12,6 @@ import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.presentation.filter.RHSFilterParserFactory
 import io.github.siyual_park.presentation.pagination.OffsetPage
@@ -69,13 +68,6 @@ class UserController(
     private val sortParser = sortParserFactory.create(UserData::class)
 
     private val offsetPaginator = OffsetPaginator(userStorage)
-
-    private val credentialUpdateScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("users.credential:update")
-    }
-    private val credentialSelfUpdateScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("users[self].credential:update")
-    }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("")
@@ -212,7 +204,7 @@ class UserController(
         userId: ULID,
         password: String
     ) = authorizator.withAuthorize(
-        listOf(credentialUpdateScopeToken.get(), credentialSelfUpdateScopeToken.get()),
+        listOf("users.credential:update", "users[self].credential:update"),
         listOf(null, userId)
     ) {
         val user = userStorage.loadOrFail(userId)

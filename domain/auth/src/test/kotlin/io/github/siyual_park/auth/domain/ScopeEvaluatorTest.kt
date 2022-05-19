@@ -45,7 +45,7 @@ class ScopeEvaluatorTest : DataTestHelper() {
 
     private val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper, eventEmitter)
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
-    private val authorizator = Authorizator()
+    private val authorizator = Authorizator(scopeTokenStorage)
 
     private val scopeEvaluator = ScopeEvaluator(scopeTokenStorage, authorizator)
 

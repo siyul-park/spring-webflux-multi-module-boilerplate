@@ -14,7 +14,6 @@ import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.json.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.presentation.filter.RHSFilterParserFactory
 import io.github.siyual_park.presentation.pagination.OffsetPage
@@ -57,13 +56,6 @@ class ScopeController(
     private val sortParser = sortParserFactory.create(ScopeTokenData::class)
 
     private val offsetPaginator = OffsetPaginator(scopeTokenStorage)
-
-    private val scopeCreateScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("scope.children:create")
-    }
-    private val scopeDeleteScopeToken = AsyncLazy {
-        scopeTokenStorage.loadOrFail("scope.children:delete")
-    }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
     @PostMapping("")
@@ -172,7 +164,7 @@ class ScopeController(
     private suspend fun grant(
         clientId: ULID,
         scopeId: ULID
-    ) = authorizator.withAuthorize(listOf(scopeCreateScopeToken.get()), null) {
+    ) = authorizator.withAuthorize(listOf("scope.children:create"), null) {
         val parent = scopeTokenStorage.loadOrFail(clientId)
         val child = scopeTokenStorage.loadOrFail(scopeId)
         parent.grant(child)
@@ -181,7 +173,7 @@ class ScopeController(
     private suspend fun revoke(
         clientId: ULID,
         scopeId: ULID
-    ) = authorizator.withAuthorize(listOf(scopeDeleteScopeToken.get()), null) {
+    ) = authorizator.withAuthorize(listOf("scope.children:delete"), null) {
         val parent = scopeTokenStorage.loadOrFail(clientId)
         val child = scopeTokenStorage.loadOrFail(scopeId)
         parent.revoke(child)
