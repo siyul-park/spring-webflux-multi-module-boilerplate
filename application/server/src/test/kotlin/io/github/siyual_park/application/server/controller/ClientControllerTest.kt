@@ -10,6 +10,7 @@ import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.client.domain.ClientFactory
+import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.user.domain.UserFactory
@@ -21,6 +22,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,7 +35,8 @@ class ClientControllerTest @Autowired constructor(
     private val clientControllerGateway: ClientControllerGateway,
     private val userFactory: UserFactory,
     private val clientFactory: ClientFactory,
-    private val scopeTokenFactory: ScopeTokenFactory
+    private val scopeTokenFactory: ScopeTokenFactory,
+    private val clientStorage: ClientStorage
 ) : CoroutineTestHelper() {
 
     @Test
@@ -43,6 +46,7 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
+            pop = listOf("clients[self].scope:read", "clients.scope:read"),
             push = listOf("clients:create")
         )
 
@@ -56,19 +60,61 @@ class ClientControllerTest @Autowired constructor(
 
             assertEquals(HttpStatus.CREATED, response.status)
 
-            val client = response.responseBody.awaitSingle()
+            val clientInfo = response.responseBody.awaitSingle()
+            val client = clientStorage.load(clientInfo.id)
 
-            assertNotNull(client.id)
-            assertEquals(request.name, client.name)
-            assertEquals(request.type, client.type)
-            assertEquals(request.origin, client.origin)
+            assertNotNull(client)
+            assertNotNull(clientInfo.id)
+            assertEquals(request.name, clientInfo.name)
+            assertEquals(request.type, clientInfo.type)
+            assertEquals(request.origin, clientInfo.origin)
+            assertNull(clientInfo.scope)
             if (request.type == ClientType.CONFIDENTIAL) {
-                assertNotNull(client.secret)
+                assertNotNull(clientInfo.secret)
             } else {
-                assertEquals(client.secret, null)
+                assertEquals(clientInfo.secret, null)
             }
-            assertNotNull(client.createdAt)
-            assertNotNull(client.updatedAt)
+            assertNotNull(clientInfo.createdAt)
+            assertNotNull(clientInfo.updatedAt)
+        }
+    }
+
+    @Test
+    fun `POST clients, status = 201, with scope`() = blocking {
+        val principal = DummyCreateClientPayload.create()
+            .let { clientFactory.create(it).toPrincipal() }
+
+        gatewayAuthorization.setPrincipal(
+            principal,
+            push = listOf("clients:create", "clients[self].scope:read")
+        )
+
+        ClientType.values().forEach {
+            val request = DummyCreateClientRequest.create(
+                DummyCreateClientRequest.Template(
+                    type = Presence.Exist(it)
+                )
+            )
+            val response = clientControllerGateway.create(request)
+
+            assertEquals(HttpStatus.CREATED, response.status)
+
+            val clientInfo = response.responseBody.awaitSingle()
+            val client = clientStorage.load(clientInfo.id)
+
+            assertNotNull(client)
+            assertNotNull(clientInfo.id)
+            assertEquals(request.name, clientInfo.name)
+            assertEquals(request.type, clientInfo.type)
+            assertEquals(request.origin, clientInfo.origin)
+            assertEquals(client?.getScope(deep = false)?.toList()?.size, clientInfo.scope?.size)
+            if (request.type == ClientType.CONFIDENTIAL) {
+                assertNotNull(clientInfo.secret)
+            } else {
+                assertEquals(clientInfo.secret, null)
+            }
+            assertNotNull(clientInfo.createdAt)
+            assertNotNull(clientInfo.updatedAt)
         }
     }
 
