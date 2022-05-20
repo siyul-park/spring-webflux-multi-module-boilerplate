@@ -15,10 +15,10 @@ class ScopeTokenInfoMapper : Mapper<Projection<ScopeToken>, ScopeTokenInfo> {
     override val targetType = object : TypeReference<ScopeTokenInfo>() {}
 
     override suspend fun map(source: Projection<ScopeToken>): ScopeTokenInfo {
-        return map(source, source.value.relations().toSet())
+        return map(source, null)
     }
 
-    suspend fun map(source: Projection<ScopeToken>, relations: Set<Pair<ScopeToken, ScopeToken>>): ScopeTokenInfo {
+    suspend fun map(source: Projection<ScopeToken>, relations: Set<Pair<ScopeToken, ScopeToken>>?): ScopeTokenInfo {
         val node = source.node
         val value = source.value
         val raw = value.raw()
@@ -29,9 +29,10 @@ class ScopeTokenInfoMapper : Mapper<Projection<ScopeToken>, ScopeTokenInfo> {
             system = node.project(ScopeTokenInfo::system) { raw.system },
             children = node.project(ScopeTokenInfo::children) {
                 if (value.isPacked()) {
-                    relations
+                    val finalRelations = relations ?: value.relations().toSet()
+                    finalRelations
                         .filter { (parent, _) -> parent.id == value.id }
-                        .map { (_, child) -> map(Projection(child, it), relations) }
+                        .map { (_, child) -> map(Projection(child, it), finalRelations) }
                 } else {
                     null
                 }
