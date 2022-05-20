@@ -75,13 +75,14 @@ class UserController(
         @Valid @RequestBody request: CreateUserRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): UserInfo {
+        val projectionNode = projectionParser.parse(fields)
         val payload = CreateUserPayload(
             name = request.name,
             email = request.email,
             password = request.password
         )
         val user = userFactory.create(payload)
-        return mapperContext.map(Projection(user, projectionParser.parse(fields)))
+        return mapperContext.map(Projection(user, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -98,6 +99,7 @@ class UserController(
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): OffsetPage<UserInfo> {
+        val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
                 UserData::id to listOf(id),
@@ -113,7 +115,7 @@ class UserController(
             page = page
         )
 
-        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionParser.parse(fields))) }
+        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -135,8 +137,9 @@ class UserController(
         @PathVariable("user-id") userId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): UserInfo {
+        val projectionNode = projectionParser.parse(fields)
         val user = userStorage.loadOrFail(userId)
-        return mapperContext.map(Projection(user, projectionParser.parse(fields)))
+        return mapperContext.map(Projection(user, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -149,6 +152,7 @@ class UserController(
         @AuthenticationPrincipal principal: UserPrincipal,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): UserInfo = operator.executeAndAwait {
+        val projectionNode = projectionParser.parse(fields)
         val user = userStorage.loadOrFail(userId)
 
         request.password?.let {
@@ -171,7 +175,7 @@ class UserController(
         )
         patch.apply(user).sync()
 
-        mapperContext.map(Projection(user, projectionParser.parse(fields)))
+        mapperContext.map(Projection(user, projectionNode))
     }!!
 
     @Operation(security = [SecurityRequirement(name = "bearer")])

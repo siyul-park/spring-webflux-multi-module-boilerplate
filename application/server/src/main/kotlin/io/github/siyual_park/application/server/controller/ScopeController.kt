@@ -51,7 +51,7 @@ class ScopeController(
     sortParserFactory: SortParserFactory,
     projectionParserFactory: ProjectionParserFactory,
     private val authorizator: Authorizator,
-    private val transactionalOperator: TransactionalOperator,
+    private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
     private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ScopeTokenData::class)
@@ -68,13 +68,14 @@ class ScopeController(
         @Valid @RequestBody request: CreateScopeTokenRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ScopeTokenInfo {
+        val projectionNode = projectionParser.parse(fields)
         val payload = CreateScopeTokenPayload(
             name = request.name,
             description = request.description,
             system = false
         )
         val scopeToken = scopeTokenFactory.create(payload)
-        return mapperContext.map(Projection(scopeToken, projectionParser.parse(fields)))
+        return mapperContext.map(Projection(scopeToken, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -91,6 +92,7 @@ class ScopeController(
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): OffsetPage<ScopeTokenInfo> {
+        val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
                 ScopeTokenData::id to listOf(id),
@@ -106,7 +108,7 @@ class ScopeController(
             page = page
         )
 
-        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionParser.parse(fields))) }
+        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -117,8 +119,9 @@ class ScopeController(
         @PathVariable("scope-id") scopeId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ScopeTokenInfo {
+        val projectionNode = projectionParser.parse(fields)
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        return mapperContext.map(Projection(scopeToken, projectionParser.parse(fields)))
+        return mapperContext.map(Projection(scopeToken, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -129,7 +132,8 @@ class ScopeController(
         @PathVariable("scope-id") scopeId: ULID,
         @Valid @RequestBody request: UpdateScopeTokenRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ScopeTokenInfo {
+    ): ScopeTokenInfo = operator.executeAndAwait {
+        val projectionNode = projectionParser.parse(fields)
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
 
         request.children?.let {
@@ -144,8 +148,8 @@ class ScopeController(
         val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
         patch.apply(scopeToken).sync()
 
-        return mapperContext.map(Projection(scopeToken, projectionParser.parse(fields)))
-    }
+        mapperContext.map(Projection(scopeToken, projectionNode))
+    }!!
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
     @DeleteMapping("/{scope-id}")
@@ -159,7 +163,7 @@ class ScopeController(
     suspend fun syncScope(
         clientId: ULID,
         scope: Collection<ULID>
-    ) = transactionalOperator.executeAndAwait {
+    ) = operator.executeAndAwait {
         val parent = scopeTokenStorage.loadOrFail(clientId)
 
         val existsScope = parent.children().toSet()

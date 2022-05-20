@@ -74,13 +74,14 @@ class ClientController(
         @Valid @RequestBody request: CreateClientRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientDetailInfo {
+        val projectionNode = projectionParser.parse(fields)
         val payload = CreateClientPayload(
             name = request.name,
             type = request.type,
             origin = request.origin
         )
         val client = clientFactory.create(payload)
-        return mapperContext.map(Projection(client, projectionParser.parse(fields)))
+        return mapperContext.map(Projection(client, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -99,6 +100,7 @@ class ClientController(
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): OffsetPage<ClientInfo> {
+        val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
                 ClientData::id to listOf(id),
@@ -109,6 +111,7 @@ class ClientController(
                 ClientData::updatedAt to listOf(updatedAt)
             )
         )
+
         val offsetPage = offsetPaginator.paginate(
             criteria = criteria,
             sort = sort?.let { sortParser.parse(it) },
@@ -116,7 +119,7 @@ class ClientController(
             page = page
         )
 
-        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionParser.parse(fields))) }
+        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -138,8 +141,9 @@ class ClientController(
         @PathVariable("client-id") clientId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientInfo {
+        val projectionNode = projectionParser.parse(fields)
         val client = clientStorage.loadOrFail(clientId)
-        return mapperContext.map(Projection(client, projectionParser.parse(fields)))
+        return mapperContext.map(Projection(client, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -151,6 +155,7 @@ class ClientController(
         @Valid @RequestBody request: UpdateClientRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientInfo = operator.executeAndAwait {
+        val projectionNode = projectionParser.parse(fields)
         val client = clientStorage.loadOrFail(clientId)
 
         request.scope?.let {
@@ -165,7 +170,7 @@ class ClientController(
         val patch = PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null))
         patch.apply(client).sync()
 
-        mapperContext.map(Projection(client, projectionParser.parse(fields)))
+        mapperContext.map(Projection(client, projectionNode))
     }!!
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
