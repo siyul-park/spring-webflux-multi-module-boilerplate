@@ -5,7 +5,6 @@ import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
-import io.github.siyual_park.application.server.dummy.DummyNameFactory
 import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
@@ -13,8 +12,8 @@ import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.test.DummyNameFactory
 import io.github.siyual_park.user.domain.UserFactory
-import io.github.siyual_park.util.Presence
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
@@ -51,7 +50,7 @@ class ClientControllerTest @Autowired constructor(
         ClientType.values().forEach {
             val request = DummyCreateClientRequest.create(
                 DummyCreateClientRequest.Template(
-                    type = Presence.Exist(it)
+                    type = Optional.of(it)
                 )
             )
             val response = clientControllerGateway.create(request)
@@ -106,7 +105,7 @@ class ClientControllerTest @Autowired constructor(
 
         val request = DummyCreateClientRequest.create(
             DummyCreateClientRequest.Template(
-                name = Presence.ofNullable(DummyNameFactory.create(25))
+                name = Optional.of(DummyNameFactory.create(25))
             )
         )
 

@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain
 
-import io.github.siyual_park.auth.dummy.DummyStringFactory
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.test.DummyStringFactory
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.junit.jupiter.api.Assertions.assertEquals

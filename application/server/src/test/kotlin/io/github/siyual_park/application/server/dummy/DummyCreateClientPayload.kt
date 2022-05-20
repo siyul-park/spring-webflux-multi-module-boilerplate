@@ -3,24 +3,26 @@ package io.github.siyual_park.application.server.dummy
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientType
-import io.github.siyual_park.util.Presence
+import io.github.siyual_park.test.DummyNameFactory
+import io.github.siyual_park.test.resolve
+import io.github.siyual_park.test.resolveNotNull
 import java.net.URL
+import java.util.Optional
 
 object DummyCreateClientPayload {
     data class Template(
-        val name: Presence<String> = Presence.Empty(),
-        val type: Presence<ClientType> = Presence.Empty(),
-        val origin: Presence<URL> = Presence.Empty(),
-        val scope: Presence<Collection<ScopeToken>?> = Presence.Empty()
+        val name: Optional<String>? = null,
+        val type: Optional<ClientType>? = null,
+        val origin: Optional<URL>? = null,
+        val scope: Optional<Collection<ScopeToken>?>? = null
     )
 
     fun create(template: Template? = null): CreateClientPayload {
-        val t = Presence.ofNullable(template)
         return CreateClientPayload(
-            name = t.flatMap { it.name }.orElseGet { DummyNameFactory.create(10) },
-            type = t.flatMap { it.type }.orElseGet { ClientType.CONFIDENTIAL },
-            origin = t.flatMap { it.origin }.orElseGet { URL("http://localhost:8080") },
-            scope = t.flatMap { it.scope }.orElseGet { null }
+            name = resolveNotNull(template?.name) { DummyNameFactory.create(10) },
+            type = resolveNotNull(template?.type) { ClientType.CONFIDENTIAL },
+            origin = resolveNotNull(template?.origin) { URL("http://localhost:8080") },
+            scope = resolve(template?.scope) { null }
         )
     }
 }

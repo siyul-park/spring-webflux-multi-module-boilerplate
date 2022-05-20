@@ -1,6 +1,5 @@
-package io.github.siyual_park.json.patch
+package io.github.siyual_park.data.patch
 
-import io.github.siyual_park.data.patch.Patch
 import java.util.Optional
 import javax.validation.ValidationException
 import kotlin.reflect.KClass

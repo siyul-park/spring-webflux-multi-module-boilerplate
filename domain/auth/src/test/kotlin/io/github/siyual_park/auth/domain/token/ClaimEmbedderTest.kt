@@ -2,8 +2,8 @@ package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.dummy.DummyStringFactory
 import io.github.siyual_park.data.test.DataTestHelper
+import io.github.siyual_park.test.DummyStringFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

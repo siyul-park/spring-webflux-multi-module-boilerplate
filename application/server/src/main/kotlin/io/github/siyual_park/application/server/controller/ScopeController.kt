@@ -10,7 +10,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.entity.ScopeTokenData
-import io.github.siyual_park.json.patch.PropertyOverridePatch
+import io.github.siyual_park.data.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail

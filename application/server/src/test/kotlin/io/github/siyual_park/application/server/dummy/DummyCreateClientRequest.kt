@@ -2,22 +2,23 @@ package io.github.siyual_park.application.server.dummy
 
 import io.github.siyual_park.application.server.dto.request.CreateClientRequest
 import io.github.siyual_park.client.entity.ClientType
-import io.github.siyual_park.util.Presence
+import io.github.siyual_park.test.DummyNameFactory
+import io.github.siyual_park.test.resolveNotNull
 import java.net.URL
+import java.util.Optional
 
 object DummyCreateClientRequest {
     data class Template(
-        val name: Presence<String> = Presence.Empty(),
-        val type: Presence<ClientType> = Presence.Empty(),
-        val origin: Presence<URL> = Presence.Empty()
+        val name: Optional<String>? = null,
+        val type: Optional<ClientType>? = null,
+        val origin: Optional<URL>? = null
     )
 
     fun create(template: Template? = null): CreateClientRequest {
-        val t = Presence.ofNullable(template)
         return CreateClientRequest(
-            name = t.flatMap { it.name }.orElseGet { DummyNameFactory.create(10) },
-            type = t.flatMap { it.type }.orElseGet { ClientType.PUBLIC },
-            origin = t.flatMap { it.origin }.orElseGet { URL("https://localhost:8080") },
+            name = resolveNotNull(template?.name) { DummyNameFactory.create(10) },
+            type = resolveNotNull(template?.type) { ClientType.PUBLIC },
+            origin = resolveNotNull(template?.origin) { URL("http://localhost:8080") },
         )
     }
 }

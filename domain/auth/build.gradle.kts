@@ -6,6 +6,7 @@ dependencies {
     implementation(project(":module:mapper"))
     implementation(project(":module:util"))
 
+    testImplementation(project(":module:test"))
     testImplementation(project(":module:coroutine-test"))
 }
 

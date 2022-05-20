@@ -6,7 +6,7 @@ import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.authorization.withAuthorize
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.json.patch.PropertyOverridePatch
+import io.github.siyual_park.data.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail
@@ -24,7 +24,6 @@ import io.github.siyual_park.user.entity.UserData
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toSet
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize

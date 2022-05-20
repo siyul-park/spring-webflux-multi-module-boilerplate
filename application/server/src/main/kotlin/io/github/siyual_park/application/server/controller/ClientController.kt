@@ -13,7 +13,7 @@ import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientEntity
-import io.github.siyual_park.json.patch.PropertyOverridePatch
+import io.github.siyual_park.data.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.loadOrFail

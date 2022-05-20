@@ -1,24 +1,28 @@
 package io.github.siyual_park.application.server.dummy
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.test.DummyEmailFactory
+import io.github.siyual_park.test.DummyNameFactory
+import io.github.siyual_park.test.DummyStringFactory
+import io.github.siyual_park.test.resolve
+import io.github.siyual_park.test.resolveNotNull
 import io.github.siyual_park.user.domain.CreateUserPayload
-import io.github.siyual_park.util.Presence
+import java.util.Optional
 
 object DummyCreateUserPayload {
     data class Template(
-        val name: Presence<String> = Presence.Empty(),
-        val email: Presence<String> = Presence.Empty(),
-        val password: Presence<String> = Presence.Empty(),
-        val scope: Presence<Collection<ScopeToken>?> = Presence.Empty()
+        val name: Optional<String>? = null,
+        val email: Optional<String>? = null,
+        val password: Optional<String>? = null,
+        val scope: Optional<Collection<ScopeToken>?>? = null
     )
 
     fun create(template: Template? = null): CreateUserPayload {
-        val t = Presence.ofNullable(template)
         return CreateUserPayload(
-            name = t.flatMap { it.name }.orElseGet { DummyNameFactory.create(10) },
-            email = t.flatMap { it.email }.orElseGet { DummyEmailFactory.create(15) },
-            password = t.flatMap { it.password }.orElseGet { DummyStringFactory.create(10) },
-            scope = t.flatMap { it.scope }.orElseGet { null }
+            name = resolveNotNull(template?.name) { DummyNameFactory.create(10) },
+            email = resolveNotNull(template?.email) { DummyEmailFactory.create(15) },
+            password = resolveNotNull(template?.password) { DummyStringFactory.create(10) },
+            scope = resolve(template?.scope) { null }
         )
     }
 }

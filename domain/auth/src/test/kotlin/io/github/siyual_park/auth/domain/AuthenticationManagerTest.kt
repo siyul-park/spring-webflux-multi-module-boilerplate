@@ -4,9 +4,9 @@ import io.github.siyual_park.auth.domain.authentication.AllowAllAuthenticateFilt
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationStrategy
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.dummy.DummyStringFactory
 import io.github.siyual_park.auth.exception.AuthorizeException
 import io.github.siyual_park.data.test.DataTestHelper
+import io.github.siyual_park.test.DummyStringFactory
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test

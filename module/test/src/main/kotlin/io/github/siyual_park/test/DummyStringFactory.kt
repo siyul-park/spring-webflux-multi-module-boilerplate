@@ -1,4 +1,4 @@
-package io.github.siyual_park.auth.dummy
+package io.github.siyual_park.test
 
 import java.util.UUID
 

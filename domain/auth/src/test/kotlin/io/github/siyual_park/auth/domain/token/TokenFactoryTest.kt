@@ -6,7 +6,6 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.dummy.DummyCreateScopeTokenPayload
-import io.github.siyual_park.auth.dummy.DummyStringFactory
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.migration.CreateToken
@@ -16,6 +15,7 @@ import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.event.EventEmitter
+import io.github.siyual_park.test.DummyStringFactory
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

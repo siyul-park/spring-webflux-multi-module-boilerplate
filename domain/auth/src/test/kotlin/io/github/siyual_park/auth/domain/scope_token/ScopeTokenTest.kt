@@ -1,14 +1,13 @@
 package io.github.siyual_park.auth.domain.scope_token
 
 import io.github.siyual_park.auth.dummy.DummyCreateScopeTokenPayload
-import io.github.siyual_park.auth.dummy.DummyStringFactory
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.event.EventEmitter
-import io.github.siyual_park.util.Presence
+import io.github.siyual_park.test.DummyStringFactory
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -17,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.EmptyResultDataAccessException
+import java.util.Optional
 
 class ScopeTokenTest : DataTestHelper() {
     init {
@@ -55,7 +55,7 @@ class ScopeTokenTest : DataTestHelper() {
     fun has() = blocking {
         val packPayload = DummyCreateScopeTokenPayload.create(
             DummyCreateScopeTokenPayload.Template(
-                name = Presence.ofNullable(DummyStringFactory.create(5) + ":pack")
+                name = Optional.of(DummyStringFactory.create(5) + ":pack")
             )
         )
         val payload = DummyCreateScopeTokenPayload.create()
@@ -76,7 +76,7 @@ class ScopeTokenTest : DataTestHelper() {
     fun grant() = blocking {
         val packPayload = DummyCreateScopeTokenPayload.create(
             DummyCreateScopeTokenPayload.Template(
-                name = Presence.ofNullable(DummyStringFactory.create(5) + ":pack")
+                name = Optional.of(DummyStringFactory.create(5) + ":pack")
             )
         )
         val payload = DummyCreateScopeTokenPayload.create()
@@ -95,7 +95,7 @@ class ScopeTokenTest : DataTestHelper() {
     fun revoke() = blocking {
         val packPayload = DummyCreateScopeTokenPayload.create(
             DummyCreateScopeTokenPayload.Template(
-                name = Presence.ofNullable(DummyStringFactory.create(5) + ":pack")
+                name = Optional.of(DummyStringFactory.create(5) + ":pack")
             )
         )
         val payload = DummyCreateScopeTokenPayload.create()
@@ -117,7 +117,7 @@ class ScopeTokenTest : DataTestHelper() {
     fun children() = blocking {
         val packPayload = DummyCreateScopeTokenPayload.create(
             DummyCreateScopeTokenPayload.Template(
-                name = Presence.ofNullable(DummyStringFactory.create(5) + ":pack")
+                name = Optional.of(DummyStringFactory.create(5) + ":pack")
             )
         )
         val payload = DummyCreateScopeTokenPayload.create()
@@ -138,12 +138,12 @@ class ScopeTokenTest : DataTestHelper() {
     fun resolve() = blocking {
         val packPayload1 = DummyCreateScopeTokenPayload.create(
             DummyCreateScopeTokenPayload.Template(
-                name = Presence.ofNullable(DummyStringFactory.create(5) + ":pack")
+                name = Optional.of(DummyStringFactory.create(5) + ":pack")
             )
         )
         val packPayload2 = DummyCreateScopeTokenPayload.create(
             DummyCreateScopeTokenPayload.Template(
-                name = Presence.ofNullable(DummyStringFactory.create(5) + ":pack")
+                name = Optional.of(DummyStringFactory.create(5) + ":pack")
             )
         )
         val payload1 = DummyCreateScopeTokenPayload.create()

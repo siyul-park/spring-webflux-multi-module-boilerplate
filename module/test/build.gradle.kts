@@ -1,11 +1,5 @@
 dependencies {
-    implementation(project(":module:event"))
-    implementation(project(":module:data"))
     implementation(project(":module:ulid"))
-    implementation(project(":module:util"))
-
-    testImplementation(project(":module:test"))
-    testImplementation(project(":module:coroutine-test"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

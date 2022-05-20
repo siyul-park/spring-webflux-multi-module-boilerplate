@@ -5,15 +5,14 @@ import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.dummy.DummyCreateUserRequest
-import io.github.siyual_park.application.server.dummy.DummyNameFactory
-import io.github.siyual_park.application.server.dummy.DummyStringFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.UserControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.test.DummyNameFactory
+import io.github.siyual_park.test.DummyStringFactory
 import io.github.siyual_park.user.domain.UserFactory
-import io.github.siyual_park.util.Presence
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
@@ -106,7 +105,7 @@ class UserControllerTest @Autowired constructor(
 
         val request = DummyCreateUserRequest.create(
             DummyCreateUserRequest.Template(
-                name = Presence.ofNullable(DummyNameFactory.create(25))
+                name = Optional.of(DummyNameFactory.create(25))
             )
         )
         userControllerGateway.create(request)

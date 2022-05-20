@@ -2,13 +2,13 @@ package io.github.siyual_park.auth.domain.scope_token
 
 import io.github.siyual_park.auth.dummy.DummyCreateScopeTokenPayload
 import io.github.siyual_park.auth.dummy.DummyScopeNameFactory
-import io.github.siyual_park.auth.dummy.DummyStringFactory
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.event.EventEmitter
+import io.github.siyual_park.test.DummyStringFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

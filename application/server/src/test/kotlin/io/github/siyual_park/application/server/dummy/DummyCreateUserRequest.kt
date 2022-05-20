@@ -1,21 +1,24 @@
 package io.github.siyual_park.application.server.dummy
 
 import io.github.siyual_park.application.server.dto.request.CreateUserRequest
-import io.github.siyual_park.util.Presence
+import io.github.siyual_park.test.DummyEmailFactory
+import io.github.siyual_park.test.DummyNameFactory
+import io.github.siyual_park.test.DummyStringFactory
+import io.github.siyual_park.test.resolveNotNull
+import java.util.Optional
 
 object DummyCreateUserRequest {
     data class Template(
-        val name: Presence<String> = Presence.Empty(),
-        val email: Presence<String> = Presence.Empty(),
-        val password: Presence<String> = Presence.Empty(),
+        val name: Optional<String>? = null,
+        val email: Optional<String>? = null,
+        val password: Optional<String>? = null,
     )
 
     fun create(template: Template? = null): CreateUserRequest {
-        val t = Presence.ofNullable(template)
         return CreateUserRequest(
-            name = t.flatMap { it.name }.orElseGet { DummyNameFactory.create(10) },
-            email = t.flatMap { it.email }.orElseGet { DummyEmailFactory.create(15) },
-            password = t.flatMap { it.password }.orElseGet { DummyNameFactory.create(10) },
+            name = resolveNotNull(template?.name) { DummyNameFactory.create(10) },
+            email = resolveNotNull(template?.email) { DummyEmailFactory.create(15) },
+            password = resolveNotNull(template?.password) { DummyStringFactory.create(10) },
         )
     }
 }

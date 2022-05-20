@@ -2,10 +2,10 @@ package io.github.siyual_park.auth.domain.authentication
 
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.dummy.DummyStringFactory
 import io.github.siyual_park.auth.exception.AuthorizeException
 import io.github.siyual_park.auth.exception.UnauthorizatedException
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.test.DummyStringFactory
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
