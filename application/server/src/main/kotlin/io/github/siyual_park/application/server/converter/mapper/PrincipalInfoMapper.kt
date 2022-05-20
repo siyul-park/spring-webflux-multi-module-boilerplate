@@ -9,22 +9,33 @@ import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.TypeReference
 import io.github.siyual_park.mapper.map
+import io.github.siyual_park.presentation.project.Projection
+import io.github.siyual_park.presentation.project.project
 import org.springframework.stereotype.Component
 
 @Component
 class PrincipalInfoMapper(
     private val mapperContext: MapperContext
-) : Mapper<Principal, PrincipalInfo> {
-    override val sourceType = object : TypeReference<Principal>() {}
+) : Mapper<Projection<Principal>, PrincipalInfo> {
+    override val sourceType = object : TypeReference<Projection<Principal>>() {}
     override val targetType = object : TypeReference<PrincipalInfo>() {}
 
     private val typeMapping = Maps.newConcurrentMap<Class<*>, String>()
 
-    override suspend fun map(source: Principal): PrincipalInfo {
+    override suspend fun map(source: Projection<Principal>): PrincipalInfo {
+        val node = source.node
+        val value = source.value
+
         return PrincipalInfo(
-            id = source.id,
-            type = typeMapping.getOrPut(source.javaClass) { CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, source.javaClass.simpleName) },
-            scope = mapperContext.map(source = source.scope as Collection<ScopeToken>)
+            id = node.project(PrincipalInfo::id) { value.id },
+            type = node.project(PrincipalInfo::type) {
+                typeMapping.getOrPut(value.javaClass) {
+                    CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, value.javaClass.simpleName)
+                }
+            },
+            scope = node.project(PrincipalInfo::scope) {
+                mapperContext.map(Projection(value.scope as Collection<ScopeToken>, it))
+            },
         )
     }
 }

@@ -2,6 +2,8 @@ dependencies {
     implementation(project(":module:data"))
     implementation(project(":module:persistence"))
     implementation(project(":module:util"))
+
+    testImplementation(project(":module:test"))
     testImplementation(project(":module:coroutine-test"))
     testImplementation(project(":module:ulid"))
 }

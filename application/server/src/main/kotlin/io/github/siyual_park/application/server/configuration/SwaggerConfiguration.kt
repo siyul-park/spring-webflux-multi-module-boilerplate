@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.siyual_park.presentation.pagination.OffsetPage
+import io.github.siyual_park.presentation.project.ProjectNode
 import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.core.jackson.ModelResolver
 import io.swagger.v3.oas.models.Components
@@ -24,6 +25,7 @@ class SwaggerConfiguration {
             .replaceWithClass(Duration::class.java, Long::class.java)
             .replaceWithClass(ULID::class.java, String::class.java)
             .replaceWithClass(OffsetPage::class.java, List::class.java)
+            .replaceWithClass(ProjectNode::class.java, List::class.java)
     }
 
     @Bean

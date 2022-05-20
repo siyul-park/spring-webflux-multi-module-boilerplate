@@ -56,7 +56,7 @@ class GlobalErrorWebExceptionHandler(
         return if (ex is ResponseStatusException) {
             ex.reason ?: ex.message
         } else {
-            ex.cause?.let { getReason(it) } ?: ex.message
+            ex.message
         }
     }
 

@@ -13,6 +13,8 @@ import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.presentation.filter.RHSFilterParserFactory
 import io.github.siyual_park.presentation.pagination.OffsetPage
 import io.github.siyual_park.presentation.pagination.OffsetPaginator
+import io.github.siyual_park.presentation.project.ProjectNode
+import io.github.siyual_park.presentation.project.Projection
 import io.github.siyual_park.presentation.sort.SortParserFactory
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.CreateUserPayload
@@ -21,10 +23,12 @@ import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
+import io.github.siyual_park.user.entity.UserEntity
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.toSet
+import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -65,14 +69,17 @@ class UserController(
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'users:create')")
-    suspend fun create(@Valid @RequestBody request: CreateUserRequest): UserInfo {
+    suspend fun create(
+        @Valid @RequestBody request: CreateUserRequest,
+        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+    ): UserInfo {
         val payload = CreateUserPayload(
             name = request.name,
             email = request.email,
             password = request.password
         )
         val user = userFactory.create(payload)
-        return mapperContext.map(user)
+        return mapperContext.map(Projection(user, fields ?: ProjectNode.Leaf))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -86,7 +93,8 @@ class UserController(
         @RequestParam("updated_at", required = false) updatedAt: String? = null,
         @RequestParam("sort", required = false) sort: String? = null,
         @RequestParam("page", required = false) page: Int? = null,
-        @RequestParam("per_page", required = false) perPage: Int? = null
+        @RequestParam("per_page", required = false) perPage: Int? = null,
+        @RequestParam("fields", required = false) fields: ProjectNode? = null,
     ): OffsetPage<UserInfo> {
         val criteria = rhsFilterParser.parse(
             mapOf(
@@ -103,24 +111,30 @@ class UserController(
             page = page
         )
 
-        return offsetPage.mapDataAsync { mapperContext.map(it) }
+        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, fields ?: ProjectNode.Leaf)) }
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/self")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'users[self]:read')")
-    suspend fun readSelf(@AuthenticationPrincipal principal: UserPrincipal): UserInfo {
-        return read(principal.userId)
+    suspend fun readSelf(
+        @AuthenticationPrincipal principal: UserEntity,
+        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+    ): UserInfo {
+        return read(principal.userId ?: throw EmptyResultDataAccessException(1), fields)
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
-    suspend fun read(@PathVariable("user-id") userId: ULID): UserInfo {
+    suspend fun read(
+        @PathVariable("user-id") userId: ULID,
+        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+    ): UserInfo {
         val user = userStorage.loadOrFail(userId)
-        return mapperContext.map(user)
+        return mapperContext.map(Projection(user, fields ?: ProjectNode.Leaf))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -130,7 +144,8 @@ class UserController(
     suspend fun update(
         @PathVariable("user-id") userId: ULID,
         @Valid @RequestBody request: UpdateUserRequest,
-        @AuthenticationPrincipal principal: UserPrincipal
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @RequestParam("fields", required = false) fields: ProjectNode? = null,
     ): UserInfo = operator.executeAndAwait {
         val user = userStorage.loadOrFail(userId)
 
@@ -154,7 +169,7 @@ class UserController(
         )
         patch.apply(user).sync()
 
-        mapperContext.map(user)
+        mapperContext.map(Projection(user, fields ?: ProjectNode.Leaf))
     }!!
 
     @Operation(security = [SecurityRequirement(name = "bearer")])

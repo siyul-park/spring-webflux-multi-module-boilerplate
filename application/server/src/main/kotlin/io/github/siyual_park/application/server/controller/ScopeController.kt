@@ -17,6 +17,8 @@ import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.presentation.filter.RHSFilterParserFactory
 import io.github.siyual_park.presentation.pagination.OffsetPage
 import io.github.siyual_park.presentation.pagination.OffsetPaginator
+import io.github.siyual_park.presentation.project.ProjectNode
+import io.github.siyual_park.presentation.project.Projection
 import io.github.siyual_park.presentation.sort.SortParserFactory
 import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.oas.annotations.Operation
@@ -60,14 +62,17 @@ class ScopeController(
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'scope:create')")
-    suspend fun create(@Valid @RequestBody request: CreateScopeTokenRequest): ScopeTokenInfo {
+    suspend fun create(
+        @Valid @RequestBody request: CreateScopeTokenRequest,
+        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+    ): ScopeTokenInfo {
         val payload = CreateScopeTokenPayload(
             name = request.name,
             description = request.description,
             system = false
         )
         val scopeToken = scopeTokenFactory.create(payload)
-        return mapperContext.map(scopeToken)
+        return mapperContext.map(Projection(scopeToken, fields ?: ProjectNode.Leaf))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -81,7 +86,8 @@ class ScopeController(
         @RequestParam("updated_at", required = false) updatedAt: String? = null,
         @RequestParam("sort", required = false) sort: String? = null,
         @RequestParam("page", required = false) page: Int? = null,
-        @RequestParam("per_page", required = false) perPage: Int? = null
+        @RequestParam("per_page", required = false) perPage: Int? = null,
+        @RequestParam("fields", required = false) fields: ProjectNode? = null,
     ): OffsetPage<ScopeTokenInfo> {
         val criteria = rhsFilterParser.parse(
             mapOf(
@@ -98,16 +104,19 @@ class ScopeController(
             page = page
         )
 
-        return offsetPage.mapDataAsync { mapperContext.map(it) }
+        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, fields ?: ProjectNode.Leaf)) }
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
     @GetMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope:read')")
-    suspend fun read(@PathVariable("scope-id") scopeId: ULID): ScopeTokenInfo {
+    suspend fun read(
+        @PathVariable("scope-id") scopeId: ULID,
+        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+    ): ScopeTokenInfo {
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        return mapperContext.map(scopeToken)
+        return mapperContext.map(Projection(scopeToken, fields ?: ProjectNode.Leaf))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -116,7 +125,8 @@ class ScopeController(
     @PreAuthorize("hasPermission(null, 'scope:update')")
     suspend fun update(
         @PathVariable("scope-id") scopeId: ULID,
-        @Valid @RequestBody request: UpdateScopeTokenRequest
+        @Valid @RequestBody request: UpdateScopeTokenRequest,
+        @RequestParam("fields", required = false) fields: ProjectNode? = null,
     ): ScopeTokenInfo {
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
 
@@ -132,7 +142,7 @@ class ScopeController(
         val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
         patch.apply(scopeToken).sync()
 
-        return mapperContext.map(scopeToken)
+        return mapperContext.map(Projection(scopeToken, fields ?: ProjectNode.Leaf))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])

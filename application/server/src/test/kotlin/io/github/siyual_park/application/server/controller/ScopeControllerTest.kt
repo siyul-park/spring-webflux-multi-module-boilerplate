@@ -52,11 +52,11 @@ class ScopeControllerTest @Autowired constructor(
 
         val responseScopeToken = response.responseBody.awaitSingle()
 
-        assertEquals(request.name, responseScopeToken.name)
-        assertEquals(request.description, responseScopeToken.description)
-        assertFalse(responseScopeToken.system)
-        assertNotNull(responseScopeToken.createdAt)
-        assertNotNull(responseScopeToken.updatedAt)
+        assertEquals(request.name, responseScopeToken.name?.orElse(null))
+        assertEquals(request.description, responseScopeToken.description?.orElse(null))
+        assertFalse(responseScopeToken.system?.orElse(null) ?: true)
+        assertNotNull(responseScopeToken.createdAt?.orElse(null))
+        assertNotNull(responseScopeToken.updatedAt?.orElse(null))
     }
 
     @Test
@@ -102,10 +102,10 @@ class ScopeControllerTest @Autowired constructor(
         assertEquals(1, responseScope.size)
 
         val responseScopeToken = responseScope[0]
-        assertEquals(scopeToken.id, responseScopeToken.id)
-        assertEquals(scopeToken.name, responseScopeToken.name)
-        assertNotNull(responseScopeToken.createdAt)
-        assertNotNull(responseScopeToken.updatedAt)
+        assertEquals(scopeToken.id, responseScopeToken.id?.orElse(null))
+        assertEquals(scopeToken.name, responseScopeToken.name?.orElse(null))
+        assertNotNull(responseScopeToken.createdAt?.orElse(null))
+        assertNotNull(responseScopeToken.updatedAt?.orElse(null))
     }
 
     @Test
@@ -150,10 +150,10 @@ class ScopeControllerTest @Autowired constructor(
 
         val responseScopeToken = response.responseBody.awaitSingle()
 
-        assertEquals(scopeToken.id, responseScopeToken.id)
-        assertEquals(scopeToken.name, responseScopeToken.name)
-        assertNotNull(responseScopeToken.createdAt)
-        assertNotNull(responseScopeToken.updatedAt)
+        assertEquals(scopeToken.id, responseScopeToken.id?.orElse(null))
+        assertEquals(scopeToken.name, responseScopeToken.name?.orElse(null))
+        assertNotNull(responseScopeToken.createdAt?.orElse(null))
+        assertNotNull(responseScopeToken.updatedAt?.orElse(null))
     }
 
     @Test
@@ -197,10 +197,10 @@ class ScopeControllerTest @Autowired constructor(
 
         val responseScopeToken = response.responseBody.awaitSingle()
 
-        assertEquals(scopeToken.id, responseScopeToken.id)
-        assertEquals(updatedName, responseScopeToken.name)
-        assertNotNull(responseScopeToken.createdAt)
-        assertNotNull(responseScopeToken.updatedAt)
+        assertEquals(scopeToken.id, responseScopeToken.id?.orElse(null))
+        assertEquals(updatedName, responseScopeToken.name?.orElse(null))
+        assertNotNull(responseScopeToken.createdAt?.orElse(null))
+        assertNotNull(responseScopeToken.updatedAt?.orElse(null))
     }
 
     @Test

@@ -4,34 +4,40 @@ import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
+import io.github.siyual_park.presentation.project.Projection
+import io.github.siyual_park.presentation.project.project
 import kotlinx.coroutines.flow.toSet
 import org.springframework.stereotype.Component
 
 @Component
-class ScopeTokenInfoMapper : Mapper<ScopeToken, ScopeTokenInfo> {
-    override val sourceType = object : TypeReference<ScopeToken>() {}
+class ScopeTokenInfoMapper : Mapper<Projection<ScopeToken>, ScopeTokenInfo> {
+    override val sourceType = object : TypeReference<Projection<ScopeToken>>() {}
     override val targetType = object : TypeReference<ScopeTokenInfo>() {}
 
-    override suspend fun map(source: ScopeToken): ScopeTokenInfo {
-        return map(source, source.relations().toSet())
+    override suspend fun map(source: Projection<ScopeToken>): ScopeTokenInfo {
+        return map(source, source.value.relations().toSet())
     }
 
-    suspend fun map(source: ScopeToken, relations: Set<Pair<ScopeToken, ScopeToken>>): ScopeTokenInfo {
-        val raw = source.raw()
+    suspend fun map(source: Projection<ScopeToken>, relations: Set<Pair<ScopeToken, ScopeToken>>): ScopeTokenInfo {
+        val node = source.node
+        val value = source.value
+        val raw = value.raw()
         return ScopeTokenInfo(
-            id = raw.id,
-            name = raw.name,
-            description = raw.description,
-            system = raw.system,
-            children = if (source.isPacked()) {
-                relations
-                    .filter { (parent, _) -> parent.id == source.id }
-                    .map { (_, child) -> map(child, relations) }
-            } else {
-                null
+            id = node.project(ScopeTokenInfo::id) { raw.id },
+            name = node.project(ScopeTokenInfo::name) { raw.name },
+            description = node.project(ScopeTokenInfo::description) { raw.description },
+            system = node.project(ScopeTokenInfo::system) { raw.system },
+            children = node.project(ScopeTokenInfo::children) {
+                if (value.isPacked()) {
+                    relations
+                        .filter { (parent, _) -> parent.id == value.id }
+                        .map { (_, child) -> map(Projection(child, it), relations) }
+                } else {
+                    null
+                }
             },
-            createdAt = raw.createdAt!!,
-            updatedAt = raw.updatedAt
+            createdAt = node.project(ScopeTokenInfo::createdAt) { raw.createdAt },
+            updatedAt = node.project(ScopeTokenInfo::updatedAt) { raw.updatedAt },
         )
     }
 }
