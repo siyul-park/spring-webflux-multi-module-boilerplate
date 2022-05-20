@@ -22,8 +22,8 @@ import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.loadOrFail
-import io.github.siyual_park.presentation.project.ProjectNode
 import io.github.siyual_park.presentation.project.Projection
+import io.github.siyual_park.presentation.project.ProjectionParserFactory
 import io.github.siyual_park.user.domain.auth.PasswordGrantPayload
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -50,11 +50,14 @@ class AuthController(
     private val authenticator: Authenticator,
     private val authorizator: Authorizator,
     tokenFactoryProvider: TokenFactoryProvider,
+    projectionParserFactory: ProjectionParserFactory,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val tokensProperty: TokensProperty,
     private val tokenStorage: TokenStorage,
     private val mapperContext: MapperContext,
 ) {
+    private val projectionParser = projectionParserFactory.create(PrincipalInfo::class)
+
     private val accessTokenScope = AsyncLazy {
         scopeTokenStorage.loadOrFail("access-token:create")
     }
@@ -152,9 +155,9 @@ class AuthController(
     @PreAuthorize("hasPermission(null, 'principal[self]:read')")
     suspend fun readSelf(
         @AuthenticationPrincipal principal: Principal,
-        @RequestParam("fields", required = false) fields: ProjectNode? = null
+        @RequestParam("fields", required = false) fields: Collection<String>? = null
     ): PrincipalInfo {
-        return mapperContext.map(Projection(principal, fields ?: ProjectNode.Leaf))
+        return mapperContext.map(Projection(principal, projectionParser.parse(fields)))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])

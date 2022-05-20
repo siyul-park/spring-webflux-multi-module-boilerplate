@@ -16,7 +16,9 @@ sealed class ProjectNode {
         }
     }
 
-    class Stem : ProjectNode(), MutableMap<String, ProjectNode> by mutableMapOf() {
+    class Stem(
+        value: MutableMap<String, ProjectNode> = mutableMapOf()
+    ) : ProjectNode(), MutableMap<String, ProjectNode> by value {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other == null || javaClass != other.javaClass) return false

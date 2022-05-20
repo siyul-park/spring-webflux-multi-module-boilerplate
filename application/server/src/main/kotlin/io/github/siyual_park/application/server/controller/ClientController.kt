@@ -20,8 +20,8 @@ import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.presentation.filter.RHSFilterParserFactory
 import io.github.siyual_park.presentation.pagination.OffsetPage
 import io.github.siyual_park.presentation.pagination.OffsetPaginator
-import io.github.siyual_park.presentation.project.ProjectNode
 import io.github.siyual_park.presentation.project.Projection
+import io.github.siyual_park.presentation.project.ProjectionParserFactory
 import io.github.siyual_park.presentation.sort.SortParserFactory
 import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.oas.annotations.Operation
@@ -55,12 +55,14 @@ class ClientController(
     private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
+    projectionParserFactory: ProjectionParserFactory,
     private val authorizator: Authorizator,
     private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
     private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ClientData::class)
     private val sortParser = sortParserFactory.create(ClientData::class)
+    private val projectionParser = projectionParserFactory.create(ClientData::class)
 
     private val offsetPaginator = OffsetPaginator(clientStorage)
 
@@ -70,7 +72,7 @@ class ClientController(
     @PreAuthorize("hasPermission(null, 'clients:create')")
     suspend fun create(
         @Valid @RequestBody request: CreateClientRequest,
-        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+        @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientDetailInfo {
         val payload = CreateClientPayload(
             name = request.name,
@@ -78,7 +80,7 @@ class ClientController(
             origin = request.origin
         )
         val client = clientFactory.create(payload)
-        return mapperContext.map(Projection(client, fields ?: ProjectNode.Leaf))
+        return mapperContext.map(Projection(client, projectionParser.parse(fields)))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -95,7 +97,7 @@ class ClientController(
         @RequestParam("sort", required = false) sort: String? = null,
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
-        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+        @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): OffsetPage<ClientInfo> {
         val criteria = rhsFilterParser.parse(
             mapOf(
@@ -114,7 +116,7 @@ class ClientController(
             page = page
         )
 
-        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, fields ?: ProjectNode.Leaf)) }
+        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionParser.parse(fields))) }
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -123,7 +125,7 @@ class ClientController(
     @PreAuthorize("hasPermission(null, 'clients[self]:read')")
     suspend fun readSelf(
         @AuthenticationPrincipal principal: ClientEntity,
-        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+        @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientInfo {
         return read(principal.clientId ?: throw EmptyResultDataAccessException(1), fields)
     }
@@ -134,10 +136,10 @@ class ClientController(
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
     suspend fun read(
         @PathVariable("client-id") clientId: ULID,
-        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+        @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientInfo {
         val client = clientStorage.loadOrFail(clientId)
-        return mapperContext.map(Projection(client, fields ?: ProjectNode.Leaf))
+        return mapperContext.map(Projection(client, projectionParser.parse(fields)))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
@@ -147,7 +149,7 @@ class ClientController(
     suspend fun update(
         @PathVariable("client-id") clientId: ULID,
         @Valid @RequestBody request: UpdateClientRequest,
-        @RequestParam("fields", required = false) fields: ProjectNode? = null,
+        @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientInfo = operator.executeAndAwait {
         val client = clientStorage.loadOrFail(clientId)
 
@@ -163,7 +165,7 @@ class ClientController(
         val patch = PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null))
         patch.apply(client).sync()
 
-        mapperContext.map(Projection(client, fields ?: ProjectNode.Leaf))
+        mapperContext.map(Projection(client, projectionParser.parse(fields)))
     }!!
 
     @Operation(security = [SecurityRequirement(name = "bearer")])
