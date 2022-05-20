@@ -22,7 +22,7 @@ import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import reactor.core.publisher.Mono
 
-@Suppress("UNCHECKED_CAST", "ReactiveStreamsUnusedPublisher")
+@Suppress("ReactiveStreamsUnusedPublisher")
 class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
     @Test
     fun get() {
@@ -69,7 +69,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
 
         val storage = InMemoryNestedStorage(
             InMemoryStorage(
-                CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+                CacheBuilder.newBuilder(),
                 object : Extractor<Person, ULID> {
                     override fun getKey(entity: Person): ULID {
                         return entity.id

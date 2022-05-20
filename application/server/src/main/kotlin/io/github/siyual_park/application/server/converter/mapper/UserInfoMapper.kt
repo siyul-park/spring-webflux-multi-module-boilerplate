@@ -22,28 +22,27 @@ class UserInfoMapper(
     override val targetType = object : TypeReference<UserInfo>() {}
 
     override suspend fun map(source: User): UserInfo {
-        val principal = getPrincipal()
-        val scope: Collection<ScopeTokenInfo>? = if (
-            principal != null &&
-            authorizator.authorize(
-                principal,
-                listOf("users[self].scope:read", "users.scope:read"),
-                listOf(source.id, null)
-            )
-        ) {
-            mapperContext.map(source.getScope(deep = false).toList() as Collection<ScopeToken>)
-        } else {
-            null
-        }
-
         val raw = source.raw()
         return UserInfo(
             id = raw.id,
             name = raw.name,
             email = raw.email,
-            scope = scope,
+            scope = if (authorize(source)) {
+                mapperContext.map<Collection<ScopeToken>, Collection<ScopeTokenInfo>>(source.getScope(deep = false).toList())
+            } else {
+                null
+            },
             createdAt = raw.createdAt!!,
             updatedAt = raw.updatedAt
+        )
+    }
+
+    private suspend fun authorize(source: User): Boolean {
+        val principal = getPrincipal() ?: return false
+        return authorizator.authorize(
+            principal,
+            listOf("users[self].scope:read", "users.scope:read"),
+            listOf(source.id, null)
         )
     }
 }

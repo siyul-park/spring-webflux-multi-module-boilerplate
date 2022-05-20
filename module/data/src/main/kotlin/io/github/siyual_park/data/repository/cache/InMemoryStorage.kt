@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
 class InMemoryStorage<T : Any, ID : Any>(
-    cacheBuilder: CacheBuilder<ID, T>,
+    cacheBuilder: CacheBuilder<Any, Any>,
     override val idExtractor: Extractor<T, ID>
 ) : Storage<T, ID> {
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()

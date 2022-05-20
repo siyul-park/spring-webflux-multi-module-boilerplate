@@ -22,19 +22,17 @@ class ClientInfoMapper(
     override val targetType = object : TypeReference<ClientInfo>() {}
 
     override suspend fun map(source: Client): ClientInfo {
-        val scope: Collection<ScopeTokenInfo>? = if (authorize(source)) {
-            mapperContext.map(source.getScope(deep = false).toList() as Collection<ScopeToken>)
-        } else {
-            null
-        }
-
         val raw = source.raw()
         return ClientInfo(
             id = raw.id,
             name = raw.name,
             type = raw.type,
             origin = raw.origin,
-            scope = scope,
+            scope = if (authorize(source)) {
+                mapperContext.map<Collection<ScopeToken>, Collection<ScopeTokenInfo>>(source.getScope(deep = false).toList())
+            } else {
+                null
+            },
             createdAt = raw.createdAt!!,
             updatedAt = raw.updatedAt
         )

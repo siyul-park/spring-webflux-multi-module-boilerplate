@@ -45,7 +45,7 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
             val storage = TransactionalStorage(
                 InMemoryNestedStorage(
                     InMemoryStorage(
-                        cacheBuilder as CacheBuilder<ID, T>,
+                        cacheBuilder,
                         idExtractor
                     )
                 )

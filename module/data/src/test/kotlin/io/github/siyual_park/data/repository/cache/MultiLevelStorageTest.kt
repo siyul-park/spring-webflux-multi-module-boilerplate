@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-@Suppress("UNCHECKED_CAST")
 class MultiLevelStorageTest : CoroutineTestHelper() {
     private val idExtractor = object : Extractor<Person, ULID> {
         override fun getKey(entity: Person): ULID {
@@ -21,11 +20,11 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
         }
     }
     private val storage1 = InMemoryStorage(
-        CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+        CacheBuilder.newBuilder(),
         idExtractor
     )
     private val storage2 = InMemoryStorage(
-        CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+        CacheBuilder.newBuilder(),
         idExtractor
     )
     private val storage = MultiLevelStorage(storage1)

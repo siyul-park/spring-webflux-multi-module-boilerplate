@@ -1,6 +1,5 @@
 package io.github.siyual_park.auth.domain.authorization
 
-import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.getPrincipal
@@ -9,6 +8,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.exception.PrincipalIdNotExistsException
 import io.github.siyual_park.auth.exception.RequiredPermissionException
+import io.github.siyual_park.data.repository.cache.CacheProvider
 import org.springframework.stereotype.Component
 import java.time.Duration
 
@@ -16,14 +16,14 @@ import java.time.Duration
 @Component
 class Authorizator(
     private val scopeTokenStorage: ScopeTokenStorage,
-    private val cache: Cache<ArrayList<Any?>, Boolean> = CacheBuilder.newBuilder()
+    cacheBuilder: CacheBuilder<Any, Any> = CacheBuilder.newBuilder()
         .softValues()
         .expireAfterAccess(Duration.ofMinutes(1))
         .expireAfterWrite(Duration.ofMinutes(2))
         .maximumSize(10_000)
-        .build()
 ) {
     private val strategies = mutableListOf<Pair<AuthorizeFilter, AuthorizeStrategy>>()
+    private val cacheProvider = CacheProvider<ArrayList<Any?>, Boolean>(cacheBuilder)
 
     fun register(filter: AuthorizeFilter, strategy: AuthorizeStrategy): Authorizator {
         strategies.add(filter to strategy)
@@ -114,15 +114,11 @@ class Authorizator(
         targetDomainObject: Any? = null
     ): Boolean {
         val key = cacheKey(principal, scopeToken, targetDomainObject)
-        val existed = cache.getIfPresent(key)
-        if (existed != null) {
-            return existed
+        return cacheProvider.get(key) {
+            strategies.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
+                .map { (_, evaluator) -> evaluator }
+                .all { it.authorize(principal, scopeToken, targetDomainObject) }
         }
-
-        return strategies.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
-            .map { (_, evaluator) -> evaluator }
-            .all { it.authorize(principal, scopeToken, targetDomainObject) }
-            .also { cache.put(key, it) }
     }
 
     private fun cacheKey(

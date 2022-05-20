@@ -10,11 +10,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-@Suppress("UNCHECKED_CAST")
 class InMemoryNestedStorageTest : CoroutineTestHelper() {
     private val storage = InMemoryNestedStorage(
         InMemoryStorage(
-            CacheBuilder.newBuilder() as CacheBuilder<ULID, Person>,
+            CacheBuilder.newBuilder(),
             object : Extractor<Person, ULID> {
                 override fun getKey(entity: Person): ULID {
                     return entity.id
