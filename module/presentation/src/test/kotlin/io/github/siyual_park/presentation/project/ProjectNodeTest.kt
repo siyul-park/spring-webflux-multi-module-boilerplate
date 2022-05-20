@@ -64,6 +64,6 @@ class ProjectNodeTest {
         val node3 = ProjectNode.from(projection3)
 
         assertEquals(null, node3.project(A::a) { value.a?.orElse(null) })
-        assertEquals(Optional.ofNullable(value.b), node3.project(A::b) { value.b?.orElse(null) })
+        assertEquals(value.b, node3.project(A::b) { value.b?.orElse(null) })
     }
 }
