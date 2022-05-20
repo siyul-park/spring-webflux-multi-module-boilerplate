@@ -58,21 +58,21 @@ class ClientControllerTest @Autowired constructor(
             assertEquals(HttpStatus.CREATED, response.status)
 
             val clientInfo = response.responseBody.awaitSingle()
-            val client = clientStorage.load(clientInfo.id)
+            val client = clientInfo.id?.orElse(null)?.let { clientStorage.load(it) }
 
             assertNotNull(client)
             assertNotNull(clientInfo.id)
-            assertEquals(request.name, clientInfo.name)
-            assertEquals(request.type, clientInfo.type)
-            assertEquals(request.origin, clientInfo.origin)
-            assertEquals(client?.getScope(deep = false)?.toList()?.size, clientInfo.scope.size)
+            assertEquals(request.name, clientInfo.name?.orElse(null))
+            assertEquals(request.type, clientInfo.type?.orElse(null))
+            assertEquals(request.origin, clientInfo.origin?.orElse(null))
+            assertEquals(client?.getScope(deep = false)?.toList()?.size, clientInfo.scope?.orElse(null)?.size)
             if (request.type == ClientType.CONFIDENTIAL) {
-                assertNotNull(clientInfo.secret)
+                assertNotNull(clientInfo.secret?.orElse(null))
             } else {
-                assertEquals(clientInfo.secret, null)
+                assertEquals(null, clientInfo.secret?.orElse(null))
             }
-            assertNotNull(clientInfo.createdAt)
-            assertNotNull(clientInfo.updatedAt)
+            assertNotNull(clientInfo.createdAt?.orElse(null))
+            assertNotNull(clientInfo.updatedAt?.orElse(null))
         }
     }
 
@@ -154,13 +154,13 @@ class ClientControllerTest @Autowired constructor(
         val responseClients = response.responseBody.asFlow().toList()
         assertEquals(1, responseClients.size)
 
-        val responseClient = responseClients[0]
-        assertEquals(client.id, responseClient.id)
-        assertEquals(client.name, responseClient.name)
-        assertEquals(client.type, responseClient.type)
-        assertEquals(client.origin, responseClient.origin)
-        assertNotNull(responseClient.createdAt)
-        assertNotNull(responseClient.updatedAt)
+        val clientInfo = responseClients[0]
+        assertEquals(client.id, clientInfo.id?.orElse(null))
+        assertEquals(client.name, clientInfo.name?.orElse(null))
+        assertEquals(client.type, clientInfo.type?.orElse(null))
+        assertEquals(client.origin, clientInfo.origin?.orElse(null))
+        assertNotNull(clientInfo.createdAt?.orElse(null))
+        assertNotNull(clientInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -200,14 +200,14 @@ class ClientControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseClient = response.responseBody.awaitSingle()
+        val clientInfo = response.responseBody.awaitSingle()
 
-        assertEquals(client.id, responseClient.id)
-        assertEquals(client.name, responseClient.name)
-        assertEquals(client.type, responseClient.type)
-        assertEquals(client.origin, responseClient.origin)
-        assertNotNull(responseClient.createdAt)
-        assertNotNull(responseClient.updatedAt)
+        assertEquals(client.id, clientInfo.id?.orElse(null))
+        assertEquals(client.name, clientInfo.name?.orElse(null))
+        assertEquals(client.type, clientInfo.type?.orElse(null))
+        assertEquals(client.origin, clientInfo.origin?.orElse(null))
+        assertNotNull(clientInfo.createdAt?.orElse(null))
+        assertNotNull(clientInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -228,14 +228,14 @@ class ClientControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseClient = response.responseBody.awaitSingle()
+        val clientInfo = response.responseBody.awaitSingle()
 
-        assertEquals(client.id, responseClient.id)
-        assertEquals(client.name, responseClient.name)
-        assertEquals(client.type, responseClient.type)
-        assertEquals(client.origin, responseClient.origin)
-        assertNotNull(responseClient.createdAt)
-        assertNotNull(responseClient.updatedAt)
+        assertEquals(client.id, clientInfo.id?.orElse(null))
+        assertEquals(client.name, clientInfo.name?.orElse(null))
+        assertEquals(client.type, clientInfo.type?.orElse(null))
+        assertEquals(client.origin, clientInfo.origin?.orElse(null))
+        assertNotNull(clientInfo.createdAt?.orElse(null))
+        assertNotNull(clientInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -256,15 +256,15 @@ class ClientControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseClient = response.responseBody.awaitSingle()
+        val clientInfo = response.responseBody.awaitSingle()
 
-        assertEquals(client.id, responseClient.id)
-        assertEquals(client.name, responseClient.name)
-        assertEquals(client.type, responseClient.type)
-        assertEquals(client.origin, responseClient.origin)
-        assertEquals(client.getScope(deep = false).toList().size, responseClient.scope?.size)
-        assertNotNull(responseClient.createdAt)
-        assertNotNull(responseClient.updatedAt)
+        assertEquals(client.id, clientInfo.id?.orElse(null))
+        assertEquals(client.name, clientInfo.name?.orElse(null))
+        assertEquals(client.type, clientInfo.type?.orElse(null))
+        assertEquals(client.origin, clientInfo.origin?.orElse(null))
+        assertEquals(client.getScope(deep = false).toList().size, clientInfo.scope?.orElse(null)?.size)
+        assertNotNull(clientInfo.createdAt?.orElse(null))
+        assertNotNull(clientInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -299,14 +299,14 @@ class ClientControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseClient = response.responseBody.awaitSingle()
+        val clientInfo = response.responseBody.awaitSingle()
 
-        assertEquals(otherClient.id, responseClient.id)
-        assertEquals(otherClient.name, responseClient.name)
-        assertEquals(otherClient.type, responseClient.type)
-        assertEquals(otherClient.origin, responseClient.origin)
-        assertNotNull(responseClient.createdAt)
-        assertNotNull(responseClient.updatedAt)
+        assertEquals(otherClient.id, clientInfo.id?.orElse(null))
+        assertEquals(otherClient.name, clientInfo.name?.orElse(null))
+        assertEquals(otherClient.type, clientInfo.type?.orElse(null))
+        assertEquals(otherClient.origin, clientInfo.origin?.orElse(null))
+        assertNotNull(clientInfo.createdAt?.orElse(null))
+        assertNotNull(clientInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -368,14 +368,14 @@ class ClientControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseClient = response.responseBody.awaitSingle()
+        val clientInfo = response.responseBody.awaitSingle()
 
-        assertEquals(otherClient.id, responseClient.id)
-        assertEquals(name, responseClient.name)
-        assertEquals(otherClient.type, responseClient.type)
-        assertEquals(otherClient.origin, responseClient.origin)
-        assertNotNull(responseClient.createdAt)
-        assertNotNull(responseClient.updatedAt)
+        assertEquals(otherClient.id, clientInfo.id?.orElse(null))
+        assertEquals(name, clientInfo.name?.orElse(null))
+        assertEquals(otherClient.type, clientInfo.type?.orElse(null))
+        assertEquals(otherClient.origin, clientInfo.origin?.orElse(null))
+        assertNotNull(clientInfo.createdAt?.orElse(null))
+        assertNotNull(clientInfo.updatedAt?.orElse(null))
     }
 
     @Test

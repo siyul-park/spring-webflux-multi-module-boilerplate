@@ -50,13 +50,13 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.CREATED, response.status)
 
-        val user = response.responseBody.awaitSingle()
+        val userInfo = response.responseBody.awaitSingle()
 
-        assertNotNull(user.id)
-        assertEquals(request.name, user.name)
-        assertEquals(request.email, user.email)
-        assertNotNull(user.createdAt)
-        assertNotNull(user.updatedAt)
+        assertNotNull(userInfo.id)
+        assertEquals(request.name, userInfo.name?.orElse(null))
+        assertEquals(request.email, userInfo.email?.orElse(null))
+        assertNotNull(userInfo.createdAt?.orElse(null))
+        assertNotNull(userInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -137,11 +137,11 @@ class UserControllerTest @Autowired constructor(
         val responseUsers = response.responseBody.asFlow().toList()
         assertEquals(1, responseUsers.size)
 
-        val responseUser = responseUsers[0]
-        assertEquals(user.id, responseUser.id)
-        assertEquals(user.name, responseUser.name)
-        assertNotNull(responseUser.createdAt)
-        assertNotNull(responseUser.updatedAt)
+        val userInfo = responseUsers[0]
+        assertEquals(user.id, userInfo.id?.orElse(null))
+        assertEquals(user.name, userInfo.name?.orElse(null))
+        assertNotNull(userInfo.createdAt?.orElse(null))
+        assertNotNull(userInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -179,12 +179,12 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseUser = response.responseBody.awaitSingle()
+        val userInfo = response.responseBody.awaitSingle()
 
-        assertEquals(user.id, responseUser.id)
-        assertEquals(user.name, responseUser.name)
-        assertNotNull(responseUser.createdAt)
-        assertNotNull(responseUser.updatedAt)
+        assertEquals(user.id, userInfo.id?.orElse(null))
+        assertEquals(user.name, userInfo.name?.orElse(null))
+        assertNotNull(userInfo.createdAt?.orElse(null))
+        assertNotNull(userInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -217,13 +217,13 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseUser = response.responseBody.awaitSingle()
+        val userInfo = response.responseBody.awaitSingle()
 
-        assertEquals(user.id, responseUser.id)
-        assertEquals(user.name, responseUser.name)
-        assertEquals(user.email, responseUser.email)
-        assertNotNull(responseUser.createdAt)
-        assertNotNull(responseUser.updatedAt)
+        assertEquals(user.id, userInfo.id?.orElse(null))
+        assertEquals(user.name, userInfo.name?.orElse(null))
+        assertEquals(user.email, userInfo.email?.orElse(null))
+        assertNotNull(userInfo.createdAt?.orElse(null))
+        assertNotNull(userInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -242,11 +242,11 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseUser = response.responseBody.awaitSingle()
-        val responseScope = responseUser.scope?.toList()?.sortedBy { it.id }
+        val userInfo = response.responseBody.awaitSingle()
+        val scopeInfo = userInfo.scope?.orElse(null)?.toList()?.sortedBy { it.id?.orElse(null) }
         val scope = user.getScope(deep = false).toList().sortedBy { it.id }
 
-        assertEquals(scope.map { it.id }, responseScope?.map { it.id })
+        assertEquals(scope.map { it.id }, scopeInfo?.map { it.id?.orElse(null) })
     }
 
     @Test
@@ -283,12 +283,12 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseUser = response.responseBody.awaitSingle()
+        val userInfo = response.responseBody.awaitSingle()
 
-        assertEquals(user.id, responseUser.id)
-        assertEquals(name, responseUser.name)
-        assertNotNull(responseUser.createdAt)
-        assertNotNull(responseUser.updatedAt)
+        assertEquals(user.id, userInfo.id?.orElse(null))
+        assertEquals(name, userInfo.name?.orElse(null))
+        assertNotNull(userInfo.createdAt?.orElse(null))
+        assertNotNull(userInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -400,12 +400,12 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseUser = response.responseBody.awaitSingle()
+        val userInfo = response.responseBody.awaitSingle()
 
-        assertEquals(otherUser.id, responseUser.id)
-        assertEquals(otherUser.name, responseUser.name)
-        assertNotNull(responseUser.createdAt)
-        assertNotNull(responseUser.updatedAt)
+        assertEquals(otherUser.id, userInfo.id?.orElse(null))
+        assertEquals(otherUser.name, userInfo.name?.orElse(null))
+        assertNotNull(userInfo.createdAt?.orElse(null))
+        assertNotNull(userInfo.updatedAt?.orElse(null))
     }
 
     @Test
@@ -425,11 +425,11 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseUser = response.responseBody.awaitSingle()
-        val responseScope = responseUser.scope?.toList()?.sortedBy { it.id }
+        val userInfo = response.responseBody.awaitSingle()
+        val scopeInfo = userInfo.scope?.orElse(null)?.toList()?.sortedBy { it.id?.orElse(null) }
         val scope = otherUser.getScope(deep = false).toList().sortedBy { it.id }
 
-        assertEquals(scope.map { it.id }, responseScope?.map { it.id })
+        assertEquals(scope.map { it.id }, scopeInfo?.map { it.id?.orElse(null) })
     }
 
     @Test
@@ -490,12 +490,12 @@ class UserControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responseUser = response.responseBody.awaitSingle()
+        val userInfo = response.responseBody.awaitSingle()
 
-        assertEquals(otherUser.id, responseUser.id)
-        assertEquals(name, responseUser.name)
-        assertNotNull(responseUser.createdAt)
-        assertNotNull(responseUser.updatedAt)
+        assertEquals(otherUser.id, userInfo.id?.orElse(null))
+        assertEquals(name, userInfo.name?.orElse(null))
+        assertNotNull(userInfo.createdAt?.orElse(null))
+        assertNotNull(userInfo.updatedAt?.orElse(null))
     }
 
     @Test

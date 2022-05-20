@@ -238,10 +238,10 @@ class AuthControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responsePrincipal = response.responseBody.awaitSingle()
+        val principalInfo = response.responseBody.awaitSingle()
 
-        assertEquals(principal.id, responsePrincipal.id)
-        assertEquals("client_principal", responsePrincipal.type)
+        assertEquals(principal.id, principalInfo.id?.orElse(null))
+        assertEquals("client_principal", principalInfo.type?.orElse(null))
     }
 
     @Test
@@ -273,10 +273,10 @@ class AuthControllerTest @Autowired constructor(
 
         assertEquals(HttpStatus.OK, response.status)
 
-        val responsePrincipal = response.responseBody.awaitSingle()
+        val principalInfo = response.responseBody.awaitSingle()
 
-        assertEquals(principal.id, responsePrincipal.id)
-        assertEquals("user_principal", responsePrincipal.type)
+        assertEquals(principal.id, principalInfo.id?.orElse(null))
+        assertEquals("user_principal", principalInfo.type?.orElse(null))
     }
 
     @Test

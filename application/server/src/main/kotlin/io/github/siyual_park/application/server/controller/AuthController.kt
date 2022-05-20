@@ -22,6 +22,8 @@ import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.loadOrFail
+import io.github.siyual_park.presentation.project.Projection
+import io.github.siyual_park.presentation.project.ProjectionParserFactory
 import io.github.siyual_park.user.domain.auth.PasswordGrantPayload
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -36,6 +38,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
@@ -47,11 +50,14 @@ class AuthController(
     private val authenticator: Authenticator,
     private val authorizator: Authorizator,
     tokenFactoryProvider: TokenFactoryProvider,
+    projectionParserFactory: ProjectionParserFactory,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val tokensProperty: TokensProperty,
     private val tokenStorage: TokenStorage,
     private val mapperContext: MapperContext,
 ) {
+    private val projectionParser = projectionParserFactory.create(PrincipalInfo::class)
+
     private val accessTokenScope = AsyncLazy {
         scopeTokenStorage.loadOrFail("access-token:create")
     }
@@ -147,8 +153,11 @@ class AuthController(
     @GetMapping("/principal")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'principal[self]:read')")
-    suspend fun readSelf(@AuthenticationPrincipal principal: Principal): PrincipalInfo {
-        return mapperContext.map(principal)
+    suspend fun readSelf(
+        @AuthenticationPrincipal principal: Principal,
+        @RequestParam("fields", required = false) fields: Collection<String>? = null
+    ): PrincipalInfo {
+        return mapperContext.map(Projection(principal, projectionParser.parse(fields)))
     }
 
     @Operation(security = [SecurityRequirement(name = "bearer")])

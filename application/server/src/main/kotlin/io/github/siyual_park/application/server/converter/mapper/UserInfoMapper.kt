@@ -9,6 +9,9 @@ import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.TypeReference
 import io.github.siyual_park.mapper.map
+import io.github.siyual_park.presentation.project.ProjectNode
+import io.github.siyual_park.presentation.project.Projection
+import io.github.siyual_park.presentation.project.project
 import io.github.siyual_park.user.domain.User
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
@@ -17,24 +20,30 @@ import org.springframework.stereotype.Component
 class UserInfoMapper(
     private val mapperContext: MapperContext,
     private val authorizator: Authorizator,
-) : Mapper<User, UserInfo> {
-    override val sourceType = object : TypeReference<User>() {}
+) : Mapper<Projection<User>, UserInfo> {
+    override val sourceType = object : TypeReference<Projection<User>>() {}
     override val targetType = object : TypeReference<UserInfo>() {}
 
-    override suspend fun map(source: User): UserInfo {
-        val raw = source.raw()
+    override suspend fun map(source: Projection<User>): UserInfo {
+        val node = source.node
+        val value = source.value
+        val raw = value.raw()
         return UserInfo(
-            id = raw.id,
-            name = raw.name,
-            email = raw.email,
-            scope = if (authorize(source)) {
-                mapperContext.map<Collection<ScopeToken>, Collection<ScopeTokenInfo>>(source.getScope(deep = false).toList())
-            } else {
-                null
-            },
-            createdAt = raw.createdAt!!,
-            updatedAt = raw.updatedAt
+            id = node.project(UserInfo::id) { raw.id },
+            name = node.project(UserInfo::name) { raw.name },
+            email = node.project(UserInfo::email) { raw.email },
+            scope = node.project(UserInfo::scope) { getScope(source.value, it) },
+            createdAt = node.project(UserInfo::createdAt) { raw.createdAt },
+            updatedAt = node.project(UserInfo::createdAt) { raw.updatedAt }
         )
+    }
+
+    private suspend fun getScope(value: User, node: ProjectNode): Collection<ScopeTokenInfo>? {
+        return if (authorize(value)) {
+            mapperContext.map(Projection(value.getScope(deep = false).toList() as Collection<ScopeToken>, node))
+        } else {
+            null
+        }
     }
 
     private suspend fun authorize(source: User): Boolean {
