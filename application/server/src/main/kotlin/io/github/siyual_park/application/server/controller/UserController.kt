@@ -63,7 +63,7 @@ class UserController(
 ) {
     private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(UserData::class)
     private val sortParser = sortParserFactory.create(UserData::class)
-    private val projectionParser = projectionParserFactory.create(UserData::class)
+    private val projectionParser = projectionParserFactory.create(UserInfo::class)
 
     private val offsetPaginator = OffsetPaginator(userStorage)
 

@@ -56,7 +56,7 @@ class ScopeController(
 ) {
     private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ScopeTokenData::class)
     private val sortParser = sortParserFactory.create(ScopeTokenData::class)
-    private val projectionParser = projectionParserFactory.create(ScopeTokenData::class)
+    private val projectionParser = projectionParserFactory.create(ScopeTokenInfo::class)
 
     private val offsetPaginator = OffsetPaginator(scopeTokenStorage)
 

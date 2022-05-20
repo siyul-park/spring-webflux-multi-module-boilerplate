@@ -62,7 +62,7 @@ class ClientController(
 ) {
     private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ClientData::class)
     private val sortParser = sortParserFactory.create(ClientData::class)
-    private val projectionParser = projectionParserFactory.create(ClientData::class)
+    private val projectionParser = projectionParserFactory.create(ClientInfo::class)
 
     private val offsetPaginator = OffsetPaginator(clientStorage)
 
