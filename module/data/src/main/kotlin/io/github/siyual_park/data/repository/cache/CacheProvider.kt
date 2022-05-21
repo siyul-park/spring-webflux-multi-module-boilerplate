@@ -35,6 +35,10 @@ class CacheProvider<K : Any, T : Any?>(
         }
     }
 
+    suspend fun getIfPresent(key: K): T? {
+        return cache.getIfPresent(key)
+    }
+
     suspend fun getIfPresent(key: K, value: suspend () -> T?): T? {
         return cache.getIfPresent(key) ?: run {
             val mutex = mutexes.getOrPut(key) { Mutex() }

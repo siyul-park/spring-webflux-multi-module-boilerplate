@@ -85,7 +85,7 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
         val id = indexMap[key]
 
         return if (id == null) {
-            (parent.getIfPresent(index, key) ?: loader()?.also { put(it) })
+            (parent.getIfPresent(index, key)?.also { put(it) } ?: loader()?.also { put(it) })
                 ?.let {
                     val id = idExtractor.getKey(it)
                     if (!forceRemoved.contains(id)) {
@@ -106,7 +106,7 @@ class InMemoryNestedStorageNode<T : Any, ID : Any>(
 
     override suspend fun getIfPresent(id: ID): T? {
         return data[id] ?: if (!forceRemoved.contains(id)) {
-            parent.getIfPresent(id)
+            parent.getIfPresent(id)?.also { put(it) }
         } else {
             null
         }
