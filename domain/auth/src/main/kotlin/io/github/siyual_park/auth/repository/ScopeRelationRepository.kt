@@ -32,6 +32,7 @@ class ScopeRelationRepository(
             .maximumSize(1_000)
     })
     .build() {
+
     fun findAllByChildId(childId: ULID): Flow<ScopeRelationData> {
         return findAll(where(ScopeRelationData::childId).`is`(childId))
     }

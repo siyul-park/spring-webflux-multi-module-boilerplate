@@ -19,21 +19,7 @@ class CacheProvider<K : Any, T : Any?>(
         }.build()
 
     suspend fun get(key: K, value: suspend () -> T): T {
-        return cache.getIfPresent(key) ?: run {
-            val mutex = mutexes.getOrPut(key) { Mutex() }
-            mutex.withLock {
-                val exists = cache.getIfPresent(key)
-                if (exists != null) {
-                    exists
-                } else {
-                    val newone = value()
-                    if (newone != null) {
-                        cache.put(key, newone)
-                    }
-                    newone
-                }
-            }
-        }
+        return getIfPresent(key, value)!!
     }
 
     suspend fun getIfPresent(key: K): T? {
