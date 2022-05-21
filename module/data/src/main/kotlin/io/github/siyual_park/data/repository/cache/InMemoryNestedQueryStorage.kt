@@ -1,20 +1,20 @@
 package io.github.siyual_park.data.repository.cache
 
-import com.google.common.cache.CacheBuilder
 import kotlinx.coroutines.flow.Flow
 
 class InMemoryNestedQueryStorage<T : Any>(
-    private val cacheBuilder: () -> CacheBuilder<Any, Any>,
-    override val parent: NestedQueryStorage<T>? = null,
+    singleCacheProvider: CacheProvider<String, T?>,
+    multiCacheProvider: CacheProvider<SelectQuery, Collection<T>>
 ) : NestedQueryStorage<T> {
-    private val delegator = SimpleCachedQueryStorage<T>(cacheBuilder)
+    override val parent: NestedQueryStorage<T>? = null
+    private val delegator = SimpleCachedQueryStorage(
+        singleCacheProvider,
+        multiCacheProvider
+    )
     private var cleared = false
 
     override suspend fun fork(): NestedQueryStorage<T> {
-        return InMemoryNestedQueryStorage(
-            cacheBuilder,
-            this
-        )
+        return InMemoryNestedQueryStorage(SimpleCacheProvider(), SimpleCacheProvider())
     }
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {

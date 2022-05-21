@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.repository.cache
 
-import com.google.common.cache.CacheBuilder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -8,10 +7,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 
 class SimpleCachedQueryStorage<T : Any>(
-    cacheBuilder: () -> CacheBuilder<Any, Any>,
+    private val singleCacheProvider: CacheProvider<String, T?>,
+    private val multiCacheProvider: CacheProvider<SelectQuery, Collection<T>>
 ) : QueryStorage<T> {
-    private val singleCacheProvider = CacheProvider<String, T?>(cacheBuilder())
-    private val multiCacheProvider = CacheProvider<SelectQuery, Collection<T>>(cacheBuilder())
 
     override suspend fun getIfPresent(where: String): T? {
         return singleCacheProvider.getIfPresent(where)
