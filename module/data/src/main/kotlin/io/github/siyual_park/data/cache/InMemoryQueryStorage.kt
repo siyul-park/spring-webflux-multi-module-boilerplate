@@ -1,7 +1,6 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.cache.CacheProvider
 
 class InMemoryQueryStorage<T : Any>(
     cacheBuilder: (() -> CacheBuilder<Any, Any>)

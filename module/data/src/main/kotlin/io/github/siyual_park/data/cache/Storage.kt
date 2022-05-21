@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import io.github.siyual_park.data.annotation.Key
 import io.github.siyual_park.data.expansion.columnName

@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder

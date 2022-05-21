@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 interface GeneralNestedStorage<S : GeneralNestedStorage<S>> {
     val parent: S?

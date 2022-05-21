@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow

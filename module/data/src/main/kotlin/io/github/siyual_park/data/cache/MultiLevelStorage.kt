@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.util.Reversed
