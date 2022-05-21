@@ -1,10 +1,14 @@
 package io.github.siyual_park.data.repository.cache
 
+import com.google.common.cache.CacheBuilder
+
 class InMemoryNestedQueryStorage<T : Any>(
-    private val singleCacheProvider: CacheProvider<String, T>,
-    private val multiCacheProvider: CacheProvider<SelectQuery, Collection<T>>,
+    private val cacheBuilder: (() -> CacheBuilder<Any, Any>),
     override val parent: NestedQueryStorage<T>? = null
 ) : NestedQueryStorage<T> {
+    private val singleCacheProvider = CacheProvider<String, T>(cacheBuilder())
+    private val multiCacheProvider = CacheProvider<SelectQuery, Collection<T>>(cacheBuilder())
+
     override suspend fun getIfPresent(where: String): T? {
         return parent?.getIfPresent(where) ?: singleCacheProvider.getIfPresent(where)
     }
@@ -33,7 +37,7 @@ class InMemoryNestedQueryStorage<T : Any>(
     }
 
     override suspend fun fork(): NestedQueryStorage<T> {
-        return InMemoryNestedQueryStorage(SimpleCacheProvider(), SimpleCacheProvider(), this)
+        return InMemoryNestedQueryStorage(cacheBuilder, this)
     }
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {
@@ -44,5 +48,6 @@ class InMemoryNestedQueryStorage<T : Any>(
         multi.forEach { (key, value) ->
             multiCacheProvider.put(key, value)
         }
+        storage.clear()
     }
 }

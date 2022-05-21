@@ -2,7 +2,6 @@ package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.repository.Extractor
-import io.github.siyual_park.data.repository.cache.ComplexCacheProvider
 import io.github.siyual_park.data.repository.cache.InMemoryNestedQueryStorage
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.InMemoryStorage
@@ -67,8 +66,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             if (queryCacheBuilder != null) {
                 val storage = TransactionalQueryStorage<T>(
                     InMemoryNestedQueryStorage(
-                        ComplexCacheProvider(queryCacheBuilder()),
-                        ComplexCacheProvider(queryCacheBuilder())
+                        queryCacheBuilder
                     )
                 )
 
