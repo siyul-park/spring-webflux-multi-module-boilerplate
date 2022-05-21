@@ -17,11 +17,11 @@ class InMemoryNestedQueryStorage<T : Any>(
     }
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {
-        clear()
     }
 
     override suspend fun clear() {
         delegator.clear()
+        parent?.clear()
     }
 
     override suspend fun getIfPresent(where: String): T? {
