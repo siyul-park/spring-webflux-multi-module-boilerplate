@@ -1,4 +1,4 @@
-package io.github.siyual_park.persistence
+package io.github.siyual_park.data.cache
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

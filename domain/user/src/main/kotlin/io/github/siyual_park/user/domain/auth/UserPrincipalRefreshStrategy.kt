@@ -5,7 +5,7 @@ import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefreshStr
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.persistence.AsyncLazy
+import io.github.siyual_park.data.cache.AsyncLazy
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.user.domain.UserStorage
 import kotlinx.coroutines.flow.toSet

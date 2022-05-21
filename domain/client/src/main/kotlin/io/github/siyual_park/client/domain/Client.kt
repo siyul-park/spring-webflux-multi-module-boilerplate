@@ -11,10 +11,10 @@ import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
+import io.github.siyual_park.data.cache.AsyncLazy
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
-import io.github.siyual_park.persistence.AsyncLazy
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.PersistencePropagateSynchronization
 import io.github.siyual_park.persistence.PersistenceSynchronization
@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.toSet
 import org.springframework.transaction.reactive.TransactionalOperator
 
 class Client(

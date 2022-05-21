@@ -7,9 +7,9 @@ import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
+import io.github.siyual_park.data.cache.AsyncLazy
 import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
-import io.github.siyual_park.persistence.AsyncLazy
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait

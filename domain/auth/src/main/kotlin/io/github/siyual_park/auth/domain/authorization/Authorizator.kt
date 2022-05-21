@@ -8,7 +8,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.exception.PrincipalIdNotExistsException
 import io.github.siyual_park.auth.exception.RequiredPermissionException
-import io.github.siyual_park.data.repository.cache.ComplexCacheProvider
+import io.github.siyual_park.data.cache.CacheProvider
 import org.springframework.stereotype.Component
 import java.time.Duration
 
@@ -23,7 +23,7 @@ class Authorizator(
         .maximumSize(10_000)
 ) {
     private val strategies = mutableListOf<Pair<AuthorizeFilter, AuthorizeStrategy>>()
-    private val cacheProvider = ComplexCacheProvider<ArrayList<Any?>, Boolean>(cacheBuilder)
+    private val cacheProvider = CacheProvider<ArrayList<Any?>, Boolean>(cacheBuilder)
 
     fun register(filter: AuthorizeFilter, strategy: AuthorizeStrategy): Authorizator {
         strategies.add(filter to strategy)

@@ -17,11 +17,10 @@ import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
+import io.github.siyual_park.data.cache.AsyncLazy
 import io.github.siyual_park.json.bind.RequestForm
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
-import io.github.siyual_park.persistence.AsyncLazy
-import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.presentation.project.Projection
 import io.github.siyual_park.presentation.project.ProjectionParserFactory
 import io.github.siyual_park.user.domain.auth.PasswordGrantPayload
