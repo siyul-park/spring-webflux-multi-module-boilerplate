@@ -26,12 +26,6 @@ class ClientCredentialRepository(
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
     )
-    .enableQueryCache({
-        CacheBuilder.newBuilder()
-            .softValues()
-            .expireAfterAccess(Duration.ofSeconds(1))
-            .maximumSize(1_000)
-    })
     .build() {
     suspend fun findByClientIdOrFail(clientId: ULID): ClientCredentialData {
         return findByClientId(clientId) ?: throw EmptyResultDataAccessException(1)

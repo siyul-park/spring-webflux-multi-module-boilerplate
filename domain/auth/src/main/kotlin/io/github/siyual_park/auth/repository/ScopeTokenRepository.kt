@@ -23,10 +23,4 @@ class ScopeTokenRepository(
             .expireAfterWrite(Duration.ofMinutes(30))
             .maximumSize(1_000),
     )
-    .enableQueryCache({
-        CacheBuilder.newBuilder()
-            .softValues()
-            .expireAfterAccess(Duration.ofSeconds(1))
-            .maximumSize(1_000)
-    })
     .build()
