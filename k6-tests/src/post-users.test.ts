@@ -4,11 +4,14 @@ import { UserGateway } from './gateway';
 import { dummyCreateUserRequest } from './dummy';
 
 import client from './client';
+import matrixType from "./matrix-type";
 
 export const options: Options = {
   vus: 200,
   duration: '10s',
 };
+
+matrixType(options, ['POST_users']);
 
 const userGateway = new UserGateway({
   grantType: 'client_credentials',

@@ -2,11 +2,14 @@ import { Options } from 'k6/options';
 
 import { UserGateway } from './gateway';
 import client from './client';
+import matrixType from "./matrix-type";
 
 export const options: Options = {
   vus: 200,
   duration: '10s',
 };
+
+matrixType(options, ['GET_users']);
 
 const userGateway = new UserGateway({
   grantType: 'client_credentials',

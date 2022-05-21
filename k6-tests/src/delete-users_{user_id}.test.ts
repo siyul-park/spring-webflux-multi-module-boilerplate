@@ -11,7 +11,7 @@ export const options: Options = {
   duration: '10s',
 };
 
-matrixType(options, ['POST_users', 'DELETE_users_id']);
+matrixType(options, ['DELETE_users_id']);
 
 const userGateway = new UserGateway({
   grantType: 'client_credentials',

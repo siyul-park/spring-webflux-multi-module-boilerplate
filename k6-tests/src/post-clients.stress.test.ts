@@ -1,8 +1,10 @@
 import { Options } from 'k6/options';
 
-import { AuthGateway, GatewayAuthorization } from './gateway';
+import { ClientGateway } from './gateway';
+import { dummyCreateClientRequest } from './dummy';
+
 import client from './client';
-import matrixType from './matrix-type';
+import matrixType from "./matrix-type";
 
 export const options: Options = {
   stages: [
@@ -18,16 +20,14 @@ export const options: Options = {
   ],
 };
 
-matrixType(options, ['GET_principal']);
+matrixType(options, ['POST_clients']);
 
-const authGateway = new AuthGateway();
-
-const gatewayAuthorization = new GatewayAuthorization({
+const clientGateway = new ClientGateway({
   grantType: 'client_credentials',
   clientId: client.id,
   clientSecret: client.secret,
 });
 
 export default () => {
-  authGateway.read(gatewayAuthorization.getAuthorization());
+  clientGateway.create(dummyCreateClientRequest());
 };

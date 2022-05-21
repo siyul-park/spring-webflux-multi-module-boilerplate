@@ -11,7 +11,7 @@ export const options: Options = {
   duration: '10s',
 };
 
-matrixType(options, ['POST_token', 'POST_users', 'GET_users_self']);
+matrixType(options, ['GET_users_self']);
 
 export function setup() {
   const userGateway = new UserGateway({

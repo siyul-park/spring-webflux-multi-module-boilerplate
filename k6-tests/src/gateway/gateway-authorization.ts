@@ -16,8 +16,8 @@ class GatewayAuthorization {
 
   getAuthorization(): string {
     if (this.isExpired()) {
-      this.createdAt = new Date();
       this.tokens = this.authGateway.createToken(this.request);
+      this.createdAt = new Date();
     }
 
     return `${this.tokens?.tokenType} ${this.tokens?.accessToken}`;

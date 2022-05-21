@@ -5,11 +5,14 @@ import { ClientInfo } from './response';
 import { dummyCreateClientRequest } from './dummy';
 
 import client from './client';
+import matrixType from "./matrix-type";
 
 export const options: Options = {
   vus: 200,
   duration: '10s',
 };
+
+matrixType(options, ['GET_clients_id']);
 
 const clientGateway = new ClientGateway({
   grantType: 'client_credentials',
