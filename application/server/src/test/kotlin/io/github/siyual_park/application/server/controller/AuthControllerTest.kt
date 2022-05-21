@@ -242,6 +242,7 @@ class AuthControllerTest @Autowired constructor(
 
         assertEquals(principal.id, principalInfo.id?.orElse(null))
         assertEquals("client_principal", principalInfo.type?.orElse(null))
+        assertTrue(principalInfo.claims?.orElse(null)?.get("cid") == principal.clientId.toString())
     }
 
     @Test

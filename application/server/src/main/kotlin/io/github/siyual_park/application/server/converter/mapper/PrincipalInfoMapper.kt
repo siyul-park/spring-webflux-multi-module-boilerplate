@@ -5,6 +5,7 @@ import com.google.common.collect.Maps
 import io.github.siyual_park.application.server.dto.response.PrincipalInfo
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.domain.token.ClaimEmbedder
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.TypeReference
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class PrincipalInfoMapper(
-    private val mapperContext: MapperContext
+    private val mapperContext: MapperContext,
+    private val claimEmbedder: ClaimEmbedder
 ) : Mapper<Projection<Principal>, PrincipalInfo> {
     override val sourceType = object : TypeReference<Projection<Principal>>() {}
     override val targetType = object : TypeReference<PrincipalInfo>() {}
@@ -32,6 +34,9 @@ class PrincipalInfoMapper(
                 typeMapping.getOrPut(value.javaClass) {
                     CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, value.javaClass.simpleName)
                 }
+            },
+            claims = node.project(PrincipalInfo::claims) {
+                claimEmbedder.embedding(value)
             },
             scope = node.project(PrincipalInfo::scope) {
                 mapperContext.map(Projection(value.scope as Collection<ScopeToken>, it))

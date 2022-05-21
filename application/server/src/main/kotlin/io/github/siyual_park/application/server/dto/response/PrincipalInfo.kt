@@ -7,5 +7,6 @@ import java.util.Optional
 data class PrincipalInfo(
     val id: Optional<String>?,
     val type: Optional<String>?,
+    val claims: Optional<Map<String, Any>>?,
     val scope: Optional<Collection<ScopeTokenInfo>>?
 )
