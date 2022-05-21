@@ -4,7 +4,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.h2.util.SoftHashMap
 import java.util.Collections
-import java.util.WeakHashMap
 
 class Pool<T : Any>(
     private val load: suspend () -> T
