@@ -29,6 +29,8 @@ interface Storage<T : Any, ID : Any> {
     suspend fun delete(entity: T)
     suspend fun put(entity: T)
 
+    suspend fun entries(): Set<Pair<ID, T>>
+
     suspend fun clear()
 }
 

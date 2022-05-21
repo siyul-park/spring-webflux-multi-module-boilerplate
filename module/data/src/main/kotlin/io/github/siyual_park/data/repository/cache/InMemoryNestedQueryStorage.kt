@@ -1,12 +1,12 @@
 package io.github.siyual_park.data.repository.cache
 
 import io.github.siyual_park.data.cache.AsyncLazy
-import io.github.siyual_park.data.cache.Pool
+import io.github.siyual_park.data.cache.AsyncPool
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class InMemoryNestedQueryStorage<T : Any>(
-    private val pool: Pool<QueryStorage<T>>,
+    private val pool: AsyncPool<QueryStorage<T>>,
     override val parent: NestedQueryStorage<T>? = null
 ) : NestedQueryStorage<T> {
     private val delegator = AsyncLazy { pool.poll() }

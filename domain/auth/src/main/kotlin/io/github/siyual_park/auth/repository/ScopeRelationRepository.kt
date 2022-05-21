@@ -18,13 +18,13 @@ class ScopeRelationRepository(
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ScopeRelationData, Long> by R2DBCRepositoryBuilder<ScopeRelationData, Long>(entityOperations, ScopeRelationData::class)
     .enableEvent(eventPublisher)
-    .enableCache(
+    .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(10))
             .expireAfterWrite(Duration.ofMinutes(30))
-            .maximumSize(1_000),
-    )
+            .maximumSize(1_000)
+    })
     .enableQueryCache({
         CacheBuilder.newBuilder()
             .softValues()

@@ -57,4 +57,8 @@ class TransactionalStorage<T : Any, ID : Any>(
     override suspend fun clear() {
         return provider.get().clear()
     }
+
+    override suspend fun entries(): Set<Pair<ID, T>> {
+        return provider.get().entries()
+    }
 }

@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.repository.mongo
 
 import com.google.common.cache.CacheBuilder
+import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
 import io.github.siyual_park.data.repository.cache.InMemoryStorage
@@ -19,14 +20,14 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
     private val clazz: KClass<T>,
 ) {
     private var eventPublisher: EventPublisher? = null
-    private var cacheBuilder: CacheBuilder<Any, Any>? = null
+    private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
 
     fun enableEvent(eventPublisher: EventPublisher?): MongoRepositoryBuilder<T, ID> {
         this.eventPublisher = eventPublisher
         return this
     }
 
-    fun enableCache(cacheBuilder: CacheBuilder<Any, Any>?): MongoRepositoryBuilder<T, ID> {
+    fun enableCache(cacheBuilder: (() -> CacheBuilder<Any, Any>)?): MongoRepositoryBuilder<T, ID> {
         this.cacheBuilder = cacheBuilder
         return this
     }
@@ -44,10 +45,12 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
             val idExtractor = createIdExtractor(current)
             val storage = TransactionalStorage(
                 InMemoryNestedStorage(
-                    InMemoryStorage(
-                        cacheBuilder,
-                        idExtractor
-                    )
+                    Pool {
+                        InMemoryStorage(
+                            cacheBuilder(),
+                            idExtractor
+                        )
+                    }
                 )
             )
 

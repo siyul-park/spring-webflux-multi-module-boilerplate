@@ -100,6 +100,10 @@ class MultiLevelStorage<T : Any, ID : Any>(
         }
     }
 
+    override suspend fun entries(): Set<Pair<ID, T>> {
+        return rootStorage().entries()
+    }
+
     private fun rootStorage(): Storage<T, ID> {
         return storages.elementAt(0)
     }

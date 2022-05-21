@@ -16,11 +16,11 @@ class ScopeTokenRepository(
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ScopeTokenData, ULID> by R2DBCRepositoryBuilder<ScopeTokenData, ULID>(entityOperations, ScopeTokenData::class)
     .enableEvent(eventPublisher)
-    .enableCache(
+    .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(10))
             .expireAfterWrite(Duration.ofMinutes(30))
-            .maximumSize(1_000),
-    )
+            .maximumSize(1_000)
+    })
     .build()

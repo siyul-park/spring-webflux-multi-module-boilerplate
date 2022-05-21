@@ -16,11 +16,11 @@ class TokenRepository(
     eventPublisher: EventPublisher? = null
 ) : MongoRepository<TokenData, ULID> by MongoRepositoryBuilder<TokenData, ULID>(template, TokenData::class)
     .enableEvent(eventPublisher)
-    .enableCache(
+    .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(1))
             .expireAfterWrite(Duration.ofMinutes(2))
             .maximumSize(10_000)
-    )
+    })
     .build()

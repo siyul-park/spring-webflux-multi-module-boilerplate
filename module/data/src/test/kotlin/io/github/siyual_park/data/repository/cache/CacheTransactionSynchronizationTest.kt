@@ -2,6 +2,7 @@ package io.github.siyual_park.data.repository.cache
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.repository.Extractor
@@ -68,14 +69,16 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
         reactiveChainedTransactionManager.registerTransactionManager(reactiveTransactionManager)
 
         val storage = InMemoryNestedStorage(
-            InMemoryStorage(
-                CacheBuilder.newBuilder(),
-                object : Extractor<Person, ULID> {
-                    override fun getKey(entity: Person): ULID {
-                        return entity.id
+            Pool {
+                InMemoryStorage(
+                    CacheBuilder.newBuilder(),
+                    object : Extractor<Person, ULID> {
+                        override fun getKey(entity: Person): ULID {
+                            return entity.id
+                        }
                     }
-                }
-            )
+                )
+            }
         )
 
         transactionalOperator.executeAndAwait {

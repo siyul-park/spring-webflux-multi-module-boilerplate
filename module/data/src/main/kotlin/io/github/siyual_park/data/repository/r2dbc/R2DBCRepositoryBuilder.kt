@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
+import io.github.siyual_park.data.cache.AsyncPool
 import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedQueryStorage
@@ -18,7 +19,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     private val clazz: KClass<T>,
 ) {
     private var eventPublisher: EventPublisher? = null
-    private var cacheBuilder: CacheBuilder<Any, Any>? = null
+    private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
     private var queryCacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
 
     fun enableEvent(eventPublisher: EventPublisher?): R2DBCRepositoryBuilder<T, ID> {
@@ -26,7 +27,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    fun enableCache(cacheBuilder: CacheBuilder<Any, Any>?): R2DBCRepositoryBuilder<T, ID> {
+    fun enableCache(cacheBuilder: (() -> CacheBuilder<Any, Any>)?): R2DBCRepositoryBuilder<T, ID> {
         this.cacheBuilder = cacheBuilder
         return this
     }
@@ -47,12 +48,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             if (cacheBuilder != null) {
                 val idExtractor = createIdExtractor(it)
                 val storage = TransactionalStorage(
-                    InMemoryNestedStorage(
-                        InMemoryStorage(
-                            cacheBuilder,
-                            idExtractor
-                        )
-                    )
+                    InMemoryNestedStorage(Pool { InMemoryStorage(cacheBuilder(), idExtractor) })
                 )
 
                 CachedR2DBCRepository(
@@ -67,9 +63,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             val queryCacheBuilder = queryCacheBuilder
             if (queryCacheBuilder != null) {
                 val storage = TransactionalQueryStorage<T>(
-                    InMemoryNestedQueryStorage(
-                        Pool { InMemoryQueryStorage(queryCacheBuilder) }
-                    )
+                    InMemoryNestedQueryStorage(AsyncPool { InMemoryQueryStorage(queryCacheBuilder) })
                 )
 
                 CachedQueryR2DBCRepository(

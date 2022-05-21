@@ -2,6 +2,7 @@ package io.github.siyual_park.data.repository.cache
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.repository.Extractor
@@ -12,24 +13,17 @@ import org.junit.jupiter.api.Test
 
 class InMemoryNestedStorageTest : CoroutineTestHelper() {
     private val storage = InMemoryNestedStorage(
-        InMemoryStorage(
-            CacheBuilder.newBuilder(),
-            object : Extractor<Person, ULID> {
-                override fun getKey(entity: Person): ULID {
-                    return entity.id
+        Pool {
+            InMemoryStorage(
+                CacheBuilder.newBuilder(),
+                object : Extractor<Person, ULID> {
+                    override fun getKey(entity: Person): ULID {
+                        return entity.id
+                    }
                 }
-            }
-        )
-    ).also {
-        it.createIndex(
-            "name",
-            object : Extractor<Person, String> {
-                override fun getKey(entity: Person): String {
-                    return entity.name
-                }
-            }
-        )
-    }
+            )
+        }
+    )
 
     @BeforeEach
     override fun setUp() {
@@ -37,6 +31,14 @@ class InMemoryNestedStorageTest : CoroutineTestHelper() {
 
         blocking {
             storage.clear()
+            storage.createIndex(
+                "name",
+                object : Extractor<Person, String> {
+                    override fun getKey(entity: Person): String {
+                        return entity.name
+                    }
+                }
+            )
         }
     }
 

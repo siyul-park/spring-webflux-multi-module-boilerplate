@@ -115,6 +115,10 @@ class InMemoryStorage<T : Any, ID : Any>(
         }
     }
 
+    override suspend fun entries(): Set<Pair<ID, T>> {
+        return cache.asMap().entries.map { it.key to it.value }.toSet()
+    }
+
     override suspend fun clear() {
         cache.invalidateAll()
         indexes.forEach { (_, index) -> index.run { clear() } }
