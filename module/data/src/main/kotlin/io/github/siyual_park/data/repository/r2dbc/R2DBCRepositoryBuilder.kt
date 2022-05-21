@@ -47,7 +47,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             if (cacheBuilder != null) {
                 val idExtractor = createIdExtractor(it)
                 val storage = TransactionalStorage(
-                    NestedStorage(LoadingPool({ InMemoryStorage(cacheBuilder, idExtractor) }), idExtractor)
+                    NestedStorage(LoadingPool { InMemoryStorage(cacheBuilder, idExtractor) }, idExtractor)
                 )
 
                 CachedR2DBCRepository(it, storage, idExtractor)
@@ -58,7 +58,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             val queryCacheBuilder = queryCacheBuilder
             if (queryCacheBuilder != null) {
                 val storage = TransactionalQueryStorage<T>(
-                    NestedQueryStorage(LoadingPool({ InMemoryQueryStorage(queryCacheBuilder) }))
+                    NestedQueryStorage(LoadingPool { InMemoryQueryStorage(queryCacheBuilder) })
                 )
 
                 CachedQueryR2DBCRepository(it, storage)
