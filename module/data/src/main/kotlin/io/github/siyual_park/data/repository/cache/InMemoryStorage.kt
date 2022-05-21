@@ -6,6 +6,8 @@ import com.google.common.collect.Maps
 import io.github.siyual_park.data.repository.Extractor
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.Collections
+import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
@@ -15,7 +17,7 @@ class InMemoryStorage<T : Any, ID : Any>(
 ) : Storage<T, ID> {
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
     private val extractors = Maps.newConcurrentMap<String, Extractor<T, *>>()
-    private val mutexes = Maps.newConcurrentMap<ID, Mutex>()
+    private val mutexes = Collections.synchronizedMap(WeakHashMap<ID, Mutex>())
 
     private val cache: Cache<ID, T> = cacheBuilder
         .removalListener<ID, T> {

@@ -5,7 +5,8 @@ import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.cache.QueryStorage
 import io.github.siyual_park.data.repository.cache.SelectQuery
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.Criteria.where
@@ -24,11 +25,17 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun createAll(entities: Flow<T>): Flow<T> {
-        return delegator.createAll(entities).onStart { storage.clear() }
+        return flow {
+            storage.clear()
+            emitAll(delegator.createAll(entities))
+        }
     }
 
     override fun createAll(entities: Iterable<T>): Flow<T> {
-        return delegator.createAll(entities).onStart { storage.clear() }
+        return flow {
+            storage.clear()
+            emitAll(delegator.createAll(entities))
+        }
     }
 
     override suspend fun existsById(id: ID): Boolean {
@@ -101,23 +108,38 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
-        return delegator.updateAllById(ids, patch).onStart { storage.clear() }
+        return flow {
+            storage.clear()
+            emitAll(delegator.updateAllById(ids, patch))
+        }
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
-        return delegator.updateAllById(ids, patch).onStart { storage.clear() }
+        return flow {
+            storage.clear()
+            emitAll(delegator.updateAllById(ids, patch))
+        }
     }
 
     override fun updateAll(entity: Iterable<T>): Flow<T?> {
-        return delegator.updateAll(entity).onStart { storage.clear() }
+        return flow {
+            storage.clear()
+            emitAll(delegator.updateAll(entity))
+        }
     }
 
     override fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
-        return delegator.updateAll(entity, patch).onStart { storage.clear() }
+        return flow {
+            storage.clear()
+            emitAll(delegator.updateAll(entity, patch))
+        }
     }
 
     override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
-        return delegator.updateAll(entity, patch).onStart { storage.clear() }
+        return flow {
+            storage.clear()
+            emitAll(delegator.updateAll(entity, patch))
+        }
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
@@ -137,7 +159,10 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         offset: Long?,
         sort: Sort?
     ): Flow<T> {
-        return delegator.updateAll(criteria, patch, limit, offset, sort).onStart { storage.clear() }
+        return flow {
+            storage.clear()
+            emitAll(delegator.updateAll(criteria, patch, limit, offset, sort))
+        }
     }
 
     override fun updateAll(
@@ -147,7 +172,10 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         offset: Long?,
         sort: Sort?
     ): Flow<T> {
-        return delegator.updateAll(criteria, patch, limit, offset, sort).onStart { storage.clear() }
+        return flow {
+            storage.clear()
+            emitAll(delegator.updateAll(criteria, patch, limit, offset, sort))
+        }
     }
 
     override suspend fun deleteById(id: ID) {

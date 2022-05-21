@@ -2,14 +2,15 @@ package io.github.siyual_park.data.repository.cache
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
-import com.google.common.collect.Maps
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.Collections
+import java.util.WeakHashMap
 
 class ComplexCacheProvider<K : Any, T : Any?>(
     cacheBuilder: CacheBuilder<Any, Any>,
 ) : CacheProvider<K, T> {
-    private val mutexes = Maps.newConcurrentMap<K, Mutex>()
+    private val mutexes = Collections.synchronizedMap(WeakHashMap<K, Mutex>())
     private val cache: Cache<K, T> = cacheBuilder
         .removalListener<K, T> {
             it.key?.let { id ->
