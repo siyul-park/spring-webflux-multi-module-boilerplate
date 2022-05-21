@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.r2dbc
+package io.github.siyual_park.data.repository.cache
 
 import org.springframework.data.domain.Sort
 

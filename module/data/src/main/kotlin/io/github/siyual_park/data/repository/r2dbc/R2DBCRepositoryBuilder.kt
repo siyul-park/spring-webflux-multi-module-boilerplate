@@ -62,7 +62,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         }.let {
             val queryCacheBuilder = queryCacheBuilder
             if (queryCacheBuilder != null) {
-                QueryCachedR2DBCRepository(
+                CachedQueryR2DBCRepository(
                     it,
                     queryCacheBuilder
                 )

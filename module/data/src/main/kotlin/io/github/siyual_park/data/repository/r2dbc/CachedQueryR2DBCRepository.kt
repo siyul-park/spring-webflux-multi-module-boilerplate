@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.cache.CacheProvider
+import io.github.siyual_park.data.repository.cache.SelectQuery
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -14,7 +15,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.CriteriaDefinition
 
-class QueryCachedR2DBCRepository<T : Any, ID : Any>(
+class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     private val delegator: R2DBCRepository<T, ID>,
     cacheBuilder: () -> CacheBuilder<Any, Any>,
 ) : R2DBCRepository<T, ID> {
