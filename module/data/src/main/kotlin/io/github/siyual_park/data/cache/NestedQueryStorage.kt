@@ -1,7 +1,5 @@
 package io.github.siyual_park.data.cache
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength
 
 class NestedQueryStorage<T : Any>(
@@ -9,7 +7,6 @@ class NestedQueryStorage<T : Any>(
     private val usedPool: Pool<QueryStorage<T>> = Pool(ReferenceStrength.HARD),
     override val parent: NestedQueryStorage<T>? = null,
 ) : QueryStorage<T>, GeneralNestedStorage<NestedQueryStorage<T>> {
-    private val mutex = Mutex()
     private val delegator = AsyncLazy { freePool.poll().also { usedPool.add(it) } }
 
     override suspend fun getIfPresent(where: String): T? {
@@ -46,11 +43,9 @@ class NestedQueryStorage<T : Any>(
 
     override suspend fun clear() {
         usedPool.forEach { it.clear() }
-        mutex.withLock {
-            val storage = delegator.get()
-            usedPool.remove(storage)
-            freePool.add(storage)
-            delegator.clear()
+        delegator.pop()?.let {
+            usedPool.remove(it)
+            freePool.add(it)
         }
     }
 
@@ -60,12 +55,10 @@ class NestedQueryStorage<T : Any>(
 
     suspend fun diff(): Pair<Set<Pair<String, T>>, Set<Pair<SelectQuery, Collection<T>>>> {
         return entries().also {
-            delegator.get().clear()
-            mutex.withLock {
-                val storage = delegator.get()
-                usedPool.remove(storage)
-                freePool.add(storage)
-                delegator.clear()
+            delegator.pop()?.let {
+                usedPool.remove(it)
+                it.clear()
+                freePool.add(it)
             }
         }
     }
