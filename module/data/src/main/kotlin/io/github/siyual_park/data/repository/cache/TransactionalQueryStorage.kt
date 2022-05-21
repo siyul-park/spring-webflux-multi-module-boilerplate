@@ -15,7 +15,7 @@ import java.util.Stack
 class TransactionalQueryStorage<T : Any>(
     private val root: NestedQueryStorage<T>,
 ) : QueryStorage<T> {
-    private val cacheTransactionSynchronization = QueryCacheTransactionSynchronization<T>()
+    private val cacheTransactionSynchronization = CacheTransactionSynchronization<NestedQueryStorage<T>>()
     private val mutex = Mutex()
 
     private val logger = LoggerFactory.getLogger(TransactionalQueryStorage::class.java)

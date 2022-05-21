@@ -13,7 +13,7 @@ import java.util.Stack
 class TransactionalStorage<T : Any, ID : Any>(
     private val root: NestedStorage<T, ID>,
 ) : Storage<T, ID> {
-    private val cacheTransactionSynchronization = CacheTransactionSynchronization<T, ID>()
+    private val cacheTransactionSynchronization = CacheTransactionSynchronization<NestedStorage<T, ID>>()
     private val mutex = Mutex()
 
     private val logger = LoggerFactory.getLogger(TransactionalStorage::class.java)

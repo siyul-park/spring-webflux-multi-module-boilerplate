@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono
 class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
     @Test
     fun get() {
-        val cacheTransactionSynchronization = CacheTransactionSynchronization<Any, Any>()
+        val cacheTransactionSynchronization = CacheTransactionSynchronization<NestedStorage<Any, Any>>()
         val transactionContext = mockk<TransactionContext>()
 
         assertEquals(null, cacheTransactionSynchronization.get(transactionContext))
@@ -34,7 +34,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
 
     @Test
     fun put() {
-        val cacheTransactionSynchronization = CacheTransactionSynchronization<Any, Any>()
+        val cacheTransactionSynchronization = CacheTransactionSynchronization<NestedStorage<Any, Any>>()
         val transactionContext = mockk<TransactionContext>()
         val storage = mockk<NestedStorage<Any, Any>>()
 
@@ -49,7 +49,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
     fun afterCompletion() = blocking {
         val reactiveChainedTransactionManager = ReactiveChainedTransactionManager()
         val transactionalOperator = TransactionalOperator.create(reactiveChainedTransactionManager)
-        val cacheTransactionSynchronization = CacheTransactionSynchronization<Person, ULID>()
+        val cacheTransactionSynchronization = CacheTransactionSynchronization<NestedStorage<Person, ULID>>()
 
         val reactiveTransactionManager = mockk<ReactiveTransactionManager>()
         val genericReactiveTransaction = GenericReactiveTransaction(
