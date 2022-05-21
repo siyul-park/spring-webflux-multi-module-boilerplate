@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class InMemoryNestedStorageTest : CoroutineTestHelper() {
+class NestedStorageTest : CoroutineTestHelper() {
     private val idExtractor = object : Extractor<Person, ULID> {
         override fun getKey(entity: Person): ULID {
             return entity.id
         }
     }
-    private val storage = InMemoryNestedStorage(
+    private val storage = NestedStorage(
         Pool {
             InMemoryStorage(
                 { CacheBuilder.newBuilder() },
