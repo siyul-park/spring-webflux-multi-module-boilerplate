@@ -135,4 +135,47 @@ class NestedStorageTest : CoroutineTestHelper() {
         assertEquals(null, storage.getIfPresent(person.id))
         assertEquals(null, storage.getIfPresent("name", person.name))
     }
+
+    @Test
+    fun get() = blocking {
+        val child1 = storage.fork()
+        val child2 = child1.fork()
+
+        val person1 = DummyPerson.create()
+        val person2 = DummyPerson.create().also { it.id = person1.id }
+        val person3 = DummyPerson.create().also { it.id = person1.id }
+
+        storage.put(person1)
+
+        assertEquals(person1, child2.getIfPresent(person1.id))
+        assertEquals(person1, child2.getIfPresent("name", person1.name))
+
+        assertEquals(person1, child1.getIfPresent(person1.id))
+        assertEquals(person1, child1.getIfPresent("name", person1.name))
+
+        assertEquals(person1, storage.getIfPresent(person1.id))
+        assertEquals(person1, storage.getIfPresent("name", person1.name))
+
+        child1.put(person2)
+
+        assertEquals(person2, child2.getIfPresent(person1.id))
+        assertEquals(person2, child2.getIfPresent("name", person2.name))
+
+        assertEquals(person2, child1.getIfPresent(person1.id))
+        assertEquals(person2, child1.getIfPresent("name", person2.name))
+
+        assertEquals(person1, storage.getIfPresent(person1.id))
+        assertEquals(person1, storage.getIfPresent("name", person1.name))
+
+        child2.put(person3)
+
+        assertEquals(person3, child2.getIfPresent(person1.id))
+        assertEquals(person3, child2.getIfPresent("name", person3.name))
+
+        assertEquals(person2, child1.getIfPresent(person1.id))
+        assertEquals(person2, child1.getIfPresent("name", person2.name))
+
+        assertEquals(person1, storage.getIfPresent(person1.id))
+        assertEquals(person1, storage.getIfPresent("name", person1.name))
+    }
 }
