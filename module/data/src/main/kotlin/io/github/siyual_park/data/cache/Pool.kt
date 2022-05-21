@@ -6,9 +6,11 @@ import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrengt
 import org.apache.commons.collections4.map.ReferenceMap
 import java.util.Collections
 
-class Pool<T : Any> {
+class Pool<T : Any>(
+    type: ReferenceStrength = ReferenceStrength.SOFT
+) {
     private val store = Collections.newSetFromMap(
-        Collections.synchronizedMap(ReferenceMap<T, Boolean>(ReferenceStrength.SOFT, ReferenceStrength.SOFT))
+        Collections.synchronizedMap(ReferenceMap<T, Boolean>(type, type))
     )
     private val mutex = Mutex()
 

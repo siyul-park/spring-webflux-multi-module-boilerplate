@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class TransactionalQueryStorageTest : CoroutineTestHelper() {
-    private val storage = TransactionalQueryStorage<String>(NestedQueryStorage(LoadingPool { InMemoryQueryStorage { CacheBuilder.newBuilder() } }))
+    private val storage = TransactionalQueryStorage<String>(NestedQueryStorage(LoadingPool({ InMemoryQueryStorage { CacheBuilder.newBuilder() } })))
 
     @BeforeEach
     override fun setUp() {

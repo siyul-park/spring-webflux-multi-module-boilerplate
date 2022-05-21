@@ -93,6 +93,7 @@ class NestedStorage<T : Any, ID : Any>(
     override suspend fun clear() {
         delegator.get().clear()
         forceRemoved.clear()
+
         mutex.withLock {
             pool.add(delegator.get())
             delegator.clear()
@@ -108,7 +109,7 @@ class NestedStorage<T : Any, ID : Any>(
     }
 
     private suspend fun guard(loader: suspend () -> T?): T? {
-        return loader() ?.let {
+        return loader()?.let {
             val id = idExtractor.getKey(it)
             if (!forceRemoved.contains(id)) {
                 it
