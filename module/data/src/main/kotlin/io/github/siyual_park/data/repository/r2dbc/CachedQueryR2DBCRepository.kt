@@ -46,8 +46,8 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         return delegator.count()
     }
 
-    override suspend fun count(criteria: CriteriaDefinition?): Long {
-        return delegator.count(criteria)
+    override suspend fun count(criteria: CriteriaDefinition?, limit: Int?): Long {
+        return delegator.count(criteria, limit)
     }
 
     override suspend fun findById(id: ID): T? {

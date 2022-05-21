@@ -156,8 +156,8 @@ class CachedMongoRepository<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun count(criteria: CriteriaDefinition?): Long {
-        return delegator.count(criteria)
+    override suspend fun count(criteria: CriteriaDefinition?, limit: Int?): Long {
+        return delegator.count(criteria, limit)
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {

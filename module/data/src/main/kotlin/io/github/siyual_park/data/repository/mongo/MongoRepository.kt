@@ -38,7 +38,7 @@ interface MongoRepository<T : Any, ID : Any> : Repository<T, ID> {
 
     fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<T>
 
-    suspend fun count(criteria: CriteriaDefinition? = null): Long
+    suspend fun count(criteria: CriteriaDefinition? = null, limit: Int? = null): Long
 
     suspend fun deleteAll(criteria: CriteriaDefinition? = null, limit: Int? = null, offset: Long? = null, sort: Sort? = null)
 }

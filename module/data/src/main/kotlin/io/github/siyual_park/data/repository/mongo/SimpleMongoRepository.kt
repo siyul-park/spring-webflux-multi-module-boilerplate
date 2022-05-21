@@ -123,6 +123,10 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        if (limit != null && limit <= 0) {
+            return emptyFlow()
+        }
+
         var query = if (criteria == null) {
             Query()
         } else {
@@ -273,13 +277,22 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         return count(criteria = null)
     }
 
-    override suspend fun count(criteria: CriteriaDefinition?): Long {
+    override suspend fun count(criteria: CriteriaDefinition?, limit: Int?): Long {
+        if (limit != null && limit <= 0) {
+            return 0
+        }
+
+        var query = if (criteria == null) {
+            Query()
+        } else {
+            query(criteria)
+        }
+        limit?.let {
+            query = query.limit(it)
+        }
+
         return template.count(
-            if (criteria == null) {
-                Query()
-            } else {
-                query(criteria)
-            },
+            query,
             clazz.java
         )
             .subscribeOn(Schedulers.parallel())

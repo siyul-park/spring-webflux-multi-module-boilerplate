@@ -89,7 +89,7 @@ class TokenFactory(
             val query = Criteria("claims.$key").`is`(value)
                 .and(fieldName(TokenData::type)).`is`(template.type)
 
-            val count = tokenRepository.count(query)
+            val count = tokenRepository.count(query, limit = limit)
 
             tokenRepository.updateAll(
                 query.and(fieldName(TokenData::expiredAt)).gt(expiredAt),
