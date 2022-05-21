@@ -60,20 +60,20 @@ class NestedStorage<T : Any, ID : Any>(
         return delegator.get().containsIndex(name)
     }
 
-    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
-        return guard { parent?.getIfPresent(index, key) } ?: delegator.get().getIfPresent(index, key)
+    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
+        return getIfPresent(index, key) ?: loader()?.also { put(it) }
     }
 
-    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
-        return guard { parent?.getIfPresent(index, key) } ?: delegator.get().getIfPresent(index, key, withRemove(loader))
+    override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
+        return delegator.get().getIfPresent(index, key) ?: guard { parent?.getIfPresent(index, key) }
     }
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
-        return guard { parent?.getIfPresent(id) } ?: delegator.get().getIfPresent(id, withRemove(loader))
+        return getIfPresent(id) ?: loader()?.also { put(it) }
     }
 
     override suspend fun getIfPresent(id: ID): T? {
-        return guard { parent?.getIfPresent(id) } ?: delegator.get().getIfPresent(id)
+        return delegator.get().getIfPresent(id) ?: guard { parent?.getIfPresent(id) }
     }
 
     override suspend fun remove(id: ID) {
@@ -102,10 +102,6 @@ class NestedStorage<T : Any, ID : Any>(
 
     override suspend fun entries(): Set<Pair<ID, T>> {
         return delegator.get().entries()
-    }
-
-    private fun withRemove(loader: suspend () -> T?): suspend () -> T? {
-        return { loader()?.also { forceRemoved.remove(idExtractor.getKey(it)) } }
     }
 
     private suspend fun guard(loader: suspend () -> T?): T? {

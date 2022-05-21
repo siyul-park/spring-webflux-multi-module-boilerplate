@@ -17,20 +17,20 @@ class NestedQueryStorage<T : Any>(
         }
     }
 
-    override suspend fun getIfPresent(where: String): T? {
-        return parent?.getIfPresent(where) ?: delegator.get().getIfPresent(where)
-    }
-
     override suspend fun getIfPresent(where: String, loader: suspend () -> T?): T? {
-        return parent?.getIfPresent(where) ?: delegator.get().getIfPresent(where, loader)
+        return getIfPresent(where) ?: loader()?.also { put(where, it) }
     }
 
-    override suspend fun getIfPresent(select: SelectQuery): Collection<T>? {
-        return parent?.getIfPresent(select) ?: delegator.get().getIfPresent(select)
+    override suspend fun getIfPresent(where: String): T? {
+        return delegator.get().getIfPresent(where) ?: parent?.getIfPresent(where)
     }
 
     override suspend fun getIfPresent(select: SelectQuery, loader: suspend () -> Collection<T>?): Collection<T>? {
-        return parent?.getIfPresent(select) ?: delegator.get().getIfPresent(select, loader)
+        return getIfPresent(select) ?: loader()?.also { put(select, it) }
+    }
+
+    override suspend fun getIfPresent(select: SelectQuery): Collection<T>? {
+        return delegator.get().getIfPresent(select) ?: parent?.getIfPresent(select)
     }
 
     override suspend fun remove(where: String) {
