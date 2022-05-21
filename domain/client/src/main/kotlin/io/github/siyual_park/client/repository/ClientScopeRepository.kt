@@ -25,6 +25,12 @@ class ClientScopeRepository(
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
     )
+    .enableQueryCache({
+        CacheBuilder.newBuilder()
+            .softValues()
+            .expireAfterAccess(Duration.ofSeconds(1))
+            .maximumSize(1_000)
+    })
     .build() {
     fun findAllByClientId(clientId: ULID): Flow<ClientScopeData> {
         return findAll(where(ClientScopeData::clientId).`is`(clientId))

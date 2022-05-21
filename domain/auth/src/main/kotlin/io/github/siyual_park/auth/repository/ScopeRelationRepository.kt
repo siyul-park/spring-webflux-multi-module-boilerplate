@@ -25,6 +25,12 @@ class ScopeRelationRepository(
             .expireAfterWrite(Duration.ofMinutes(30))
             .maximumSize(1_000),
     )
+    .enableQueryCache({
+        CacheBuilder.newBuilder()
+            .softValues()
+            .expireAfterAccess(Duration.ofSeconds(1))
+            .maximumSize(1_000)
+    })
     .build() {
     fun findAllByChildId(childId: ULID): Flow<ScopeRelationData> {
         return findAll(where(ScopeRelationData::childId).`is`(childId))
