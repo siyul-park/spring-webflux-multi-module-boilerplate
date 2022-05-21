@@ -6,7 +6,7 @@ import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrengt
 
 class NestedQueryStorage<T : Any>(
     private val freePool: LoadingPool<QueryStorage<T>>,
-    private val usedPool: Pool<QueryStorage<T>> = Pool(ReferenceStrength.HARD),
+    private val usedPool: Pool<QueryStorage<T>> = Pool(ReferenceStrength.WEAK),
     override val parent: NestedQueryStorage<T>? = null,
 ) : QueryStorage<T>, GeneralNestedStorage<NestedQueryStorage<T>> {
     private val mutex = Mutex()
