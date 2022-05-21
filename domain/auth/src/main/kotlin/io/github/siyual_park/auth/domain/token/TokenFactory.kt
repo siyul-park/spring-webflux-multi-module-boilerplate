@@ -88,11 +88,12 @@ class TokenFactory(
             val value = claims[key] ?: return@forEach
             val query = Criteria("claims.$key").`is`(value)
                 .and(fieldName(TokenData::type)).`is`(template.type)
+                .and(fieldName(TokenData::expiredAt)).gt(expiredAt)
 
             val count = tokenRepository.count(query, limit = limit)
 
             tokenRepository.updateAll(
-                query.and(fieldName(TokenData::expiredAt)).gt(expiredAt),
+                query,
                 AsyncPatch.with {
                     it.expiredAt = expiredAt
                 },
