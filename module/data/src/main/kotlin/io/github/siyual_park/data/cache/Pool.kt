@@ -10,7 +10,7 @@ class Pool<T : Any>(
     type: ReferenceStrength = ReferenceStrength.SOFT
 ) {
     private val store = Collections.newSetFromMap(
-        Collections.synchronizedMap(ReferenceMap<T, Boolean>(type, type))
+        Collections.synchronizedMap(ReferenceMap<T, Boolean>(type, ReferenceStrength.HARD))
     )
     private val mutex = Mutex()
 
