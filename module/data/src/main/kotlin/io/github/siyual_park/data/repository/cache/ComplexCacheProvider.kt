@@ -58,6 +58,20 @@ class ComplexCacheProvider<K : Any, T : Any?>(
         }
     }
 
+    override suspend fun put(key: K, value: T) {
+        if (value != null) {
+            cache.put(key, value)
+        }
+    }
+
+    override suspend fun remove(key: K) {
+        cache.invalidate(key)
+    }
+
+    override suspend fun entries(): Set<Pair<K, T>> {
+        return emptySet()
+    }
+
     override suspend fun clear() {
         cache.invalidateAll()
         mutexes.clear()

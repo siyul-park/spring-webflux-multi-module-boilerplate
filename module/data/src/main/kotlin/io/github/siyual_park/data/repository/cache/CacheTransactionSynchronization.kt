@@ -35,7 +35,6 @@ class CacheTransactionSynchronization<S : GeneralNestedStorage<S>> : Transaction
                         val parent = storage.parent
                         logger.debug("Merging Cache Storage [parent: $parent, child: $storage]")
                         parent?.merge(storage)
-                        storage.clear()
                     }
                     storages.remove(it)
                 }.then()

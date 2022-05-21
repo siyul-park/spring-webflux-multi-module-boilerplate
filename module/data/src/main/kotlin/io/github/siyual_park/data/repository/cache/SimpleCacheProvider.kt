@@ -29,7 +29,21 @@ class SimpleCacheProvider<K : Any, T : Any?> : CacheProvider<K, T> {
         }
     }
 
+    override suspend fun put(key: K, value: T) {
+        if (value != null) {
+            cache[key] = value
+        }
+    }
+
+    override suspend fun remove(key: K) {
+        cache.remove(key)
+    }
+
     override suspend fun clear() {
         cache.clear()
+    }
+
+    override suspend fun entries(): Set<Pair<K, T>> {
+        return cache.entries.map { it.key to it.value }.toSet()
     }
 }
