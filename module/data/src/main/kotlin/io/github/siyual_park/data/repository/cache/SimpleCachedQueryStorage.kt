@@ -14,7 +14,7 @@ class SimpleCachedQueryStorage<T : Any>(
     private val multiCacheProvider = CacheProvider<SelectQuery, Collection<T>>(cacheBuilder())
 
     override suspend fun getIfPresent(where: String): T? {
-        TODO("Not yet implemented")
+        return singleCacheProvider.getIfPresent(where)
     }
 
     override suspend fun getIfPresent(where: String, loader: suspend () -> T?): T? {
@@ -24,7 +24,11 @@ class SimpleCachedQueryStorage<T : Any>(
     }
 
     override fun getIfPresent(select: SelectQuery): Flow<T> {
-        TODO("Not yet implemented")
+        return flow {
+            multiCacheProvider.getIfPresent(select)?.let {
+                emitAll(it.asFlow())
+            }
+        }
     }
 
     override fun getIfPresent(select: SelectQuery, loader: () -> Flow<T>): Flow<T> {
