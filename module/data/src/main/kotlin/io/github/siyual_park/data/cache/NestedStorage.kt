@@ -11,7 +11,7 @@ class NestedStorage<T : Any, ID : Any>(
     private val idExtractor: Extractor<T, ID>,
     override val parent: NestedStorage<T, ID>? = null
 ) : Storage<T, ID>, GeneralNestedStorage<NestedStorage<T, ID>> {
-    private val delegator = AsyncLazy { pool.poll() }
+    private val delegator = AsyncLazy { pool.poll().also { it.clear() } }
     private val mutex = Mutex()
 
     private val forceRemoved = Sets.newConcurrentHashSet<ID>()

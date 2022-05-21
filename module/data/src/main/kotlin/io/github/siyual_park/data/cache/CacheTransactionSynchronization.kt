@@ -31,8 +31,8 @@ class CacheTransactionSynchronization<S : GeneralNestedStorage<S>> : Transaction
             if (status == STATUS_COMMITTED) {
                 mono {
                     val storage = storages[it]
-                    if (storage != null) {
-                        val parent = storage.parent
+                    val parent = storage?.parent
+                    if (storage?.parent != null) {
                         logger.debug("Merging Cache Storage [parent: $parent, child: $storage]")
                         parent?.merge(storage)
                     }
@@ -42,8 +42,7 @@ class CacheTransactionSynchronization<S : GeneralNestedStorage<S>> : Transaction
                 mono {
                     val storage = storages[it]
                     if (storage != null) {
-                        val parent = storage.parent
-                        logger.debug("Removing Cache Storage [parent: $parent, child: $storage]")
+                        logger.debug("Removing Cache Storage $storage")
                         storage.clear()
                     }
                     storages.remove(it)
