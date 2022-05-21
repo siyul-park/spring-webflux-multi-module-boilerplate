@@ -15,8 +15,8 @@ class TokenRepository(
     template: ReactiveMongoTemplate,
     eventPublisher: EventPublisher? = null
 ) : MongoRepository<TokenData, ULID> by MongoRepositoryBuilder<TokenData, ULID>(template, TokenData::class)
-    .set(eventPublisher)
-    .set(
+    .enableEvent(eventPublisher)
+    .enableCache(
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(1))

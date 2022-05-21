@@ -9,19 +9,19 @@ import org.springframework.transaction.reactive.TransactionSynchronization.STATU
 import reactor.core.publisher.Mono
 import java.util.WeakHashMap
 
-class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchronization {
-    private val storages = WeakHashMap<TransactionContext, NestedStorage<T, ID>>()
+class CacheTransactionSynchronization<S : GeneralNestedStorage<S>> : TransactionSynchronization {
+    private val storages = WeakHashMap<TransactionContext, S>()
     private val logger = LoggerFactory.getLogger(CacheTransactionSynchronization::class.java)
 
     fun size(): Int {
         return storages.size
     }
 
-    fun get(context: TransactionContext): NestedStorage<T, ID>? {
+    fun get(context: TransactionContext): S? {
         return storages[context]
     }
 
-    fun put(context: TransactionContext, defaultValue: NestedStorage<T, ID>) {
+    fun put(context: TransactionContext, defaultValue: S) {
         context.synchronizations?.add(this)
         storages[context] = defaultValue
     }
@@ -32,9 +32,8 @@ class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchroniz
                 mono {
                     val storage = storages[it]
                     if (storage != null) {
-                        val diff = storage.diff()
                         val parent = storage.parent
-                        logger.debug("Merging Cache Storage [parent: $parent, child: $storage, diff: $diff]")
+                        logger.debug("Merging Cache Storage [parent: $parent, child: $storage]")
                         parent?.merge(storage)
                     }
                     storages.remove(it)
@@ -43,9 +42,8 @@ class CacheTransactionSynchronization<T : Any, ID : Any> : TransactionSynchroniz
                 mono {
                     val storage = storages[it]
                     if (storage != null) {
-                        val diff = storage.diff()
                         val parent = storage.parent
-                        logger.debug("Removing Cache Storage [parent: $parent, child: $storage, diff: $diff]")
+                        logger.debug("Removing Cache Storage [parent: $parent, child: $storage]")
                         storage.clear()
                     }
                     storages.remove(it)

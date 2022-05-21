@@ -4,7 +4,7 @@ import { UserGateway } from './gateway';
 import { dummyCreateUserRequest } from './dummy';
 
 import client from './client';
-import matrixType from "./matrix-type";
+import matrixType from './matrix-type';
 
 export const options: Options = {
   vus: 200,

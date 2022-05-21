@@ -5,7 +5,7 @@ import { ClientInfo } from './response';
 import { dummyCreateClientRequest, dummyUpdateClientRequest } from './dummy';
 
 import client from './client';
-import matrixType from "./matrix-type";
+import matrixType from './matrix-type';
 
 export const options: Options = {
   vus: 200,

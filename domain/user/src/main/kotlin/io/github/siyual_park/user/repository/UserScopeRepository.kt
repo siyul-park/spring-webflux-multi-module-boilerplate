@@ -17,14 +17,20 @@ class UserScopeRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<UserScopeData, Long> by R2DBCRepositoryBuilder<UserScopeData, Long>(entityOperations, UserScopeData::class)
-    .set(eventPublisher)
-    .set(
+    .enableEvent(eventPublisher)
+    .enableCache(
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(2))
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
     )
+    .enableQueryCache({
+        CacheBuilder.newBuilder()
+            .softValues()
+            .expireAfterAccess(Duration.ofSeconds(1))
+            .maximumSize(1_000)
+    })
     .build() {
     fun findAllByUserId(userId: ULID): Flow<UserScopeData> {
         return findAll(where(UserScopeData::userId).`is`(userId))

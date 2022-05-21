@@ -17,14 +17,20 @@ class ScopeRelationRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ScopeRelationData, Long> by R2DBCRepositoryBuilder<ScopeRelationData, Long>(entityOperations, ScopeRelationData::class)
-    .set(eventPublisher)
-    .set(
+    .enableEvent(eventPublisher)
+    .enableCache(
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(10))
             .expireAfterWrite(Duration.ofMinutes(30))
             .maximumSize(1_000),
     )
+    .enableQueryCache({
+        CacheBuilder.newBuilder()
+            .softValues()
+            .expireAfterAccess(Duration.ofSeconds(1))
+            .maximumSize(1_000)
+    })
     .build() {
     fun findAllByChildId(childId: ULID): Flow<ScopeRelationData> {
         return findAll(where(ScopeRelationData::childId).`is`(childId))
