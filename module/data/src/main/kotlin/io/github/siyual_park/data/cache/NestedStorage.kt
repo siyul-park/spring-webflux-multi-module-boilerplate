@@ -7,7 +7,7 @@ import kotlinx.coroutines.sync.withLock
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class NestedStorage<T : Any, ID : Any>(
-    private val pool: Pool<Storage<T, ID>>,
+    private val pool: LoadingPool<Storage<T, ID>>,
     private val idExtractor: Extractor<T, ID>,
     override val parent: NestedStorage<T, ID>? = null
 ) : Storage<T, ID>, GeneralNestedStorage<NestedStorage<T, ID>> {

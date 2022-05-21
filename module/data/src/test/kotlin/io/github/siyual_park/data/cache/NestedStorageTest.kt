@@ -17,7 +17,7 @@ class NestedStorageTest : CoroutineTestHelper() {
         }
     }
     private val storage = NestedStorage(
-        Pool {
+        LoadingPool {
             InMemoryStorage(
                 { CacheBuilder.newBuilder() },
                 idExtractor

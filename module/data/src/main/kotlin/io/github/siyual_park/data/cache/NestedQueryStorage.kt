@@ -2,14 +2,13 @@ package io.github.siyual_park.data.cache
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.Collections
 
 class NestedQueryStorage<T : Any>(
-    private val pool: Pool<QueryStorage<T>>,
+    private val freePool: LoadingPool<QueryStorage<T>>,
+    private val usedPool: Pool<QueryStorage<T>> = Pool(),
     override val parent: NestedQueryStorage<T>? = null,
-    private val storages: MutableSet<QueryStorage<T>> = Collections.synchronizedSet(mutableSetOf())
 ) : QueryStorage<T>, GeneralNestedStorage<NestedQueryStorage<T>> {
-    private val delegator = AsyncLazy { pool.poll().also { storages.add(it) } }
+    private val delegator = AsyncLazy { freePool.poll().also { usedPool.add(it) } }
     private val mutex = Mutex()
 
     override suspend fun getIfPresent(where: String): T? {
@@ -45,10 +44,10 @@ class NestedQueryStorage<T : Any>(
     }
 
     override suspend fun clear() {
-        storages.forEach { it.clear() }
+        usedPool.forEach { it.clear() }
         mutex.withLock {
-            storages.remove(delegator.get())
-            pool.add(delegator.get())
+            usedPool.remove(delegator.get())
+            freePool.add(delegator.get())
             delegator.clear()
         }
     }
@@ -61,15 +60,15 @@ class NestedQueryStorage<T : Any>(
         return entries().also {
             delegator.clear()
             mutex.withLock {
-                storages.remove(delegator.get())
-                pool.add(delegator.get())
+                usedPool.remove(delegator.get())
+                freePool.add(delegator.get())
                 delegator.clear()
             }
         }
     }
 
     override suspend fun fork(): NestedQueryStorage<T> {
-        return NestedQueryStorage(pool, this, storages)
+        return NestedQueryStorage(freePool, usedPool, parent)
     }
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {
