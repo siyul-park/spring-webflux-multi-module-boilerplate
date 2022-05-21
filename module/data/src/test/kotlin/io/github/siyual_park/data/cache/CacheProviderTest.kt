@@ -1,8 +1,7 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
-import io.github.siyual_park.data.cache.CacheProvider
 import io.github.siyual_park.test.DummyStringFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
