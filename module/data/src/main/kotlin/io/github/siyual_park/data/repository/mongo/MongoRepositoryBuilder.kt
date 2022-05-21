@@ -21,12 +21,12 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
     private var eventPublisher: EventPublisher? = null
     private var cacheBuilder: CacheBuilder<Any, Any>? = null
 
-    fun set(eventPublisher: EventPublisher?): MongoRepositoryBuilder<T, ID> {
+    fun enableEvent(eventPublisher: EventPublisher?): MongoRepositoryBuilder<T, ID> {
         this.eventPublisher = eventPublisher
         return this
     }
 
-    fun set(cacheBuilder: CacheBuilder<Any, Any>?): MongoRepositoryBuilder<T, ID> {
+    fun enableCache(cacheBuilder: CacheBuilder<Any, Any>?): MongoRepositoryBuilder<T, ID> {
         this.cacheBuilder = cacheBuilder
         return this
     }

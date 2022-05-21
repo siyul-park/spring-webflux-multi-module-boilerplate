@@ -17,8 +17,8 @@ class ScopeRelationRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ScopeRelationData, Long> by R2DBCRepositoryBuilder<ScopeRelationData, Long>(entityOperations, ScopeRelationData::class)
-    .set(eventPublisher)
-    .set(
+    .enableEvent(eventPublisher)
+    .enableCache(
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(10))

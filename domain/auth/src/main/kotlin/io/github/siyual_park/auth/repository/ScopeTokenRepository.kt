@@ -15,8 +15,8 @@ class ScopeTokenRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ScopeTokenData, ULID> by R2DBCRepositoryBuilder<ScopeTokenData, ULID>(entityOperations, ScopeTokenData::class)
-    .set(eventPublisher)
-    .set(
+    .enableEvent(eventPublisher)
+    .enableCache(
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(10))

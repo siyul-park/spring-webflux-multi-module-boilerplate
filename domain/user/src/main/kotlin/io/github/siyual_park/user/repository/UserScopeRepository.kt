@@ -17,8 +17,8 @@ class UserScopeRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<UserScopeData, Long> by R2DBCRepositoryBuilder<UserScopeData, Long>(entityOperations, UserScopeData::class)
-    .set(eventPublisher)
-    .set(
+    .enableEvent(eventPublisher)
+    .enableCache(
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(2))

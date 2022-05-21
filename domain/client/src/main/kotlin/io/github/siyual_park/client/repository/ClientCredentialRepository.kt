@@ -18,8 +18,8 @@ class ClientCredentialRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ClientCredentialData, Long> by R2DBCRepositoryBuilder<ClientCredentialData, Long>(entityOperations, ClientCredentialData::class)
-    .set(eventPublisher)
-    .set(
+    .enableEvent(eventPublisher)
+    .enableCache(
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(2))

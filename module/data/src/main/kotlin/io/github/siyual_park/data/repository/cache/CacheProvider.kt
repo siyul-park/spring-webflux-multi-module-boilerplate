@@ -6,7 +6,7 @@ import com.google.common.collect.Maps
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class CacheProvider<K : Any, T : Any>(
+class CacheProvider<K : Any, T : Any?>(
     cacheBuilder: CacheBuilder<Any, Any>,
 ) {
     private val mutexes = Maps.newConcurrentMap<K, Mutex>()
@@ -26,7 +26,9 @@ class CacheProvider<K : Any, T : Any>(
                     exists
                 } else {
                     val newone = value()
-                    cache.put(key, newone)
+                    if (newone != null) {
+                        cache.put(key, newone)
+                    }
                     newone
                 }
             }
@@ -49,5 +51,10 @@ class CacheProvider<K : Any, T : Any>(
                 }
             }
         }
+    }
+
+    suspend fun clear() {
+        cache.invalidateAll()
+        mutexes.clear()
     }
 }
