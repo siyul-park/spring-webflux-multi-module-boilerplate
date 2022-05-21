@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -12,14 +12,14 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
 class InMemoryStorage<T : Any, ID : Any>(
-    cacheBuilder: CacheBuilder<Any, Any>,
-    override val idExtractor: Extractor<T, ID>
+    cacheBuilder: (() -> CacheBuilder<Any, Any>),
+    private val idExtractor: Extractor<T, ID>
 ) : Storage<T, ID> {
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
     private val extractors = Maps.newConcurrentMap<String, Extractor<T, *>>()
     private val mutexes = Collections.synchronizedMap(WeakHashMap<ID, Mutex>())
 
-    private val cache: Cache<ID, T> = cacheBuilder
+    private val cache: Cache<ID, T> = cacheBuilder()
         .removalListener<ID, T> {
             it.value?.let { entity ->
                 indexes.forEach { (name, index) ->
@@ -32,21 +32,21 @@ class InMemoryStorage<T : Any, ID : Any>(
             }
         }.build()
 
-    override fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
+    override suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
         indexes[name] = ConcurrentHashMap<KEY, ID>()
         extractors[name] = extractor
     }
 
-    override fun removeIndex(name: String) {
+    override suspend fun removeIndex(name: String) {
         indexes.remove(name)
         extractors.remove(name)
     }
 
-    override fun getExtractors(): Map<String, Extractor<T, *>> {
+    override suspend fun getExtractors(): Map<String, Extractor<T, *>> {
         return extractors
     }
 
-    override fun containsIndex(name: String): Boolean {
+    override suspend fun containsIndex(name: String): Boolean {
         return indexes.keys.contains(name)
     }
 
@@ -113,6 +113,10 @@ class InMemoryStorage<T : Any, ID : Any>(
 
             index[key] = id
         }
+    }
+
+    override suspend fun entries(): Set<Pair<ID, T>> {
+        return cache.asMap().entries.map { it.key to it.value }.toSet()
     }
 
     override suspend fun clear() {

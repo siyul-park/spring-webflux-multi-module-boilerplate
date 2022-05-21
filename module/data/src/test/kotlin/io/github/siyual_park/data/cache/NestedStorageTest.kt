@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
@@ -10,26 +10,21 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class InMemoryNestedStorageTest : CoroutineTestHelper() {
-    private val storage = InMemoryNestedStorage(
-        InMemoryStorage(
-            CacheBuilder.newBuilder(),
-            object : Extractor<Person, ULID> {
-                override fun getKey(entity: Person): ULID {
-                    return entity.id
-                }
-            }
-        )
-    ).also {
-        it.createIndex(
-            "name",
-            object : Extractor<Person, String> {
-                override fun getKey(entity: Person): String {
-                    return entity.name
-                }
-            }
-        )
+class NestedStorageTest : CoroutineTestHelper() {
+    private val idExtractor = object : Extractor<Person, ULID> {
+        override fun getKey(entity: Person): ULID {
+            return entity.id
+        }
     }
+    private val storage = NestedStorage(
+        LoadingPool({
+            InMemoryStorage(
+                { CacheBuilder.newBuilder() },
+                idExtractor
+            )
+        }),
+        idExtractor
+    )
 
     @BeforeEach
     override fun setUp() {
@@ -37,6 +32,14 @@ class InMemoryNestedStorageTest : CoroutineTestHelper() {
 
         blocking {
             storage.clear()
+            storage.createIndex(
+                "name",
+                object : Extractor<Person, String> {
+                    override fun getKey(entity: Person): String {
+                        return entity.name
+                    }
+                }
+            )
         }
     }
 

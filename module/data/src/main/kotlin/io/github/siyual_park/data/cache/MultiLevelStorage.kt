@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.util.Reversed
@@ -7,8 +7,6 @@ import java.util.Collections
 class MultiLevelStorage<T : Any, ID : Any>(
     root: Storage<T, ID>
 ) : Storage<T, ID> {
-    override val idExtractor: Extractor<T, ID> = root.idExtractor
-
     private val storages = Collections.synchronizedList(mutableListOf<Storage<T, ID>>())
 
     init {
@@ -20,19 +18,19 @@ class MultiLevelStorage<T : Any, ID : Any>(
         return this
     }
 
-    override fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
+    override suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
         storages.forEach { it.createIndex(name, extractor) }
     }
 
-    override fun removeIndex(name: String) {
+    override suspend fun removeIndex(name: String) {
         storages.forEach { it.removeIndex(name) }
     }
 
-    override fun containsIndex(name: String): Boolean {
+    override suspend fun containsIndex(name: String): Boolean {
         return storages.all { it.containsIndex(name) }
     }
 
-    override fun getExtractors(): Map<String, Extractor<T, *>> {
+    override suspend fun getExtractors(): Map<String, Extractor<T, *>> {
         return rootStorage().getExtractors()
     }
 
@@ -98,6 +96,10 @@ class MultiLevelStorage<T : Any, ID : Any>(
         for (storage in Reversed(storages)) {
             storage.clear()
         }
+    }
+
+    override suspend fun entries(): Set<Pair<ID, T>> {
+        return rootStorage().entries()
     }
 
     private fun rootStorage(): Storage<T, ID> {

@@ -18,13 +18,13 @@ class UserScopeRepository(
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<UserScopeData, Long> by R2DBCRepositoryBuilder<UserScopeData, Long>(entityOperations, UserScopeData::class)
     .enableEvent(eventPublisher)
-    .enableCache(
+    .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(2))
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
-    )
+    })
     .enableQueryCache({
         CacheBuilder.newBuilder()
             .softValues()

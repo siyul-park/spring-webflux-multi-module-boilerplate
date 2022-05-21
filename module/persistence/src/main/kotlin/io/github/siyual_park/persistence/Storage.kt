@@ -10,6 +10,6 @@ interface Storage<T : Any, ID : Any> {
     suspend fun count(): Long
 }
 
-suspend fun <T : Any, ID : Any> Storage<T, ID>.loadOrFail(id: ID): T {
+suspend inline fun <T : Any, ID : Any> Storage<T, ID>.loadOrFail(id: ID): T {
     return load(id) ?: throw EmptyResultDataAccessException(1)
 }

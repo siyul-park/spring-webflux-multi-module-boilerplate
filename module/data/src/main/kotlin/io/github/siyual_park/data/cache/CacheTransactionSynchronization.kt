@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory

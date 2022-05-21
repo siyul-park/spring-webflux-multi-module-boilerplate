@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
@@ -67,15 +67,19 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
 
         reactiveChainedTransactionManager.registerTransactionManager(reactiveTransactionManager)
 
-        val storage = InMemoryNestedStorage(
-            InMemoryStorage(
-                CacheBuilder.newBuilder(),
-                object : Extractor<Person, ULID> {
-                    override fun getKey(entity: Person): ULID {
-                        return entity.id
-                    }
-                }
-            )
+        val idExtractor = object : Extractor<Person, ULID> {
+            override fun getKey(entity: Person): ULID {
+                return entity.id
+            }
+        }
+        val storage = NestedStorage(
+            LoadingPool({
+                InMemoryStorage(
+                    { CacheBuilder.newBuilder() },
+                    idExtractor
+                )
+            }),
+            idExtractor
         )
 
         transactionalOperator.executeAndAwait {

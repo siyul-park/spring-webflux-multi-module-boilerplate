@@ -9,13 +9,13 @@ class CachedR2DBCRepositoryTest : R2DBCRepositoryTestHelper(
     repositories = {
         listOf(
             R2DBCRepositoryBuilder<Person, ULID>(it.entityOperations, Person::class)
-                .enableCache(
+                .enableCache {
                     CacheBuilder.newBuilder()
                         .softValues()
                         .expireAfterAccess(Duration.ofMinutes(2))
                         .expireAfterWrite(Duration.ofMinutes(5))
                         .maximumSize(1_000)
-                )
+                }
                 .build()
         )
     }

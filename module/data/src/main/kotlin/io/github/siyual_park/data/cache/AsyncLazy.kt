@@ -14,6 +14,14 @@ class AsyncLazy<T : Any>(
             ?: mutex.withLock { this.value ?: loader().also { this.value = it } }
     }
 
+    suspend fun pop(): T? {
+        return mutex.withLock {
+            val value = this.value ?: return@withLock null
+            this.value = null
+            value
+        }
+    }
+
     suspend fun clear() {
         mutex.withLock {
             value = null

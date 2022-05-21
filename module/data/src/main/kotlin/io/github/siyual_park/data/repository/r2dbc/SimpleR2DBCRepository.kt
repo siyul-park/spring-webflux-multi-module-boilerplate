@@ -131,6 +131,10 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        if (limit != null && limit <= 0) {
+            return emptyFlow()
+        }
+
         var query = query(criteria ?: CriteriaDefinition.empty())
         limit?.let {
             query = query.limit(it)
@@ -262,7 +266,11 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         return count(criteria = null)
     }
 
-    override suspend fun count(criteria: CriteriaDefinition?): Long {
+    override suspend fun count(criteria: CriteriaDefinition?, limit: Int?): Long {
+        if (limit != null && limit <= 0) {
+            return 0
+        }
+
         return entityOperations.count(query(criteria ?: CriteriaDefinition.empty()), clazz.java)
             .subscribeOn(Schedulers.parallel())
             .awaitSingle()

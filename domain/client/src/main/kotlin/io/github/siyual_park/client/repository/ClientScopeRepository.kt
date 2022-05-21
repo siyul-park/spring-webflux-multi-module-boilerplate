@@ -18,13 +18,13 @@ class ClientScopeRepository(
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ClientScopeData, Long> by R2DBCRepositoryBuilder<ClientScopeData, Long>(entityOperations, ClientScopeData::class)
     .enableEvent(eventPublisher)
-    .enableCache(
+    .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(2))
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
-    )
+    })
     .enableQueryCache({
         CacheBuilder.newBuilder()
             .softValues()

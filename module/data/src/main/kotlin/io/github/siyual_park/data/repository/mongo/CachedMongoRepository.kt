@@ -1,13 +1,13 @@
 package io.github.siyual_park.data.repository.mongo
 
+import io.github.siyual_park.data.cache.Storage
+import io.github.siyual_park.data.cache.createIndexes
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
-import io.github.siyual_park.data.repository.cache.Storage
-import io.github.siyual_park.data.repository.cache.createIndexes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -41,7 +42,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
         get() = delegator.clazz
 
     init {
-        storage.createIndexes(clazz)
+        runBlocking { storage.createIndexes(clazz) }
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
@@ -155,8 +156,8 @@ class CachedMongoRepository<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun count(criteria: CriteriaDefinition?): Long {
-        return delegator.count(criteria)
+    override suspend fun count(criteria: CriteriaDefinition?, limit: Int?): Long {
+        return delegator.count(criteria, limit)
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
@@ -172,7 +173,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
         }
     }
 
-    private fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+    private suspend fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
         if (criteria == null) return null
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null

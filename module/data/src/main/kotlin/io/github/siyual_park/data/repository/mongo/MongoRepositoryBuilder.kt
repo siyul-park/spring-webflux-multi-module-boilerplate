@@ -1,10 +1,11 @@
 package io.github.siyual_park.data.repository.mongo
 
 import com.google.common.cache.CacheBuilder
+import io.github.siyual_park.data.cache.InMemoryStorage
+import io.github.siyual_park.data.cache.LoadingPool
+import io.github.siyual_park.data.cache.NestedStorage
+import io.github.siyual_park.data.cache.TransactionalStorage
 import io.github.siyual_park.data.repository.Extractor
-import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
-import io.github.siyual_park.data.repository.cache.InMemoryStorage
-import io.github.siyual_park.data.repository.cache.TransactionalStorage
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -19,14 +20,14 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
     private val clazz: KClass<T>,
 ) {
     private var eventPublisher: EventPublisher? = null
-    private var cacheBuilder: CacheBuilder<Any, Any>? = null
+    private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
 
     fun enableEvent(eventPublisher: EventPublisher?): MongoRepositoryBuilder<T, ID> {
         this.eventPublisher = eventPublisher
         return this
     }
 
-    fun enableCache(cacheBuilder: CacheBuilder<Any, Any>?): MongoRepositoryBuilder<T, ID> {
+    fun enableCache(cacheBuilder: (() -> CacheBuilder<Any, Any>)?): MongoRepositoryBuilder<T, ID> {
         this.cacheBuilder = cacheBuilder
         return this
     }
@@ -43,19 +44,10 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
         return if (cacheBuilder != null) {
             val idExtractor = createIdExtractor(current)
             val storage = TransactionalStorage(
-                InMemoryNestedStorage(
-                    InMemoryStorage(
-                        cacheBuilder,
-                        idExtractor
-                    )
-                )
+                NestedStorage(LoadingPool({ InMemoryStorage(cacheBuilder, idExtractor) }), idExtractor)
             )
 
-            CachedMongoRepository(
-                current,
-                storage,
-                idExtractor,
-            )
+            CachedMongoRepository(current, storage, idExtractor)
         } else {
             return current
         }

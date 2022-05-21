@@ -112,13 +112,13 @@ class PersistenceTest : DataTestHelper() {
         return listOf(
             SimpleR2DBCRepository(entityOperations, PersonData::class),
             R2DBCRepositoryBuilder<PersonData, ULID>(entityOperations, PersonData::class)
-                .enableCache(
+                .enableCache {
                     CacheBuilder.newBuilder()
                         .softValues()
                         .expireAfterAccess(Duration.ofMinutes(2))
                         .expireAfterWrite(Duration.ofMinutes(5))
                         .maximumSize(1_000)
-                )
+                }
                 .build()
         )
     }

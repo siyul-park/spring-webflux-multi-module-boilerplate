@@ -1,4 +1,4 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.cache
 
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.sync.Mutex
@@ -9,35 +9,15 @@ import org.springframework.transaction.reactive.TransactionContext
 import org.springframework.transaction.reactive.TransactionContextManager
 import java.util.Stack
 
-class TransactionalQueryStorage<T : Any>(
-    private val root: NestedQueryStorage<T>,
-) : QueryStorage<T> {
-    private val cacheTransactionSynchronization = CacheTransactionSynchronization<NestedQueryStorage<T>>()
+class TransactionalStorageProvider<S : GeneralNestedStorage<S>>(
+    private val root: S,
+) {
+    private val cacheTransactionSynchronization = CacheTransactionSynchronization<S>()
     private val mutex = Mutex()
 
-    private val logger = LoggerFactory.getLogger(TransactionalQueryStorage::class.java)
+    private val logger = LoggerFactory.getLogger(TransactionalStorageProvider::class.java)
 
-    override suspend fun getIfPresent(where: String): T? {
-        return getCurrent().getIfPresent(where)
-    }
-
-    override suspend fun getIfPresent(where: String, loader: suspend () -> T?): T? {
-        return getCurrent().getIfPresent(where, loader)
-    }
-
-    override suspend fun getIfPresent(select: SelectQuery): Collection<T>? {
-        return getCurrent().getIfPresent(select)
-    }
-
-    override suspend fun getIfPresent(select: SelectQuery, loader: suspend () -> Collection<T>?): Collection<T>? {
-        return getCurrent().getIfPresent(select, loader)
-    }
-
-    override suspend fun clear() {
-        return getCurrent().clear()
-    }
-
-    private suspend fun getCurrent(): NestedQueryStorage<T> {
+    suspend fun get(): S {
         try {
             val context = TransactionContextManager.currentContext().awaitSingleOrNull() ?: return root
             val currentStorage = cacheTransactionSynchronization.get(context)

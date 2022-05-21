@@ -19,13 +19,13 @@ class ClientCredentialRepository(
     eventPublisher: EventPublisher? = null
 ) : R2DBCRepository<ClientCredentialData, Long> by R2DBCRepositoryBuilder<ClientCredentialData, Long>(entityOperations, ClientCredentialData::class)
     .enableEvent(eventPublisher)
-    .enableCache(
+    .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterAccess(Duration.ofMinutes(2))
             .expireAfterWrite(Duration.ofMinutes(5))
             .maximumSize(1_000)
-    )
+    })
     .build() {
     suspend fun findByClientIdOrFail(clientId: ULID): ClientCredentialData {
         return findByClientId(clientId) ?: throw EmptyResultDataAccessException(1)

@@ -1,14 +1,14 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.cache.Pool
+import io.github.siyual_park.data.cache.InMemoryQueryStorage
+import io.github.siyual_park.data.cache.InMemoryStorage
+import io.github.siyual_park.data.cache.LoadingPool
+import io.github.siyual_park.data.cache.NestedQueryStorage
+import io.github.siyual_park.data.cache.NestedStorage
+import io.github.siyual_park.data.cache.TransactionalQueryStorage
+import io.github.siyual_park.data.cache.TransactionalStorage
 import io.github.siyual_park.data.repository.Extractor
-import io.github.siyual_park.data.repository.cache.CacheQueryProvider
-import io.github.siyual_park.data.repository.cache.InMemoryNestedQueryStorage
-import io.github.siyual_park.data.repository.cache.InMemoryNestedStorage
-import io.github.siyual_park.data.repository.cache.InMemoryStorage
-import io.github.siyual_park.data.repository.cache.TransactionalQueryStorage
-import io.github.siyual_park.data.repository.cache.TransactionalStorage
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import kotlin.reflect.KClass
@@ -18,7 +18,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     private val clazz: KClass<T>,
 ) {
     private var eventPublisher: EventPublisher? = null
-    private var cacheBuilder: CacheBuilder<Any, Any>? = null
+    private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
     private var queryCacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
 
     fun enableEvent(eventPublisher: EventPublisher?): R2DBCRepositoryBuilder<T, ID> {
@@ -26,7 +26,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    fun enableCache(cacheBuilder: CacheBuilder<Any, Any>?): R2DBCRepositoryBuilder<T, ID> {
+    fun enableCache(cacheBuilder: (() -> CacheBuilder<Any, Any>)?): R2DBCRepositoryBuilder<T, ID> {
         this.cacheBuilder = cacheBuilder
         return this
     }
@@ -47,19 +47,10 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             if (cacheBuilder != null) {
                 val idExtractor = createIdExtractor(it)
                 val storage = TransactionalStorage(
-                    InMemoryNestedStorage(
-                        InMemoryStorage(
-                            cacheBuilder,
-                            idExtractor
-                        )
-                    )
+                    NestedStorage(LoadingPool({ InMemoryStorage(cacheBuilder, idExtractor) }), idExtractor)
                 )
 
-                CachedR2DBCRepository(
-                    it,
-                    storage,
-                    idExtractor,
-                )
+                CachedR2DBCRepository(it, storage, idExtractor)
             } else {
                 it
             }
@@ -67,15 +58,10 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             val queryCacheBuilder = queryCacheBuilder
             if (queryCacheBuilder != null) {
                 val storage = TransactionalQueryStorage<T>(
-                    InMemoryNestedQueryStorage(
-                        Pool { CacheQueryProvider(queryCacheBuilder) }
-                    )
+                    NestedQueryStorage(LoadingPool({ InMemoryQueryStorage(queryCacheBuilder) }))
                 )
 
-                CachedQueryR2DBCRepository(
-                    it,
-                    storage
-                )
+                CachedQueryR2DBCRepository(it, storage)
             } else {
                 it
             }
