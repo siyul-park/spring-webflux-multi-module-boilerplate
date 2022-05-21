@@ -10,7 +10,7 @@ class NestedQueryStorage<T : Any>(
     override val parent: NestedQueryStorage<T>? = null,
 ) : QueryStorage<T>, GeneralNestedStorage<NestedQueryStorage<T>> {
     private val mutex = Mutex()
-    private val delegator = AsyncLazy { freePool.poll().also { usedPool.add(it) } }
+    private val delegator = AsyncLazy { freePool.poll().also { usedPool.add(it) }.also { it.clear() } }
 
     override suspend fun getIfPresent(where: String): T? {
         return parent?.getIfPresent(where) ?: delegator.get().getIfPresent(where)
