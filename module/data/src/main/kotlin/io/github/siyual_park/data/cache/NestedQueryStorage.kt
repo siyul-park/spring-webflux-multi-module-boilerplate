@@ -10,7 +10,7 @@ class NestedQueryStorage<T : Any>(
     override val parent: NestedQueryStorage<T>? = null,
 ) : QueryStorage<T>, GeneralNestedStorage<NestedQueryStorage<T>> {
     private val mutex = Mutex()
-    private val delegator = AsyncLazy { mutex.withLock { freePool.poll().also { usedPool.add(it) } } }
+    private val delegator = AsyncLazy { freePool.poll().also { usedPool.add(it) } }
 
     override suspend fun getIfPresent(where: String): T? {
         return parent?.getIfPresent(where) ?: delegator.get().getIfPresent(where)
@@ -45,8 +45,8 @@ class NestedQueryStorage<T : Any>(
     }
 
     override suspend fun clear() {
+        usedPool.forEach { it.clear() }
         mutex.withLock {
-            usedPool.forEach { it.clear() }
             val storage = delegator.get()
             usedPool.remove(storage)
             freePool.add(storage)
@@ -60,9 +60,9 @@ class NestedQueryStorage<T : Any>(
 
     suspend fun diff(): Pair<Set<Pair<String, T>>, Set<Pair<SelectQuery, Collection<T>>>> {
         return entries().also {
+            delegator.get().clear()
             mutex.withLock {
                 val storage = delegator.get()
-                storage.clear()
                 usedPool.remove(storage)
                 freePool.add(storage)
                 delegator.clear()
