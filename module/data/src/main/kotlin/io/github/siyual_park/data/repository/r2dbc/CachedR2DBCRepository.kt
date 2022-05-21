@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.Criteria
 import org.springframework.data.relational.core.query.CriteriaDefinition
@@ -36,7 +37,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
     init {
         val clazz = entityManager.clazz
-        storage.createIndexes(clazz)
+        runBlocking { storage.createIndexes(clazz) }
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
@@ -151,7 +152,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         }
     }
 
-    private fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+    private suspend fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
         if (criteria == null) return null
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null

@@ -44,21 +44,10 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
         return if (cacheBuilder != null) {
             val idExtractor = createIdExtractor(current)
             val storage = TransactionalStorage(
-                InMemoryNestedStorage(
-                    Pool {
-                        InMemoryStorage(
-                            cacheBuilder(),
-                            idExtractor
-                        )
-                    }
-                )
+                InMemoryNestedStorage(Pool { InMemoryStorage(cacheBuilder, idExtractor) }, idExtractor)
             )
 
-            CachedMongoRepository(
-                current,
-                storage,
-                idExtractor,
-            )
+            CachedMongoRepository(current, storage, idExtractor)
         } else {
             return current
         }

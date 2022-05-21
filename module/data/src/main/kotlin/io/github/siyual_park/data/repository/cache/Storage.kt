@@ -10,13 +10,11 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaField
 
 interface Storage<T : Any, ID : Any> {
-    val idExtractor: Extractor<T, ID>
+    suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>)
+    suspend fun removeIndex(name: String)
+    suspend fun containsIndex(name: String): Boolean
 
-    fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>)
-    fun removeIndex(name: String)
-    fun containsIndex(name: String): Boolean
-
-    fun getExtractors(): Map<String, Extractor<T, *>>
+    suspend fun getExtractors(): Map<String, Extractor<T, *>>
 
     suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T?
     suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T?
@@ -34,7 +32,7 @@ interface Storage<T : Any, ID : Any> {
     suspend fun clear()
 }
 
-fun <T : Any, ID : Any> Storage<T, ID>.createIndexes(clazz: KClass<T>, indexName: (KProperty1<T, *>) -> String = { it.name }) {
+suspend fun <T : Any, ID : Any> Storage<T, ID>.createIndexes(clazz: KClass<T>, indexName: (KProperty1<T, *>) -> String = { it.name }) {
     val indexes = mutableMapOf<String, MutableList<KProperty1<T, *>>>()
     clazz.memberProperties.forEach {
         val index = it.annotations.find { it is Key } as? Key ?: return@forEach

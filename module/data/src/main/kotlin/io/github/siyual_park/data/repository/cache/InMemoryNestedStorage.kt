@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.repository.cache
 
 import com.google.common.collect.Sets
-import io.github.siyual_park.data.cache.Lazy
+import io.github.siyual_park.data.cache.AsyncLazy
 import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.repository.Extractor
 import kotlinx.coroutines.sync.Mutex
@@ -10,14 +10,13 @@ import kotlinx.coroutines.sync.withLock
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class InMemoryNestedStorage<T : Any, ID : Any>(
     private val pool: Pool<Storage<T, ID>>,
+    private val idExtractor: Extractor<T, ID>,
     override val parent: NestedStorage<T, ID>? = null
 ) : NestedStorage<T, ID> {
-    private val delegator = Lazy { pool.poll() }
+    private val delegator = AsyncLazy { pool.poll() }
     private val mutex = Mutex()
 
     private val forceRemoved = Sets.newConcurrentHashSet<ID>()
-
-    override val idExtractor = delegator.get().idExtractor
 
     override suspend fun diff(): Pair<Set<T>, Set<ID>> {
         return delegator.get().entries().map { it.second }.toSet() to forceRemoved.toSet().also {
@@ -28,6 +27,7 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
     override suspend fun fork(): NestedStorage<T, ID> {
         return InMemoryNestedStorage(
             pool,
+            idExtractor,
             this
         ).also {
             getExtractors().forEach { (name, extractor) ->
@@ -46,19 +46,19 @@ class InMemoryNestedStorage<T : Any, ID : Any>(
         }
     }
 
-    override fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
+    override suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
         delegator.get().createIndex(name, extractor)
     }
 
-    override fun removeIndex(name: String) {
+    override suspend fun removeIndex(name: String) {
         delegator.get().removeIndex(name)
     }
 
-    override fun getExtractors(): Map<String, Extractor<T, *>> {
+    override suspend fun getExtractors(): Map<String, Extractor<T, *>> {
         return delegator.get().getExtractors()
     }
 
-    override fun containsIndex(name: String): Boolean {
+    override suspend fun containsIndex(name: String): Boolean {
         return delegator.get().containsIndex(name)
     }
 

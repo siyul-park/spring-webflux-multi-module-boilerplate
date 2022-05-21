@@ -20,11 +20,11 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
         }
     }
     private val storage1 = InMemoryStorage(
-        CacheBuilder.newBuilder(),
+        { CacheBuilder.newBuilder() },
         idExtractor
     )
     private val storage2 = InMemoryStorage(
-        CacheBuilder.newBuilder(),
+        { CacheBuilder.newBuilder() },
         idExtractor
     )
     private val storage = MultiLevelStorage(storage1)
@@ -34,12 +34,7 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun getIdExtractor() {
-        assertEquals(idExtractor, storage.idExtractor)
-    }
-
-    @Test
-    fun index() {
+    fun index() = blocking {
         val nameIndex = object : Extractor<Person, String> {
             override fun getKey(entity: Person): String {
                 return entity.name
@@ -54,7 +49,7 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun getExtractors() {
+    fun getExtractors() = blocking {
         val extractors = storage.getExtractors()
         assertEquals(0, extractors.size)
     }

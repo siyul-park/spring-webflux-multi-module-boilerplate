@@ -7,22 +7,19 @@ class TransactionalStorage<T : Any, ID : Any>(
 ) : Storage<T, ID> {
     private val provider = TransactionalStorageProvider(root)
 
-    override val idExtractor: Extractor<T, ID>
-        get() = root.idExtractor
-
-    override fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
+    override suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
         root.createIndex(name, extractor)
     }
 
-    override fun removeIndex(name: String) {
+    override suspend fun removeIndex(name: String) {
         root.removeIndex(name)
     }
 
-    override fun containsIndex(name: String): Boolean {
+    override suspend fun containsIndex(name: String): Boolean {
         return root.containsIndex(name)
     }
 
-    override fun getExtractors(): Map<String, Extractor<T, *>> {
+    override suspend fun getExtractors(): Map<String, Extractor<T, *>> {
         return root.getExtractors()
     }
 

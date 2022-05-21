@@ -1,7 +1,6 @@
 package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.cache.AsyncPool
 import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.data.repository.cache.InMemoryNestedQueryStorage
@@ -48,14 +47,10 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             if (cacheBuilder != null) {
                 val idExtractor = createIdExtractor(it)
                 val storage = TransactionalStorage(
-                    InMemoryNestedStorage(Pool { InMemoryStorage(cacheBuilder(), idExtractor) })
+                    InMemoryNestedStorage(Pool { InMemoryStorage(cacheBuilder, idExtractor) }, idExtractor)
                 )
 
-                CachedR2DBCRepository(
-                    it,
-                    storage,
-                    idExtractor,
-                )
+                CachedR2DBCRepository(it, storage, idExtractor)
             } else {
                 it
             }
@@ -63,13 +58,10 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             val queryCacheBuilder = queryCacheBuilder
             if (queryCacheBuilder != null) {
                 val storage = TransactionalQueryStorage<T>(
-                    InMemoryNestedQueryStorage(AsyncPool { InMemoryQueryStorage(queryCacheBuilder) })
+                    InMemoryNestedQueryStorage(Pool { InMemoryQueryStorage(queryCacheBuilder) })
                 )
 
-                CachedQueryR2DBCRepository(
-                    it,
-                    storage
-                )
+                CachedQueryR2DBCRepository(it, storage)
             } else {
                 it
             }
