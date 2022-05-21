@@ -16,9 +16,7 @@ class SimpleCachedQueryStorage<T : Any>(
     }
 
     override suspend fun getIfPresent(where: String, loader: suspend () -> T?): T? {
-        return singleCacheProvider.get(where) {
-            loader()
-        }
+        return singleCacheProvider.getIfPresent(where, loader)
     }
 
     override fun getIfPresent(select: SelectQuery): Flow<T> {

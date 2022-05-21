@@ -17,28 +17,26 @@ class InMemoryNestedQueryStorage<T : Any>(
     }
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {
-        storage.clear()
         clear()
     }
 
     override suspend fun clear() {
         delegator.clear()
-        parent?.clear()
     }
 
     override suspend fun getIfPresent(where: String): T? {
-        return parent?.getIfPresent(where) ?: delegator.getIfPresent(where)
+        return delegator.getIfPresent(where)
     }
 
     override suspend fun getIfPresent(where: String, loader: suspend () -> T?): T? {
-        return parent?.getIfPresent(where) ?: delegator.getIfPresent(where, loader)
+        return delegator.getIfPresent(where, loader)
     }
 
     override fun getIfPresent(select: SelectQuery): Flow<T> {
-        return parent?.getIfPresent(select) ?: delegator.getIfPresent(select)
+        return delegator.getIfPresent(select)
     }
 
     override fun getIfPresent(select: SelectQuery, loader: () -> Flow<T>): Flow<T> {
-        return parent?.getIfPresent(select) ?: delegator.getIfPresent(select, loader)
+        return delegator.getIfPresent(select, loader)
     }
 }
