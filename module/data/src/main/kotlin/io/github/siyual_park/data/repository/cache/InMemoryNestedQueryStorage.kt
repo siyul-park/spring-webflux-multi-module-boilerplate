@@ -1,7 +1,5 @@
 package io.github.siyual_park.data.repository.cache
 
-import kotlinx.coroutines.flow.Flow
-
 class InMemoryNestedQueryStorage<T : Any>(
     singleCacheProvider: CacheProvider<String, T?>,
     multiCacheProvider: CacheProvider<SelectQuery, Collection<T>>,
@@ -25,18 +23,18 @@ class InMemoryNestedQueryStorage<T : Any>(
     }
 
     override suspend fun getIfPresent(where: String): T? {
-        return delegator.getIfPresent(where)
+        return parent?.getIfPresent(where) ?: delegator.getIfPresent(where)
     }
 
     override suspend fun getIfPresent(where: String, loader: suspend () -> T?): T? {
-        return delegator.getIfPresent(where, loader)
+        return parent?.getIfPresent(where) ?: delegator.getIfPresent(where, loader)
     }
 
-    override fun getIfPresent(select: SelectQuery): Flow<T> {
-        return delegator.getIfPresent(select)
+    override suspend fun getIfPresent(select: SelectQuery): Collection<T>? {
+        return parent?.getIfPresent(select) ?: delegator.getIfPresent(select)
     }
 
-    override fun getIfPresent(select: SelectQuery, loader: () -> Flow<T>): Flow<T> {
-        return delegator.getIfPresent(select, loader)
+    override suspend fun getIfPresent(select: SelectQuery, loader: suspend () -> Collection<T>?): Collection<T>? {
+        return parent?.getIfPresent(select) ?: delegator.getIfPresent(select, loader)
     }
 }

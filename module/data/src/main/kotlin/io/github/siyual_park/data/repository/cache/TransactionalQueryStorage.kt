@@ -1,8 +1,5 @@
 package io.github.siyual_park.data.repository.cache
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -28,16 +25,12 @@ class TransactionalQueryStorage<T : Any>(
         return getCurrent().getIfPresent(where, loader)
     }
 
-    override fun getIfPresent(select: SelectQuery, loader: () -> Flow<T>): Flow<T> {
-        return flow {
-            emitAll(getCurrent().getIfPresent(select, loader))
-        }
+    override suspend fun getIfPresent(select: SelectQuery): Collection<T>? {
+        return getCurrent().getIfPresent(select)
     }
 
-    override fun getIfPresent(select: SelectQuery): Flow<T> {
-        return flow {
-            emitAll(getCurrent().getIfPresent(select))
-        }
+    override suspend fun getIfPresent(select: SelectQuery, loader: suspend () -> Collection<T>?): Collection<T>? {
+        return getCurrent().getIfPresent(select, loader)
     }
 
     override suspend fun clear() {

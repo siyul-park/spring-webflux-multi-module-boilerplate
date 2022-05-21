@@ -4,10 +4,10 @@ import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.repository.cache.QueryStorage
 import io.github.siyual_park.data.repository.cache.SelectQuery
+import io.github.siyual_park.data.repository.cache.get
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.CriteriaDefinition
@@ -57,14 +57,14 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun findAll(): Flow<T> {
-        return storage.getIfPresent(SelectQuery(null, null, null, null)) {
+        return storage.get(SelectQuery(null, null, null, null)) {
             delegator.findAll()
         }
     }
 
     override fun findAllById(ids: Iterable<ID>): Flow<T> {
         val query = SelectQuery(where(entityManager.idProperty).`in`(ids.toList()).toString(), ids.count(), null, null)
-        return storage.getIfPresent(query) {
+        return storage.get(query) {
             delegator.findAllById(ids)
         }
     }
@@ -77,7 +77,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         val query = SelectQuery(criteria?.toString(), limit, offset, sort)
-        return storage.getIfPresent(query) {
+        return storage.get(query) {
             delegator.findAll(criteria, limit, offset, sort)
         }
     }
