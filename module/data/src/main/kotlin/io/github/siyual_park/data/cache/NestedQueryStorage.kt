@@ -76,11 +76,15 @@ class NestedQueryStorage<T : Any>(
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {
         val (single, multi) = storage.diff()
-        single.forEach { (key, value) ->
-            delegator.get().put(key, value)
-        }
-        multi.forEach { (key, value) ->
-            delegator.get().put(key, value)
+        mutex.withLock {
+            delegator.get().also {
+                single.forEach { (key, value) ->
+                    it.put(key, value)
+                }
+                multi.forEach { (key, value) ->
+                    it.put(key, value)
+                }
+            }
         }
     }
 }
