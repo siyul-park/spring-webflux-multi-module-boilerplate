@@ -28,7 +28,7 @@ class ClientScopeRepository(
     .enableQueryCache({
         CacheBuilder.newBuilder()
             .softValues()
-            .expireAfterAccess(Duration.ofSeconds(1))
+            .expireAfterWrite(Duration.ofSeconds(1))
             .maximumSize(1_000)
     })
     .build() {
