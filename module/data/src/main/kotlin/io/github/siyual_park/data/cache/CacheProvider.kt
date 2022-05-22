@@ -18,6 +18,8 @@ class CacheProvider<K : Any, T : Any?>(
             }
         }.build()
 
+    private var updated = false
+
     suspend fun get(key: K, value: suspend () -> T): T {
         return getIfPresent(key, value)!!
     }
@@ -36,6 +38,7 @@ class CacheProvider<K : Any, T : Any?>(
                 } else {
                     val newone = value()
                     if (newone != null) {
+                        updated = true
                         cache.put(key, newone)
                     }
                     newone
@@ -46,6 +49,7 @@ class CacheProvider<K : Any, T : Any?>(
 
     suspend fun put(key: K, value: T) {
         if (value != null) {
+            updated = true
             cache.put(key, value)
         }
     }
@@ -59,7 +63,10 @@ class CacheProvider<K : Any, T : Any?>(
     }
 
     suspend fun clear() {
-        cache.invalidateAll()
-        mutexes.clear()
+        if (updated) {
+            updated = false
+            cache.invalidateAll()
+            mutexes.clear()
+        }
     }
 }
