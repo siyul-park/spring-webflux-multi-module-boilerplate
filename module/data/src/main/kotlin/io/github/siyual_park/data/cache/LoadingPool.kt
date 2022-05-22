@@ -12,7 +12,7 @@ class LoadingPool<T : Any>(
         return pool.poll() ?: load()
     }
 
-    suspend fun add(value: T) {
-        pool.add(value)
+    suspend fun add(value: T): Boolean {
+        return pool.add(value)
     }
 }

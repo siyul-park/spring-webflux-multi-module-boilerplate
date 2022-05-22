@@ -14,15 +14,15 @@ class Pool<T : Any>(
     )
     private val mutex = Mutex()
 
-    suspend fun add(value: T) {
+    suspend fun add(value: T): Boolean {
         mutex.withLock {
-            store.add(value)
+            return store.add(value)
         }
     }
 
-    suspend fun remove(value: T) {
+    suspend fun remove(value: T): Boolean {
         mutex.withLock {
-            store.remove(value)
+            return store.remove(value)
         }
     }
 
