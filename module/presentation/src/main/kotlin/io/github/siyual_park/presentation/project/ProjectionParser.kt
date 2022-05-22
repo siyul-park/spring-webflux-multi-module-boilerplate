@@ -38,16 +38,16 @@ class ProjectionParser<T : Any>(
                 exportedPropertyName(it) == key
             } ?: throw ProjectionInvalidException("$key is not match in ${clazz.memberProperties.map { exportedPropertyName(it) }}")
 
-            val returnType = unWarp(property.returnType)
+            val returnType = unwrap(property.returnType)
             converted[property.name] = convert(value, returnType.classifier as KClass<*>)
         }
         return converted
     }
 
-    private fun unWarp(type: KType): KType {
+    private fun unwrap(type: KType): KType {
         val match = wrappedType.find { it.isSuperclassOf(type.classifier as KClass<*>) }
         if (match != null) {
-            return unWarp(type.arguments[0].type!!)
+            return unwrap(type.arguments[0].type!!)
         }
 
         return type
