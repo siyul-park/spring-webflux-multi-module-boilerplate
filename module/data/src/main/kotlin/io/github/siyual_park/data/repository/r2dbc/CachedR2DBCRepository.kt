@@ -43,7 +43,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
         val fallback = suspend { delegator.exists(criteria) }
-        val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
+        val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
 
         return if (storage.getIfPresent(indexName, value) != null) {
             true
@@ -58,7 +58,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                 ?.also { storage.put(it) }
         }
 
-        val (indexName, value) = getIndexNameAndValue(criteria) ?: return fallback()
+        val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
         return storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
     }
 
@@ -73,8 +73,8 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
                     .onEach { storage.put(it) }
             }
 
-            if (criteria != null && offset == null && sort == null) {
-                val indexNameAndValue = getIndexNameAndValue(criteria)
+            if (criteria != null && (offset == null || offset == 0L)) {
+                val indexNameAndValue = getUniqueIndexNameAndValue(criteria)
                 if (indexNameAndValue != null) {
                     val (indexName, value) = indexNameAndValue
                     storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
@@ -168,7 +168,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         }
     }
 
-    private suspend fun getIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+    private suspend fun getUniqueIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
         if (criteria == null) return null
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
