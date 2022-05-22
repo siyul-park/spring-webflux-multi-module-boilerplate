@@ -20,7 +20,7 @@ export const options: Options = {
         { duration: '5m', target: 2000 },
         { duration: '2m', target: 3000 },
         { duration: '5m', target: 3000 },
-        { duration: '10m', target: 0 },
+        { duration: '5m', target: 0 },
       ],
     },
     password: {
@@ -34,7 +34,7 @@ export const options: Options = {
         { duration: '5m', target: 2000 },
         { duration: '2m', target: 3000 },
         { duration: '5m', target: 3000 },
-        { duration: '10m', target: 0 },
+        { duration: '5m', target: 0 },
       ],
     },
     refreshToken: {
@@ -48,7 +48,7 @@ export const options: Options = {
         { duration: '5m', target: 2000 },
         { duration: '2m', target: 3000 },
         { duration: '5m', target: 3000 },
-        { duration: '10m', target: 0 },
+        { duration: '5m', target: 0 },
       ],
     },
   },
