@@ -73,7 +73,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
             }
         }
         val storage = PoolingNestedStorage(
-            LoadingPool {
+            Pool {
                 InMemoryStorage(
                     { CacheBuilder.newBuilder() },
                     idExtractor
@@ -87,15 +87,14 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
             val person = DummyPerson.create()
 
             assertNull(child.getIfPresent(person.id))
-            child.put(person)
+            child.add(person)
             assertEquals(person, child.getIfPresent(person.id))
             assertNull(storage.getIfPresent(person.id))
 
             cacheTransactionSynchronization.afterCompletion(TransactionSynchronization.STATUS_COMMITTED).awaitSingleOrNull()
 
-            val (created, removed) = child.diff()
-            assertEquals(0, created.size)
-            assertEquals(0, removed.size)
+            val diff = child.diff()
+            assertEquals(0, diff.size)
             assertEquals(person, child.getIfPresent(person.id))
             assertEquals(person, storage.getIfPresent(person.id))
 
@@ -107,15 +106,14 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
             val person = DummyPerson.create()
 
             assertNull(child.getIfPresent(person.id))
-            child.put(person)
+            child.add(person)
             assertEquals(person, child.getIfPresent(person.id))
             assertNull(storage.getIfPresent(person.id))
 
             cacheTransactionSynchronization.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK).awaitSingleOrNull()
 
-            val (created, removed) = child.diff()
-            assertEquals(0, created.size)
-            assertEquals(0, removed.size)
+            val diff = child.diff()
+            assertEquals(0, diff.size)
             assertNull(child.getIfPresent(person.id))
             assertNull(storage.getIfPresent(person.id))
 

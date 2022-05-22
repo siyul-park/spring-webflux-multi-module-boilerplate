@@ -88,7 +88,7 @@ class InMemoryStorage<ID : Any, T : Any>(
         val mutex = mutexes.getOrPut(id) { Mutex() }
         return mutex.withLock {
             cache.getIfPresent(id)
-                ?: loader()?.also { put(it) }
+                ?: loader()?.also { add(it) }
         }
     }
 
@@ -96,11 +96,7 @@ class InMemoryStorage<ID : Any, T : Any>(
         cache.invalidate(id)
     }
 
-    override suspend fun delete(entity: T) {
-        idExtractor.getKey(entity)?.let { remove(it) }
-    }
-
-    override suspend fun put(entity: T) {
+    override suspend fun add(entity: T) {
         val id = idExtractor.getKey(entity) ?: return
         cache.put(id, entity)
 

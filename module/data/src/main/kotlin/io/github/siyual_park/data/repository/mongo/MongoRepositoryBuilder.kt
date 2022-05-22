@@ -2,7 +2,7 @@ package io.github.siyual_park.data.repository.mongo
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.cache.InMemoryStorage
-import io.github.siyual_park.data.cache.LoadingPool
+import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.cache.PoolingNestedStorage
 import io.github.siyual_park.data.cache.TransactionalStorage
 import io.github.siyual_park.data.repository.Extractor
@@ -44,7 +44,7 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
         return if (cacheBuilder != null) {
             val idExtractor = createIdExtractor(current)
             val storage = TransactionalStorage(
-                PoolingNestedStorage(LoadingPool { InMemoryStorage(cacheBuilder, idExtractor) }, idExtractor)
+                PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, idExtractor) }, idExtractor)
             )
 
             CachedMongoRepository(current, storage, idExtractor)

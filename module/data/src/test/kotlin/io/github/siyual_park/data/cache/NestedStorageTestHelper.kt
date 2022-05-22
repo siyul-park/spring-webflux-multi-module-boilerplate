@@ -19,7 +19,7 @@ abstract class NestedStorageTestHelper(
 
         val person = DummyPerson.create()
 
-        child2.put(person)
+        child2.add(person)
 
         assertEquals(person, child2.getIfPresent(person.id))
         assertEquals(person, child2.getIfPresent("name", person.name))
@@ -62,7 +62,7 @@ abstract class NestedStorageTestHelper(
 
         val person = DummyPerson.create()
 
-        storage.put(person)
+        storage.add(person)
 
         assertEquals(person, child2.getIfPresent(person.id))
         assertEquals(person, child2.getIfPresent("name", person.name))
@@ -118,7 +118,7 @@ abstract class NestedStorageTestHelper(
         val person2 = DummyPerson.create().also { it.id = person1.id }
         val person3 = DummyPerson.create().also { it.id = person1.id }
 
-        storage.put(person1)
+        storage.add(person1)
 
         assertEquals(person1, child2.getIfPresent(person1.id))
         assertEquals(person1, child2.getIfPresent("name", person1.name))
@@ -129,7 +129,7 @@ abstract class NestedStorageTestHelper(
         assertEquals(person1, storage.getIfPresent(person1.id))
         assertEquals(person1, storage.getIfPresent("name", person1.name))
 
-        child1.put(person2)
+        child1.add(person2)
 
         assertEquals(person2, child2.getIfPresent(person1.id))
         assertEquals(person2, child2.getIfPresent("name", person2.name))
@@ -140,7 +140,7 @@ abstract class NestedStorageTestHelper(
         assertEquals(person1, storage.getIfPresent(person1.id))
         assertEquals(person1, storage.getIfPresent("name", person1.name))
 
-        child2.put(person3)
+        child2.add(person3)
 
         assertEquals(person3, child2.getIfPresent(person1.id))
         assertEquals(person3, child2.getIfPresent("name", person3.name))

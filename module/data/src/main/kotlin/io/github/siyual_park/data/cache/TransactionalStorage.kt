@@ -43,12 +43,8 @@ class TransactionalStorage<ID : Any, T : Any>(
         return provider.get().remove(id)
     }
 
-    override suspend fun delete(entity: T) {
-        return provider.get().delete(entity)
-    }
-
-    override suspend fun put(entity: T) {
-        return provider.get().put(entity)
+    override suspend fun add(entity: T) {
+        return provider.get().add(entity)
     }
 
     override suspend fun clear() {

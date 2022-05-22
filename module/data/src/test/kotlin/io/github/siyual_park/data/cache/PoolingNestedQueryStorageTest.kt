@@ -3,5 +3,5 @@ package io.github.siyual_park.data.cache
 import com.google.common.cache.CacheBuilder
 
 class PoolingNestedQueryStorageTest : NestedQueryStorageTestHelper(
-    PoolingNestedQueryStorage(LoadingPool { InMemoryQueryStorage { CacheBuilder.newBuilder() } })
+    PoolingNestedQueryStorage(Pool { InMemoryQueryStorage { CacheBuilder.newBuilder() } })
 )

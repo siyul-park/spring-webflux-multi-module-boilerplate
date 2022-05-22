@@ -5,38 +5,34 @@ import io.github.siyual_park.test.DummyStringFactory
 import org.apache.commons.collections4.map.AbstractReferenceMap
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class PoolTest : CoroutineTestHelper() {
     @Test
-    fun add() = blocking {
-        val pool = Pool<String>(AbstractReferenceMap.ReferenceStrength.HARD)
-        val value = DummyStringFactory.create(10)
+    fun pop() = blocking {
+        val pool = Pool(AbstractReferenceMap.ReferenceStrength.HARD) { DummyStringFactory.create(10) }
+        val value1 = DummyStringFactory.create(10)
+        val value2 = DummyStringFactory.create(10)
 
-        assertTrue(pool.add(value))
-        assertFalse(pool.add(value))
+        pool.push(value1)
+        assertEquals(value1, pool.pop())
+
+        pool.push(value2)
+        assertEquals(value2, pool.pop())
+
+        val other = pool.pop()
+        assertNotEquals(value1, other)
+        assertNotEquals(value2, other)
     }
 
     @Test
-    fun remove() = blocking {
-        val pool = Pool<String>(AbstractReferenceMap.ReferenceStrength.HARD)
+    fun push() = blocking {
+        val pool = Pool(AbstractReferenceMap.ReferenceStrength.HARD) { DummyStringFactory.create(10) }
         val value = DummyStringFactory.create(10)
 
-        assertTrue(pool.add(value))
-        assertTrue(pool.remove(value))
-        assertFalse(pool.remove(value))
-    }
-
-    @Test
-    fun poll() = blocking {
-        val pool = Pool<String>(AbstractReferenceMap.ReferenceStrength.HARD)
-        val value = DummyStringFactory.create(10)
-
-        assertNull(pool.poll())
-        assertTrue(pool.add(value))
-        assertEquals(value, pool.poll())
-        assertNull(pool.poll())
+        assertTrue(pool.push(value))
+        assertFalse(pool.push(value))
     }
 }

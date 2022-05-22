@@ -51,7 +51,7 @@ class MultiLevelStorage<ID : Any, T : Any>(
             return value
         }
 
-        return loader()?.also { put(it) }
+        return loader()?.also { add(it) }
     }
 
     override suspend fun getIfPresent(id: ID): T? {
@@ -71,7 +71,7 @@ class MultiLevelStorage<ID : Any, T : Any>(
             return value
         }
 
-        return loader()?.also { put(it) }
+        return loader()?.also { add(it) }
     }
 
     override suspend fun remove(id: ID) {
@@ -80,15 +80,9 @@ class MultiLevelStorage<ID : Any, T : Any>(
         }
     }
 
-    override suspend fun delete(entity: T) {
+    override suspend fun add(entity: T) {
         for (storage in Reversed(storages)) {
-            storage.delete(entity)
-        }
-    }
-
-    override suspend fun put(entity: T) {
-        for (storage in Reversed(storages)) {
-            storage.put(entity)
+            storage.add(entity)
         }
     }
 

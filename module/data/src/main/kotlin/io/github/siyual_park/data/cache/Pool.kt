@@ -1,40 +1,30 @@
 package io.github.siyual_park.data.cache
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength
-import org.apache.commons.collections4.map.ReferenceMap
-import java.util.Collections
 
 class Pool<T : Any>(
-    type: ReferenceStrength = ReferenceStrength.SOFT
+    type: ReferenceStrength = ReferenceStrength.SOFT,
+    private val load: suspend () -> T,
 ) {
-    private val store = Collections.newSetFromMap(
-        Collections.synchronizedMap(ReferenceMap<T, Boolean>(type, ReferenceStrength.HARD))
-    )
-    private val mutex = Mutex()
+    private val free = PoolStore<T>(type)
+    private val used = PoolStore<T>(type)
 
-    suspend fun add(value: T): Boolean {
-        mutex.withLock {
-            return store.add(value)
-        }
+    suspend fun pop(): T {
+        val value = free.pop() ?: load()
+        used.push(value)
+        return value
     }
 
-    suspend fun remove(value: T): Boolean {
-        mutex.withLock {
-            return store.remove(value)
-        }
+    suspend fun push(value: T): Boolean {
+        used.remove(value)
+        return free.push(value)
     }
 
-    suspend fun poll(): T? {
-        return mutex.withLock {
-            store.firstOrNull()?.also { store.remove(it) }
-        }
+    fun free(): PoolStore<T> {
+        return free
     }
 
-    suspend fun forEach(action: suspend (T) -> Unit) {
-        return mutex.withLock {
-            store.forEach { action(it) }
-        }
+    fun used(): PoolStore<T> {
+        return used
     }
 }

@@ -14,7 +14,7 @@ class TransactionalStorageTest : StorageTestHelper(
         }
         TransactionalStorage(
             PoolingNestedStorage(
-                LoadingPool {
+                Pool {
                     InMemoryStorage(
                         { CacheBuilder.newBuilder() },
                         idExtractor

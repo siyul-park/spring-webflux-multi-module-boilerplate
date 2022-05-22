@@ -23,9 +23,7 @@ interface Storage<ID : Any, T : Any> {
     suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T?
 
     suspend fun remove(id: ID)
-
-    suspend fun delete(entity: T)
-    suspend fun put(entity: T)
+    suspend fun add(entity: T)
 
     suspend fun entries(): Set<Pair<ID, T>>
 

@@ -5,7 +5,7 @@ import com.google.common.cache.CacheBuilder
 class TransactionalQueryStorageTest : QueryStorageTestHelper(
     TransactionalQueryStorage(
         PoolingNestedQueryStorage(
-            LoadingPool { InMemoryQueryStorage { CacheBuilder.newBuilder() } }
+            Pool { InMemoryQueryStorage { CacheBuilder.newBuilder() } }
         )
     )
 )

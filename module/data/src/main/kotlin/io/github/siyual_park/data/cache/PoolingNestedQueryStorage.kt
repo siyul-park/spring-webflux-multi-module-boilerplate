@@ -1,19 +1,12 @@
 package io.github.siyual_park.data.cache
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength
-
 class PoolingNestedQueryStorage<T : Any>(
-    private val freePool: LoadingPool<QueryStorage<T>>,
-    private val usedPool: Pool<QueryStorage<T>> = Pool(ReferenceStrength.WEAK),
+    private val pool: Pool<QueryStorage<T>>,
     override val parent: PoolingNestedQueryStorage<T>? = null,
 ) : NestedQueryStorage<T> {
-    private val mutex = Mutex()
     private val delegator = AsyncLazy {
-        freePool.poll().also {
+        pool.pop().also {
             it.clear()
-            usedPool.add(it)
         }
     }
 
@@ -50,12 +43,9 @@ class PoolingNestedQueryStorage<T : Any>(
     }
 
     override suspend fun clear() {
-        usedPool.forEach { it.clear() }
+        pool.used().forEach { it.clear() }
         delegator.pop()?.let {
-            mutex.withLock {
-                usedPool.remove(it)
-                freePool.add(it)
-            }
+            pool.push(it)
         }
     }
 
@@ -66,29 +56,24 @@ class PoolingNestedQueryStorage<T : Any>(
     override suspend fun diff(): Pair<Set<Pair<String, T>>, Set<Pair<SelectQuery, Collection<T>>>> {
         return entries().also {
             delegator.pop()?.let {
-                mutex.withLock {
-                    usedPool.remove(it)
-                    it.clear()
-                    freePool.add(it)
-                }
+                it.clear()
+                pool.push(it)
             }
         }
     }
 
     override suspend fun fork(): PoolingNestedQueryStorage<T> {
-        return PoolingNestedQueryStorage(freePool, usedPool, this)
+        return PoolingNestedQueryStorage(pool, this)
     }
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {
         val (single, multi) = storage.diff()
-        mutex.withLock {
-            delegator.get().also {
-                single.forEach { (key, value) ->
-                    it.put(key, value)
-                }
-                multi.forEach { (key, value) ->
-                    it.put(key, value)
-                }
+        delegator.get().also {
+            single.forEach { (key, value) ->
+                it.put(key, value)
+            }
+            multi.forEach { (key, value) ->
+                it.put(key, value)
             }
         }
     }

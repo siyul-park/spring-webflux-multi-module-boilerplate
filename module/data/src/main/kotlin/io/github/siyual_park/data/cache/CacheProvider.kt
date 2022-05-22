@@ -7,7 +7,7 @@ import kotlinx.coroutines.sync.withLock
 import java.util.Collections
 import java.util.WeakHashMap
 
-class CacheProvider<K : Any, T : Any?>(
+class CacheProvider<K : Any, T : Any>(
     cacheBuilder: CacheBuilder<Any, Any>,
 ) {
     private val mutexes = Collections.synchronizedMap(WeakHashMap<K, Mutex>())

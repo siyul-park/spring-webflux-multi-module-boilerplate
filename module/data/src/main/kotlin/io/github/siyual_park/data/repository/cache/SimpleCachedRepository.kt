@@ -20,14 +20,14 @@ class SimpleCachedRepository<T : Any, ID : Any>(
 
     override suspend fun create(entity: T): T {
         return delegator.create(entity)
-            .also { storage.put(it) }
+            .also { storage.add(it) }
     }
 
     override fun createAll(entities: Flow<T>): Flow<T> {
         return flow {
             emitAll(
                 delegator.createAll(entities)
-                    .onEach { storage.put(it) }
+                    .onEach { storage.add(it) }
             )
         }
     }
@@ -36,7 +36,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         return flow {
             emitAll(
                 delegator.createAll(entities)
-                    .onEach { storage.put(it) }
+                    .onEach { storage.add(it) }
             )
         }
     }
@@ -62,7 +62,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         return flow {
             emitAll(
                 delegator.findAll()
-                    .onEach { storage.put(it) }
+                    .onEach { storage.add(it) }
             )
         }
     }
@@ -82,7 +82,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
 
             if (notCachedIds.isNotEmpty()) {
                 delegator.findAllById(notCachedIds)
-                    .onEach { storage.put(it) }
+                    .onEach { storage.add(it) }
                     .collect { result.add(it) }
             }
 
@@ -101,34 +101,34 @@ class SimpleCachedRepository<T : Any, ID : Any>(
 
     override suspend fun updateById(id: ID, patch: Patch<T>): T? {
         return delegator.updateById(id, patch)
-            ?.also { storage.put(it) }
+            ?.also { storage.add(it) }
     }
 
     override suspend fun updateById(id: ID, patch: AsyncPatch<T>): T? {
         return delegator.updateById(id, patch)
-            ?.also { storage.put(it) }
+            ?.also { storage.add(it) }
     }
 
     override suspend fun update(entity: T): T? {
         return delegator.update(entity)
-            ?.also { storage.put(it) }
+            ?.also { storage.add(it) }
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {
         return delegator.update(entity, patch)
-            ?.also { storage.put(it) }
+            ?.also { storage.add(it) }
     }
 
     override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
         return delegator.update(entity, patch)
-            ?.also { storage.put(it) }
+            ?.also { storage.add(it) }
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
         return flow {
             emitAll(
                 delegator.updateAllById(ids, patch)
-                    .onEach { it?.let { storage.put(it) } }
+                    .onEach { it?.let { storage.add(it) } }
             )
         }
     }
@@ -137,7 +137,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         return flow {
             emitAll(
                 delegator.updateAllById(ids, patch)
-                    .onEach { it?.let { storage.put(it) } }
+                    .onEach { it?.let { storage.add(it) } }
             )
         }
     }
@@ -146,7 +146,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         return flow {
             emitAll(
                 delegator.updateAll(entity)
-                    .onEach { it?.let { storage.put(it) } }
+                    .onEach { it?.let { storage.add(it) } }
             )
         }
     }
@@ -155,7 +155,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         return flow {
             emitAll(
                 delegator.updateAll(entity, patch)
-                    .onEach { it?.let { storage.put(it) } }
+                    .onEach { it?.let { storage.add(it) } }
             )
         }
     }
@@ -164,7 +164,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         return flow {
             emitAll(
                 delegator.updateAll(entity, patch)
-                    .onEach { it?.let { storage.put(it) } }
+                    .onEach { it?.let { storage.add(it) } }
             )
         }
     }
@@ -179,7 +179,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun delete(entity: T) {
-        storage.delete(entity)
+        idExtractor.getKey(entity)?.let { storage.remove(it) }
         delegator.delete(entity)
     }
 
@@ -189,7 +189,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
-        entities.forEach { storage.delete(it) }
+        entities.forEach { idExtractor.getKey(it)?.let { id -> storage.remove(id) } }
         delegator.deleteAll(entities)
     }
 

@@ -55,7 +55,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
         val fallback = suspend {
             delegator.findOne(criteria)
-                ?.also { storage.put(it) }
+                ?.also { storage.add(it) }
         }
 
         val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
@@ -70,7 +70,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         return flow {
             val fallback = {
                 delegator.findAll(criteria, limit, offset, sort)
-                    .onEach { storage.put(it) }
+                    .onEach { storage.add(it) }
             }
 
             if (criteria != null && (offset == null || offset == 0L)) {
@@ -107,7 +107,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
                         if (notCachedKey.isNotEmpty()) {
                             delegator.findAll(Criteria.where(indexName).`in`(notCachedKey))
-                                .onEach { storage.put(it) }
+                                .onEach { storage.add(it) }
                                 .collect { result.add(it) }
                         }
 
@@ -126,7 +126,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
         return delegator.update(criteria, patch)
-            ?.also { storage.put(it) }
+            ?.also { storage.add(it) }
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -140,7 +140,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         return flow {
             emitAll(
                 delegator.updateAll(criteria, patch, limit, offset, sort)
-                    .onEach { storage.put(it) }
+                    .onEach { storage.add(it) }
             )
         }
     }
@@ -161,7 +161,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             delegator.deleteAll()
         } else {
             val founded = findAll(criteria, limit, offset, sort)
-                .onEach { storage.delete(it) }
+                .onEach { idExtractor.getKey(it)?.let { id -> storage.remove(id) } }
                 .toList()
 
             delegator.deleteAll(founded)

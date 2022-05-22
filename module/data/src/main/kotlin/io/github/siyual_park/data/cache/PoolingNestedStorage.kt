@@ -7,19 +7,31 @@ import kotlinx.coroutines.sync.withLock
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class PoolingNestedStorage<ID : Any, T : Any>(
-    private val pool: LoadingPool<Storage<ID, T>>,
+    private val pool: Pool<Storage<ID, T>>,
     private val idExtractor: Extractor<T, ID>,
     override val parent: NestedStorage<ID, T>? = null
 ) : NestedStorage<ID, T> {
-    private val delegator = AsyncLazy { pool.poll().also { it.clear() } }
+    private val delegator = AsyncLazy { pool.pop().also { it.clear() } }
     private val mutex = Mutex()
 
-    private val forceRemoved = Sets.newConcurrentHashSet<ID>()
+    private val removed = if (parent == null) {
+        null
+    } else {
+        Sets.newConcurrentHashSet<ID>()
+    }
 
-    override suspend fun diff(): Pair<Set<T>, Set<ID>> {
-        return delegator.get().entries().map { it.second }.toSet() to forceRemoved.toSet().also {
-            clear()
+    override suspend fun diff(): Map<ID, T?> {
+        val map = mutableMapOf<ID, T?>()
+        delegator.get().entries().forEach {
+            map[it.first] = it.second
         }
+        removed?.forEach {
+            map[it] = null
+        }
+
+        clear()
+
+        return map
     }
 
     override suspend fun fork(): NestedStorage<ID, T> {
@@ -35,12 +47,14 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     }
 
     override suspend fun merge(storage: NestedStorage<ID, T>) {
-        val (created, removed) = storage.diff()
-        removed.forEach {
-            remove(it)
-        }
-        created.forEach {
-            put(it)
+        val diff = storage.diff()
+
+        diff.forEach { (key, value) ->
+            if (value != null) {
+                add(value)
+            } else {
+                remove(key)
+            }
         }
     }
 
@@ -61,7 +75,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
-        return getIfPresent(index, key) ?: loader()?.also { put(it) }
+        return getIfPresent(index, key) ?: loader()?.also { add(it) }
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
@@ -69,7 +83,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     }
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
-        return getIfPresent(id) ?: loader()?.also { put(it) }
+        return getIfPresent(id) ?: loader()?.also { add(it) }
     }
 
     override suspend fun getIfPresent(id: ID): T? {
@@ -78,28 +92,20 @@ class PoolingNestedStorage<ID : Any, T : Any>(
 
     override suspend fun remove(id: ID) {
         delegator.get().remove(id)
-        if (!isRoot()) {
-            forceRemoved.add(id)
-        }
+        removed?.add(id)
     }
 
-    override suspend fun delete(entity: T) {
-        idExtractor.getKey(entity)?.let { remove(it) }
-    }
-
-    override suspend fun put(entity: T) {
-        delegator.get().put(entity)
-        if (!isRoot()) {
-            forceRemoved.remove(idExtractor.getKey(entity))
-        }
+    override suspend fun add(entity: T) {
+        delegator.get().add(entity)
+        removed?.remove(idExtractor.getKey(entity))
     }
 
     override suspend fun clear() {
         delegator.get().clear()
-        forceRemoved.clear()
+        removed?.clear()
 
         mutex.withLock {
-            pool.add(delegator.get())
+            pool.push(delegator.get())
             delegator.clear()
         }
     }
@@ -110,18 +116,11 @@ class PoolingNestedStorage<ID : Any, T : Any>(
 
     private suspend fun guard(loader: suspend () -> T?): T? {
         return loader()?.let {
-            if (!isRoot()) {
-                val id = idExtractor.getKey(it)
-                if (!forceRemoved.contains(id)) {
-                    it
-                } else {
-                    null
-                }
-            } else {
+            if (removed == null || !removed.contains(idExtractor.getKey(it))) {
                 it
+            } else {
+                null
             }
         }
     }
-
-    private fun isRoot() = parent == null
 }

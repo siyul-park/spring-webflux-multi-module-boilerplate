@@ -66,20 +66,20 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
         val person = DummyPerson.create()
 
         assertNull(storage.getIfPresent(person.id))
-        storage.put(person)
+        storage.add(person)
         assertNotNull(storage.getIfPresent(person.id))
 
-        storage.delete(person)
+        storage.remove(person.id)
         assertNotNull(storage.getIfPresent(person.id) { person })
-        storage.delete(person)
+        storage.remove(person.id)
 
         assertNull(storage.getIfPresent("name", person.name))
-        storage.put(person)
+        storage.add(person)
         assertNotNull(storage.getIfPresent("name", person.name))
 
-        storage.delete(person)
+        storage.remove(person.id)
         assertNotNull(storage.getIfPresent("name", person.name) { person })
-        storage.delete(person)
+        storage.remove(person.id)
 
         storage.removeIndex("name")
     }
@@ -88,20 +88,8 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     fun remove() = blocking {
         val person = DummyPerson.create()
 
-        storage.put(person)
+        storage.add(person)
         storage.remove(person.id)
-
-        assertNull(storage.getIfPresent(person.id))
-        assertNull(storage1.getIfPresent(person.id))
-        assertNull(storage2.getIfPresent(person.id))
-    }
-
-    @Test
-    fun delete() = blocking {
-        val person = DummyPerson.create()
-
-        storage.put(person)
-        storage.delete(person)
 
         assertNull(storage.getIfPresent(person.id))
         assertNull(storage1.getIfPresent(person.id))
@@ -112,7 +100,7 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     fun put() = blocking {
         val person = DummyPerson.create()
 
-        storage.put(person)
+        storage.add(person)
         assertNotNull(storage.getIfPresent(person.id))
         assertNotNull(storage1.getIfPresent(person.id))
         assertNotNull(storage2.getIfPresent(person.id))
@@ -122,7 +110,7 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     fun clear() = blocking {
         val person = DummyPerson.create()
 
-        storage.put(person)
+        storage.add(person)
         storage.clear()
 
         assertNull(storage.getIfPresent(person.id))

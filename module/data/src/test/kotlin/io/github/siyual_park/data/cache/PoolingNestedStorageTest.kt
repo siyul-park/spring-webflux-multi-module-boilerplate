@@ -13,7 +13,7 @@ class PoolingNestedStorageTest : NestedStorageTestHelper(
             }
         }
         PoolingNestedStorage(
-            LoadingPool {
+            Pool {
                 InMemoryStorage(
                     { CacheBuilder.newBuilder() },
                     idExtractor

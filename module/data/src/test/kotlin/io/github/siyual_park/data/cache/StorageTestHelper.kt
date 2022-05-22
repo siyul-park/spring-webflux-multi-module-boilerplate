@@ -67,14 +67,14 @@ abstract class StorageTestHelper(
         assertNull(storage.getIfPresent(value.id))
         assertNull(storage.getIfPresent("name", value.name))
 
-        storage.put(value)
+        storage.add(value)
 
         assertEquals(value, storage.getIfPresent(value.id))
         assertEquals(value, storage.getIfPresent("name", value.name))
 
-        storage.delete(value)
+        storage.remove(value.id)
         assertEquals(value, storage.getIfPresent(value.id) { value })
-        storage.delete(value)
+        storage.remove(value.id)
         assertEquals(value, storage.getIfPresent("name", value.name) { value })
     }
 
@@ -84,7 +84,7 @@ abstract class StorageTestHelper(
 
         storage.createIndex("name", nameIndex)
 
-        storage.put(value)
+        storage.add(value)
         storage.remove(value.id)
 
         assertNull(storage.getIfPresent(value.id))
@@ -97,8 +97,8 @@ abstract class StorageTestHelper(
 
         storage.createIndex("name", nameIndex)
 
-        storage.put(value)
-        storage.delete(value)
+        storage.add(value)
+        storage.remove(value.id)
 
         assertNull(storage.getIfPresent(value.id))
         assertNull(storage.getIfPresent("name", value.name))
@@ -110,7 +110,7 @@ abstract class StorageTestHelper(
 
         storage.createIndex("name", nameIndex)
 
-        storage.put(value)
+        storage.add(value)
 
         assertEquals(value, storage.getIfPresent(value.id))
         assertEquals(value, storage.getIfPresent("name", value.name))
@@ -124,7 +124,7 @@ abstract class StorageTestHelper(
 
         assertEquals(emptySet<Pair<ULID, Person>>(), storage.entries())
 
-        storage.put(value)
+        storage.add(value)
 
         assertEquals(setOf(value.id to value), storage.entries())
     }
@@ -135,7 +135,7 @@ abstract class StorageTestHelper(
 
         storage.createIndex("name", nameIndex)
 
-        storage.put(value)
+        storage.add(value)
         storage.clear()
 
         assertEquals(emptySet<Pair<ULID, Person>>(), storage.entries())

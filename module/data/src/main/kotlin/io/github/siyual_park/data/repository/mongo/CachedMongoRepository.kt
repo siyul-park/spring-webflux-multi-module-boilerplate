@@ -60,7 +60,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
         val fallback = suspend {
             delegator.findOne(criteria)
-                ?.also { storage.put(it) }
+                ?.also { storage.add(it) }
         }
 
         val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
@@ -75,7 +75,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
         return flow {
             val fallback = {
                 delegator.findAll(criteria, limit, offset, sort)
-                    .onEach { storage.put(it) }
+                    .onEach { storage.add(it) }
             }
 
             if (criteria != null && (offset == null || offset == 0L)) {
@@ -118,7 +118,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
 
                         if (notCachedKey.isNotEmpty()) {
                             delegator.findAll(Criteria.where(column).`in`(notCachedKey))
-                                .onEach { storage.put(it) }
+                                .onEach { storage.add(it) }
                                 .collect { result.add(it) }
                         }
 
@@ -133,12 +133,12 @@ class CachedMongoRepository<T : Any, ID : Any>(
 
     override suspend fun update(criteria: CriteriaDefinition, update: Update): T? {
         return delegator.update(criteria, update)
-            ?.also { storage.put(it) }
+            ?.also { storage.add(it) }
     }
 
     override suspend fun update(entity: T, update: Update): T? {
         return delegator.update(entity, update)
-            ?.also { storage.put(it) }
+            ?.also { storage.add(it) }
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
@@ -147,7 +147,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
 
     override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
         return delegator.update(criteria, patch)
-            ?.also { storage.put(it) }
+            ?.also { storage.add(it) }
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -161,7 +161,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
         return flow {
             emitAll(
                 delegator.updateAll(criteria, patch, limit, offset, sort)
-                    .onEach { storage.put(it) }
+                    .onEach { storage.add(it) }
             )
         }
     }
@@ -182,7 +182,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
             delegator.deleteAll()
         } else {
             val founded = findAll(criteria, limit, offset, sort)
-                .onEach { storage.delete(it) }
+                .onEach { idExtractor.getKey(it)?.let { id -> storage.remove(id) } }
                 .toList()
 
             delegator.deleteAll(founded)
