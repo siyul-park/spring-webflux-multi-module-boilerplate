@@ -7,6 +7,7 @@ import java.util.Optional
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
+import kotlin.reflect.full.isSuperclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaField
 
@@ -44,7 +45,7 @@ class ProjectionParser<T : Any>(
     }
 
     private fun unWarp(type: KType): KType {
-        val match = wrappedType.find { type.classifier == it }
+        val match = wrappedType.find { it.isSuperclassOf(type.classifier as KClass<*>) }
         if (match != null) {
             return unWarp(type.arguments[0].type!!)
         }
