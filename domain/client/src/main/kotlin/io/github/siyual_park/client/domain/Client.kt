@@ -51,6 +51,16 @@ class Client(
     val type by proxy(root, ClientData::type)
     var origin by proxy(root, ClientData::origin)
 
+    private val credential = SuspendLazy {
+        ClientCredential(
+            clientCredentialRepository.findByClientIdOrFail(id),
+            clientCredentialRepository,
+            eventPublisher
+        ).also {
+            synchronize(PersistencePropagateSynchronization(it))
+        }
+    }
+
     init {
         synchronize(
             object : PersistenceSynchronization {
@@ -66,16 +76,6 @@ class Client(
                 }
             }
         )
-    }
-
-    private val credential = SuspendLazy {
-        ClientCredential(
-            clientCredentialRepository.findByClientIdOrFail(id),
-            clientCredentialRepository,
-            eventPublisher
-        ).also {
-            synchronize(PersistencePropagateSynchronization(it))
-        }
     }
 
     fun isConfidential(): Boolean {

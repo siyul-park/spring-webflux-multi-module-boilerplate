@@ -50,6 +50,16 @@ class User(
 
     override val userId by proxy(root, UserData::id)
 
+    private val credential = SuspendLazy {
+        UserCredential(
+            userCredentialRepository.findByUserIdOrFail(id),
+            userCredentialRepository,
+            eventPublisher
+        ).also {
+            synchronize(PersistencePropagateSynchronization(it))
+        }
+    }
+
     init {
         synchronize(
             object : PersistenceSynchronization {
@@ -63,16 +73,6 @@ class User(
                 }
             }
         )
-    }
-
-    private val credential = SuspendLazy {
-        UserCredential(
-            userCredentialRepository.findByUserIdOrFail(id),
-            userCredentialRepository,
-            eventPublisher
-        ).also {
-            synchronize(PersistencePropagateSynchronization(it))
-        }
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
