@@ -2,8 +2,6 @@ package io.github.siyual_park.data.cache
 
 import com.google.common.collect.Sets
 import io.github.siyual_park.data.repository.Extractor
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class PoolingNestedStorage<ID : Any, T : Any>(
@@ -12,7 +10,6 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     override val parent: NestedStorage<ID, T>? = null
 ) : NestedStorage<ID, T> {
     private val delegator = AsyncLazy { pool.pop().also { it.clear() } }
-    private val mutex = Mutex()
 
     private val removed = if (parent == null) {
         null
@@ -101,12 +98,10 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     }
 
     override suspend fun clear() {
-        delegator.get().clear()
         removed?.clear()
-
-        mutex.withLock {
+        delegator.pop()?.let {
+            it.clear()
             pool.push(delegator.get())
-            delegator.clear()
         }
     }
 
