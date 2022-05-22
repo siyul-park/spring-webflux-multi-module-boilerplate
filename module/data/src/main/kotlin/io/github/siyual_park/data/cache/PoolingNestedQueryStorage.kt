@@ -76,7 +76,7 @@ class PoolingNestedQueryStorage<T : Any>(
     }
 
     override suspend fun fork(): PoolingNestedQueryStorage<T> {
-        return PoolingNestedQueryStorage(freePool, usedPool, parent)
+        return PoolingNestedQueryStorage(freePool, usedPool, this)
     }
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {

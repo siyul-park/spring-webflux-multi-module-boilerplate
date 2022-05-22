@@ -78,7 +78,9 @@ class PoolingNestedStorage<ID : Any, T : Any>(
 
     override suspend fun remove(id: ID) {
         delegator.get().remove(id)
-        forceRemoved.add(id)
+        if (!isRoot()) {
+            forceRemoved.add(id)
+        }
     }
 
     override suspend fun delete(entity: T) {
@@ -87,7 +89,9 @@ class PoolingNestedStorage<ID : Any, T : Any>(
 
     override suspend fun put(entity: T) {
         delegator.get().put(entity)
-        forceRemoved.remove(idExtractor.getKey(entity))
+        if (!isRoot()) {
+            forceRemoved.remove(idExtractor.getKey(entity))
+        }
     }
 
     override suspend fun clear() {
@@ -106,12 +110,18 @@ class PoolingNestedStorage<ID : Any, T : Any>(
 
     private suspend fun guard(loader: suspend () -> T?): T? {
         return loader()?.let {
-            val id = idExtractor.getKey(it)
-            if (!forceRemoved.contains(id)) {
-                it
+            if (!isRoot()) {
+                val id = idExtractor.getKey(it)
+                if (!forceRemoved.contains(id)) {
+                    it
+                } else {
+                    null
+                }
             } else {
-                null
+                it
             }
         }
     }
+
+    private fun isRoot() = parent == null
 }
