@@ -193,6 +193,9 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
         when {
             criteria.isGroup -> {
+                if (criteria.combinator == CriteriaDefinition.Combinator.INITIAL && criteria.group.size == 1) {
+                    return getSimpleJoinedColumnsAndValues(criteria.group[0])
+                }
                 if (criteria.combinator != CriteriaDefinition.Combinator.AND) {
                     return null
                 }
