@@ -80,15 +80,17 @@ class SimpleMongoRepository<T : Any, ID : Any>(
 
     override fun createAll(entities: Flow<T>): Flow<T> {
         return flow {
-            emitAll(
-                template.insertAll(
-                    entities.onEach { eventPublisher.publish(BeforeCreateEvent(it)) }
-                        .toList()
+            val saved = entities.onEach { eventPublisher.publish(BeforeCreateEvent(it)) }
+                .toList()
+
+            if (saved.isNotEmpty()) {
+                emitAll(
+                    template.insertAll(saved)
+                        .subscribeOn(Schedulers.parallel())
+                        .asFlow()
+                        .onEach { eventPublisher.publish(AfterCreateEvent(it)) }
                 )
-                    .subscribeOn(Schedulers.parallel())
-                    .asFlow()
-                    .onEach { eventPublisher.publish(AfterCreateEvent(it)) }
-            )
+            }
         }
     }
 
@@ -334,6 +336,10 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+        if (limit != null && limit <= 0) {
+            return
+        }
+
         var query = if (criteria == null) {
             Query()
         } else {

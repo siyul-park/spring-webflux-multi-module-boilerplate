@@ -71,27 +71,28 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
     override fun createAll(entities: Flow<T>): Flow<T> {
         return flow {
-            val saved = entities.map {
-                eventPublisher?.publish(BeforeCreateEvent(it))
+            val saved = entities.onEach { eventPublisher?.publish(BeforeCreateEvent(it)) }
+                .map {
+                    entityOperations.insert(it)
+                        .subscribeOn(Schedulers.parallel())
+                        .awaitSingle()
+                }.toList()
 
-                entityOperations.insert(it)
-                    .subscribeOn(Schedulers.parallel())
-                    .awaitSingle()
-            }.toList()
-
-            emitAll(
-                entityOperations.select(
-                    query(where(entityManager.idProperty).`in`(saved.map { entityManager.getId(it) }))
-                        .limit(saved.size),
-                    clazz.java
+            if (saved.isNotEmpty()) {
+                emitAll(
+                    entityOperations.select(
+                        query(where(entityManager.idProperty).`in`(saved.map { entityManager.getId(it) }))
+                            .limit(saved.size),
+                        clazz.java
+                    )
+                        .subscribeOn(Schedulers.parallel())
+                        .sort { p1, p2 ->
+                            saved.indexOf(p1) - saved.indexOf(p2)
+                        }
+                        .asFlow()
+                        .onEach { eventPublisher?.publish(AfterCreateEvent(it)) }
                 )
-                    .subscribeOn(Schedulers.parallel())
-                    .sort { p1, p2 ->
-                        saved.indexOf(p1) - saved.indexOf(p2)
-                    }
-                    .asFlow()
-                    .onEach { eventPublisher?.publish(AfterCreateEvent(it)) }
-            )
+            }
         }
     }
 
@@ -309,6 +310,10 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+        if (limit != null && limit <= 0) {
+            return
+        }
+
         var query = query(criteria ?: CriteriaDefinition.empty())
         limit?.let {
             query = query.limit(it)

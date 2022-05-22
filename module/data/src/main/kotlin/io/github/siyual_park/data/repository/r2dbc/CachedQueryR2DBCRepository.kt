@@ -7,6 +7,7 @@ import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.Criteria.where
@@ -47,6 +48,9 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun count(criteria: CriteriaDefinition?, limit: Int?): Long {
+        if (limit != null && limit <= 0) {
+            return 0
+        }
         return delegator.count(criteria, limit)
     }
 
@@ -63,6 +67,9 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun findAllById(ids: Iterable<ID>): Flow<T> {
+        if (ids.count() == 0) {
+            return emptyFlow()
+        }
         val query = SelectQuery(where(entityManager.idProperty).`in`(ids.toList()).toString(), ids.count(), null, null)
         return storage.get(query) {
             delegator.findAllById(ids)
@@ -76,6 +83,9 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        if (limit != null && limit <= 0) {
+            return emptyFlow()
+        }
         val query = SelectQuery(criteria?.toString(), limit, offset, sort)
         return storage.get(query) {
             delegator.findAll(criteria, limit, offset, sort)
@@ -108,6 +118,9 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?> {
+        if (ids.count() == 0) {
+            return emptyFlow()
+        }
         return flow {
             storage.clear()
             emitAll(delegator.updateAllById(ids, patch))
@@ -115,6 +128,9 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
+        if (ids.count() == 0) {
+            return emptyFlow()
+        }
         return flow {
             storage.clear()
             emitAll(delegator.updateAllById(ids, patch))
@@ -159,6 +175,9 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         offset: Long?,
         sort: Sort?
     ): Flow<T> {
+        if (limit != null && limit <= 0) {
+            return emptyFlow()
+        }
         return flow {
             storage.clear()
             emitAll(delegator.updateAll(criteria, patch, limit, offset, sort))
@@ -172,6 +191,9 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         offset: Long?,
         sort: Sort?
     ): Flow<T> {
+        if (limit != null && limit <= 0) {
+            return emptyFlow()
+        }
         return flow {
             storage.clear()
             emitAll(delegator.updateAll(criteria, patch, limit, offset, sort))
@@ -189,11 +211,17 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAllById(ids: Iterable<ID>) {
+        if (ids.count() == 0) {
+            return
+        }
         storage.clear()
         return delegator.deleteAllById(ids)
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
+        if (entities.count() == 0) {
+            return
+        }
         storage.clear()
         return delegator.deleteAll(entities)
     }
@@ -208,6 +236,9 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+        if (limit != null && limit <= 0) {
+            return
+        }
         storage.clear()
         return delegator.deleteAll(criteria, limit, offset, sort)
     }

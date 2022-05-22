@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
@@ -67,13 +68,17 @@ class CachedMongoRepository<T : Any, ID : Any>(
     }
 
     override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        if (limit != null && limit <= 0) {
+            return emptyFlow()
+        }
+
         return flow {
             val fallback = {
                 delegator.findAll(criteria, limit, offset, sort)
                     .onEach { storage.put(it) }
             }
 
-            if (criteria != null && limit == null && offset == null && sort == null) {
+            if (criteria != null && offset == null && sort == null) {
                 val indexNameAndValue = getIndexNameAndValue(criteria)
                 if (indexNameAndValue != null) {
                     val (indexName, value) = indexNameAndValue
@@ -81,7 +86,9 @@ class CachedMongoRepository<T : Any, ID : Any>(
                         ?.let { emit(it) }
                     return@flow
                 }
+            }
 
+            if (criteria != null && limit == null && offset == null && sort == null) {
                 if (isSingleCriteria(criteria)) {
                     val document = criteria.criteriaObject
                     val column = criteria.key ?: return@flow emitAll(fallback())
@@ -148,6 +155,9 @@ class CachedMongoRepository<T : Any, ID : Any>(
     }
 
     override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        if (limit != null && limit <= 0) {
+            return emptyFlow()
+        }
         return flow {
             emitAll(
                 delegator.updateAll(criteria, patch, limit, offset, sort)
@@ -157,10 +167,16 @@ class CachedMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun count(criteria: CriteriaDefinition?, limit: Int?): Long {
+        if (limit != null && limit <= 0) {
+            return 0
+        }
         return delegator.count(criteria, limit)
     }
 
     override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+        if (limit != null && limit <= 0) {
+            return
+        }
         if (criteria == null) {
             storage.clear()
             delegator.deleteAll()
