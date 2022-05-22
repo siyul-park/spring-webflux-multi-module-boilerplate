@@ -72,7 +72,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
                 return entity.id
             }
         }
-        val storage = NestedStorage(
+        val storage = PoolingNestedStorage(
             LoadingPool {
                 InMemoryStorage(
                     { CacheBuilder.newBuilder() },

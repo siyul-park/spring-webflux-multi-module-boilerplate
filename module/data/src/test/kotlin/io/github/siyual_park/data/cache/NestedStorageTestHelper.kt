@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.cache
 
-import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
@@ -10,22 +9,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class NestedStorageTest : CoroutineTestHelper() {
-    private val idExtractor = object : Extractor<Person, ULID> {
-        override fun getKey(entity: Person): ULID {
-            return entity.id
-        }
-    }
-    private val storage = NestedStorage(
-        LoadingPool {
-            InMemoryStorage(
-                { CacheBuilder.newBuilder() },
-                idExtractor
-            )
-        },
-        idExtractor
-    )
-
+abstract class NestedStorageTestHelper(
+    private val storage: NestedStorage<Person, ULID>
+) : CoroutineTestHelper() {
     @BeforeEach
     override fun setUp() {
         super.setUp()
