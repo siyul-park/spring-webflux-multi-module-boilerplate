@@ -3,15 +3,20 @@ package io.github.siyual_park.data.cache
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class AsyncLazy<T : Any>(
-    private val loader: suspend () -> T
+class SuspendLazy<T : Any>(
+    private val initializer: suspend () -> T
 ) {
     private var value: T? = null
-    private val mutex = Mutex()
+    private var mutex: Mutex = Mutex()
 
     suspend fun get(): T {
         return this.value
-            ?: mutex.withLock { this.value ?: loader().also { this.value = it } }
+            ?: mutex.withLock {
+                this.value
+                    ?: initializer().also {
+                        this.value = it
+                    }
+            }
     }
 
     suspend fun pop(): T? {

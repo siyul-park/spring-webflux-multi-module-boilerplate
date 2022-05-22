@@ -4,7 +4,7 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
-import io.github.siyual_park.data.cache.AsyncLazy
+import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
@@ -65,7 +65,7 @@ class User(
         )
     }
 
-    private val credential = AsyncLazy {
+    private val credential = SuspendLazy {
         UserCredential(
             userCredentialRepository.findByUserIdOrFail(id),
             userCredentialRepository,

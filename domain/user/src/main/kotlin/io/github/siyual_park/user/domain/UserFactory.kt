@@ -3,7 +3,7 @@ package io.github.siyual_park.user.domain
 import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.data.cache.AsyncLazy
+import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.user.entity.UserCredentialData
@@ -25,7 +25,7 @@ class UserFactory(
     private val eventPublisher: EventPublisher,
     private val hashAlgorithm: String = "SHA-256"
 ) {
-    private val defaultScope = AsyncLazy {
+    private val defaultScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("user:pack")
     }
 

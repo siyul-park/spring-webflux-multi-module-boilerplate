@@ -5,7 +5,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.domain.token.TokenFactoryProvider
 import io.github.siyual_park.auth.domain.token.TokenTemplate
-import io.github.siyual_park.data.cache.AsyncLazy
+import io.github.siyual_park.data.cache.SuspendLazy
 import org.springframework.stereotype.Component
 import java.time.Duration
 
@@ -14,10 +14,10 @@ class AuthorizationHeaderGenerator(
     private val scopeTokenStorage: ScopeTokenStorage,
     tokenFactoryProvider: TokenFactoryProvider
 ) {
-    private val accessTokenScope = AsyncLazy {
+    private val accessTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("access-token:create")
     }
-    private val refreshTokenScope = AsyncLazy {
+    private val refreshTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("refresh-token:create")
     }
     private val accessTokenFactory = tokenFactoryProvider.get(

@@ -11,7 +11,7 @@ import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
-import io.github.siyual_park.data.cache.AsyncLazy
+import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
@@ -68,7 +68,7 @@ class Client(
         )
     }
 
-    private val credential = AsyncLazy {
+    private val credential = SuspendLazy {
         ClientCredential(
             clientCredentialRepository.findByClientIdOrFail(id),
             clientCredentialRepository,

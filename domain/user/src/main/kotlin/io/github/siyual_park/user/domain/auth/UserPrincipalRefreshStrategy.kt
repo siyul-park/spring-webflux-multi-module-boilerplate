@@ -5,7 +5,7 @@ import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefreshStr
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.data.cache.AsyncLazy
+import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.user.domain.UserStorage
 import kotlinx.coroutines.flow.toSet
@@ -17,10 +17,10 @@ class UserPrincipalRefreshStrategy(
     private val userStorage: UserStorage,
     private val scopeTokenStorage: ScopeTokenStorage
 ) : PrincipalRefreshStrategy<UserPrincipal> {
-    private val accessTokenScope = AsyncLazy {
+    private val accessTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("access-token:create")
     }
-    private val refreshTokenScope = AsyncLazy {
+    private val refreshTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("refresh-token:create")
     }
 

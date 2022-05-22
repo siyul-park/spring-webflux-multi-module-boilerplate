@@ -9,7 +9,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     private val idExtractor: Extractor<T, ID>,
     override val parent: NestedStorage<ID, T>? = null
 ) : NestedStorage<ID, T> {
-    private val delegator = AsyncLazy { pool.pop().also { it.clear() } }
+    private val delegator = SuspendLazy { pool.pop().also { it.clear() } }
 
     private val removed = if (parent == null) {
         null

@@ -7,7 +7,7 @@ import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.data.cache.AsyncLazy
+import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.stereotype.Component
@@ -26,10 +26,10 @@ class ClientFactory(
 ) {
     private val random = SecureRandom.getInstance("SHA1PRNG")
 
-    private val confidentialClientScope = AsyncLazy {
+    private val confidentialClientScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("confidential(client):pack")
     }
-    private val publicClientScope = AsyncLazy {
+    private val publicClientScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("public(client):pack")
     }
 

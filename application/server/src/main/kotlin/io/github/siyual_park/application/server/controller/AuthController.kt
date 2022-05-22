@@ -17,7 +17,7 @@ import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import io.github.siyual_park.client.domain.auth.ClientCredentialsGrantPayload
-import io.github.siyual_park.data.cache.AsyncLazy
+import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.json.bind.RequestForm
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
@@ -57,14 +57,14 @@ class AuthController(
 ) {
     private val projectionParser = projectionParserFactory.create(PrincipalInfo::class)
 
-    private val accessTokenScope = AsyncLazy {
+    private val accessTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("access-token:create")
     }
-    private val refreshTokenScope = AsyncLazy {
+    private val refreshTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("refresh-token:create")
     }
 
-    private val accessTokenFactory = AsyncLazy {
+    private val accessTokenFactory = SuspendLazy {
         tokenFactoryProvider.get(
             TokenTemplate(
                 type = "acs",
@@ -75,7 +75,7 @@ class AuthController(
             )
         )
     }
-    private val refreshTokenFactory = AsyncLazy {
+    private val refreshTokenFactory = SuspendLazy {
         tokenFactoryProvider.get(
             TokenTemplate(
                 type = "rfr",

@@ -4,7 +4,7 @@ class PoolingNestedQueryStorage<T : Any>(
     private val pool: Pool<QueryStorage<T>>,
     override val parent: PoolingNestedQueryStorage<T>? = null,
 ) : NestedQueryStorage<T> {
-    private val delegator = AsyncLazy { pool.pop().also { it.clear() } }
+    private val delegator = SuspendLazy { pool.pop().also { it.clear() } }
 
     override suspend fun getIfPresent(where: String, loader: suspend () -> T?): T? {
         return getIfPresent(where) ?: loader()?.also { put(where, it) }
