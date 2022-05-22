@@ -2,9 +2,9 @@ package io.github.siyual_park.data.cache
 
 import io.github.siyual_park.data.repository.Extractor
 
-class TransactionalStorage<T : Any, ID : Any>(
-    private val root: NestedStorage<T, ID>,
-) : Storage<T, ID> {
+class TransactionalStorage<ID : Any, T : Any>(
+    private val root: NestedStorage<ID, T>,
+) : Storage<ID, T> {
     private val provider = TransactionalStorageProvider(root)
 
     override suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {

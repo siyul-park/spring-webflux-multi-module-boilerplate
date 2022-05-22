@@ -1,50 +1,19 @@
 package io.github.siyual_park.data.cache
 
-import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
-import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class NestedStorageTest : CoroutineTestHelper() {
-    private val idExtractor = object : Extractor<Person, ULID> {
-        override fun getKey(entity: Person): ULID {
-            return entity.id
-        }
-    }
-    private val storage = NestedStorage(
-        LoadingPool {
-            InMemoryStorage(
-                { CacheBuilder.newBuilder() },
-                idExtractor
-            )
-        },
-        idExtractor
-    )
-
-    @BeforeEach
-    override fun setUp() {
-        super.setUp()
-
-        blocking {
-            storage.clear()
-            storage.createIndex(
-                "name",
-                object : Extractor<Person, String> {
-                    override fun getKey(entity: Person): String {
-                        return entity.name
-                    }
-                }
-            )
-        }
-    }
+abstract class NestedStorageTestHelper(
+    private val storage: NestedStorage<ULID, Person>
+) : StorageTestHelper(storage) {
 
     @Test
-    fun put() = blocking {
+    fun putInNested() = blocking {
+        storage.createIndex("name", nameIndex)
+
         val child1 = storage.fork()
         val child2 = child1.fork()
 
@@ -85,7 +54,9 @@ class NestedStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun remove() = blocking {
+    fun removeInNested() = blocking {
+        storage.createIndex("name", nameIndex)
+
         val child1 = storage.fork()
         val child2 = child1.fork()
 
@@ -137,7 +108,9 @@ class NestedStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun get() = blocking {
+    fun getInNested() = blocking {
+        storage.createIndex("name", nameIndex)
+
         val child1 = storage.fork()
         val child2 = child1.fork()
 

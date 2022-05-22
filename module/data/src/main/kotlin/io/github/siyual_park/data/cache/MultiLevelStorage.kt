@@ -4,16 +4,16 @@ import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.util.Reversed
 import java.util.Collections
 
-class MultiLevelStorage<T : Any, ID : Any>(
-    root: Storage<T, ID>
-) : Storage<T, ID> {
-    private val storages = Collections.synchronizedList(mutableListOf<Storage<T, ID>>())
+class MultiLevelStorage<ID : Any, T : Any>(
+    root: Storage<ID, T>
+) : Storage<ID, T> {
+    private val storages = Collections.synchronizedList(mutableListOf<Storage<ID, T>>())
 
     init {
         storages.add(root)
     }
 
-    fun register(storage: Storage<T, ID>): MultiLevelStorage<T, ID> {
+    fun register(storage: Storage<ID, T>): MultiLevelStorage<ID, T> {
         storages.add(storage)
         return this
     }
@@ -102,7 +102,7 @@ class MultiLevelStorage<T : Any, ID : Any>(
         return rootStorage().entries()
     }
 
-    private fun rootStorage(): Storage<T, ID> {
+    private fun rootStorage(): Storage<ID, T> {
         return storages.elementAt(0)
     }
 }

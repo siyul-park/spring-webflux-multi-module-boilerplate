@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.onEach
 
 class SimpleCachedRepository<T : Any, ID : Any>(
     private val delegator: Repository<T, ID>,
-    private val storage: Storage<T, ID>,
+    private val storage: Storage<ID, T>,
     private val idExtractor: Extractor<T, ID>
 ) : Repository<T, ID> {
 
