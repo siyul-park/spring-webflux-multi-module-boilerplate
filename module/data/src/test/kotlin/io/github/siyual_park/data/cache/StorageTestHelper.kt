@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 abstract class StorageTestHelper(
     private val storage: Storage<ULID, Person>
 ) : CoroutineTestHelper() {
-    private val nameIndex = object : Extractor<Person, String> {
+    protected val nameIndex = object : Extractor<Person, String> {
         override fun getKey(entity: Person): String {
             return entity.name
         }

@@ -1,36 +1,19 @@
 package io.github.siyual_park.data.cache
 
-import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
-import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 abstract class NestedStorageTestHelper(
     private val storage: NestedStorage<ULID, Person>
-) : CoroutineTestHelper() {
-    @BeforeEach
-    override fun setUp() {
-        super.setUp()
-
-        blocking {
-            storage.clear()
-            storage.createIndex(
-                "name",
-                object : Extractor<Person, String> {
-                    override fun getKey(entity: Person): String {
-                        return entity.name
-                    }
-                }
-            )
-        }
-    }
+) : StorageTestHelper(storage) {
 
     @Test
     fun putInNested() = blocking {
+        storage.createIndex("name", nameIndex)
+
         val child1 = storage.fork()
         val child2 = child1.fork()
 
@@ -72,6 +55,8 @@ abstract class NestedStorageTestHelper(
 
     @Test
     fun removeInNested() = blocking {
+        storage.createIndex("name", nameIndex)
+
         val child1 = storage.fork()
         val child2 = child1.fork()
 
@@ -124,6 +109,8 @@ abstract class NestedStorageTestHelper(
 
     @Test
     fun getInNested() = blocking {
+        storage.createIndex("name", nameIndex)
+
         val child1 = storage.fork()
         val child2 = child1.fork()
 
