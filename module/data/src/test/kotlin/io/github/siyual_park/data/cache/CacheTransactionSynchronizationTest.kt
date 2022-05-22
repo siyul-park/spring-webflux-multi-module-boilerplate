@@ -49,7 +49,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
     fun afterCompletion() = blocking {
         val reactiveChainedTransactionManager = ReactiveChainedTransactionManager()
         val transactionalOperator = TransactionalOperator.create(reactiveChainedTransactionManager)
-        val cacheTransactionSynchronization = CacheTransactionSynchronization<NestedStorage<Person, ULID>>()
+        val cacheTransactionSynchronization = CacheTransactionSynchronization<NestedStorage<ULID, Person>>()
 
         val reactiveTransactionManager = mockk<ReactiveTransactionManager>()
         val genericReactiveTransaction = GenericReactiveTransaction(

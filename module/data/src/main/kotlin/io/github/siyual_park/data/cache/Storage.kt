@@ -9,7 +9,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaField
 
-interface Storage<T : Any, ID : Any> {
+interface Storage<ID : Any, T : Any> {
     suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>)
     suspend fun removeIndex(name: String)
     suspend fun containsIndex(name: String): Boolean
@@ -32,7 +32,7 @@ interface Storage<T : Any, ID : Any> {
     suspend fun clear()
 }
 
-suspend fun <T : Any, ID : Any> Storage<T, ID>.createIndexes(clazz: KClass<T>, indexName: (KProperty1<T, *>) -> String = { it.name }) {
+suspend fun <ID : Any, T : Any> Storage<ID, T>.createIndexes(clazz: KClass<T>, indexName: (KProperty1<T, *>) -> String = { it.name }) {
     val indexes = mutableMapOf<String, MutableList<KProperty1<T, *>>>()
     clazz.memberProperties.forEach {
         val index = it.annotations.find { it is Key } as? Key ?: return@forEach

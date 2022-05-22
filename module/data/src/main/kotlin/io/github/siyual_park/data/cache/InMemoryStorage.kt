@@ -11,10 +11,10 @@ import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
-class InMemoryStorage<T : Any, ID : Any>(
+class InMemoryStorage<ID : Any, T : Any>(
     cacheBuilder: (() -> CacheBuilder<Any, Any>),
     private val idExtractor: Extractor<T, ID>
-) : Storage<T, ID> {
+) : Storage<ID, T> {
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
     private val extractors = Maps.newConcurrentMap<String, Extractor<T, *>>()
     private val mutexes = Collections.synchronizedMap(WeakHashMap<ID, Mutex>())

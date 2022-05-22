@@ -6,11 +6,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
-class PoolingNestedStorage<T : Any, ID : Any>(
-    private val pool: LoadingPool<Storage<T, ID>>,
+class PoolingNestedStorage<ID : Any, T : Any>(
+    private val pool: LoadingPool<Storage<ID, T>>,
     private val idExtractor: Extractor<T, ID>,
-    override val parent: PoolingNestedStorage<T, ID>? = null
-) : NestedStorage<T, ID> {
+    override val parent: NestedStorage<ID, T>? = null
+) : NestedStorage<ID, T> {
     private val delegator = AsyncLazy { pool.poll().also { it.clear() } }
     private val mutex = Mutex()
 
@@ -22,7 +22,7 @@ class PoolingNestedStorage<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun fork(): PoolingNestedStorage<T, ID> {
+    override suspend fun fork(): NestedStorage<ID, T> {
         return PoolingNestedStorage(
             pool,
             idExtractor,
@@ -34,7 +34,7 @@ class PoolingNestedStorage<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun merge(storage: NestedStorage<T, ID>) {
+    override suspend fun merge(storage: NestedStorage<ID, T>) {
         val (created, removed) = storage.diff()
         removed.forEach {
             remove(it)

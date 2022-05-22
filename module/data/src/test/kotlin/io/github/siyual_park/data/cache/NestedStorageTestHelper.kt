@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 abstract class NestedStorageTestHelper(
-    private val storage: NestedStorage<Person, ULID>
+    private val storage: NestedStorage<ULID, Person>
 ) : CoroutineTestHelper() {
     @BeforeEach
     override fun setUp() {
@@ -30,7 +30,7 @@ abstract class NestedStorageTestHelper(
     }
 
     @Test
-    fun put() = blocking {
+    fun putInNested() = blocking {
         val child1 = storage.fork()
         val child2 = child1.fork()
 
@@ -71,7 +71,7 @@ abstract class NestedStorageTestHelper(
     }
 
     @Test
-    fun remove() = blocking {
+    fun removeInNested() = blocking {
         val child1 = storage.fork()
         val child2 = child1.fork()
 
@@ -123,7 +123,7 @@ abstract class NestedStorageTestHelper(
     }
 
     @Test
-    fun get() = blocking {
+    fun getInNested() = blocking {
         val child1 = storage.fork()
         val child2 = child1.fork()
 

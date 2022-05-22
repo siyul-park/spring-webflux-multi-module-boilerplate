@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
 @Suppress("UNCHECKED_CAST")
 class CachedMongoRepository<T : Any, ID : Any>(
     private val delegator: MongoRepository<T, ID>,
-    private val storage: Storage<T, ID>,
+    private val storage: Storage<ID, T>,
     private val idExtractor: Extractor<T, ID>,
 ) : MongoRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(

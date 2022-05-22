@@ -5,20 +5,15 @@ import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.repository.Extractor
 import io.github.siyual_park.ulid.ULID
 
-class PoolingNestedStorageTest : NestedStorageTestHelper(
+class InMemoryStorageTest : StorageTestHelper(
     run {
         val idExtractor = object : Extractor<Person, ULID> {
             override fun getKey(entity: Person): ULID {
                 return entity.id
             }
         }
-        PoolingNestedStorage(
-            LoadingPool {
-                InMemoryStorage(
-                    { CacheBuilder.newBuilder() },
-                    idExtractor
-                )
-            },
+        InMemoryStorage(
+            { CacheBuilder.newBuilder() },
             idExtractor
         )
     }
