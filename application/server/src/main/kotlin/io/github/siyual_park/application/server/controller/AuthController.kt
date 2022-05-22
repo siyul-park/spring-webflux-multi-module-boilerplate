@@ -148,7 +148,7 @@ class AuthController(
         }
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/principal")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'principal[self]:read')")
@@ -159,7 +159,7 @@ class AuthController(
         return mapperContext.map(Projection(principal, projectionParser.parse(fields)))
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @DeleteMapping("/principal")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'principal[self]:delete')")

@@ -60,7 +60,7 @@ class ScopeController(
 
     private val offsetPaginator = OffsetPaginator(scopeTokenStorage)
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'scope:create')")
@@ -78,7 +78,7 @@ class ScopeController(
         return mapperContext.map(Projection(scopeToken, projectionNode))
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope:read')")
@@ -111,7 +111,7 @@ class ScopeController(
         return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope:read')")
@@ -124,7 +124,7 @@ class ScopeController(
         return mapperContext.map(Projection(scopeToken, projectionNode))
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PatchMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'scope:update')")
@@ -151,7 +151,7 @@ class ScopeController(
         mapperContext.map(Projection(scopeToken, projectionNode))
     }!!
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @DeleteMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'scope:delete')")

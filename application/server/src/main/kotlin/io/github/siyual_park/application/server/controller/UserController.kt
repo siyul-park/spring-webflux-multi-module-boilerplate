@@ -67,7 +67,7 @@ class UserController(
 
     private val offsetPaginator = OffsetPaginator(userStorage)
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'users:create')")
@@ -85,7 +85,7 @@ class UserController(
         return mapperContext.map(Projection(user, projectionNode))
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'users:read')")
@@ -118,7 +118,7 @@ class UserController(
         return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/self")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'users[self]:read')")
@@ -129,7 +129,7 @@ class UserController(
         return read(principal.userId ?: throw EmptyResultDataAccessException(1), fields)
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
@@ -142,7 +142,7 @@ class UserController(
         return mapperContext.map(Projection(user, projectionNode))
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PatchMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #userId}, {'users:update', 'users[self]:update'})")
@@ -178,7 +178,7 @@ class UserController(
         mapperContext.map(Projection(user, projectionNode))
     }!!
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @DeleteMapping("/{user-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #userId}, {'users:delete', 'users[self]:delete'})")

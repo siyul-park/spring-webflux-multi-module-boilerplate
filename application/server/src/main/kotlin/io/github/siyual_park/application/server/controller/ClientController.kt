@@ -66,7 +66,7 @@ class ClientController(
 
     private val offsetPaginator = OffsetPaginator(clientStorage)
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasPermission(null, 'clients:create')")
@@ -84,7 +84,7 @@ class ClientController(
         return mapperContext.map(Projection(client, projectionNode))
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'clients:read')")
@@ -122,7 +122,7 @@ class ClientController(
         return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/self")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'clients[self]:read')")
@@ -133,7 +133,7 @@ class ClientController(
         return read(principal.clientId ?: throw EmptyResultDataAccessException(1), fields)
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
@@ -146,7 +146,7 @@ class ClientController(
         return mapperContext.map(Projection(client, projectionNode))
     }
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PatchMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:update', 'clients[self]:update'})")
@@ -173,7 +173,7 @@ class ClientController(
         mapperContext.map(Projection(client, projectionNode))
     }!!
 
-    @Operation(security = [SecurityRequirement(name = "bearer")])
+    @Operation(security = [SecurityRequirement(name = "Bearer")])
     @DeleteMapping("/{client-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission({null, #clientId}, {'clients:delete', 'clients[self]:delete'})")

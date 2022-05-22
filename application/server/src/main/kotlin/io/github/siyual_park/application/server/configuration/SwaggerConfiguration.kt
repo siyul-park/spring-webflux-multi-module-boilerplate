@@ -48,8 +48,8 @@ class SwaggerConfiguration {
             .components(
                 Components()
                     .addSecuritySchemes(
-                        "bearer",
-                        SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("bearer")
+                        "Bearer",
+                        SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("Bearer")
                     )
             )
     }
