@@ -101,7 +101,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
         removed?.clear()
         delegator.pop()?.let {
             it.clear()
-            pool.push(delegator.get())
+            pool.push(it)
         }
     }
 
