@@ -28,7 +28,7 @@ class Pool<T : Any>(
 
     suspend fun poll(): T? {
         return mutex.withLock {
-            store.singleOrNull()?.also { store.remove(it) }
+            store.firstOrNull()?.also { store.remove(it) }
         }
     }
 
