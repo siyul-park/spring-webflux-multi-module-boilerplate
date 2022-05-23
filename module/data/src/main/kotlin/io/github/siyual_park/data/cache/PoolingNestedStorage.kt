@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.cache
 
 import com.google.common.collect.Sets
-import io.github.siyual_park.data.repository.Extractor
+import io.github.siyual_park.data.Extractor
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class PoolingNestedStorage<ID : Any, T : Any>(

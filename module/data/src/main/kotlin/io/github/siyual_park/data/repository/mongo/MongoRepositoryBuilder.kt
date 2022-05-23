@@ -5,7 +5,7 @@ import io.github.siyual_park.data.cache.InMemoryStorage
 import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.cache.PoolingNestedStorage
 import io.github.siyual_park.data.cache.TransactionalStorage
-import io.github.siyual_park.data.repository.Extractor
+import io.github.siyual_park.data.Extractor
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate

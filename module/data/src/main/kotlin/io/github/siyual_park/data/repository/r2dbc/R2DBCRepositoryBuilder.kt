@@ -8,7 +8,7 @@ import io.github.siyual_park.data.cache.PoolingNestedQueryStorage
 import io.github.siyual_park.data.cache.PoolingNestedStorage
 import io.github.siyual_park.data.cache.TransactionalQueryStorage
 import io.github.siyual_park.data.cache.TransactionalStorage
-import io.github.siyual_park.data.repository.Extractor
+import io.github.siyual_park.data.Extractor
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import kotlin.reflect.KClass

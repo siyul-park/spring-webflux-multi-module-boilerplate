@@ -1,6 +1,6 @@
 package io.github.siyual_park.data.cache
 
-import io.github.siyual_park.data.repository.Extractor
+import io.github.siyual_park.data.Extractor
 
 class TransactionalStorage<ID : Any, T : Any>(
     private val root: NestedStorage<ID, T>,

@@ -3,7 +3,7 @@ package io.github.siyual_park.data.cache
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.Maps
-import io.github.siyual_park.data.repository.Extractor
+import io.github.siyual_park.data.Extractor
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Collections

@@ -3,7 +3,7 @@ package io.github.siyual_park.data.cache
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
-import io.github.siyual_park.data.repository.Extractor
+import io.github.siyual_park.data.Extractor
 import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
