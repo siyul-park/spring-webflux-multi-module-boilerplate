@@ -17,7 +17,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
         Sets.newConcurrentHashSet<ID>()
     }
 
-    override suspend fun diff(): Map<ID, T?> {
+    override suspend fun checkout(): Map<ID, T?> {
         val map = mutableMapOf<ID, T?>()
         delegator.get().entries().forEach {
             map[it.first] = it.second
@@ -44,7 +44,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     }
 
     override suspend fun merge(storage: NestedStorage<ID, T>) {
-        val diff = storage.diff()
+        val diff = storage.checkout()
 
         diff.forEach { (key, value) ->
             if (value != null) {

@@ -48,10 +48,8 @@ class CacheProvider<K : Any, T : Any>(
     }
 
     suspend fun put(key: K, value: T) {
-        if (value != null) {
-            updated = true
-            cache.put(key, value)
-        }
+        updated = true
+        cache.put(key, value)
     }
 
     suspend fun remove(key: K) {

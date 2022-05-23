@@ -1,5 +1,4 @@
 dependencies {
-    implementation(project(":module:ulid"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

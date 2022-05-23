@@ -93,7 +93,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
 
             cacheTransactionSynchronization.afterCompletion(TransactionSynchronization.STATUS_COMMITTED).awaitSingleOrNull()
 
-            val diff = child.diff()
+            val diff = child.checkout()
             assertEquals(0, diff.size)
             assertEquals(person, child.getIfPresent(person.id))
             assertEquals(person, storage.getIfPresent(person.id))
@@ -112,7 +112,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
 
             cacheTransactionSynchronization.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK).awaitSingleOrNull()
 
-            val diff = child.diff()
+            val diff = child.checkout()
             assertEquals(0, diff.size)
             assertNull(child.getIfPresent(person.id))
             assertNull(storage.getIfPresent(person.id))

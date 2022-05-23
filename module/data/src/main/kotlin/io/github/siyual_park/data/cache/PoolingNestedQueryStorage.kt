@@ -49,7 +49,7 @@ class PoolingNestedQueryStorage<T : Any>(
         return delegator.get().entries()
     }
 
-    override suspend fun diff(): Pair<Set<Pair<String, T>>, Set<Pair<SelectQuery, Collection<T>>>> {
+    override suspend fun checkout(): Pair<Set<Pair<String, T>>, Set<Pair<SelectQuery, Collection<T>>>> {
         return entries().also {
             delegator.pop()?.let {
                 it.clear()
@@ -63,7 +63,7 @@ class PoolingNestedQueryStorage<T : Any>(
     }
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {
-        val (single, multi) = storage.diff()
+        val (single, multi) = storage.checkout()
         delegator.get().also {
             single.forEach { (key, value) ->
                 it.put(key, value)
