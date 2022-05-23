@@ -23,12 +23,10 @@ import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
-import io.github.siyual_park.user.entity.UserEntity
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.toSet
-import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -116,17 +114,6 @@ class UserController(
         )
 
         return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
-    }
-
-    @Operation(security = [SecurityRequirement(name = "Bearer")])
-    @GetMapping("/self")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'users[self]:read')")
-    suspend fun readSelf(
-        @AuthenticationPrincipal principal: UserEntity,
-        @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): UserInfo {
-        return read(principal.userId ?: throw EmptyResultDataAccessException(1), fields)
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])

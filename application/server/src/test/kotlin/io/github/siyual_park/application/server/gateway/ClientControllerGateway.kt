@@ -56,14 +56,6 @@ class ClientControllerGateway(
             .returnResult(ClientInfo::class.java)
     }
 
-    suspend fun readSelf(): FluxExchangeResult<ClientInfo> {
-        return client.get()
-            .uri("/clients/self")
-            .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
-            .exchange()
-            .returnResult(ClientInfo::class.java)
-    }
-
     suspend fun read(clientId: ULID): FluxExchangeResult<ClientInfo> {
         return client.get()
             .uri("/clients/$clientId")

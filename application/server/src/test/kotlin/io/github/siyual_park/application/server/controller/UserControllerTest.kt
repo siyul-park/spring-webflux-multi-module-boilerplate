@@ -165,44 +165,6 @@ class UserControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `GET users_self, status = 200`() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = user.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            push = listOf("users[self]:read")
-        )
-
-        val response = userControllerGateway.readSelf()
-
-        assertEquals(HttpStatus.OK, response.status)
-
-        val userInfo = response.responseBody.awaitSingle()
-
-        assertEquals(user.id, userInfo.id?.orElse(null))
-        assertEquals(user.name, userInfo.name?.orElse(null))
-        assertNotNull(userInfo.createdAt?.orElse(null))
-        assertNotNull(userInfo.updatedAt?.orElse(null))
-    }
-
-    @Test
-    fun `GET users_self, status = 403`() = blocking {
-        val payload = DummyCreateUserPayload.create()
-        val user = userFactory.create(payload)
-        val principal = user.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            pop = listOf("users[self]:read")
-        )
-
-        val response = userControllerGateway.readSelf()
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
     fun `GET users_{self-id}, status = 200`() = blocking {
         val payload = DummyCreateUserPayload.create()
         val user = userFactory.create(payload)

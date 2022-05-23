@@ -12,7 +12,6 @@ import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientData
-import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.data.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
@@ -28,10 +27,8 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.toSet
-import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -120,17 +117,6 @@ class ClientController(
         )
 
         return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
-    }
-
-    @Operation(security = [SecurityRequirement(name = "Bearer")])
-    @GetMapping("/self")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'clients[self]:read')")
-    suspend fun readSelf(
-        @AuthenticationPrincipal principal: ClientEntity,
-        @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ClientInfo {
-        return read(principal.clientId ?: throw EmptyResultDataAccessException(1), fields)
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
