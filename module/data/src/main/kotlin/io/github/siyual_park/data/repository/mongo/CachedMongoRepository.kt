@@ -1,8 +1,9 @@
 package io.github.siyual_park.data.repository.mongo
 
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.cache.Storage
 import io.github.siyual_park.data.cache.createIndexes
+import io.github.siyual_park.data.cache.getIndexNameAndValue
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
@@ -29,12 +30,12 @@ import kotlin.reflect.KClass
 class CachedMongoRepository<T : Any, ID : Any>(
     private val delegator: MongoRepository<T, ID>,
     private val storage: Storage<ID, T>,
-    private val idExtractor: Extractor<T, ID>,
+    private val id: WeekProperty<T, ID>,
 ) : MongoRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(
         delegator,
         storage,
-        idExtractor,
+        id,
     ) {
 
     override val template: ReactiveMongoTemplate
@@ -182,7 +183,7 @@ class CachedMongoRepository<T : Any, ID : Any>(
             delegator.deleteAll()
         } else {
             val founded = findAll(criteria, limit, offset, sort)
-                .onEach { idExtractor.getKey(it)?.let { id -> storage.remove(id) } }
+                .onEach { id.get(it).let { id -> storage.remove(id) } }
                 .toList()
 
             delegator.deleteAll(founded)
@@ -194,18 +195,8 @@ class CachedMongoRepository<T : Any, ID : Any>(
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
         val (columns, values) = columnsAndValues
-        val sorted = columns.mapIndexed { index, column -> column to values[index] }
-            .sortedBy { (column, _) -> column }
 
-        val indexName = sorted.joinToString(" ") { (column, _) -> column }
-        val value = ArrayList<Any?>()
-        sorted.forEach { (_, it) -> value.add(it) }
-
-        if (!storage.containsIndex(indexName)) {
-            return null
-        }
-
-        return indexName to value
+        return storage.getIndexNameAndValue(columns, values)
     }
 
     private fun getSimpleJoinedColumnsAndValues(criteria: CriteriaDefinition): Pair<MutableList<String>, MutableList<Any?>>? {

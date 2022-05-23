@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.repository.mongo
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.cache.InMemoryStorage
 import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.cache.PoolingNestedStorage
@@ -42,25 +42,25 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
         )
 
         return if (cacheBuilder != null) {
-            val idExtractor = createIdExtractor(current)
+            val id = createIdProperty()
             val storage = TransactionalStorage(
-                PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, idExtractor) }, idExtractor)
+                PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, id) }, id)
             )
 
-            CachedMongoRepository(current, storage, idExtractor)
+            CachedMongoRepository(current, storage, id)
         } else {
             return current
         }
     }
 
-    private fun <T : Any, ID : Any> createIdExtractor(repository: MongoRepository<T, ID>): Extractor<T, ID> {
+    private fun createIdProperty(): WeekProperty<T, ID> {
         val idProperty = (
-            repository.clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
+            clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
                 ?: throw RuntimeException()
             ) as KProperty1<T, ID>
 
-        return object : Extractor<T, ID> {
-            override fun getKey(entity: T): ID {
+        return object : WeekProperty<T, ID> {
+            override fun get(entity: T): ID {
                 return idProperty.get(entity)
             }
         }

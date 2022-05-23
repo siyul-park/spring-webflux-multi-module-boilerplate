@@ -15,11 +15,9 @@ import org.springframework.data.relational.core.query.CriteriaDefinition
 
 class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     private val delegator: R2DBCRepository<T, ID>,
-    private val storage: QueryStorage<T>
+    private val storage: QueryStorage<T>,
+    private val entityManager: EntityManager<T, ID>,
 ) : R2DBCRepository<T, ID> {
-    override val entityManager: EntityManager<T, ID>
-        get() = delegator.entityManager
-
     override suspend fun create(entity: T): T {
         storage.clear()
         return delegator.create(entity)
@@ -55,7 +53,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findById(id: ID): T? {
-        return storage.getIfPresent(where(entityManager.idProperty).`is`(id).toString()) {
+        return storage.getIfPresent(where(entityManager.getIdColumnName()).`is`(id).toString()) {
             delegator.findById(id)
         }
     }
@@ -70,7 +68,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         if (ids.count() == 0) {
             return emptyFlow()
         }
-        val query = SelectQuery(where(entityManager.idProperty).`in`(ids.toList()).toString(), ids.count(), null, null)
+        val query = SelectQuery(where(entityManager.getIdColumnName()).`in`(ids.toList()).toString(), ids.count(), null, null)
         return storage.get(query) {
             delegator.findAllById(ids)
         }

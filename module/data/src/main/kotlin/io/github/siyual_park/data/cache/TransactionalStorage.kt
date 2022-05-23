@@ -1,14 +1,14 @@
 package io.github.siyual_park.data.cache
 
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 
 class TransactionalStorage<ID : Any, T : Any>(
     private val root: NestedStorage<ID, T>,
 ) : Storage<ID, T> {
     private val provider = TransactionalStorageProvider(root)
 
-    override suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
-        root.createIndex(name, extractor)
+    override suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>) {
+        root.createIndex(name, property)
     }
 
     override suspend fun removeIndex(name: String) {
@@ -19,8 +19,8 @@ class TransactionalStorage<ID : Any, T : Any>(
         return root.containsIndex(name)
     }
 
-    override suspend fun getExtractors(): Map<String, Extractor<T, *>> {
-        return root.getExtractors()
+    override suspend fun getIndexes(): Map<String, WeekProperty<T, *>> {
+        return root.getIndexes()
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {

@@ -1,6 +1,6 @@
 package io.github.siyual_park.data.repository.cache
 
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.cache.Storage
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.onEach
 class SimpleCachedRepository<T : Any, ID : Any>(
     private val delegator: Repository<T, ID>,
     private val storage: Storage<ID, T>,
-    private val idExtractor: Extractor<T, ID>
+    private val id: WeekProperty<T, ID>
 ) : Repository<T, ID> {
 
     override suspend fun create(entity: T): T {
@@ -89,8 +89,8 @@ class SimpleCachedRepository<T : Any, ID : Any>(
             emitAll(
                 result.also {
                     it.sortWith { p1, p2 ->
-                        val p1Id = idExtractor.getKey(p1)
-                        val p2Id = idExtractor.getKey(p2)
+                        val p1Id = id.get(p1)
+                        val p2Id = id.get(p2)
 
                         ids.indexOf(p1Id) - ids.indexOf(p2Id)
                     }
@@ -179,7 +179,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun delete(entity: T) {
-        idExtractor.getKey(entity)?.let { storage.remove(it) }
+        id.get(entity)?.let { storage.remove(it) }
         delegator.delete(entity)
     }
 
@@ -189,7 +189,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
-        entities.forEach { idExtractor.getKey(it)?.let { id -> storage.remove(id) } }
+        entities.forEach { id.get(it)?.let { id -> storage.remove(id) } }
         delegator.deleteAll(entities)
     }
 

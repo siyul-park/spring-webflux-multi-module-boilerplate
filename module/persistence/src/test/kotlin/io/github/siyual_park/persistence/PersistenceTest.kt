@@ -2,6 +2,7 @@ package io.github.siyual_park.persistence
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.repository.findByIdOrFail
+import io.github.siyual_park.data.repository.r2dbc.EntityManager
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
@@ -110,13 +111,28 @@ class PersistenceTest : DataTestHelper() {
 
     private fun repositories(): List<R2DBCRepository<PersonData, ULID>> {
         return listOf(
-            SimpleR2DBCRepository(entityOperations, PersonData::class),
+            SimpleR2DBCRepository(EntityManager(entityOperations, PersonData::class)),
             R2DBCRepositoryBuilder<PersonData, ULID>(entityOperations, PersonData::class)
                 .enableCache {
                     CacheBuilder.newBuilder()
                         .softValues()
                         .expireAfterAccess(Duration.ofMinutes(2))
                         .expireAfterWrite(Duration.ofMinutes(5))
+                        .maximumSize(1_000)
+                }
+                .build(),
+            R2DBCRepositoryBuilder<PersonData, ULID>(entityOperations, PersonData::class)
+                .enableCache {
+                    CacheBuilder.newBuilder()
+                        .softValues()
+                        .expireAfterAccess(Duration.ofMinutes(2))
+                        .expireAfterWrite(Duration.ofMinutes(5))
+                        .maximumSize(1_000)
+                }
+                .enableQueryCache {
+                    CacheBuilder.newBuilder()
+                        .softValues()
+                        .expireAfterWrite(Duration.ofSeconds(1))
                         .maximumSize(1_000)
                 }
                 .build()

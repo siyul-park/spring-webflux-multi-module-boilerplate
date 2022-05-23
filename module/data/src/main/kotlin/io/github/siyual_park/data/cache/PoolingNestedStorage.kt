@@ -1,12 +1,12 @@
 package io.github.siyual_park.data.cache
 
 import com.google.common.collect.Sets
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class PoolingNestedStorage<ID : Any, T : Any>(
     private val pool: Pool<Storage<ID, T>>,
-    private val idExtractor: Extractor<T, ID>,
+    private val id: WeekProperty<T, ID>,
     override val parent: NestedStorage<ID, T>? = null
 ) : NestedStorage<ID, T> {
     private val delegator = SuspendLazy { pool.pop().also { it.clear() } }
@@ -34,11 +34,11 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     override suspend fun fork(): NestedStorage<ID, T> {
         return PoolingNestedStorage(
             pool,
-            idExtractor,
+            id,
             this
         ).also {
-            getExtractors().forEach { (name, extractor) ->
-                it.createIndex(name, extractor as Extractor<T, Any>)
+            getIndexes().forEach { (name, extractor) ->
+                it.createIndex(name, extractor as WeekProperty<T, Any>)
             }
         }
     }
@@ -55,16 +55,16 @@ class PoolingNestedStorage<ID : Any, T : Any>(
         }
     }
 
-    override suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
-        delegator.get().createIndex(name, extractor)
+    override suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>) {
+        delegator.get().createIndex(name, property)
     }
 
     override suspend fun removeIndex(name: String) {
         delegator.get().removeIndex(name)
     }
 
-    override suspend fun getExtractors(): Map<String, Extractor<T, *>> {
-        return delegator.get().getExtractors()
+    override suspend fun getIndexes(): Map<String, WeekProperty<T, *>> {
+        return delegator.get().getIndexes()
     }
 
     override suspend fun containsIndex(name: String): Boolean {
@@ -94,7 +94,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
 
     override suspend fun add(entity: T) {
         delegator.get().add(entity)
-        removed?.remove(idExtractor.getKey(entity))
+        removed?.remove(id.get(entity))
     }
 
     override suspend fun clear() {
@@ -111,7 +111,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
 
     private suspend fun guard(loader: suspend () -> T?): T? {
         return loader()?.let {
-            if (removed == null || !removed.contains(idExtractor.getKey(it))) {
+            if (removed == null || !removed.contains(id.get(it))) {
                 it
             } else {
                 null

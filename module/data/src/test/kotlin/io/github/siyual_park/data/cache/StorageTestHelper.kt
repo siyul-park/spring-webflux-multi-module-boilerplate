@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.cache
 
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.ulid.ULID
@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test
 abstract class StorageTestHelper(
     private val storage: Storage<ULID, Person>
 ) : CoroutineTestHelper() {
-    protected val nameIndex = object : Extractor<Person, String> {
-        override fun getKey(entity: Person): String {
+    protected val nameIndex = object : WeekProperty<Person, String> {
+        override fun get(entity: Person): String {
             return entity.name
         }
     }
@@ -52,10 +52,10 @@ abstract class StorageTestHelper(
     }
 
     @Test
-    fun getExtractors() = blocking {
-        assertEquals(emptyMap<String, Extractor<Person, *>>(), storage.getExtractors())
+    fun getIndexes() = blocking {
+        assertEquals(emptyMap<String, WeekProperty<Person, *>>(), storage.getIndexes())
         storage.createIndex("name", nameIndex)
-        assertEquals(mapOf("name" to nameIndex), storage.getExtractors())
+        assertEquals(mapOf("name" to nameIndex), storage.getIndexes())
     }
 
     @Test

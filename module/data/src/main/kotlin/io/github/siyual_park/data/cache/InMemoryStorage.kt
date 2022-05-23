@@ -3,7 +3,7 @@ package io.github.siyual_park.data.cache
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.Maps
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Collections
@@ -13,18 +13,18 @@ import java.util.concurrent.ConcurrentHashMap
 @Suppress("UNCHECKED_CAST")
 class InMemoryStorage<ID : Any, T : Any>(
     cacheBuilder: (() -> CacheBuilder<Any, Any>),
-    private val idExtractor: Extractor<T, ID>
+    private val id: WeekProperty<T, ID>
 ) : Storage<ID, T> {
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
-    private val extractors = Maps.newConcurrentMap<String, Extractor<T, *>>()
+    private val properties = Maps.newConcurrentMap<String, WeekProperty<T, *>>()
     private val mutexes = Collections.synchronizedMap(WeakHashMap<ID, Mutex>())
 
     private val cache: Cache<ID, T> = cacheBuilder()
         .removalListener<ID, T> {
             it.value?.let { entity ->
                 indexes.forEach { (name, index) ->
-                    val extractor = extractors[name] ?: return@forEach
-                    index.remove(extractor.getKey(entity))
+                    val extractor = properties[name] ?: return@forEach
+                    index.remove(extractor.get(entity))
                 }
             }
             it.key?.let { id ->
@@ -32,18 +32,18 @@ class InMemoryStorage<ID : Any, T : Any>(
             }
         }.build()
 
-    override suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
+    override suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>) {
         indexes[name] = ConcurrentHashMap<KEY, ID>()
-        extractors[name] = extractor
+        properties[name] = property
     }
 
     override suspend fun removeIndex(name: String) {
         indexes.remove(name)
-        extractors.remove(name)
+        properties.remove(name)
     }
 
-    override suspend fun getExtractors(): Map<String, Extractor<T, *>> {
-        return extractors
+    override suspend fun getIndexes(): Map<String, WeekProperty<T, *>> {
+        return properties
     }
 
     override suspend fun containsIndex(name: String): Boolean {
@@ -66,7 +66,7 @@ class InMemoryStorage<ID : Any, T : Any>(
             if (entity == null) {
                 null
             } else {
-                idExtractor.getKey(entity)?.let {
+                this.id.get(entity).let {
                     this.getIfPresent(it) { entity }
                 }
             }
@@ -97,15 +97,15 @@ class InMemoryStorage<ID : Any, T : Any>(
     }
 
     override suspend fun add(entity: T) {
-        val id = idExtractor.getKey(entity) ?: return
+        val id = id.get(entity)
         cache.put(id, entity)
 
         indexes.forEach { (name, index) ->
-            val extractor = extractors[name] ?: return@forEach
-            val key = extractor.getKey(entity) ?: return@forEach
+            val property = properties[name] ?: return@forEach
+            val key = property.get(entity) ?: return@forEach
 
             index as MutableMap<Any, ID>
-            extractor as Extractor<T, Any>
+            property as WeekProperty<T, Any>
 
             index[key] = id
         }

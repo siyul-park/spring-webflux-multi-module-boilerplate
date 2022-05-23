@@ -10,7 +10,6 @@ import org.springframework.data.r2dbc.support.ArrayUtils
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty
 import org.springframework.data.relational.core.sql.SqlIdentifier
-import org.springframework.data.util.ProxyUtils
 import org.springframework.r2dbc.core.Parameter
 import org.springframework.util.CollectionUtils
 import kotlin.reflect.KClass
@@ -20,8 +19,8 @@ import kotlin.reflect.jvm.javaField
 
 @Suppress("UNCHECKED_CAST")
 class EntityManager<T : Any, ID : Any>(
-    entityOperations: R2dbcEntityOperations,
-    val clazz: KClass<T>,
+    private val entityOperations: R2dbcEntityOperations,
+    private val clazz: KClass<T>,
 ) {
     private val client = entityOperations.databaseClient
     private val converter = entityOperations.converter
@@ -30,23 +29,19 @@ class EntityManager<T : Any, ID : Any>(
 
     private val mappingContext = converter.mappingContext
 
-    private val idGetter: KProperty1<T, ID>
-    val idColumn: SqlIdentifier
-    val idProperty: String
+    private val requiredEntity = mappingContext.getRequiredPersistentEntity(clazz.java)
 
-    init {
-        val persistentEntity = getRequiredEntity(clazz.java)
-
-        idColumn = persistentEntity.requiredIdProperty.columnName
-        idProperty = updateManager.toSql(idColumn)
-        idGetter = (
-            clazz.memberProperties.find { columnName(it) == idProperty }
+    private val idColumnName = requiredEntity.requiredIdProperty.columnName
+    private val simpleIdColumnName = updateManager.toSql(idColumnName)
+    private val idProperty = run {
+        (
+            clazz.memberProperties.find { columnName(it) == simpleIdColumnName }
                 ?: throw RuntimeException("")
             ) as KProperty1<T, ID>
     }
 
     fun getId(entity: T): ID {
-        return idGetter.get(entity)
+        return idProperty.get(entity)
     }
 
     fun getOutboundRow(entity: T): OutboundRow {
@@ -54,8 +49,7 @@ class EntityManager<T : Any, ID : Any>(
 
         converter.write(entity, row)
 
-        val persistentEntity = getRequiredEntity(entity)
-        for (property in persistentEntity) {
+        for (property in requiredEntity) {
             val value = row[property.columnName]
             if (value.value != null && shouldConvertArrayValue(property, value)) {
                 val writeValue = getArrayValue(value, property)
@@ -109,19 +103,24 @@ class EntityManager<T : Any, ID : Any>(
         )
     }
 
-    fun getRequiredEntity(entity: T): RelationalPersistentEntity<T> {
-        val entityType = ProxyUtils.getUserClass(entity)
-        return getRequiredEntity(entityType) as RelationalPersistentEntity<T>
+    fun getIdColumnName(): String {
+        return simpleIdColumnName
     }
 
-    fun getRequiredEntity(entityClass: Class<*>): RelationalPersistentEntity<*> {
-        return mappingContext.getRequiredPersistentEntity(entityClass)
+    fun getRequiredEntity(): RelationalPersistentEntity<*> {
+        return requiredEntity
     }
 
     fun getProperty(sql: SqlIdentifier): KProperty1<T, *>? {
-        val requiredEntity = mappingContext.getRequiredPersistentEntity(clazz.java)
         val current = requiredEntity.find { it.columnName == sql } ?: return null
-
         return clazz.memberProperties.find { it.javaField == current.field }
+    }
+
+    fun getOperations(): R2dbcEntityOperations {
+        return entityOperations
+    }
+
+    fun getClass(): KClass<T> {
+        return clazz
     }
 }

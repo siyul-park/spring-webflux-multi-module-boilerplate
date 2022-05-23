@@ -2,7 +2,7 @@ package io.github.siyual_park.data.cache
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.transaction.ReactiveChainedTransactionManager
@@ -67,8 +67,8 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
 
         reactiveChainedTransactionManager.registerTransactionManager(reactiveTransactionManager)
 
-        val idExtractor = object : Extractor<Person, ULID> {
-            override fun getKey(entity: Person): ULID {
+        val idProperty = object : WeekProperty<Person, ULID> {
+            override fun get(entity: Person): ULID {
                 return entity.id
             }
         }
@@ -76,10 +76,10 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
             Pool {
                 InMemoryStorage(
                     { CacheBuilder.newBuilder() },
-                    idExtractor
+                    idProperty
                 )
             },
-            idExtractor
+            idProperty
         )
 
         transactionalOperator.executeAndAwait {

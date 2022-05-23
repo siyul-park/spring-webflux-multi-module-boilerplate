@@ -26,7 +26,6 @@ import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.asFlux
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.domain.Sort
-import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.r2dbc.mapping.OutboundRow
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.CriteriaDefinition
@@ -35,21 +34,27 @@ import org.springframework.data.relational.core.query.Update
 import org.springframework.data.relational.core.sql.SqlIdentifier
 import org.springframework.r2dbc.core.Parameter
 import reactor.core.scheduler.Schedulers
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
 class SimpleR2DBCRepository<T : Any, ID : Any>(
-    private val entityOperations: R2dbcEntityOperations,
-    private val clazz: KClass<T>,
+    private val entityManager: EntityManager<T, ID>,
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
-    private val generatedValueColumn: Set<SqlIdentifier>
+    private val entityOperations = entityManager.getOperations()
+    private val clazz = entityManager.getClass()
 
-    override val entityManager = EntityManager<T, ID>(entityOperations, clazz)
+    private val generatedValueColumn = run {
+        val requiredEntity = entityManager.getRequiredEntity()
 
-    init {
-        generatedValueColumn = getAnnotatedSqlIdentifier(GeneratedValue::class)
+        val annotatedValueSqlIdentifier = mutableListOf<SqlIdentifier>()
+        requiredEntity.forEach {
+            if (it.isAnnotationPresent(GeneratedValue::class.java)) {
+                annotatedValueSqlIdentifier.add(it.columnName)
+            }
+        }
+
+        annotatedValueSqlIdentifier.toSet()
     }
 
     override suspend fun create(entity: T): T {
@@ -60,7 +65,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             .awaitSingle()
 
         return entityOperations.select(
-            query(where(entityManager.idProperty).`is`(saved))
+            query(where(entityManager.getIdColumnName()).`is`(saved))
                 .limit(1),
             clazz.java
         )
@@ -81,7 +86,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             if (saved.isNotEmpty()) {
                 emitAll(
                     entityOperations.select(
-                        query(where(entityManager.idProperty).`in`(saved.map { entityManager.getId(it) }))
+                        query(where(entityManager.getIdColumnName()).`in`(saved.map { entityManager.getId(it) }))
                             .limit(saved.size),
                         clazz.java
                     )
@@ -101,7 +106,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun existsById(id: ID): Boolean {
-        return exists(where(entityManager.idProperty).`is`(id))
+        return exists(where(entityManager.getIdColumnName()).`is`(id))
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
@@ -114,7 +119,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findById(id: ID): T? {
-        return findOne(where(entityManager.idProperty).`is`(id))
+        return findOne(where(entityManager.getIdColumnName()).`is`(id))
     }
 
     override suspend fun findOne(criteria: CriteriaDefinition): T? {
@@ -161,7 +166,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         }
 
         return findAll(
-            where(entityManager.idProperty).`in`(ids.toList()),
+            where(entityManager.getIdColumnName()).`in`(ids.toList()),
             limit = ids.count()
         )
             .asFlux()
@@ -248,7 +253,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
 
         val updateCount = entityOperations.update(
-            query(where(entityManager.idProperty).`is`(entityManager.getId(entity)))
+            query(where(entityManager.getIdColumnName()).`is`(entityManager.getId(entity)))
                 .limit(1),
             Update.from(diff as Map<SqlIdentifier, Any>),
             clazz.java
@@ -278,14 +283,14 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteById(id: ID) {
-        deleteAll(where(entityManager.idProperty).`is`(id))
+        deleteAll(where(entityManager.getIdColumnName()).`is`(id))
     }
 
     override suspend fun delete(entity: T) {
         eventPublisher?.publish(BeforeDeleteEvent(entity))
 
         val id = entityManager.getId(entity)
-        entityOperations.delete(query(where(entityManager.idProperty).`is`(id)), clazz.java)
+        entityOperations.delete(query(where(entityManager.getIdColumnName()).`is`(id)), clazz.java)
             .subscribeOn(Schedulers.parallel())
             .awaitSingle()
 
@@ -297,7 +302,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             return
         }
 
-        deleteAll(where(entityManager.idProperty).`in`(ids.toList()))
+        deleteAll(where(entityManager.getIdColumnName()).`in`(ids.toList()))
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
@@ -344,7 +349,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             }
 
             entityOperations.delete(
-                query(where(entityManager.idProperty).`in`(ids.toList()))
+                query(where(entityManager.getIdColumnName()).`in`(ids.toList()))
                     .limit(ids.size),
                 clazz.java
             )
@@ -355,19 +360,6 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 eventPublisher.publish(AfterDeleteEvent(it))
             }
         }
-    }
-
-    private fun <S : Annotation> getAnnotatedSqlIdentifier(annotationType: KClass<S>): Set<SqlIdentifier> {
-        val requiredEntity = entityManager.getRequiredEntity(clazz.java)
-
-        val annotatedValueSqlIdentifier = mutableListOf<SqlIdentifier>()
-        requiredEntity.forEach {
-            if (it.isAnnotationPresent(annotationType.java)) {
-                annotatedValueSqlIdentifier.add(it.columnName)
-            }
-        }
-
-        return annotatedValueSqlIdentifier.toSet()
     }
 
     private fun diff(source: OutboundRow, target: OutboundRow): Map<SqlIdentifier, Parameter> {
@@ -396,4 +388,6 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
 
         return propertyDiff
     }
+
+    companion object
 }

@@ -9,8 +9,6 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.CriteriaDefinition
 
 interface R2DBCRepository<T : Any, ID : Any> : Repository<T, ID> {
-    val entityManager: EntityManager<T, ID>
-
     suspend fun exists(criteria: CriteriaDefinition): Boolean
 
     suspend fun findOne(criteria: CriteriaDefinition): T?
@@ -33,6 +31,8 @@ interface R2DBCRepository<T : Any, ID : Any> : Repository<T, ID> {
     suspend fun count(criteria: CriteriaDefinition? = null, limit: Int? = null): Long
 
     suspend fun deleteAll(criteria: CriteriaDefinition? = null, limit: Int? = null, offset: Long? = null, sort: Sort? = null)
+
+    companion object
 }
 
 suspend fun <T : Any, ID : Any> R2DBCRepository<T, ID>.findOneOrFail(criteria: CriteriaDefinition): T {

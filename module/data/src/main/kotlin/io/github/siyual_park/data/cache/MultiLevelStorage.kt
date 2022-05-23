@@ -1,6 +1,6 @@
 package io.github.siyual_park.data.cache
 
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.util.Reversed
 import java.util.Collections
 
@@ -18,8 +18,8 @@ class MultiLevelStorage<ID : Any, T : Any>(
         return this
     }
 
-    override suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>) {
-        storages.forEach { it.createIndex(name, extractor) }
+    override suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>) {
+        storages.forEach { it.createIndex(name, property) }
     }
 
     override suspend fun removeIndex(name: String) {
@@ -30,8 +30,8 @@ class MultiLevelStorage<ID : Any, T : Any>(
         return storages.all { it.containsIndex(name) }
     }
 
-    override suspend fun getExtractors(): Map<String, Extractor<T, *>> {
-        return rootStorage().getExtractors()
+    override suspend fun getIndexes(): Map<String, WeekProperty<T, *>> {
+        return rootStorage().getIndexes()
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {

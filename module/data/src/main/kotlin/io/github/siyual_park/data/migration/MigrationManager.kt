@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.migration
 
 import io.github.siyual_park.data.expansion.columnName
+import io.github.siyual_park.data.repository.r2dbc.EntityManager
 import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.data.repository.update
@@ -20,8 +21,7 @@ class MigrationManager(
     private val logger = LoggerFactory.getLogger(MigrationManager::class.java)
 
     private val migrationCheckpointRepository = SimpleR2DBCRepository<MigrationCheckpoint, Long>(
-        entityOperations,
-        MigrationCheckpoint::class,
+        EntityManager(entityOperations, MigrationCheckpoint::class)
     )
 
     private val migrations = mutableListOf<Migration>()

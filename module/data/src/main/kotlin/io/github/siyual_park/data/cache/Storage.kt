@@ -1,6 +1,6 @@
 package io.github.siyual_park.data.cache
 
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.annotation.Key
 import io.github.siyual_park.data.expansion.columnName
 import org.springframework.data.annotation.Id
@@ -10,11 +10,11 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaField
 
 interface Storage<ID : Any, T : Any> {
-    suspend fun <KEY : Any> createIndex(name: String, extractor: Extractor<T, KEY>)
+    suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>)
     suspend fun removeIndex(name: String)
     suspend fun containsIndex(name: String): Boolean
 
-    suspend fun getExtractors(): Map<String, Extractor<T, *>>
+    suspend fun getIndexes(): Map<String, WeekProperty<T, *>>
 
     suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T?
     suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T?
@@ -47,8 +47,8 @@ suspend fun <ID : Any, T : Any> Storage<ID, T>.createIndexes(clazz: KClass<T>, i
         val sortedProperties = properties.map { it to columnName(it) }.sortedBy { (_, columnName) -> columnName }
         createIndex(
             sortedProperties.joinToString(" ") { (_, columnName) -> columnName },
-            object : Extractor<T, Any> {
-                override fun getKey(entity: T): Any {
+            object : WeekProperty<T, Any> {
+                override fun get(entity: T): Any {
                     val key = ArrayList<Any?>()
                     sortedProperties.forEach { (property, _) -> key.add(property.get(entity)) }
                     return key
@@ -56,4 +56,19 @@ suspend fun <ID : Any, T : Any> Storage<ID, T>.createIndexes(clazz: KClass<T>, i
             }
         )
     }
+}
+
+suspend fun <ID : Any, T : Any> Storage<ID, T>.getIndexNameAndValue(keys: List<String>, values: List<Any?>): Pair<String, Any>? {
+    val sorted = keys.mapIndexed { index, column -> column to values[index] }
+        .sortedBy { (column, _) -> column }
+
+    val indexName = sorted.joinToString(" ") { (column, _) -> column }
+    val value = ArrayList<Any?>()
+    sorted.forEach { (_, it) -> value.add(it) }
+
+    if (!containsIndex(indexName)) {
+        return null
+    }
+
+    return indexName to value
 }

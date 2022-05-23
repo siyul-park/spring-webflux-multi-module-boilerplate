@@ -1,8 +1,9 @@
 package io.github.siyual_park.data.repository.r2dbc
 
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.cache.Storage
 import io.github.siyual_park.data.cache.createIndexes
+import io.github.siyual_park.data.cache.getIndexNameAndValue
 import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.async
@@ -25,20 +26,20 @@ import org.springframework.data.relational.core.query.CriteriaDefinition
 class CachedR2DBCRepository<T : Any, ID : Any>(
     private val delegator: R2DBCRepository<T, ID>,
     private val storage: Storage<ID, T>,
-    private val idExtractor: Extractor<T, ID>,
+    private val entityManager: EntityManager<T, ID>,
 ) : R2DBCRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(
         delegator,
         storage,
-        idExtractor,
+        object : WeekProperty<T, ID> {
+            override fun get(entity: T): ID {
+                return entityManager.getId(entity)
+            }
+        },
     ) {
 
-    override val entityManager: EntityManager<T, ID>
-        get() = delegator.entityManager
-
     init {
-        val clazz = entityManager.clazz
-        runBlocking { storage.createIndexes(clazz) }
+        runBlocking { storage.createIndexes(entityManager.getClass()) }
     }
 
     override suspend fun exists(criteria: CriteriaDefinition): Boolean {
@@ -161,7 +162,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             delegator.deleteAll()
         } else {
             val founded = findAll(criteria, limit, offset, sort)
-                .onEach { idExtractor.getKey(it)?.let { id -> storage.remove(id) } }
+                .onEach { entityManager.getId(it).let { id -> storage.remove(id) } }
                 .toList()
 
             delegator.deleteAll(founded)
@@ -173,18 +174,8 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
         val (columns, values) = columnsAndValues
-        val sorted = columns.mapIndexed { index, column -> column to values[index] }
-            .sortedBy { (column, _) -> column }
 
-        val indexName = sorted.joinToString(" ") { (column, _) -> column }
-        val value = ArrayList<Any?>()
-        sorted.forEach { (_, it) -> value.add(it) }
-
-        if (!storage.containsIndex(indexName)) {
-            return null
-        }
-
-        return indexName to value
+        return storage.getIndexNameAndValue(columns, values)
     }
 
     private fun getSimpleJoinedColumnsAndValues(criteria: CriteriaDefinition): Pair<MutableList<String>, MutableList<Any?>>? {
@@ -209,7 +200,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             criteria.comparator === CriteriaDefinition.Comparator.EQ -> {
                 val column = criteria.column
                 val value = criteria.value
-                val indexName = column?.reference ?: return null
+                val indexName = column?.let { entityManager.getProperty(it)?.name } ?: return null
 
                 columns.add(indexName)
                 values.add(value)

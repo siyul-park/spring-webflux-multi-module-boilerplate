@@ -2,7 +2,7 @@ package io.github.siyual_park.data.cache
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
-import io.github.siyual_park.data.Extractor
+import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.ulid.ULID
@@ -14,18 +14,18 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class MultiLevelStorageTest : CoroutineTestHelper() {
-    private val idExtractor = object : Extractor<Person, ULID> {
-        override fun getKey(entity: Person): ULID {
+    private val idProperty = object : WeekProperty<Person, ULID> {
+        override fun get(entity: Person): ULID {
             return entity.id
         }
     }
     private val storage1 = InMemoryStorage(
         { CacheBuilder.newBuilder() },
-        idExtractor
+        idProperty
     )
     private val storage2 = InMemoryStorage(
         { CacheBuilder.newBuilder() },
-        idExtractor
+        idProperty
     )
     private val storage = MultiLevelStorage(storage1)
 
@@ -35,8 +35,8 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
 
     @Test
     fun index() = blocking {
-        val nameIndex = object : Extractor<Person, String> {
-            override fun getKey(entity: Person): String {
+        val nameIndex = object : WeekProperty<Person, String> {
+            override fun get(entity: Person): String {
                 return entity.name
             }
         }
@@ -49,15 +49,15 @@ class MultiLevelStorageTest : CoroutineTestHelper() {
     }
 
     @Test
-    fun getExtractors() = blocking {
-        val extractors = storage.getExtractors()
-        assertEquals(0, extractors.size)
+    fun getIndexes() = blocking {
+        val indexes = storage.getIndexes()
+        assertEquals(0, indexes.size)
     }
 
     @Test
     fun getIfPresent() = blocking {
-        val nameIndex = object : Extractor<Person, String> {
-            override fun getKey(entity: Person): String {
+        val nameIndex = object : WeekProperty<Person, String> {
+            override fun get(entity: Person): String {
                 return entity.name
             }
         }
