@@ -35,7 +35,7 @@ fun <T : Any, V : Any?> CriteriaStep<T, V>.notIn(value: List<V>) = Criteria.NotI
 fun <T : Any> CriteriaStep<T, Boolean?>.isTrue() = Criteria.IsTrue(key)
 fun <T : Any> CriteriaStep<T, Boolean?>.isFalse() = Criteria.IsFalse(key)
 
-fun <T : Any, V : Any?> Criteria<T>.and(value: Criteria<T>) = Criteria.And(mutableListOf(this).apply { add(value) })
-fun <T : Any, V : Any?> Criteria<T>.and(value: Collection<Criteria<T>>) = Criteria.And(mutableListOf(this).apply { addAll(value) })
-fun <T : Any, V : Any?> Criteria<T>.or(value: Criteria<T>) = Criteria.Or(mutableListOf(this).apply { add(value) })
-fun <T : Any, V : Any?> Criteria<T>.or(value: Collection<Criteria<T>>) = Criteria.Or(mutableListOf(this).apply { addAll(value) })
+fun <T : Any> Criteria<T>.and(value: Criteria<T>) = Criteria.And(mutableListOf(this).apply { add(value) })
+fun <T : Any> Criteria<T>.and(value: Collection<Criteria<T>>) = Criteria.And(mutableListOf(this).apply { addAll(value) })
+fun <T : Any> Criteria<T>.or(value: Criteria<T>) = Criteria.Or(mutableListOf(this).apply { add(value) })
+fun <T : Any> Criteria<T>.or(value: Collection<Criteria<T>>) = Criteria.Or(mutableListOf(this).apply { addAll(value) })
