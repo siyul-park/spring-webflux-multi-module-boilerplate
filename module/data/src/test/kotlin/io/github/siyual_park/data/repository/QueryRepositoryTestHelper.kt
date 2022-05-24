@@ -34,8 +34,8 @@ abstract class QueryRepositoryTestHelper(
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
+        assertNotNull(foundPersons[0].createdAt)
+        assertNotNull(foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -49,8 +49,8 @@ abstract class QueryRepositoryTestHelper(
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
+        assertNotNull(foundPersons[0].createdAt)
+        assertNotNull(foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -64,8 +64,8 @@ abstract class QueryRepositoryTestHelper(
 
         assertEquals(foundPersons.size, 1)
         assertEquals(person.id, foundPersons[0].id)
-        assertEquals(person.createdAt, foundPersons[0].createdAt)
-        assertEquals(person.updatedAt, foundPersons[0].updatedAt)
+        assertNotNull(foundPersons[0].createdAt)
+        assertNotNull(foundPersons[0].updatedAt)
 
         assertEquals(person.name, foundPersons[0].name)
         assertEquals(person.age, foundPersons[0].age)
@@ -78,8 +78,8 @@ abstract class QueryRepositoryTestHelper(
         val foundPerson = personRepository.findOneOrFail(where(Person::name).`is`(person.name))
 
         assertEquals(person.id, foundPerson.id)
-        assertEquals(person.createdAt, foundPerson.createdAt)
-        assertEquals(person.updatedAt, foundPerson.updatedAt)
+        assertNotNull(foundPerson.createdAt)
+        assertNotNull(foundPerson.updatedAt)
 
         assertEquals(person.name, foundPerson.name)
         assertEquals(person.age, foundPerson.age)
