@@ -1,5 +1,6 @@
 package io.github.siyual_park.data.criteria
 
+import java.util.regex.Pattern
 import kotlin.reflect.KProperty1
 
 sealed class Criteria<T : Any> {
@@ -83,6 +84,17 @@ sealed class Criteria<T : Any> {
     data class NotLike<T : Any>(val key: KProperty1<T, String>, val value: String) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} !like $value"
+        }
+    }
+
+    data class Regexp<T : Any>(val key: KProperty1<T, String>, val value: Pattern) : Criteria<T>() {
+        override fun toString(): String {
+            return "${key.name} regexp $value"
+        }
+    }
+    data class NotRegexp<T : Any>(val key: KProperty1<T, String>, val value: Pattern) : Criteria<T>() {
+        override fun toString(): String {
+            return "${key.name} !regexp $value"
         }
     }
 

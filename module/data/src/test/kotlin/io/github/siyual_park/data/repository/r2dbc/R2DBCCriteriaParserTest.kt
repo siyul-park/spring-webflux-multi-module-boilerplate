@@ -73,14 +73,6 @@ class R2DBCCriteriaParserTest {
                 sql = "age >= 0"
             ),
             TestCase(
-                query = where(TestData::age).greaterThanOrEquals(0),
-                sql = "age >= 0"
-            ),
-            TestCase(
-                query = where(TestData::age).isNull(),
-                sql = "age IS NULL"
-            ),
-            TestCase(
                 query = where(TestData::age).isNull(),
                 sql = "age IS NULL"
             ),

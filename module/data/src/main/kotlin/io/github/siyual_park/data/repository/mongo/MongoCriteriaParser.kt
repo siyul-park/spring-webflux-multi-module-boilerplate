@@ -3,6 +3,7 @@ package io.github.siyual_park.data.repository.mongo
 import com.mongodb.BasicDBList
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.criteria.CriteriaParser
+import io.github.siyual_park.data.regexp.SqlLikeTranspiler
 import org.springframework.data.mongodb.core.query.where
 import org.springframework.data.mongodb.core.query.Criteria as MongoCriteria
 
@@ -24,6 +25,8 @@ class MongoCriteriaParser<T : Any> : CriteriaParser<T, MongoCriteria?> {
             is Criteria.IsNotNull<T, *> -> parse(criteria)
             is Criteria.Like -> parse(criteria)
             is Criteria.NotLike -> parse(criteria)
+            is Criteria.Regexp -> parse(criteria)
+            is Criteria.NotRegexp -> parse(criteria)
             is Criteria.In<T, *> -> parse(criteria)
             is Criteria.NotIn<T, *> -> parse(criteria)
             is Criteria.IsTrue -> parse(criteria)
@@ -64,7 +67,9 @@ class MongoCriteriaParser<T : Any> : CriteriaParser<T, MongoCriteria?> {
         return where(criteria.key).gte(criteria.value.start).lte(criteria.value.endInclusive)
     }
     private fun parse(criteria: Criteria.NotBetween<T, *>): MongoCriteria {
-        return MongoCriteria("\$or").`is`(where(criteria.key).lt(criteria.value.start).gt(criteria.value.endInclusive))
+        return MongoCriteria("\$or").`is`(
+            createCriteriaList(listOf(where(criteria.key).lt(criteria.value.start), where(criteria.key).gt(criteria.value.endInclusive)))
+        )
     }
 
     private fun parse(criteria: Criteria.LessThan<T, *>): MongoCriteria {
@@ -89,9 +94,16 @@ class MongoCriteriaParser<T : Any> : CriteriaParser<T, MongoCriteria?> {
     }
 
     private fun parse(criteria: Criteria.Like<T>): MongoCriteria {
-        return where(criteria.key).regex(criteria.value)
+        return where(criteria.key).regex(SqlLikeTranspiler.toRegEx(criteria.value))
     }
     private fun parse(criteria: Criteria.NotLike<T>): MongoCriteria {
+        return where(criteria.key).not().regex(SqlLikeTranspiler.toRegEx(criteria.value))
+    }
+
+    private fun parse(criteria: Criteria.Regexp<T>): MongoCriteria {
+        return where(criteria.key).regex(criteria.value)
+    }
+    private fun parse(criteria: Criteria.NotRegexp<T>): MongoCriteria {
         return where(criteria.key).not().regex(criteria.value)
     }
 

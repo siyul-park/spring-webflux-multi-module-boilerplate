@@ -1,5 +1,6 @@
 package io.github.siyual_park.data.criteria
 
+import java.util.regex.Pattern
 import kotlin.reflect.KProperty1
 
 class CriteriaStep<T : Any, V : Any?>(
@@ -25,6 +26,9 @@ fun <T : Any, V : Any?> CriteriaStep<T, V>.isNotNull() = Criteria.IsNotNull(key)
 
 fun <T : Any> CriteriaStep<T, String>.like(value: String) = Criteria.Like(key, value)
 fun <T : Any> CriteriaStep<T, String>.notLike(value: String) = Criteria.NotLike(key, value)
+
+fun <T : Any> CriteriaStep<T, String>.regexp(value: Pattern) = Criteria.Regexp(key, value)
+fun <T : Any> CriteriaStep<T, String>.notRegexp(value: Pattern) = Criteria.NotRegexp(key, value)
 
 fun <T : Any, V : Any> CriteriaStep<T, V>.`in`(vararg value: V) = Criteria.In(key, value.toList())
 fun <T : Any, V : Any> CriteriaStep<T, V>.notIn(vararg value: V) = Criteria.NotIn(key, value.toList())

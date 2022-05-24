@@ -23,6 +23,8 @@ class R2DBCCriteriaParser<T : Any> : CriteriaParser<T, R2DBCCriteria> {
             is Criteria.IsNotNull<T, *> -> parse(criteria)
             is Criteria.Like -> parse(criteria)
             is Criteria.NotLike -> parse(criteria)
+            is Criteria.Regexp -> parse(criteria)
+            is Criteria.NotRegexp -> parse(criteria)
             is Criteria.In<T, *> -> parse(criteria)
             is Criteria.NotIn<T, *> -> parse(criteria)
             is Criteria.IsTrue -> parse(criteria)
@@ -37,7 +39,10 @@ class R2DBCCriteriaParser<T : Any> : CriteriaParser<T, R2DBCCriteria> {
         if (criteria.value.size == 1) {
             return parse(criteria.value[0])
         }
-        return criteria.value.map { parse(it) }.reduce { acc, cur -> acc.and(cur) }
+        return criteria.value
+            .filter { it !is Criteria.Empty }
+            .map { parse(it) }
+            .reduce { acc, cur -> acc.and(cur) }
     }
     private fun parse(criteria: Criteria.Or<T>): R2DBCCriteria {
         if (criteria.value.isEmpty()) {
@@ -46,7 +51,10 @@ class R2DBCCriteriaParser<T : Any> : CriteriaParser<T, R2DBCCriteria> {
         if (criteria.value.size == 1) {
             return parse(criteria.value[0])
         }
-        return criteria.value.map { parse(it) }.reduce { acc, cur -> acc.or(cur) }
+        return criteria.value
+            .filter { it !is Criteria.Empty }
+            .map { parse(it) }
+            .reduce { acc, cur -> acc.or(cur) }
     }
 
     private fun parse(criteria: Criteria.Equals<T, *>): R2DBCCriteria {
@@ -89,6 +97,13 @@ class R2DBCCriteriaParser<T : Any> : CriteriaParser<T, R2DBCCriteria> {
     }
     private fun parse(criteria: Criteria.NotLike<T>): R2DBCCriteria {
         return R2DBCCriteria.where(columnName(criteria.key)).notLike(criteria.value)
+    }
+
+    private fun parse(criteria: Criteria.Regexp<T>): R2DBCCriteria {
+        throw RuntimeException()
+    }
+    private fun parse(criteria: Criteria.NotRegexp<T>): R2DBCCriteria {
+        throw RuntimeException()
     }
 
     private fun parse(criteria: Criteria.In<T, *>): R2DBCCriteria {
