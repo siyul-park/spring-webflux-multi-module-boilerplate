@@ -2,8 +2,8 @@ package io.github.siyual_park.data.repository
 
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
-import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.asFlow
@@ -158,7 +158,7 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
 
         val updatedPerson = personRepository.updateById(
             person.id,
-            AsyncPatch.with {
+            SuspendPatch.with {
                 it.name = person2.name
                 it.age = person2.age
             }
@@ -218,7 +218,7 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
 
         val updatedPerson = personRepository.update(
             person,
-            AsyncPatch.with {
+            SuspendPatch.with {
                 it.name = person2.name
                 it.age = person2.age
             }
@@ -284,7 +284,7 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
         var current = 0
         val updatedPersons = personRepository.updateAllById(
             persons.map { it.id },
-            AsyncPatch.with {
+            SuspendPatch.with {
                 val patch = personPatches[current++]
                 it.name = patch.name
                 it.age = patch.age
@@ -388,7 +388,7 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
         var current = 0
         val updatedPersons = personRepository.updateAll(
             persons,
-            AsyncPatch.with {
+            SuspendPatch.with {
                 val patch = personPatches[current++]
                 it.name = patch.name
                 it.age = patch.age

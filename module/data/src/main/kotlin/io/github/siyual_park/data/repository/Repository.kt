@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.repository
 
-import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.SuspendPatch
 import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException
 
@@ -21,23 +21,23 @@ interface Repository<T : Any, ID : Any> {
 
     suspend fun updateById(id: ID, patch: Patch<T>): T?
 
-    suspend fun updateById(id: ID, patch: AsyncPatch<T>): T?
+    suspend fun updateById(id: ID, patch: SuspendPatch<T>): T?
 
     suspend fun update(entity: T): T?
 
     suspend fun update(entity: T, patch: Patch<T>): T?
 
-    suspend fun update(entity: T, patch: AsyncPatch<T>): T?
+    suspend fun update(entity: T, patch: SuspendPatch<T>): T?
 
     fun updateAllById(ids: Iterable<ID>, patch: Patch<T>): Flow<T?>
 
-    fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?>
+    fun updateAllById(ids: Iterable<ID>, patch: SuspendPatch<T>): Flow<T?>
 
     fun updateAll(entity: Iterable<T>): Flow<T?>
 
     fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?>
 
-    fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?>
+    fun updateAll(entity: Iterable<T>, patch: SuspendPatch<T>): Flow<T?>
 
     suspend fun count(): Long
 
@@ -60,7 +60,7 @@ suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch
     return updateById(id, patch) ?: throw EmptyResultDataAccessException(1)
 }
 
-suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch: AsyncPatch<T>): T {
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateByIdOrFail(id: ID, patch: SuspendPatch<T>): T {
     return updateById(id, patch) ?: throw EmptyResultDataAccessException(1)
 }
 
@@ -76,7 +76,7 @@ suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch:
     return update(entity, patch) ?: throw EmptyResultDataAccessException(1)
 }
 
-suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch: AsyncPatch<T>): T {
+suspend fun <T : Any, ID : Any> Repository<T, ID>.updateOrFail(entity: T, patch: SuspendPatch<T>): T {
     return update(entity, patch) ?: throw EmptyResultDataAccessException(1)
 }
 

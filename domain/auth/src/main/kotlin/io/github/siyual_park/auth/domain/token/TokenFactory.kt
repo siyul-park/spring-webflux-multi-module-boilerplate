@@ -5,7 +5,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.expansion.fieldName
-import io.github.siyual_park.data.patch.AsyncPatch
+import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.util.retry
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.mongodb.core.query.Criteria
@@ -94,7 +94,7 @@ class TokenFactory(
 
             tokenRepository.updateAll(
                 query,
-                AsyncPatch.with {
+                SuspendPatch.with {
                     it.expiredAt = expiredAt
                 },
                 limit = (count - limit + 1).toInt()

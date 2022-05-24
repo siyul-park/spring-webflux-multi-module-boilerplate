@@ -4,8 +4,8 @@ import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.cache.Storage
 import io.github.siyual_park.data.cache.createIndexes
 import io.github.siyual_park.data.cache.getIndexNameAndValue
-import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
@@ -125,7 +125,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         return update(criteria, patch.async())
     }
 
-    override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
+    override suspend fun update(criteria: CriteriaDefinition, patch: SuspendPatch<T>): T? {
         return delegator.update(criteria, patch)
             ?.also { storage.add(it) }
     }
@@ -134,7 +134,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun updateAll(criteria: CriteriaDefinition, patch: SuspendPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         if (limit != null && limit <= 0) {
             return emptyFlow()
         }

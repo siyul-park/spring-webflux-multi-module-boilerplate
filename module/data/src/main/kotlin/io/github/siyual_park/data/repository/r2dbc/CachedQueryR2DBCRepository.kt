@@ -3,8 +3,8 @@ package io.github.siyual_park.data.repository.r2dbc
 import io.github.siyual_park.data.cache.QueryStorage
 import io.github.siyual_park.data.cache.SelectQuery
 import io.github.siyual_park.data.cache.get
-import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.SuspendPatch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
@@ -95,7 +95,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         return delegator.updateById(id, patch)
     }
 
-    override suspend fun updateById(id: ID, patch: AsyncPatch<T>): T? {
+    override suspend fun updateById(id: ID, patch: SuspendPatch<T>): T? {
         storage.clear()
         return delegator.updateById(id, patch)
     }
@@ -110,7 +110,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         return delegator.update(entity, patch)
     }
 
-    override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
+    override suspend fun update(entity: T, patch: SuspendPatch<T>): T? {
         storage.clear()
         return delegator.update(entity, patch)
     }
@@ -125,7 +125,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         }
     }
 
-    override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAllById(ids: Iterable<ID>, patch: SuspendPatch<T>): Flow<T?> {
         if (ids.count() == 0) {
             return emptyFlow()
         }
@@ -149,7 +149,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         }
     }
 
-    override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAll(entity: Iterable<T>, patch: SuspendPatch<T>): Flow<T?> {
         return flow {
             storage.clear()
             emitAll(delegator.updateAll(entity, patch))
@@ -161,7 +161,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         return delegator.update(criteria, patch)
     }
 
-    override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
+    override suspend fun update(criteria: CriteriaDefinition, patch: SuspendPatch<T>): T? {
         storage.clear()
         return delegator.update(criteria, patch)
     }
@@ -184,7 +184,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
 
     override fun updateAll(
         criteria: CriteriaDefinition,
-        patch: AsyncPatch<T>,
+        patch: SuspendPatch<T>,
         limit: Int?,
         offset: Long?,
         sort: Sort?

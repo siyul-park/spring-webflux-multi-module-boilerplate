@@ -7,8 +7,8 @@ import io.github.siyual_park.data.event.AfterUpdateEvent
 import io.github.siyual_park.data.event.BeforeCreateEvent
 import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.event.BeforeUpdateEvent
-import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.flow.Flow
@@ -184,7 +184,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             ?.let { update(it, patch) }
     }
 
-    override suspend fun updateById(id: ID, patch: AsyncPatch<T>): T? {
+    override suspend fun updateById(id: ID, patch: SuspendPatch<T>): T? {
         return findById(id)
             ?.let { update(it, patch) }
     }
@@ -193,7 +193,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         return updateAllById(ids, patch.async())
     }
 
-    override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAllById(ids: Iterable<ID>, patch: SuspendPatch<T>): Flow<T?> {
         return findAllById(ids)
             .map { update(it, patch) }
     }
@@ -207,7 +207,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         return updateAll(entity, patch.async())
     }
 
-    override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAll(entity: Iterable<T>, patch: SuspendPatch<T>): Flow<T?> {
         return entity.asFlow()
             .map { update(it, patch) }
     }
@@ -217,14 +217,14 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T): T? {
-        return updateById(entityManager.getId(entity), AsyncPatch.from { entity })
+        return updateById(entityManager.getId(entity), SuspendPatch.from { entity })
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
         return update(criteria, patch.async())
     }
 
-    override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
+    override suspend fun update(criteria: CriteriaDefinition, patch: SuspendPatch<T>): T? {
         return findOne(criteria)?.let { update(it, patch) }
     }
 
@@ -232,13 +232,13 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun updateAll(criteria: CriteriaDefinition, patch: SuspendPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return findAll(criteria, limit, offset, sort)
             .map { update(it, patch) }
             .filterNotNull()
     }
 
-    override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
+    override suspend fun update(entity: T, patch: SuspendPatch<T>): T? {
         val originOutboundRow = entityManager.getOutboundRow(entity)
 
         val patched = patch.apply(entity)

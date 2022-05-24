@@ -17,6 +17,6 @@ interface Patch<T> {
     }
 }
 
-fun <T> Patch<T>.async(): AsyncPatch<T> {
-    return AsyncPatch.from { apply(it) }
+fun <T> Patch<T>.async(): SuspendPatch<T> {
+    return SuspendPatch.from { apply(it) }
 }

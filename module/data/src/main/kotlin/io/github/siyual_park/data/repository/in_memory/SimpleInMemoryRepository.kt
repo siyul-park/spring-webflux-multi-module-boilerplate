@@ -8,8 +8,8 @@ import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.event.CreateTimestamp
 import io.github.siyual_park.data.event.UpdateTimestamp
-import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.event.EventBroadcaster
 import io.github.siyual_park.event.EventEmitter
@@ -94,20 +94,20 @@ class SimpleInMemoryRepository<T : Any, ID : Any>(
         return updateById(id, patch.async())
     }
 
-    override suspend fun updateById(id: ID, patch: AsyncPatch<T>): T? {
+    override suspend fun updateById(id: ID, patch: SuspendPatch<T>): T? {
         return findById(id)?.let { update(it, patch) }
     }
 
     override suspend fun update(entity: T): T? {
         return idProperty.get(entity)
-            ?.let { updateById(it, AsyncPatch.from { entity }) }
+            ?.let { updateById(it, SuspendPatch.from { entity }) }
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {
         return update(entity, patch.async())
     }
 
-    override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
+    override suspend fun update(entity: T, patch: SuspendPatch<T>): T? {
         val sourceDump = mutableMapOf<KProperty1<T, *>, Any?>()
         clazz.memberProperties.forEach {
             sourceDump[it] = it.get(entity)
@@ -141,7 +141,7 @@ class SimpleInMemoryRepository<T : Any, ID : Any>(
         return updateAllById(ids, patch.async())
     }
 
-    override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAllById(ids: Iterable<ID>, patch: SuspendPatch<T>): Flow<T?> {
         return ids.asFlow().map { updateById(it, patch) }
     }
 
@@ -153,7 +153,7 @@ class SimpleInMemoryRepository<T : Any, ID : Any>(
         return updateAll(entity, patch.async())
     }
 
-    override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAll(entity: Iterable<T>, patch: SuspendPatch<T>): Flow<T?> {
         return entity.asFlow().map { update(it, patch) }
     }
 

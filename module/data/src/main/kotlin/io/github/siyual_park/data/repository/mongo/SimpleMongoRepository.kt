@@ -9,8 +9,8 @@ import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.event.CreateTimestamp
 import io.github.siyual_park.data.event.UpdateTimestamp
 import io.github.siyual_park.data.expansion.fieldName
-import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.patch.async
 import io.github.siyual_park.event.EventBroadcaster
 import io.github.siyual_park.event.EventEmitter
@@ -196,19 +196,19 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         return updateById(id, patch.async())
     }
 
-    override suspend fun updateById(id: ID, patch: AsyncPatch<T>): T? {
+    override suspend fun updateById(id: ID, patch: SuspendPatch<T>): T? {
         return update(where(idProperty).`is`(id), patch)
     }
 
     override suspend fun update(entity: T): T? {
-        return idProperty.get(entity)?.let { updateById(it, AsyncPatch.from { entity }) }
+        return idProperty.get(entity)?.let { updateById(it, SuspendPatch.from { entity }) }
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {
         return update(entity, patch.async())
     }
 
-    override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
+    override suspend fun update(entity: T, patch: SuspendPatch<T>): T? {
         val sourceDump = mutableMapOf<KProperty1<T, Any?>, Any?>()
         clazz.memberProperties.forEach {
             sourceDump[it] = it.get(entity)
@@ -238,7 +238,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         return update(criteria, patch.async())
     }
 
-    override suspend fun update(criteria: CriteriaDefinition, patch: AsyncPatch<T>): T? {
+    override suspend fun update(criteria: CriteriaDefinition, patch: SuspendPatch<T>): T? {
         return findOne(criteria)?.let { update(it, patch) }
     }
 
@@ -246,7 +246,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         return updateAllById(ids, patch.async())
     }
 
-    override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAllById(ids: Iterable<ID>, patch: SuspendPatch<T>): Flow<T?> {
         return findAllById(ids)
             .map { update(it, patch) }
     }
@@ -260,7 +260,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         return updateAll(entity, patch.async())
     }
 
-    override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAll(entity: Iterable<T>, patch: SuspendPatch<T>): Flow<T?> {
         return entity.asFlow()
             .map { update(it, patch) }
     }
@@ -269,7 +269,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: AsyncPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun updateAll(criteria: CriteriaDefinition, patch: SuspendPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return findAll(criteria, limit, offset, sort)
             .map { update(it, patch) }
             .filterNotNull()

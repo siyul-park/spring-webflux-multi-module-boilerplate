@@ -2,8 +2,8 @@ package io.github.siyual_park.data.repository.cache
 
 import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.cache.Storage
-import io.github.siyual_park.data.patch.AsyncPatch
 import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -104,7 +104,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
             ?.also { storage.add(it) }
     }
 
-    override suspend fun updateById(id: ID, patch: AsyncPatch<T>): T? {
+    override suspend fun updateById(id: ID, patch: SuspendPatch<T>): T? {
         return delegator.updateById(id, patch)
             ?.also { storage.add(it) }
     }
@@ -119,7 +119,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
             ?.also { storage.add(it) }
     }
 
-    override suspend fun update(entity: T, patch: AsyncPatch<T>): T? {
+    override suspend fun update(entity: T, patch: SuspendPatch<T>): T? {
         return delegator.update(entity, patch)
             ?.also { storage.add(it) }
     }
@@ -133,7 +133,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         }
     }
 
-    override fun updateAllById(ids: Iterable<ID>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAllById(ids: Iterable<ID>, patch: SuspendPatch<T>): Flow<T?> {
         return flow {
             emitAll(
                 delegator.updateAllById(ids, patch)
@@ -160,7 +160,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         }
     }
 
-    override fun updateAll(entity: Iterable<T>, patch: AsyncPatch<T>): Flow<T?> {
+    override fun updateAll(entity: Iterable<T>, patch: SuspendPatch<T>): Flow<T?> {
         return flow {
             emitAll(
                 delegator.updateAll(entity, patch)

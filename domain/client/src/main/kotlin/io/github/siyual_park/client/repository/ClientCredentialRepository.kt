@@ -2,7 +2,7 @@ package io.github.siyual_park.client.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.client.entity.ClientCredentialData
-import io.github.siyual_park.data.patch.AsyncPatch
+import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.data.repository.r2dbc.where
@@ -39,7 +39,7 @@ class ClientCredentialRepository(
         return exists(where(ClientCredentialData::clientId).`is`(clientId))
     }
 
-    suspend fun updateByClientId(clientId: ULID, patch: AsyncPatch<ClientCredentialData>): ClientCredentialData? {
+    suspend fun updateByClientId(clientId: ULID, patch: SuspendPatch<ClientCredentialData>): ClientCredentialData? {
         return update(where(ClientCredentialData::clientId).`is`(clientId), patch)
     }
 
