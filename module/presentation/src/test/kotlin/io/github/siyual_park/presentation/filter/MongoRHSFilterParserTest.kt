@@ -1,8 +1,6 @@
 package io.github.siyual_park.presentation.filter
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinFeature
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.presentation.entity.Person
 import io.github.siyual_park.presentation.exception.FilterInvalidException
@@ -13,22 +11,13 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 class MongoRHSFilterParserTest : CoroutineTestHelper() {
-    internal data class TestCase(
+    private data class TestCase(
         val query: Map<KProperty1<Person, *>, Collection<String?>>,
         val sql: String? = null,
         val exception: KClass<out Exception>? = null
     )
 
-    private val objectMapper = ObjectMapper().registerModule(
-        KotlinModule.Builder()
-            .withReflectionCacheSize(512)
-            .configure(KotlinFeature.NullToEmptyCollection, false)
-            .configure(KotlinFeature.NullToEmptyMap, false)
-            .configure(KotlinFeature.NullIsSameAsDefault, false)
-            .configure(KotlinFeature.SingletonSupport, false)
-            .configure(KotlinFeature.StrictNullChecks, false)
-            .build()
-    )
+    private val objectMapper = jacksonObjectMapper()
     private val mongoRHSFilterParser = MongoRHSFilterParser(Person::class, objectMapper)
 
     @Test

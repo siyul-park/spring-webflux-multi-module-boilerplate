@@ -11,12 +11,12 @@ sealed class Criteria<T : Any> {
 
     data class And<T : Any>(val value: List<Criteria<T>>) : Criteria<T>() {
         override fun toString(): String {
-            return "(${value.map { it.toString() }.joinToString { " && " }})"
+            return "(${value.joinToString(" || ") { it.toString() }}})"
         }
     }
     data class Or<T : Any>(val value: List<Criteria<T>>) : Criteria<T>() {
         override fun toString(): String {
-            return "(${value.map { it.toString() }.joinToString { " || " }})"
+            return "(${value.joinToString(" || ") { it.toString() }})"
         }
     }
 
@@ -75,23 +75,23 @@ sealed class Criteria<T : Any> {
         }
     }
 
-    data class Like<T : Any>(val key: KProperty1<T, String?>, val value: String) : Criteria<T>() {
+    data class Like<T : Any>(val key: KProperty1<T, String>, val value: String) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} like $value"
         }
     }
-    data class NotLike<T : Any>(val key: KProperty1<T, String?>, val value: String) : Criteria<T>() {
+    data class NotLike<T : Any>(val key: KProperty1<T, String>, val value: String) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} !like $value"
         }
     }
 
-    data class In<T : Any, V : Any?>(val key: KProperty1<T, V>, val value: List<V>) : Criteria<T>() {
+    data class In<T : Any, V : Any>(val key: KProperty1<T, V>, val value: List<V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} in (${value.map { it.toString() }.joinToString { ", " }})"
         }
     }
-    data class NotIn<T : Any, V : Any?>(val key: KProperty1<T, V>, val value: List<V>) : Criteria<T>() {
+    data class NotIn<T : Any, V : Any>(val key: KProperty1<T, V>, val value: List<V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} not in (${value.map { it.toString() }.joinToString { ", " }})"
         }
