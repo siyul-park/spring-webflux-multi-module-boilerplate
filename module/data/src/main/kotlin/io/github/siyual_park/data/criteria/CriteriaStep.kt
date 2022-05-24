@@ -8,8 +8,8 @@ class CriteriaStep<T : Any, V : Any?>(
 
 fun <T : Any, V : Any?> where(property: KProperty1<T, V>) = CriteriaStep(property)
 
-fun <T : Any, V : Any?> CriteriaStep<T, V>.`is`(value: V) = Criteria.Equals(key, value)
-fun <T : Any, V : Any?> CriteriaStep<T, V>.not(value: V) = Criteria.NotEquals(key, value)
+fun <T : Any, V : Any> CriteriaStep<T, V>.`is`(value: V) = Criteria.Equals(key, value)
+fun <T : Any, V : Any> CriteriaStep<T, V>.not(value: V) = Criteria.NotEquals(key, value)
 
 fun <T : Any, V : Comparable<V>> CriteriaStep<T, V>.between(value: ClosedRange<V>) = Criteria.Between(key, value)
 fun <T : Any, V : Comparable<V>> CriteriaStep<T, V>.notBetween(value: ClosedRange<V>) = Criteria.NotBetween(key, value)
@@ -21,13 +21,16 @@ fun <T : Any, V : Comparable<V>> CriteriaStep<T, V>.greaterThan(value: V) = Crit
 fun <T : Any, V : Comparable<V>> CriteriaStep<T, V>.greaterThanOrEquals(value: V) = Criteria.GreaterThanEquals(key, value)
 
 fun <T : Any, V : Any?> CriteriaStep<T, V>.isNull(value: V) = Criteria.IsNull(key)
-fun <T : Any, V : Any?> CriteriaStep<T, V>.isNotNull(value: V) = Criteria.NotNull(key)
+fun <T : Any, V : Any?> CriteriaStep<T, V>.isNotNull(value: V) = Criteria.IsNotNull(key)
 
 fun <T : Any> CriteriaStep<T, String?>.like(value: String) = Criteria.Like(key, value)
 fun <T : Any> CriteriaStep<T, String?>.notLike(value: String) = Criteria.NotLike(key, value)
 
-fun <T : Any, V : Any?> CriteriaStep<T, V>.`in`(value: Collection<V>) = Criteria.In(key, value)
-fun <T : Any, V : Any?> CriteriaStep<T, V>.notIn(value: Collection<V>) = Criteria.NotIn(key, value)
+fun <T : Any, V : Any?> CriteriaStep<T, V>.`in`(vararg value: V) = Criteria.In(key, value.toList())
+fun <T : Any, V : Any?> CriteriaStep<T, V>.notIn(vararg value: V) = Criteria.NotIn(key, value.toList())
+
+fun <T : Any, V : Any?> CriteriaStep<T, V>.`in`(value: List<V>) = Criteria.In(key, value)
+fun <T : Any, V : Any?> CriteriaStep<T, V>.notIn(value: List<V>) = Criteria.NotIn(key, value)
 
 fun <T : Any> CriteriaStep<T, Boolean?>.isTrue() = Criteria.IsTrue(key)
 fun <T : Any> CriteriaStep<T, Boolean?>.isFalse() = Criteria.IsFalse(key)

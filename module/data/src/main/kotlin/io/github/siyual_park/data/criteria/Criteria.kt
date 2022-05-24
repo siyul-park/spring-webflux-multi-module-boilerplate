@@ -5,27 +5,27 @@ import kotlin.reflect.KProperty1
 sealed class Criteria<T : Any> {
     class Empty<T : Any> : Criteria<T>() {
         override fun toString(): String {
-            return ""
+            return "()"
         }
     }
 
-    data class And<T : Any>(val value: Collection<Criteria<T>>) : Criteria<T>() {
+    data class And<T : Any>(val value: List<Criteria<T>>) : Criteria<T>() {
         override fun toString(): String {
             return "(${value.map { it.toString() }.joinToString { " && " }})"
         }
     }
-    data class Or<T : Any>(val value: Collection<Criteria<T>>) : Criteria<T>() {
+    data class Or<T : Any>(val value: List<Criteria<T>>) : Criteria<T>() {
         override fun toString(): String {
             return "(${value.map { it.toString() }.joinToString { " || " }})"
         }
     }
 
-    data class Equals<T : Any, V : Any?>(val key: KProperty1<T, V>, val value: V) : Criteria<T>() {
+    data class Equals<T : Any, V : Any>(val key: KProperty1<T, V?>, val value: V) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} == $value"
         }
     }
-    data class NotEquals<T : Any, V : Any?>(val key: KProperty1<T, V>, val value: V) : Criteria<T>() {
+    data class NotEquals<T : Any, V : Any>(val key: KProperty1<T, V?>, val value: V) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} != $value"
         }
@@ -69,7 +69,7 @@ sealed class Criteria<T : Any> {
             return "${key.name} == null"
         }
     }
-    data class NotNull<T : Any, V : Any?>(val key: KProperty1<T, V>) : Criteria<T>() {
+    data class IsNotNull<T : Any, V : Any?>(val key: KProperty1<T, V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} != null"
         }
@@ -86,12 +86,12 @@ sealed class Criteria<T : Any> {
         }
     }
 
-    data class In<T : Any, V : Any?>(val key: KProperty1<T, V>, val value: Collection<V>) : Criteria<T>() {
+    data class In<T : Any, V : Any?>(val key: KProperty1<T, V>, val value: List<V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} in (${value.map { it.toString() }.joinToString { ", " }})"
         }
     }
-    data class NotIn<T : Any, V : Any?>(val key: KProperty1<T, V>, val value: Collection<V>) : Criteria<T>() {
+    data class NotIn<T : Any, V : Any?>(val key: KProperty1<T, V>, val value: List<V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} not in (${value.map { it.toString() }.joinToString { ", " }})"
         }
