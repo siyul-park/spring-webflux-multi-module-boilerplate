@@ -3,6 +3,12 @@ package io.github.siyual_park.data.criteria
 import kotlin.reflect.KProperty1
 
 sealed class Criteria<T : Any> {
+    class Empty<T : Any> : Criteria<T>() {
+        override fun toString(): String {
+            return ""
+        }
+    }
+
     data class And<T : Any>(val value: Collection<Criteria<T>>) : Criteria<T>() {
         override fun toString(): String {
             return "(${value.map { it.toString() }.joinToString { " && " }})"
