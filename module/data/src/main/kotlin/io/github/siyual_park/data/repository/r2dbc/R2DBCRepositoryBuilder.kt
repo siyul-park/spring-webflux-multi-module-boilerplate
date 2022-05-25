@@ -2,12 +2,16 @@ package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.WeekProperty
+import io.github.siyual_park.data.cache.InMemoryQueryStorage
 import io.github.siyual_park.data.cache.InMemoryStorage
 import io.github.siyual_park.data.cache.Pool
+import io.github.siyual_park.data.cache.PoolingNestedQueryStorage
 import io.github.siyual_park.data.cache.PoolingNestedStorage
+import io.github.siyual_park.data.cache.TransactionalQueryStorage
 import io.github.siyual_park.data.cache.TransactionalStorage
 import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.cache.CachedQueryRepository
+import io.github.siyual_park.data.repository.cache.QueryCachedRepository
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import kotlin.reflect.KClass
@@ -55,6 +59,17 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
                 )
 
                 CachedQueryRepository(it, storage, idProperty, clazz)
+            } else {
+                it
+            }
+        }.let {
+            val cacheBuilder = queryCacheBuilder
+            if (cacheBuilder != null) {
+                val storage = TransactionalQueryStorage<T>(
+                    PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(cacheBuilder) })
+                )
+
+                QueryCachedRepository(it, storage, clazz)
             } else {
                 it
             }

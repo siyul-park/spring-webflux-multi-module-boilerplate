@@ -6,14 +6,6 @@ class PoolingNestedQueryStorage<T : Any>(
 ) : NestedQueryStorage<T> {
     private val delegator = SuspendLazy { pool.pop().also { it.clear() } }
 
-    override suspend fun getIfPresent(where: String, loader: suspend () -> T?): T? {
-        return getIfPresent(where) ?: loader()?.also { put(where, it) }
-    }
-
-    override suspend fun getIfPresent(where: String): T? {
-        return delegator.get().getIfPresent(where) ?: parent?.getIfPresent(where)
-    }
-
     override suspend fun getIfPresent(select: SelectQuery, loader: suspend () -> Collection<T>?): Collection<T>? {
         return getIfPresent(select) ?: loader()?.also { put(select, it) }
     }
@@ -22,16 +14,8 @@ class PoolingNestedQueryStorage<T : Any>(
         return delegator.get().getIfPresent(select) ?: parent?.getIfPresent(select)
     }
 
-    override suspend fun remove(where: String) {
-        delegator.get().remove(where)
-    }
-
     override suspend fun remove(select: SelectQuery) {
         delegator.get().remove(select)
-    }
-
-    override suspend fun put(where: String, value: T) {
-        delegator.get().put(where, value)
     }
 
     override suspend fun put(select: SelectQuery, value: Collection<T>) {
@@ -45,11 +29,7 @@ class PoolingNestedQueryStorage<T : Any>(
         }
     }
 
-    override suspend fun entries(): Pair<Set<Pair<String, T>>, Set<Pair<SelectQuery, Collection<T>>>> {
-        return delegator.get().entries()
-    }
-
-    override suspend fun checkout(): Pair<Set<Pair<String, T>>, Set<Pair<SelectQuery, Collection<T>>>> {
+    override suspend fun checkout(): Set<Pair<SelectQuery, Collection<T>>> {
         return entries().also {
             delegator.pop()?.let {
                 it.clear()
@@ -63,14 +43,15 @@ class PoolingNestedQueryStorage<T : Any>(
     }
 
     override suspend fun merge(storage: NestedQueryStorage<T>) {
-        val (single, multi) = storage.checkout()
+        val multi = storage.checkout()
         delegator.get().also {
-            single.forEach { (key, value) ->
-                it.put(key, value)
-            }
             multi.forEach { (key, value) ->
                 it.put(key, value)
             }
         }
+    }
+
+    override suspend fun entries(): Set<Pair<SelectQuery, Collection<T>>> {
+        return delegator.get().entries()
     }
 }
