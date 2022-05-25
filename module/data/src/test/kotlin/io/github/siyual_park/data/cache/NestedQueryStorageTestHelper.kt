@@ -14,34 +14,22 @@ abstract class NestedQueryStorageTestHelper(private val storage: NestedQueryStor
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
 
-        child2.put(key, value)
         child2.put(SelectQuery(key), listOf(value))
 
-        assertNull(storage.getIfPresent(key))
         assertNull(storage.getIfPresent(SelectQuery(key)))
-        assertNull(child1.getIfPresent(key))
         assertNull(child1.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child2.getIfPresent(key))
         assertEquals(listOf(value), child2.getIfPresent(SelectQuery(key)))
 
-        child1.put(key, value)
         child1.put(SelectQuery(key), listOf(value))
 
-        assertNull(storage.getIfPresent(key))
         assertNull(storage.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child1.getIfPresent(key))
         assertEquals(listOf(value), child1.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child2.getIfPresent(key))
         assertEquals(listOf(value), child2.getIfPresent(SelectQuery(key)))
 
-        storage.put(key, value)
         storage.put(SelectQuery(key), listOf(value))
 
-        assertEquals(value, storage.getIfPresent(key))
         assertEquals(listOf(value), storage.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child1.getIfPresent(key))
         assertEquals(listOf(value), child1.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child2.getIfPresent(key))
         assertEquals(listOf(value), child2.getIfPresent(SelectQuery(key)))
     }
 
@@ -53,40 +41,28 @@ abstract class NestedQueryStorageTestHelper(private val storage: NestedQueryStor
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
 
-        child2.put(key, value)
         child2.put(SelectQuery(key), listOf(value))
 
         child1.clear()
 
-        assertNull(storage.getIfPresent(key))
         assertNull(storage.getIfPresent(SelectQuery(key)))
-        assertNull(child1.getIfPresent(key))
         assertNull(child1.getIfPresent(SelectQuery(key)))
-        assertNull(child2.getIfPresent(key))
         assertNull(child2.getIfPresent(SelectQuery(key)))
 
-        child1.put(key, value)
         child1.put(SelectQuery(key), listOf(value))
 
         storage.clear()
 
-        assertNull(storage.getIfPresent(key))
         assertNull(storage.getIfPresent(SelectQuery(key)))
-        assertNull(child1.getIfPresent(key))
         assertNull(child1.getIfPresent(SelectQuery(key)))
-        assertNull(child2.getIfPresent(key))
         assertNull(child2.getIfPresent(SelectQuery(key)))
 
-        storage.put(key, value)
         storage.put(SelectQuery(key), listOf(value))
 
         child2.clear()
 
-        assertNull(storage.getIfPresent(key))
         assertNull(storage.getIfPresent(SelectQuery(key)))
-        assertNull(child1.getIfPresent(key))
         assertNull(child1.getIfPresent(SelectQuery(key)))
-        assertNull(child2.getIfPresent(key))
         assertNull(child2.getIfPresent(SelectQuery(key)))
     }
 
@@ -98,32 +74,22 @@ abstract class NestedQueryStorageTestHelper(private val storage: NestedQueryStor
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
 
-        child2.put(key, value)
         child2.put(SelectQuery(key), listOf(value))
 
-        assertNull(storage.getIfPresent(key))
         assertNull(storage.getIfPresent(SelectQuery(key)))
-        assertNull(child1.getIfPresent(key))
         assertNull(child1.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child2.getIfPresent(key))
         assertEquals(listOf(value), child2.getIfPresent(SelectQuery(key)))
 
         child1.merge(child2)
 
-        assertNull(storage.getIfPresent(key))
         assertNull(storage.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child1.getIfPresent(key))
         assertEquals(listOf(value), child1.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child2.getIfPresent(key))
         assertEquals(listOf(value), child2.getIfPresent(SelectQuery(key)))
 
         storage.merge(child1)
 
-        assertEquals(value, storage.getIfPresent(key))
         assertEquals(listOf(value), storage.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child1.getIfPresent(key))
         assertEquals(listOf(value), child1.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child2.getIfPresent(key))
         assertEquals(listOf(value), child2.getIfPresent(SelectQuery(key)))
     }
 
@@ -135,14 +101,10 @@ abstract class NestedQueryStorageTestHelper(private val storage: NestedQueryStor
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
 
-        storage.put(key, value)
         storage.put(SelectQuery(key), listOf(value))
 
-        assertEquals(value, storage.getIfPresent(key))
         assertEquals(listOf(value), storage.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child1.getIfPresent(key))
         assertEquals(listOf(value), child1.getIfPresent(SelectQuery(key)))
-        assertEquals(value, child2.getIfPresent(key))
         assertEquals(listOf(value), child2.getIfPresent(SelectQuery(key)))
     }
 }
