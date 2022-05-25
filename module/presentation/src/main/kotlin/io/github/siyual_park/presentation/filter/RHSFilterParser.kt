@@ -2,7 +2,6 @@ package io.github.siyual_park.presentation.filter
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.siyual_park.data.criteria.Criteria
-import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.not
 import io.github.siyual_park.presentation.exception.FilterInvalidException
 import kotlin.reflect.KClass
@@ -18,7 +17,7 @@ class RHSFilterParser<T : Any>(
 
     fun parse(query: Map<KProperty1<T, *>, Collection<String?>>): Criteria {
         try {
-            var criteria: Criteria = Criteria.Empty
+            var criteria = Criteria.And(listOf())
             query.forEach { (key, values) ->
                 val property = clazz.memberProperties.find { it == key } ?: return@forEach
                 val clazz = property.returnType.classifier as? KClass<*>
@@ -29,16 +28,19 @@ class RHSFilterParser<T : Any>(
                     val (operator, operand) = result.destructured
 
                     val parsed = convert(operand, clazz)
-                    criteria = criteria.and(
-                        create(
-                            property,
-                            operator,
-                            parsed
+                    criteria = create(property, operator, parsed).let { newone ->
+                        criteria.copy(
+                            criteria.value.toMutableList().also {
+                                it.add(newone)
+                            }
                         )
-                    )
+                    }
                 }
             }
 
+            if (criteria.value.isEmpty()) {
+                return Criteria.Empty
+            }
             return criteria
         } catch (e: Exception) {
             throw FilterInvalidException(e.message)
