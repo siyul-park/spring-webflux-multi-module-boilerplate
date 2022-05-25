@@ -1,5 +1,6 @@
 package io.github.siyual_park.data.repository
 
+import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.patch.Patch
