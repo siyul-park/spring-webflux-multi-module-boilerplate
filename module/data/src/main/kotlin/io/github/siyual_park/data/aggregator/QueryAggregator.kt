@@ -8,8 +8,8 @@ import org.apache.commons.collections4.map.ReferenceMap
 import java.util.Collections
 import kotlin.reflect.KClass
 
-class QueryAggregator<T : Any, ID : Any>(
-    private val repository: QueryRepository<T, ID>,
+class QueryAggregator<T : Any>(
+    private val repository: QueryRepository<T, *>,
     private val clazz: KClass<T>,
     private val cacheBuilder: () -> CacheBuilder<Any, Any>,
 ) {
@@ -19,7 +19,7 @@ class QueryAggregator<T : Any, ID : Any>(
         )
     )
 
-    fun runner(name: String, criteria: Criteria): QueryRunner<T, ID> {
+    fun runner(name: String, criteria: Criteria): QueryRunner<T> {
         val store = stores.getOrPut(name) { QueryStorage(cacheBuilder) }
         return QueryRunner(repository, store, criteria, clazz)
     }

@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlin.reflect.KClass
 
-class QueryRunner<T : Any, ID : Any>(
-    private val repository: QueryRepository<T, ID>,
+class QueryRunner<T : Any>(
+    private val repository: QueryRepository<T, *>,
     private val store: QueryStorage<T>,
     private val criteria: Criteria,
     clazz: KClass<T>,
