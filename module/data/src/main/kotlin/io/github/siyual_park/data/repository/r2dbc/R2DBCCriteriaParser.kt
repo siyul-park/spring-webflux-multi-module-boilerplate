@@ -3,14 +3,16 @@ package io.github.siyual_park.data.repository.r2dbc
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.criteria.CriteriaParser
 import io.github.siyual_park.data.expansion.columnName
-import io.github.siyual_park.data.expansion.property
 import kotlin.reflect.KClass
+import kotlin.reflect.full.memberProperties
 import org.springframework.data.relational.core.query.Criteria as R2DBCCriteria
 import org.springframework.data.relational.core.query.Criteria.CriteriaStep as R2DBCCriteriaStep
 
 class R2DBCCriteriaParser<T : Any>(
-    private val clazz: KClass<T>
+    clazz: KClass<T>
 ) : CriteriaParser<R2DBCCriteria> {
+    private val columnNames = clazz.memberProperties.map { it.name to columnName(it) }.toMap()
+
     override fun parse(criteria: Criteria): R2DBCCriteria {
         return when (criteria) {
             is Criteria.Empty -> R2DBCCriteria.empty()
@@ -132,6 +134,6 @@ class R2DBCCriteriaParser<T : Any>(
     }
 
     private fun where(key: String): R2DBCCriteriaStep {
-        return R2DBCCriteria.where(columnName(property(clazz, key)))
+        return R2DBCCriteria.where(columnNames[key] ?: throw IllegalArgumentException("$key is invalid}"))
     }
 }
