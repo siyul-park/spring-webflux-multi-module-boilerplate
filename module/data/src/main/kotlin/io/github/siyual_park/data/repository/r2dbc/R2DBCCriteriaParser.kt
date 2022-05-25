@@ -21,14 +21,14 @@ class R2DBCCriteriaParser<T : Any> : CriteriaParser<T, R2DBCCriteria> {
             is Criteria.GreaterThanEquals<T, *> -> parse(criteria)
             is Criteria.IsNull<T, *> -> parse(criteria)
             is Criteria.IsNotNull<T, *> -> parse(criteria)
-            is Criteria.Like -> parse(criteria)
-            is Criteria.NotLike -> parse(criteria)
-            is Criteria.Regexp -> parse(criteria)
-            is Criteria.NotRegexp -> parse(criteria)
+            is Criteria.Like<T, *> -> parse(criteria)
+            is Criteria.NotLike<T, *> -> parse(criteria)
+            is Criteria.Regexp<T, *> -> parse(criteria)
+            is Criteria.NotRegexp<T, *> -> parse(criteria)
             is Criteria.In<T, *> -> parse(criteria)
             is Criteria.NotIn<T, *> -> parse(criteria)
-            is Criteria.IsTrue -> parse(criteria)
-            is Criteria.IsFalse -> parse(criteria)
+            is Criteria.IsTrue<T, *> -> parse(criteria)
+            is Criteria.IsFalse<T, *> -> parse(criteria)
         }
     }
 
@@ -92,17 +92,17 @@ class R2DBCCriteriaParser<T : Any> : CriteriaParser<T, R2DBCCriteria> {
         return R2DBCCriteria.where(columnName(criteria.key)).isNotNull
     }
 
-    private fun parse(criteria: Criteria.Like<T>): R2DBCCriteria {
+    private fun parse(criteria: Criteria.Like<T, *>): R2DBCCriteria {
         return R2DBCCriteria.where(columnName(criteria.key)).like(criteria.value)
     }
-    private fun parse(criteria: Criteria.NotLike<T>): R2DBCCriteria {
+    private fun parse(criteria: Criteria.NotLike<T, *>): R2DBCCriteria {
         return R2DBCCriteria.where(columnName(criteria.key)).notLike(criteria.value)
     }
 
-    private fun parse(criteria: Criteria.Regexp<T>): R2DBCCriteria {
+    private fun parse(criteria: Criteria.Regexp<T, *>): R2DBCCriteria {
         throw RuntimeException()
     }
-    private fun parse(criteria: Criteria.NotRegexp<T>): R2DBCCriteria {
+    private fun parse(criteria: Criteria.NotRegexp<T, *>): R2DBCCriteria {
         throw RuntimeException()
     }
 
@@ -113,10 +113,10 @@ class R2DBCCriteriaParser<T : Any> : CriteriaParser<T, R2DBCCriteria> {
         return R2DBCCriteria.where(columnName(criteria.key)).notIn(criteria.value)
     }
 
-    private fun parse(criteria: Criteria.IsTrue<T>): R2DBCCriteria {
+    private fun parse(criteria: Criteria.IsTrue<T, *>): R2DBCCriteria {
         return R2DBCCriteria.where(columnName(criteria.key)).isTrue
     }
-    private fun parse(criteria: Criteria.IsFalse<T>): R2DBCCriteria {
+    private fun parse(criteria: Criteria.IsFalse<T, *>): R2DBCCriteria {
         return R2DBCCriteria.where(columnName(criteria.key)).isFalse
     }
 }

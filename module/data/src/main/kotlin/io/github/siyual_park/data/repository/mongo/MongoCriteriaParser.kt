@@ -23,14 +23,14 @@ class MongoCriteriaParser<T : Any> : CriteriaParser<T, MongoCriteria?> {
             is Criteria.GreaterThanEquals<T, *> -> parse(criteria)
             is Criteria.IsNull<T, *> -> parse(criteria)
             is Criteria.IsNotNull<T, *> -> parse(criteria)
-            is Criteria.Like -> parse(criteria)
-            is Criteria.NotLike -> parse(criteria)
-            is Criteria.Regexp -> parse(criteria)
-            is Criteria.NotRegexp -> parse(criteria)
+            is Criteria.Like<T, *> -> parse(criteria)
+            is Criteria.NotLike<T, *> -> parse(criteria)
+            is Criteria.Regexp<T, *> -> parse(criteria)
+            is Criteria.NotRegexp<T, *> -> parse(criteria)
             is Criteria.In<T, *> -> parse(criteria)
             is Criteria.NotIn<T, *> -> parse(criteria)
-            is Criteria.IsTrue -> parse(criteria)
-            is Criteria.IsFalse -> parse(criteria)
+            is Criteria.IsTrue<T, *> -> parse(criteria)
+            is Criteria.IsFalse<T, *> -> parse(criteria)
         }
     }
 
@@ -93,17 +93,17 @@ class MongoCriteriaParser<T : Any> : CriteriaParser<T, MongoCriteria?> {
         return where(criteria.key).ne(null)
     }
 
-    private fun parse(criteria: Criteria.Like<T>): MongoCriteria {
+    private fun parse(criteria: Criteria.Like<T, *>): MongoCriteria {
         return where(criteria.key).regex(SqlLikeTranspiler.toRegEx(criteria.value))
     }
-    private fun parse(criteria: Criteria.NotLike<T>): MongoCriteria {
+    private fun parse(criteria: Criteria.NotLike<T, *>): MongoCriteria {
         return where(criteria.key).not().regex(SqlLikeTranspiler.toRegEx(criteria.value))
     }
 
-    private fun parse(criteria: Criteria.Regexp<T>): MongoCriteria {
+    private fun parse(criteria: Criteria.Regexp<T, *>): MongoCriteria {
         return where(criteria.key).regex(criteria.value)
     }
-    private fun parse(criteria: Criteria.NotRegexp<T>): MongoCriteria {
+    private fun parse(criteria: Criteria.NotRegexp<T, *>): MongoCriteria {
         return where(criteria.key).not().regex(criteria.value)
     }
 
@@ -114,10 +114,10 @@ class MongoCriteriaParser<T : Any> : CriteriaParser<T, MongoCriteria?> {
         return where(criteria.key).nin(criteria.value)
     }
 
-    private fun parse(criteria: Criteria.IsTrue<T>): MongoCriteria {
+    private fun parse(criteria: Criteria.IsTrue<T, *>): MongoCriteria {
         return where(criteria.key).`is`(true)
     }
-    private fun parse(criteria: Criteria.IsFalse<T>): MongoCriteria {
+    private fun parse(criteria: Criteria.IsFalse<T, *>): MongoCriteria {
         return where(criteria.key).`is`(false)
     }
 

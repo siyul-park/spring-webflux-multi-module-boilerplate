@@ -24,11 +24,11 @@ fun <T : Any, V : Comparable<V>> CriteriaStep<T, V>.greaterThanOrEquals(value: V
 fun <T : Any, V : Any?> CriteriaStep<T, V>.isNull() = Criteria.IsNull(key)
 fun <T : Any, V : Any?> CriteriaStep<T, V>.isNotNull() = Criteria.IsNotNull(key)
 
-fun <T : Any> CriteriaStep<T, String>.like(value: String) = Criteria.Like(key, value)
-fun <T : Any> CriteriaStep<T, String>.notLike(value: String) = Criteria.NotLike(key, value)
+fun <T : Any, V : String?> CriteriaStep<T, V>.like(value: String) = Criteria.Like(key, value)
+fun <T : Any, V : String?> CriteriaStep<T, V>.notLike(value: String) = Criteria.NotLike(key, value)
 
-fun <T : Any> CriteriaStep<T, String>.regexp(value: Pattern) = Criteria.Regexp(key, value)
-fun <T : Any> CriteriaStep<T, String>.notRegexp(value: Pattern) = Criteria.NotRegexp(key, value)
+fun <T : Any, V : String?> CriteriaStep<T, V>.regexp(value: Pattern) = Criteria.Regexp(key, value)
+fun <T : Any, V : String?> CriteriaStep<T, V>.notRegexp(value: Pattern) = Criteria.NotRegexp(key, value)
 
 fun <T : Any, V : Any> CriteriaStep<T, V>.`in`(vararg value: V) = Criteria.In(key, value.toList())
 fun <T : Any, V : Any> CriteriaStep<T, V>.notIn(vararg value: V) = Criteria.NotIn(key, value.toList())
@@ -36,8 +36,8 @@ fun <T : Any, V : Any> CriteriaStep<T, V>.notIn(vararg value: V) = Criteria.NotI
 fun <T : Any, V : Any> CriteriaStep<T, V>.`in`(value: List<V>) = Criteria.In(key, value)
 fun <T : Any, V : Any> CriteriaStep<T, V>.notIn(value: List<V>) = Criteria.NotIn(key, value)
 
-fun <T : Any> CriteriaStep<T, Boolean>.isTrue() = Criteria.IsTrue(key)
-fun <T : Any> CriteriaStep<T, Boolean>.isFalse() = Criteria.IsFalse(key)
+fun <T : Any, V : Boolean?> CriteriaStep<T, V>.isTrue() = Criteria.IsTrue(key)
+fun <T : Any, V : Boolean?> CriteriaStep<T, V>.isFalse() = Criteria.IsFalse(key)
 
 fun <T : Any> Criteria<T>.and(value: Criteria<T>) = Criteria.And(mutableListOf(this).apply { add(value) })
 fun <T : Any> Criteria<T>.and(value: Collection<Criteria<T>>) = Criteria.And(mutableListOf(this).apply { addAll(value) })

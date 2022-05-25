@@ -76,45 +76,45 @@ sealed class Criteria<T : Any> {
         }
     }
 
-    data class Like<T : Any>(val key: KProperty1<T, String>, val value: String) : Criteria<T>() {
+    data class Like<T : Any, V : String?>(val key: KProperty1<T, V>, val value: String) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} like $value"
         }
     }
-    data class NotLike<T : Any>(val key: KProperty1<T, String>, val value: String) : Criteria<T>() {
+    data class NotLike<T : Any, V : String?>(val key: KProperty1<T, V>, val value: String) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} !like $value"
         }
     }
 
-    data class Regexp<T : Any>(val key: KProperty1<T, String>, val value: Pattern) : Criteria<T>() {
+    data class Regexp<T : Any, V : String?>(val key: KProperty1<T, V>, val value: Pattern) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} regexp $value"
         }
     }
-    data class NotRegexp<T : Any>(val key: KProperty1<T, String>, val value: Pattern) : Criteria<T>() {
+    data class NotRegexp<T : Any, V : String?>(val key: KProperty1<T, V>, val value: Pattern) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} !regexp $value"
         }
     }
 
-    data class In<T : Any, V : Any>(val key: KProperty1<T, V>, val value: List<V>) : Criteria<T>() {
+    data class In<T : Any, V : Any>(val key: KProperty1<T, V?>, val value: List<V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} in (${value.map { it.toString() }.joinToString { ", " }})"
         }
     }
-    data class NotIn<T : Any, V : Any>(val key: KProperty1<T, V>, val value: List<V>) : Criteria<T>() {
+    data class NotIn<T : Any, V : Any>(val key: KProperty1<T, V?>, val value: List<V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} not in (${value.map { it.toString() }.joinToString { ", " }})"
         }
     }
 
-    data class IsTrue<T : Any>(val key: KProperty1<T, Boolean?>) : Criteria<T>() {
+    data class IsTrue<T : Any, V : Boolean?>(val key: KProperty1<T, V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} == true"
         }
     }
-    data class IsFalse<T : Any>(val key: KProperty1<T, Boolean?>) : Criteria<T>() {
+    data class IsFalse<T : Any, V : Boolean?>(val key: KProperty1<T, V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} == false"
         }
