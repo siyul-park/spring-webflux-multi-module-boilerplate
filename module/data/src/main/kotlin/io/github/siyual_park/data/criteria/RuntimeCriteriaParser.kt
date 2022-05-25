@@ -40,18 +40,12 @@ class RuntimeCriteriaParser<T : Any>(
         if (criteria.value.isEmpty()) {
             return null
         }
-        if (criteria.value.size == 1) {
-            return parse(criteria.value[0])
-        }
         return criteria.value.mapNotNull { parse(it) }
             .reduce { acc, cur -> { acc(it) && cur(it) } }
     }
     private fun parse(criteria: Criteria.Or): ((T) -> Boolean)? {
         if (criteria.value.isEmpty()) {
             return null
-        }
-        if (criteria.value.size == 1) {
-            return parse(criteria.value[0])
         }
         return criteria.value.mapNotNull { parse(it) }
             .reduce { acc, cur -> { acc(it) || cur(it) } }
