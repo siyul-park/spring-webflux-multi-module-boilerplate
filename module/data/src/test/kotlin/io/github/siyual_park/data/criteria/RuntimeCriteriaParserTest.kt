@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.criteria
 
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.regex.Pattern
@@ -14,8 +15,8 @@ class RuntimeCriteriaParserTest {
 
     private data class TestCase(
         val query: Criteria,
-        val expectTrue: List<TestData>,
-        val expectFalse: List<TestData>,
+        val expectTrue: List<TestData> = listOf(),
+        val expectFalse: List<TestData> = listOf(),
     )
 
     private val parser = RuntimeCriteriaParser(TestData::class)
@@ -204,14 +205,30 @@ class RuntimeCriteriaParserTest {
                 expectFalse = listOf(TestData()),
             ),
             TestCase(
+                query = Criteria.And(listOf()),
+            ),
+            TestCase(
+                query = Criteria.And(listOf(where(TestData::activate).isTrue())),
+                expectTrue = listOf(TestData(activate = true)),
+                expectFalse = listOf(TestData(activate = false), TestData(activate = null)),
+            ),
+            TestCase(
                 query = where(TestData::activate).isTrue().and(where(TestData::name).`is`("test")),
                 expectTrue = listOf(TestData(activate = true, name = "test")),
                 expectFalse = listOf(TestData(activate = false, name = "test"), TestData(activate = true, name = "!test")),
             ),
             TestCase(
+                query = Criteria.Or(listOf()),
+            ),
+            TestCase(
                 query = where(TestData::activate).isTrue().or(where(TestData::name).`is`("test")),
                 expectTrue = listOf(TestData(activate = true, name = "test"), TestData(activate = false, name = "test"), TestData(activate = true, name = "!test")),
                 expectFalse = listOf(TestData(activate = false, name = "!test")),
+            ),
+            TestCase(
+                query = Criteria.Or(listOf(where(TestData::activate).isTrue())),
+                expectTrue = listOf(TestData(activate = true)),
+                expectFalse = listOf(TestData(activate = false), TestData(activate = null)),
             ),
         )
 
@@ -222,6 +239,9 @@ class RuntimeCriteriaParserTest {
             }
             it.expectFalse.forEach {
                 assertFalse(criteria?.invoke(it) ?: true)
+            }
+            if (it.expectFalse.isEmpty() && it.expectTrue.isEmpty()) {
+                assertNull(criteria)
             }
         }
     }
