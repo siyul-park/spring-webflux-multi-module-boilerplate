@@ -11,7 +11,7 @@ import org.springframework.data.relational.core.query.Criteria.CriteriaStep as R
 class R2DBCCriteriaParser<T : Any>(
     clazz: KClass<T>
 ) : CriteriaParser<R2DBCCriteria> {
-    private val columnNames = clazz.memberProperties.map { it.name to columnName(it) }.toMap()
+    private val columnNames = clazz.memberProperties.associate { it.name to columnName(it) }
 
     override fun parse(criteria: Criteria): R2DBCCriteria {
         return when (criteria) {

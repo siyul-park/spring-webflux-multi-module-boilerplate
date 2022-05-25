@@ -35,7 +35,7 @@ class R2DBCCriteriaParserTest {
         val sql: String? = null,
     )
 
-    private val parser = R2DBCCriteriaParser<TestData>(TestData::class)
+    private val parser = R2DBCCriteriaParser(TestData::class)
 
     @Test
     fun parse() {
