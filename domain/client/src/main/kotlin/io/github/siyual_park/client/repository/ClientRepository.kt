@@ -2,7 +2,7 @@ package io.github.siyual_park.client.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.client.entity.ClientData
-import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
@@ -14,7 +14,7 @@ import java.time.Duration
 class ClientRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<ClientData, ULID> by R2DBCRepositoryBuilder<ClientData, ULID>(entityOperations, ClientData::class)
+) : QueryRepository<ClientData, ULID> by R2DBCRepositoryBuilder<ClientData, ULID>(entityOperations, ClientData::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()

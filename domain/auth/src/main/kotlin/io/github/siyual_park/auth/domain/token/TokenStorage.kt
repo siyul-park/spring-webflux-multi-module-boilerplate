@@ -2,28 +2,30 @@ package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
-import io.github.siyual_park.persistence.MongoStorage
-import io.github.siyual_park.persistence.SimpleMongoStorage
+import io.github.siyual_park.data.criteria.Criteria
+import io.github.siyual_park.data.criteria.and
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
+import io.github.siyual_park.persistence.QueryStorage
+import io.github.siyual_park.persistence.SimpleQueryStorage
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.CriteriaDefinition
-import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
 
 @Component
 class TokenStorage(
     tokenRepository: TokenRepository,
     tokenMapper: TokenMapper
-) : MongoStorage<Token, ULID> {
-    private val delegator = SimpleMongoStorage(tokenRepository) { tokenMapper.map(it) }
+) : QueryStorage<Token, ULID> {
+    private val delegator = SimpleQueryStorage(tokenRepository) { tokenMapper.map(it) }
 
     fun load(type: String, claims: Map<String, Any>, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<Token> {
-        var query = where(TokenData::type).`is`(type)
+        var query: Criteria = where(TokenData::type).`is`(type)
         claims.forEach { (key, value) ->
-            query = query.and("claims.$key").`is`(value)
+            query = query.and(where("claims.$key").`is`(value))
         }
 
         return load(query, limit, offset, sort)
@@ -37,15 +39,15 @@ class TokenStorage(
         return load(where(TokenData::signature).`is`(signature))
     }
 
-    override suspend fun load(criteria: CriteriaDefinition): Token? {
+    override suspend fun load(criteria: Criteria): Token? {
         return delegator.load(criteria)?.let { if (it.isActivated()) it else null }
     }
 
-    override fun load(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<Token> {
+    override fun load(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?): Flow<Token> {
         return delegator.load(criteria, limit, offset, sort).filter { it.isActivated() }
     }
 
-    override suspend fun count(criteria: CriteriaDefinition?): Long {
+    override suspend fun count(criteria: Criteria?): Long {
         return delegator.count(criteria)
     }
 

@@ -5,8 +5,11 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.data.cache.SuspendLazy
+import io.github.siyual_park.data.criteria.and
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
+import io.github.siyual_park.data.repository.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
-import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.PersistencePropagateSynchronization

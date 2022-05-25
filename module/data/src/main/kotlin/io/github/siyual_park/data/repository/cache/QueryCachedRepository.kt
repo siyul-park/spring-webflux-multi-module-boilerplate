@@ -1,23 +1,32 @@
-package io.github.siyual_park.data.repository.r2dbc
+package io.github.siyual_park.data.repository.cache
 
 import io.github.siyual_park.data.cache.QueryStorage
 import io.github.siyual_park.data.cache.SelectQuery
 import io.github.siyual_park.data.cache.get
+import io.github.siyual_park.data.cache.getIfPresent
+import io.github.siyual_park.data.criteria.Criteria
+import io.github.siyual_park.data.criteria.`in`
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
+import io.github.siyual_park.data.expansion.idProperty
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.SuspendPatch
+import io.github.siyual_park.data.repository.QueryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import org.springframework.data.domain.Sort
-import org.springframework.data.relational.core.query.Criteria.where
-import org.springframework.data.relational.core.query.CriteriaDefinition
+import kotlin.reflect.KClass
 
-class CachedQueryR2DBCRepository<T : Any, ID : Any>(
-    private val delegator: R2DBCRepository<T, ID>,
+class QueryCachedRepository<T : Any, ID : Any>(
+    private val delegator: QueryRepository<T, ID>,
     private val storage: QueryStorage<T>,
-    private val entityManager: EntityManager<T, ID>,
-) : R2DBCRepository<T, ID> {
+    clazz: KClass<T>
+) : QueryRepository<T, ID> {
+    @Suppress("UNCHECKED_CAST")
+    private val idProperty = idProperty<T, ID>(clazz)
+
     override suspend fun create(entity: T): T {
         storage.clear()
         return delegator.create(entity)
@@ -45,7 +54,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         return delegator.count()
     }
 
-    override suspend fun count(criteria: CriteriaDefinition?, limit: Int?): Long {
+    override suspend fun count(criteria: Criteria?, limit: Int?): Long {
         if (limit != null && limit <= 0) {
             return 0
         }
@@ -53,7 +62,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findById(id: ID): T? {
-        return storage.getIfPresent(where(entityManager.getIdColumnName()).`is`(id).toString()) {
+        return storage.getIfPresent(where(idProperty).`is`(id).toString()) {
             delegator.findById(id)
         }
     }
@@ -68,19 +77,19 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         if (ids.count() == 0) {
             return emptyFlow()
         }
-        val query = SelectQuery(where(entityManager.getIdColumnName()).`in`(ids.toList()).toString(), ids.count(), null, null)
+        val query = SelectQuery(where(idProperty).`in`(ids.toList()).toString(), ids.count(), null, null)
         return storage.get(query) {
             delegator.findAllById(ids)
         }
     }
 
-    override suspend fun findOne(criteria: CriteriaDefinition): T? {
+    override suspend fun findOne(criteria: Criteria): T? {
         return storage.getIfPresent(criteria.toString()) {
             delegator.findOne(criteria)
         }
     }
 
-    override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun findAll(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         if (limit != null && limit <= 0) {
             return emptyFlow()
         }
@@ -156,18 +165,18 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
+    override suspend fun update(criteria: Criteria, patch: Patch<T>): T? {
         storage.clear()
         return delegator.update(criteria, patch)
     }
 
-    override suspend fun update(criteria: CriteriaDefinition, patch: SuspendPatch<T>): T? {
+    override suspend fun update(criteria: Criteria, patch: SuspendPatch<T>): T? {
         storage.clear()
         return delegator.update(criteria, patch)
     }
 
     override fun updateAll(
-        criteria: CriteriaDefinition,
+        criteria: Criteria,
         patch: Patch<T>,
         limit: Int?,
         offset: Long?,
@@ -183,7 +192,7 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
     }
 
     override fun updateAll(
-        criteria: CriteriaDefinition,
+        criteria: Criteria,
         patch: SuspendPatch<T>,
         limit: Int?,
         offset: Long?,
@@ -229,11 +238,11 @@ class CachedQueryR2DBCRepository<T : Any, ID : Any>(
         return delegator.deleteAll()
     }
 
-    override suspend fun exists(criteria: CriteriaDefinition): Boolean {
+    override suspend fun exists(criteria: Criteria): Boolean {
         return delegator.exists(criteria)
     }
 
-    override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+    override suspend fun deleteAll(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?) {
         if (limit != null && limit <= 0) {
             return
         }

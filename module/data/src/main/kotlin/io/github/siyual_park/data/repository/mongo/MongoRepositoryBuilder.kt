@@ -6,13 +6,12 @@ import io.github.siyual_park.data.cache.InMemoryStorage
 import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.cache.PoolingNestedStorage
 import io.github.siyual_park.data.cache.TransactionalStorage
+import io.github.siyual_park.data.expansion.idProperty
+import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.cache.CachedQueryRepository
 import io.github.siyual_park.event.EventPublisher
-import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.javaField
 
 @Suppress("UNCHECKED_CAST")
 class MongoRepositoryBuilder<T : Any, ID : Any>(
@@ -32,33 +31,33 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    fun build(): MongoRepository<T, ID> {
-        val cacheBuilder = cacheBuilder
+    fun build(): QueryRepository<T, ID> {
+        val idProperty = createIdProperty()
 
-        val current = SimpleMongoRepository<T, ID>(
-            template,
-            clazz,
-            eventPublisher
-        )
-
-        return if (cacheBuilder != null) {
-            val id = createIdProperty()
-            val storage = TransactionalStorage(
-                PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, id) }, id)
-            )
-
-            CachedMongoRepository(current, storage, id)
-        } else {
-            return current
+        val current = MongoQueryRepositoryAdapter(
+            SimpleMongoRepository<T, ID>(
+                template,
+                clazz,
+                eventPublisher
+            ),
+            clazz
+        ).let {
+            val cacheBuilder = cacheBuilder
+            if (cacheBuilder != null) {
+                val storage = TransactionalStorage(
+                    PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, idProperty) }, idProperty)
+                )
+                CachedQueryRepository(it, storage, idProperty, clazz)
+            } else {
+                it
+            }
         }
+
+        return current
     }
 
     private fun createIdProperty(): WeekProperty<T, ID> {
-        val idProperty = (
-            clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
-                ?: throw RuntimeException()
-            ) as KProperty1<T, ID>
-
+        val idProperty = idProperty<T, ID>(clazz)
         return object : WeekProperty<T, ID> {
             override fun get(entity: T): ID {
                 return idProperty.get(entity)

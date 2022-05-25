@@ -2,9 +2,11 @@ package io.github.siyual_park.auth.domain.scope_token
 
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.data.repository.r2dbc.where
-import io.github.siyual_park.persistence.R2DBCStorage
-import io.github.siyual_park.persistence.SimpleR2DBCStorage
+import io.github.siyual_park.data.criteria.`in`
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
+import io.github.siyual_park.persistence.QueryStorage
+import io.github.siyual_park.persistence.SimpleQueryStorage
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Component
 class ScopeTokenStorage(
     private val scopeTokenRepository: ScopeTokenRepository,
     private val scopeTokenMapper: ScopeTokenMapper
-) : R2DBCStorage<ScopeToken, ULID> by SimpleR2DBCStorage(
+) : QueryStorage<ScopeToken, ULID> by SimpleQueryStorage(
     scopeTokenRepository,
     { scopeTokenMapper.map(it) }
 ) {

@@ -1,10 +1,11 @@
 package io.github.siyual_park.data.migration
 
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.expansion.columnName
-import io.github.siyual_park.data.repository.r2dbc.EntityManager
-import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
-import io.github.siyual_park.data.repository.r2dbc.where
+import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.data.repository.update
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
@@ -20,9 +21,8 @@ class MigrationManager(
 ) {
     private val logger = LoggerFactory.getLogger(MigrationManager::class.java)
 
-    private val migrationCheckpointRepository = SimpleR2DBCRepository<MigrationCheckpoint, Long>(
-        EntityManager(entityOperations, MigrationCheckpoint::class)
-    )
+    private val migrationCheckpointRepository = R2DBCRepositoryBuilder<MigrationCheckpoint, ULID>(entityOperations, MigrationCheckpoint::class)
+        .build()
 
     private val migrations = mutableListOf<Migration>()
 

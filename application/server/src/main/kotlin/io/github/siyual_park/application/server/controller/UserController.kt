@@ -59,7 +59,7 @@ class UserController(
     private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
-    private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(UserData::class)
+    private val rhsFilterParser = rhsFilterParserFactory.create(UserData::class)
     private val sortParser = sortParserFactory.create(UserData::class)
     private val projectionParser = projectionParserFactory.create(UserInfo::class)
 

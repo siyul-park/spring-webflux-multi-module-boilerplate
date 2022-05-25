@@ -9,13 +9,16 @@ import io.github.siyual_park.data.cache.PoolingNestedQueryStorage
 import io.github.siyual_park.data.cache.PoolingNestedStorage
 import io.github.siyual_park.data.cache.TransactionalQueryStorage
 import io.github.siyual_park.data.cache.TransactionalStorage
+import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.cache.CachedQueryRepository
+import io.github.siyual_park.data.repository.cache.QueryCachedRepository
 import io.github.siyual_park.event.EventPublisher
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import kotlin.reflect.KClass
 
 class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     entityOperations: R2dbcEntityOperations,
-    clazz: KClass<T>,
+    private val clazz: KClass<T>,
 ) {
     private val entityManager = EntityManager<T, ID>(entityOperations, clazz)
 
@@ -39,31 +42,34 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun build(): R2DBCRepository<T, ID> {
+    fun build(): QueryRepository<T, ID> {
+        val idProperty = createIdProperty()
 
-        return SimpleR2DBCRepository(
-            entityManager,
-            eventPublisher
+        return R2DBCQueryRepositoryAdapter(
+            SimpleR2DBCRepository(
+                entityManager,
+                eventPublisher
+            ),
+            clazz
         ).let {
             val cacheBuilder = cacheBuilder
             if (cacheBuilder != null) {
-                val idProperty = createIdProperty()
                 val storage = TransactionalStorage(
                     PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, idProperty) }, idProperty)
                 )
 
-                CachedR2DBCRepository(it, storage, entityManager)
+                CachedQueryRepository(it, storage, idProperty, clazz)
             } else {
                 it
             }
         }.let {
-            val queryCacheBuilder = queryCacheBuilder
-            if (queryCacheBuilder != null) {
+            val cacheBuilder = queryCacheBuilder
+            if (cacheBuilder != null) {
                 val storage = TransactionalQueryStorage<T>(
-                    PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(queryCacheBuilder) })
+                    PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(cacheBuilder) })
                 )
 
-                CachedQueryR2DBCRepository(it, storage, entityManager)
+                QueryCachedRepository(it, storage, clazz)
             } else {
                 it
             }

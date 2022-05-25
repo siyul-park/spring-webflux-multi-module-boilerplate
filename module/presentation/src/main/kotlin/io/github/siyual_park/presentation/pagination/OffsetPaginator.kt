@@ -1,15 +1,15 @@
 package io.github.siyual_park.presentation.pagination
 
-import io.github.siyual_park.persistence.R2DBCStorage
+import io.github.siyual_park.data.criteria.Criteria
+import io.github.siyual_park.persistence.QueryStorage
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
-import org.springframework.data.relational.core.query.CriteriaDefinition
 
 class OffsetPaginator<T : Any, ID : Any>(
-    private val storage: R2DBCStorage<T, ID>,
+    private val storage: QueryStorage<T, ID>,
 ) {
     suspend fun paginate(
-        criteria: CriteriaDefinition? = null,
+        criteria: Criteria? = null,
         sort: Sort? = null,
         page: Int?,
         perPage: Int?

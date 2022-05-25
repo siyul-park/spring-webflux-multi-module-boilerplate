@@ -1,14 +1,17 @@
-package io.github.siyual_park.data.repository.r2dbc
+package io.github.siyual_park.data.repository.cache
 
 import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.cache.Storage
 import io.github.siyual_park.data.cache.createIndexes
 import io.github.siyual_park.data.cache.getIndexNameAndValue
+import io.github.siyual_park.data.criteria.Criteria
+import io.github.siyual_park.data.criteria.`in`
+import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.Repository
-import io.github.siyual_park.data.repository.cache.SimpleCachedRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -19,30 +22,26 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.Sort
-import org.springframework.data.relational.core.query.Criteria
-import org.springframework.data.relational.core.query.CriteriaDefinition
+import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
-class CachedR2DBCRepository<T : Any, ID : Any>(
-    private val delegator: R2DBCRepository<T, ID>,
+class CachedQueryRepository<T : Any, ID : Any>(
+    private val delegator: QueryRepository<T, ID>,
     private val storage: Storage<ID, T>,
-    private val entityManager: EntityManager<T, ID>,
-) : R2DBCRepository<T, ID>,
+    private val id: WeekProperty<T, ID>,
+    private val clazz: KClass<T>
+) : QueryRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(
         delegator,
         storage,
-        object : WeekProperty<T, ID> {
-            override fun get(entity: T): ID {
-                return entityManager.getId(entity)
-            }
-        },
+        id,
     ) {
 
     init {
-        runBlocking { storage.createIndexes(entityManager.getClass()) }
+        runBlocking { storage.createIndexes(clazz) }
     }
 
-    override suspend fun exists(criteria: CriteriaDefinition): Boolean {
+    override suspend fun exists(criteria: Criteria): Boolean {
         val fallback = suspend { delegator.exists(criteria) }
         val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
 
@@ -53,7 +52,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun findOne(criteria: CriteriaDefinition): T? {
+    override suspend fun findOne(criteria: Criteria): T? {
         val fallback = suspend {
             delegator.findOne(criteria)
                 ?.also { storage.add(it) }
@@ -63,7 +62,7 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         return storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
     }
 
-    override fun findAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun findAll(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         if (limit != null && limit <= 0) {
             return emptyFlow()
         }
@@ -85,29 +84,24 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             }
 
             if (criteria != null && limit == null && offset == null && sort == null) {
-                if (isSingleCriteria(criteria)) {
-                    val column = criteria.column
-                    val value = criteria.value ?: return@flow emitAll(fallback())
-                    val indexName = column?.reference ?: return@flow emitAll(fallback())
+                if (criteria is Criteria.In) {
+                    val key = criteria.key
+                    val value = criteria.value
 
-                    if (
-                        storage.containsIndex(indexName) &&
-                        criteria.comparator == CriteriaDefinition.Comparator.IN &&
-                        value is Collection<*>
-                    ) {
+                    if (storage.containsIndex(key)) {
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
-                        value.forEach { key ->
-                            val cached = key?.let { storage.getIfPresent(indexName, ArrayList<Any?>().apply { add(it) }) }
+                        value.forEach { current ->
+                            val cached = current?.let { storage.getIfPresent(key, ArrayList<Any?>().apply { add(it) }) }
                             if (cached == null) {
-                                notCachedKey.add(key)
+                                notCachedKey.add(current)
                             } else {
                                 result.add(cached)
                             }
                         }
 
                         if (notCachedKey.isNotEmpty()) {
-                            delegator.findAll(Criteria.where(indexName).`in`(notCachedKey))
+                            delegator.findAll(where(key).`in`(notCachedKey))
                                 .onEach { storage.add(it) }
                                 .collect { result.add(it) }
                         }
@@ -121,20 +115,20 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
+    override suspend fun update(criteria: Criteria, patch: Patch<T>): T? {
         return update(criteria, patch.async())
     }
 
-    override suspend fun update(criteria: CriteriaDefinition, patch: SuspendPatch<T>): T? {
+    override suspend fun update(criteria: Criteria, patch: SuspendPatch<T>): T? {
         return delegator.update(criteria, patch)
             ?.also { storage.add(it) }
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun updateAll(criteria: Criteria, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: CriteriaDefinition, patch: SuspendPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun updateAll(criteria: Criteria, patch: SuspendPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         if (limit != null && limit <= 0) {
             return emptyFlow()
         }
@@ -146,14 +140,14 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun count(criteria: CriteriaDefinition?, limit: Int?): Long {
+    override suspend fun count(criteria: Criteria?, limit: Int?): Long {
         if (limit != null && limit <= 0) {
             return 0
         }
         return delegator.count(criteria, limit)
     }
 
-    override suspend fun deleteAll(criteria: CriteriaDefinition?, limit: Int?, offset: Long?, sort: Sort?) {
+    override suspend fun deleteAll(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?) {
         if (limit != null && limit <= 0) {
             return
         }
@@ -162,14 +156,14 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
             delegator.deleteAll()
         } else {
             val founded = findAll(criteria, limit, offset, sort)
-                .onEach { entityManager.getId(it).let { id -> storage.remove(id) } }
+                .onEach { id.get(it).let { id -> storage.remove(id) } }
                 .toList()
 
             delegator.deleteAll(founded)
         }
     }
 
-    private suspend fun getUniqueIndexNameAndValue(criteria: CriteriaDefinition?): Pair<String, Any>? {
+    private suspend fun getUniqueIndexNameAndValue(criteria: Criteria?): Pair<String, Any>? {
         if (criteria == null) return null
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
@@ -178,47 +172,32 @@ class CachedR2DBCRepository<T : Any, ID : Any>(
         return storage.getIndexNameAndValue(columns, values)
     }
 
-    private fun getSimpleJoinedColumnsAndValues(criteria: CriteriaDefinition): Pair<MutableList<String>, MutableList<Any?>>? {
+    private fun getSimpleJoinedColumnsAndValues(criteria: Criteria): Pair<MutableList<String>, MutableList<Any?>>? {
         val columns = mutableListOf<String>()
         val values = mutableListOf<Any?>()
 
-        when {
-            criteria.isGroup -> {
-                if (criteria.combinator == CriteriaDefinition.Combinator.INITIAL && criteria.group.size == 1) {
-                    return getSimpleJoinedColumnsAndValues(criteria.group[0])
-                }
-                if (criteria.combinator != CriteriaDefinition.Combinator.AND) {
-                    return null
+        when (criteria) {
+            is Criteria.And -> {
+                if (criteria.value.size == 1) {
+                    return getSimpleJoinedColumnsAndValues(criteria.value[0])
                 }
 
-                criteria.group.forEach {
+                criteria.value.forEach {
                     val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(it) ?: return null
                     columns.addAll(childColumns)
                     values.addAll(childValues)
                 }
             }
-            criteria.comparator === CriteriaDefinition.Comparator.EQ -> {
-                val column = criteria.column
+            is Criteria.Equals -> {
+                val key = criteria.key
                 val value = criteria.value
-                val indexName = column?.let { entityManager.getProperty(it)?.name } ?: return null
 
-                columns.add(indexName)
+                columns.add(key)
                 values.add(value)
             }
             else -> return null
         }
 
-        val previous = criteria.previous
-        if (previous != null) {
-            val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(previous) ?: return null
-            columns.addAll(childColumns)
-            values.addAll(childValues)
-        }
-
         return columns to values
-    }
-
-    private fun isSingleCriteria(criteria: CriteriaDefinition?): Boolean {
-        return criteria != null && !criteria.hasPrevious() && !criteria.isGroup
     }
 }
