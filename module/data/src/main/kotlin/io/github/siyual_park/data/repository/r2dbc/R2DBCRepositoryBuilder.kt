@@ -63,7 +63,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
                     PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(queryCacheBuilder) })
                 )
 
-                CachedQueryR2DBCRepository(it, storage, entityManager)
+                QueryCachedR2DBCRepository(it, storage, entityManager)
             } else {
                 it
             }

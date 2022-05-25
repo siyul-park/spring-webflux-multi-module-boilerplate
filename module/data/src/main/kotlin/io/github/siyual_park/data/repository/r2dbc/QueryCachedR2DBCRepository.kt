@@ -13,7 +13,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.CriteriaDefinition
 
-class CachedQueryR2DBCRepository<T : Any, ID : Any>(
+class QueryCachedR2DBCRepository<T : Any, ID : Any>(
     private val delegator: R2DBCRepository<T, ID>,
     private val storage: QueryStorage<T>,
     private val entityManager: EntityManager<T, ID>,

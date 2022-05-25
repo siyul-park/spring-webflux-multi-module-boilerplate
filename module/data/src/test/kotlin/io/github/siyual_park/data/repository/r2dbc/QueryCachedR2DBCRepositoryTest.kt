@@ -5,7 +5,7 @@ import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.ulid.ULID
 import java.time.Duration
 
-class CachedQueryR2DBCRepositoryTest : R2DBCRepositoryTestHelper(
+class QueryCachedR2DBCRepositoryTest : R2DBCRepositoryTestHelper(
     repositories = {
         listOf(
             R2DBCRepositoryBuilder<Person, ULID>(it.entityOperations, Person::class)
