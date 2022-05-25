@@ -3,42 +3,42 @@ package io.github.siyual_park.data.criteria
 import java.util.regex.Pattern
 import kotlin.reflect.KProperty1
 
-class CriteriaStep(
+data class CriteriaStep(
     val key: String
-)
+) {
+    fun `is`(value: Any?) = Criteria.Equals(key, value)
+    fun not(value: Any?) = Criteria.NotEquals(key, value)
+
+    fun between(value: ClosedRange<*>) = Criteria.Between(key, value)
+    fun notBetween(value: ClosedRange<*>) = Criteria.NotBetween(key, value)
+
+    fun lessThan(value: Any) = Criteria.LessThan(key, value)
+    fun lessThanOrEquals(value: Any) = Criteria.LessThanEquals(key, value)
+
+    fun greaterThan(value: Any) = Criteria.GreaterThan(key, value)
+    fun greaterThanOrEquals(value: Any) = Criteria.GreaterThanEquals(key, value)
+
+    fun isNull() = Criteria.IsNull(key)
+    fun isNotNull() = Criteria.IsNotNull(key)
+
+    fun like(value: String) = Criteria.Like(key, value)
+    fun notLike(value: String) = Criteria.NotLike(key, value)
+
+    fun regexp(value: Pattern) = Criteria.Regexp(key, value)
+    fun notRegexp(value: Pattern) = Criteria.NotRegexp(key, value)
+
+    fun `in`(vararg value: Any?) = Criteria.In(key, value.toList())
+    fun notIn(vararg value: Any?) = Criteria.NotIn(key, value.toList())
+
+    fun `in`(value: List<Any?>) = Criteria.In(key, value)
+    fun notIn(value: List<Any?>) = Criteria.NotIn(key, value)
+
+    fun isTrue() = Criteria.IsTrue(key)
+    fun isFalse() = Criteria.IsFalse(key)
+}
 
 fun <T, V> where(property: KProperty1<T, V>) = CriteriaStep(property.name)
 fun where(key: String) = CriteriaStep(key)
-
-fun CriteriaStep.`is`(value: Any?) = Criteria.Equals(key, value)
-fun CriteriaStep.not(value: Any?) = Criteria.NotEquals(key, value)
-
-fun CriteriaStep.between(value: ClosedRange<*>) = Criteria.Between(key, value)
-fun CriteriaStep.notBetween(value: ClosedRange<*>) = Criteria.NotBetween(key, value)
-
-fun CriteriaStep.lessThan(value: Any) = Criteria.LessThan(key, value)
-fun CriteriaStep.lessThanOrEquals(value: Any) = Criteria.LessThanEquals(key, value)
-
-fun CriteriaStep.greaterThan(value: Any) = Criteria.GreaterThan(key, value)
-fun CriteriaStep.greaterThanOrEquals(value: Any) = Criteria.GreaterThanEquals(key, value)
-
-fun CriteriaStep.isNull() = Criteria.IsNull(key)
-fun CriteriaStep.isNotNull() = Criteria.IsNotNull(key)
-
-fun CriteriaStep.like(value: String) = Criteria.Like(key, value)
-fun CriteriaStep.notLike(value: String) = Criteria.NotLike(key, value)
-
-fun CriteriaStep.regexp(value: Pattern) = Criteria.Regexp(key, value)
-fun CriteriaStep.notRegexp(value: Pattern) = Criteria.NotRegexp(key, value)
-
-fun CriteriaStep.`in`(vararg value: Any?) = Criteria.In(key, value.toList())
-fun CriteriaStep.notIn(vararg value: Any?) = Criteria.NotIn(key, value.toList())
-
-fun CriteriaStep.`in`(value: List<Any?>) = Criteria.In(key, value)
-fun CriteriaStep.notIn(value: List<Any?>) = Criteria.NotIn(key, value)
-
-fun CriteriaStep.isTrue() = Criteria.IsTrue(key)
-fun CriteriaStep.isFalse() = Criteria.IsFalse(key)
 
 fun Criteria.and(value: Criteria) = Criteria.And(mutableListOf(this).apply { add(value) })
 fun Criteria.and(value: Collection<Criteria>) = Criteria.And(mutableListOf(this).apply { addAll(value) })

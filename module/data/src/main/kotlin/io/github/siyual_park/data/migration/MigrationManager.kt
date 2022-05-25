@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.migration
 
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder

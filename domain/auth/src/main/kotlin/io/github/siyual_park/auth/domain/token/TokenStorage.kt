@@ -4,7 +4,6 @@ import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.criteria.and
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.persistence.QueryStorage
 import io.github.siyual_park.persistence.SimpleQueryStorage

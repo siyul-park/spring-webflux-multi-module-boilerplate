@@ -5,8 +5,6 @@ import io.github.siyual_park.data.cache.SelectQuery
 import io.github.siyual_park.data.cache.get
 import io.github.siyual_park.data.cache.getIfPresent
 import io.github.siyual_park.data.criteria.Criteria
-import io.github.siyual_park.data.criteria.`in`
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.expansion.idProperty
 import io.github.siyual_park.data.patch.Patch

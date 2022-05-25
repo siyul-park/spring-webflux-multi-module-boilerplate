@@ -2,7 +2,6 @@ package io.github.siyual_park.client.event.consumer
 
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.client.entity.ClientData
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.event.AfterDeleteEvent
 import io.github.siyual_park.data.transaction.doAfterCommit

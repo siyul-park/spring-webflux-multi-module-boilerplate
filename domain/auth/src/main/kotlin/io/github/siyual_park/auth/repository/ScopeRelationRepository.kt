@@ -2,8 +2,6 @@ package io.github.siyual_park.auth.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.entity.ScopeRelationData
-import io.github.siyual_park.data.criteria.`in`
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder

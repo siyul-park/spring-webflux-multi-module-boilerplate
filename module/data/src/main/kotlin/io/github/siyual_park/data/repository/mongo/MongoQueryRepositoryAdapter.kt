@@ -14,7 +14,7 @@ class MongoQueryRepositoryAdapter<T : Any, ID : Any>(
     private val delegator: MongoRepository<T, ID>,
     clazz: KClass<T>
 ) : QueryRepository<T, ID>, Repository<T, ID> by delegator {
-    private val parser = MongoCriteriaParser<T>(clazz)
+    private val parser = MongoCriteriaParser(clazz)
 
     override suspend fun exists(criteria: Criteria): Boolean {
         return parser.parse(criteria)?.let { delegator.exists(it) } ?: false

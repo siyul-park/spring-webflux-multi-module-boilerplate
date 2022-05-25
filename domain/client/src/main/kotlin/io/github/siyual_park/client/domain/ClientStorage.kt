@@ -2,7 +2,6 @@ package io.github.siyual_park.client.domain
 
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.persistence.QueryStorage
 import io.github.siyual_park.persistence.SimpleQueryStorage

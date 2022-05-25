@@ -2,7 +2,6 @@ package io.github.siyual_park.client.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.client.entity.ClientCredentialData
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.repository.QueryRepository

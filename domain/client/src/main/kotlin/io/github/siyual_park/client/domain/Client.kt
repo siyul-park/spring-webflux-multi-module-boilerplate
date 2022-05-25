@@ -13,7 +13,6 @@ import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.criteria.and
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.findOneOrFail
 import io.github.siyual_park.data.repository.r2dbc.findOneOrFail

@@ -1,25 +1,5 @@
 package io.github.siyual_park.data.repository.r2dbc
 
-import io.github.siyual_park.data.criteria.Criteria
-import io.github.siyual_park.data.criteria.and
-import io.github.siyual_park.data.criteria.between
-import io.github.siyual_park.data.criteria.greaterThan
-import io.github.siyual_park.data.criteria.greaterThanOrEquals
-import io.github.siyual_park.data.criteria.`in`
-import io.github.siyual_park.data.criteria.`is`
-import io.github.siyual_park.data.criteria.isFalse
-import io.github.siyual_park.data.criteria.isNotNull
-import io.github.siyual_park.data.criteria.isNull
-import io.github.siyual_park.data.criteria.isTrue
-import io.github.siyual_park.data.criteria.lessThan
-import io.github.siyual_park.data.criteria.lessThanOrEquals
-import io.github.siyual_park.data.criteria.like
-import io.github.siyual_park.data.criteria.not
-import io.github.siyual_park.data.criteria.notBetween
-import io.github.siyual_park.data.criteria.notIn
-import io.github.siyual_park.data.criteria.notLike
-import io.github.siyual_park.data.criteria.or
-import io.github.siyual_park.data.criteria.where
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
