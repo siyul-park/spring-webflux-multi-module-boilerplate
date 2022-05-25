@@ -3,7 +3,7 @@ package io.github.siyual_park.data.criteria
 import java.util.regex.Pattern
 
 sealed class Criteria {
-    class Empty : Criteria() {
+    object Empty : Criteria() {
         override fun toString(): String {
             return "()"
         }
