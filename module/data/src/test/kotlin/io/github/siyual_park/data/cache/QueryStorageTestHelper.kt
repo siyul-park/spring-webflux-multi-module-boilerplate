@@ -22,56 +22,61 @@ abstract class QueryStorageTestHelper(private val storage: QueryStorage<String>)
     fun getIfPresent() = blocking {
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
+        val query = where(key).`is`(value)
 
-        assertNull(storage.getIfPresent(key))
-        assertEquals(value, storage.getIfPresent(key) { value })
-        assertNull(storage.getIfPresent(SelectQuery(where(key).`is`(value))))
-        assertEquals(listOf(value), storage.getIfPresent(SelectQuery(where(key).`is`(value))) { listOf(value) })
+        assertNull(storage.getIfPresent(query))
+        assertEquals(value, storage.getIfPresent(query) { value })
+        assertNull(storage.getIfPresent(SelectQuery(query)))
+        assertEquals(listOf(value), storage.getIfPresent(SelectQuery(query)) { listOf(value) })
     }
 
     @Test
     fun remove() = blocking {
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
+        val query = where(key).`is`(value)
 
-        storage.put(SelectQuery(where(key).`is`(value)), listOf(value))
+        storage.put(SelectQuery(query), listOf(value))
 
-        storage.remove(SelectQuery(where(key).`is`(value)))
+        storage.remove(SelectQuery(query))
 
-        assertNull(storage.getIfPresent(SelectQuery(where(key).`is`(value))))
+        assertNull(storage.getIfPresent(SelectQuery(query)))
     }
 
     @Test
     fun put() = blocking {
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
+        val query = where(key).`is`(value)
 
-        storage.put(SelectQuery(where(key).`is`(value)), listOf(value))
+        storage.put(SelectQuery(query), listOf(value))
 
-        assertEquals(listOf(value), storage.getIfPresent(SelectQuery(where(key).`is`(value))))
+        assertEquals(listOf(value), storage.getIfPresent(SelectQuery(query)))
     }
 
     @Test
     fun clear() = blocking {
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
+        val query = where(key).`is`(value)
 
-        storage.put(SelectQuery(where(key).`is`(value)), listOf(value))
+        storage.put(SelectQuery(query), listOf(value))
 
         storage.clear()
 
-        assertNull(storage.getIfPresent(SelectQuery(where(key).`is`(value))))
+        assertNull(storage.getIfPresent(SelectQuery(query)))
     }
 
     @Test
     fun entries() = blocking {
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
+        val query = where(key).`is`(value)
 
-        storage.put(SelectQuery(where(key).`is`(value)), listOf(value))
+        storage.put(SelectQuery(query), listOf(value))
 
         val multi = storage.entries()
 
-        assertEquals(setOf(SelectQuery(where(key).`is`(value)) to listOf(value)), multi)
+        assertEquals(setOf(SelectQuery(query) to listOf(value)), multi)
     }
 }
