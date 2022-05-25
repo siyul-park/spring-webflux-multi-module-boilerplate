@@ -1,0 +1,205 @@
+package io.github.siyual_park.data.repository.cache
+
+import io.github.siyual_park.data.WeekProperty
+import io.github.siyual_park.data.cache.Storage
+import io.github.siyual_park.data.cache.createIndexes
+import io.github.siyual_park.data.cache.getIndexNameAndValue
+import io.github.siyual_park.data.criteria.Criteria
+import io.github.siyual_park.data.criteria.`in`
+import io.github.siyual_park.data.criteria.where
+import io.github.siyual_park.data.patch.Patch
+import io.github.siyual_park.data.patch.SuspendPatch
+import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.Repository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
+import org.springframework.data.domain.Sort
+import kotlin.reflect.KClass
+
+@Suppress("UNCHECKED_CAST")
+class CachedQueryRepository<T : Any, ID : Any>(
+    private val delegator: QueryRepository<T, ID>,
+    private val storage: Storage<ID, T>,
+    private val id: WeekProperty<T, ID>,
+    private val clazz: KClass<T>
+) : QueryRepository<T, ID>,
+    Repository<T, ID> by SimpleCachedRepository(
+        delegator,
+        storage,
+        id,
+    ) {
+
+    init {
+        runBlocking { storage.createIndexes(clazz) }
+    }
+
+    override suspend fun exists(criteria: Criteria<T>): Boolean {
+        val fallback = suspend { delegator.exists(criteria) }
+        val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
+
+        return if (storage.getIfPresent(indexName, value) != null) {
+            true
+        } else {
+            fallback()
+        }
+    }
+
+    override suspend fun findOne(criteria: Criteria<T>): T? {
+        val fallback = suspend {
+            delegator.findOne(criteria)
+                ?.also { storage.add(it) }
+        }
+
+        val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
+        return storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
+    }
+
+    override fun findAll(criteria: Criteria<T>?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        if (limit != null && limit <= 0) {
+            return emptyFlow()
+        }
+
+        return flow {
+            val fallback = {
+                delegator.findAll(criteria, limit, offset, sort)
+                    .onEach { storage.add(it) }
+            }
+
+            if (criteria != null && (offset == null || offset == 0L)) {
+                val indexNameAndValue = getUniqueIndexNameAndValue(criteria)
+                if (indexNameAndValue != null) {
+                    val (indexName, value) = indexNameAndValue
+                    storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
+                        ?.let { emit(it) }
+                    return@flow
+                }
+            }
+
+            if (criteria != null && limit == null && offset == null && sort == null) {
+                if (criteria is Criteria.In<T, *>) {
+                    val key = criteria.key
+                    val value = criteria.value
+                    val indexName = key.name
+
+                    if (storage.containsIndex(indexName)) {
+                        val result = mutableListOf<T>()
+                        val notCachedKey = mutableListOf<Any?>()
+                        value.forEach { current ->
+                            val cached = current?.let { storage.getIfPresent(indexName, ArrayList<Any?>().apply { add(it) }) }
+                            if (cached == null) {
+                                notCachedKey.add(current)
+                            } else {
+                                result.add(cached)
+                            }
+                        }
+
+                        if (notCachedKey.isNotEmpty()) {
+                            delegator.findAll(where(key).`in`(notCachedKey))
+                                .onEach { storage.add(it) }
+                                .collect { result.add(it) }
+                        }
+
+                        return@flow emitAll(result.asFlow())
+                    }
+                }
+            }
+
+            return@flow emitAll(fallback())
+        }
+    }
+
+    override suspend fun update(criteria: Criteria<T>, patch: Patch<T>): T? {
+        return update(criteria, patch.async())
+    }
+
+    override suspend fun update(criteria: Criteria<T>, patch: SuspendPatch<T>): T? {
+        return delegator.update(criteria, patch)
+            ?.also { storage.add(it) }
+    }
+
+    override fun updateAll(criteria: Criteria<T>, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        return updateAll(criteria, patch.async(), limit, offset, sort)
+    }
+
+    override fun updateAll(criteria: Criteria<T>, patch: SuspendPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+        if (limit != null && limit <= 0) {
+            return emptyFlow()
+        }
+        return flow {
+            emitAll(
+                delegator.updateAll(criteria, patch, limit, offset, sort)
+                    .onEach { storage.add(it) }
+            )
+        }
+    }
+
+    override suspend fun count(criteria: Criteria<T>?, limit: Int?): Long {
+        if (limit != null && limit <= 0) {
+            return 0
+        }
+        return delegator.count(criteria, limit)
+    }
+
+    override suspend fun deleteAll(criteria: Criteria<T>?, limit: Int?, offset: Long?, sort: Sort?) {
+        if (limit != null && limit <= 0) {
+            return
+        }
+        if (criteria == null) {
+            storage.clear()
+            delegator.deleteAll()
+        } else {
+            val founded = findAll(criteria, limit, offset, sort)
+                .onEach { id.get(it).let { id -> storage.remove(id) } }
+                .toList()
+
+            delegator.deleteAll(founded)
+        }
+    }
+
+    private suspend fun getUniqueIndexNameAndValue(criteria: Criteria<T>?): Pair<String, Any>? {
+        if (criteria == null) return null
+
+        val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
+        val (columns, values) = columnsAndValues
+
+        return storage.getIndexNameAndValue(columns, values)
+    }
+
+    private fun getSimpleJoinedColumnsAndValues(criteria: Criteria<T>): Pair<MutableList<String>, MutableList<Any?>>? {
+        val columns = mutableListOf<String>()
+        val values = mutableListOf<Any?>()
+
+        when (criteria) {
+            is Criteria.And -> {
+                if (criteria.value.size == 1) {
+                    return getSimpleJoinedColumnsAndValues(criteria.value[0])
+                }
+
+                criteria.value.forEach {
+                    val (childColumns, childValues) = getSimpleJoinedColumnsAndValues(it) ?: return null
+                    columns.addAll(childColumns)
+                    values.addAll(childValues)
+                }
+            }
+            is Criteria.Equals<T, *> -> {
+                val key = criteria.key
+                val value = criteria.value
+                val indexName = key.name
+
+                columns.add(indexName)
+                values.add(value)
+            }
+            else -> return null
+        }
+
+        return columns to values
+    }
+}

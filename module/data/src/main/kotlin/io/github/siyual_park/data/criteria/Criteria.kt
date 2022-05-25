@@ -98,12 +98,12 @@ sealed class Criteria<T : Any> {
         }
     }
 
-    data class In<T : Any, V : Any>(val key: KProperty1<T, V?>, val value: List<V>) : Criteria<T>() {
+    data class In<T : Any, V : Any?>(val key: KProperty1<T, V?>, val value: List<V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} in (${value.map { it.toString() }.joinToString { ", " }})"
         }
     }
-    data class NotIn<T : Any, V : Any>(val key: KProperty1<T, V?>, val value: List<V>) : Criteria<T>() {
+    data class NotIn<T : Any, V : Any?>(val key: KProperty1<T, V?>, val value: List<V>) : Criteria<T>() {
         override fun toString(): String {
             return "${key.name} not in (${value.map { it.toString() }.joinToString { ", " }})"
         }
