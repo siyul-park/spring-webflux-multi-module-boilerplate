@@ -29,11 +29,6 @@ fun <T> fieldName(property: KProperty<T>): String {
     return column?.value ?: property.name
 }
 
-fun <T : Any> property(clazz: KClass<T>, key: String): KProperty1<T, *> {
-    return clazz.memberProperties.find { it.name == key }
-        ?: throw IllegalArgumentException("$key is must to be in ${clazz.memberProperties.joinToString(", ") { it.name }}")
-}
-
 @Suppress("UNCHECKED_CAST")
 fun <T : Any, ID : Any?> idProperty(clazz: KClass<T>): KProperty1<T, ID> {
     return (
