@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
-class CriteriaRunnerParser<T : Any>(
+class RuntimeCriteriaParser<T : Any>(
     clazz: KClass<T>
 ) : CriteriaParser<((T) -> Boolean)?> {
     private val properties = clazz.memberProperties.associateBy { it.name }

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.regex.Pattern
 
-class CriteriaRunnerParserTest {
+class RuntimeCriteriaParserTest {
     data class TestData(
         var name: String? = null,
         var age: Int? = null,
@@ -18,7 +18,7 @@ class CriteriaRunnerParserTest {
         val expectFalse: List<TestData>,
     )
 
-    private val parser = CriteriaRunnerParser(TestData::class)
+    private val parser = RuntimeCriteriaParser(TestData::class)
 
     @Test
     fun parse() {
