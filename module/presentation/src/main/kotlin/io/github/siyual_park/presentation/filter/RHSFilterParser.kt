@@ -18,7 +18,7 @@ class RHSFilterParser<T : Any>(
 
     fun parse(query: Map<KProperty1<T, *>, Collection<String?>>): Criteria {
         try {
-            var criteria: Criteria = Criteria.Empty()
+            var criteria: Criteria = Criteria.Empty
             query.forEach { (key, values) ->
                 val property = clazz.memberProperties.find { it == key } ?: return@forEach
                 val clazz = property.returnType.classifier as? KClass<*>
