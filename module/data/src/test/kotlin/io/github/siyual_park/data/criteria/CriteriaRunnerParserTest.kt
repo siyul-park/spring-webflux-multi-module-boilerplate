@@ -3,6 +3,7 @@ package io.github.siyual_park.data.criteria
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.util.regex.Pattern
 
 class CriteriaRunnerParserTest {
     data class TestData(
@@ -71,6 +72,56 @@ class CriteriaRunnerParserTest {
                 query = where(TestData::age).isNotNull(),
                 expectTrue = listOf(TestData(age = 0)),
                 expectFalse = listOf(TestData(age = null)),
+            ),
+            TestCase(
+                query = where(TestData::name).like("%test%"),
+                expectTrue = listOf(TestData(name = "testtesttest")),
+                expectFalse = listOf(TestData(name = "any"), TestData(name = null)),
+            ),
+            TestCase(
+                query = where(TestData::name).notLike("%test%"),
+                expectTrue = listOf(TestData(name = "any")),
+                expectFalse = listOf(TestData(name = "testtesttest"), TestData(name = null)),
+            ),
+            TestCase(
+                query = where(TestData::name).regexp(Pattern.compile(".*test.*")),
+                expectTrue = listOf(TestData(name = "testtesttest")),
+                expectFalse = listOf(TestData(name = "any"), TestData(name = null)),
+            ),
+            TestCase(
+                query = where(TestData::name).notRegexp(Pattern.compile(".*test.*")),
+                expectTrue = listOf(TestData(name = "any")),
+                expectFalse = listOf(TestData(name = "testtesttest"), TestData(name = null)),
+            ),
+            TestCase(
+                query = where(TestData::name).`in`("test1", "test2"),
+                expectTrue = listOf(TestData(name = "test1"), TestData(name = "test2")),
+                expectFalse = listOf(TestData(name = "any"), TestData(name = null)),
+            ),
+            TestCase(
+                query = where(TestData::name).notIn("test1", "test2"),
+                expectTrue = listOf(TestData(name = "any")),
+                expectFalse = listOf(TestData(name = "test1"), TestData(name = "test2"), TestData(name = null)),
+            ),
+            TestCase(
+                query = where(TestData::activate).isTrue(),
+                expectTrue = listOf(TestData(activate = true)),
+                expectFalse = listOf(TestData(activate = false), TestData(activate = null)),
+            ),
+            TestCase(
+                query = where(TestData::activate).isFalse(),
+                expectTrue = listOf(TestData(activate = false)),
+                expectFalse = listOf(TestData(activate = true), TestData(activate = null)),
+            ),
+            TestCase(
+                query = where(TestData::activate).isTrue().and(where(TestData::name).`is`("test")),
+                expectTrue = listOf(TestData(activate = true, name = "test")),
+                expectFalse = listOf(TestData(activate = false, name = "test"), TestData(activate = true, name = "!test")),
+            ),
+            TestCase(
+                query = where(TestData::activate).isTrue().or(where(TestData::name).`is`("test")),
+                expectTrue = listOf(TestData(activate = true, name = "test"), TestData(activate = false, name = "test"), TestData(activate = true, name = "!test")),
+                expectFalse = listOf(TestData(activate = false, name = "!test")),
             ),
         )
 
