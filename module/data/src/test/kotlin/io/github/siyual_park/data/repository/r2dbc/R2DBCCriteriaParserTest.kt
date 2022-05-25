@@ -26,16 +26,16 @@ import org.junit.jupiter.api.Test
 class R2DBCCriteriaParserTest {
     private data class TestData(
         var name: String,
-        var age: Int,
+        var age: Int?,
         var activate: Boolean
     )
 
     private data class TestCase(
-        val query: Criteria<TestData>,
+        val query: Criteria,
         val sql: String? = null,
     )
 
-    private val parser = R2DBCCriteriaParser<TestData>()
+    private val parser = R2DBCCriteriaParser<TestData>(TestData::class)
 
     @Test
     fun parse() {

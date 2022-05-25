@@ -1,11 +1,9 @@
 package io.github.siyual_park.persistence
 
 import com.google.common.cache.CacheBuilder
+import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.findByIdOrFail
-import io.github.siyual_park.data.repository.r2dbc.EntityManager
-import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
-import io.github.siyual_park.data.repository.r2dbc.SimpleR2DBCRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.persistence.domain.Person
 import io.github.siyual_park.persistence.dummy.DummyPerson
@@ -92,7 +90,7 @@ class PersistenceTest : DataTestHelper() {
         assertFalse(personRepository.existsById(person.id))
     }
 
-    private fun parameterized(func: suspend (R2DBCRepository<PersonData, ULID>) -> Unit) {
+    private fun parameterized(func: suspend (QueryRepository<PersonData, ULID>) -> Unit) {
         transactional {
             repositories().forEach {
                 func(it)
@@ -109,9 +107,9 @@ class PersistenceTest : DataTestHelper() {
         }
     }
 
-    private fun repositories(): List<R2DBCRepository<PersonData, ULID>> {
+    private fun repositories(): List<QueryRepository<PersonData, ULID>> {
         return listOf(
-            SimpleR2DBCRepository(EntityManager(entityOperations, PersonData::class)),
+            R2DBCRepositoryBuilder<PersonData, ULID>(entityOperations, PersonData::class).build(),
             R2DBCRepositoryBuilder<PersonData, ULID>(entityOperations, PersonData::class)
                 .enableCache {
                     CacheBuilder.newBuilder()

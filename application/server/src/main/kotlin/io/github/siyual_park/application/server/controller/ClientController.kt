@@ -57,7 +57,7 @@ class ClientController(
     private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
-    private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ClientData::class)
+    private val rhsFilterParser = rhsFilterParserFactory.create(ClientData::class)
     private val sortParser = sortParserFactory.create(ClientData::class)
     private val projectionParser = projectionParserFactory.create(ClientInfo::class)
 

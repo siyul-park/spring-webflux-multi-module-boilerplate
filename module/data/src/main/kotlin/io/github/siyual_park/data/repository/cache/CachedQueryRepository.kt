@@ -41,7 +41,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
         runBlocking { storage.createIndexes(clazz) }
     }
 
-    override suspend fun exists(criteria: Criteria<T>): Boolean {
+    override suspend fun exists(criteria: Criteria): Boolean {
         val fallback = suspend { delegator.exists(criteria) }
         val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
 
@@ -52,7 +52,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun findOne(criteria: Criteria<T>): T? {
+    override suspend fun findOne(criteria: Criteria): T? {
         val fallback = suspend {
             delegator.findOne(criteria)
                 ?.also { storage.add(it) }
@@ -62,7 +62,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
         return storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
     }
 
-    override fun findAll(criteria: Criteria<T>?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun findAll(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         if (limit != null && limit <= 0) {
             return emptyFlow()
         }
@@ -84,16 +84,15 @@ class CachedQueryRepository<T : Any, ID : Any>(
             }
 
             if (criteria != null && limit == null && offset == null && sort == null) {
-                if (criteria is Criteria.In<T, *>) {
+                if (criteria is Criteria.In) {
                     val key = criteria.key
                     val value = criteria.value
-                    val indexName = key.name
 
-                    if (storage.containsIndex(indexName)) {
+                    if (storage.containsIndex(key)) {
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
                         value.forEach { current ->
-                            val cached = current?.let { storage.getIfPresent(indexName, ArrayList<Any?>().apply { add(it) }) }
+                            val cached = current?.let { storage.getIfPresent(key, ArrayList<Any?>().apply { add(it) }) }
                             if (cached == null) {
                                 notCachedKey.add(current)
                             } else {
@@ -116,20 +115,20 @@ class CachedQueryRepository<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun update(criteria: Criteria<T>, patch: Patch<T>): T? {
+    override suspend fun update(criteria: Criteria, patch: Patch<T>): T? {
         return update(criteria, patch.async())
     }
 
-    override suspend fun update(criteria: Criteria<T>, patch: SuspendPatch<T>): T? {
+    override suspend fun update(criteria: Criteria, patch: SuspendPatch<T>): T? {
         return delegator.update(criteria, patch)
             ?.also { storage.add(it) }
     }
 
-    override fun updateAll(criteria: Criteria<T>, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun updateAll(criteria: Criteria, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         return updateAll(criteria, patch.async(), limit, offset, sort)
     }
 
-    override fun updateAll(criteria: Criteria<T>, patch: SuspendPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
+    override fun updateAll(criteria: Criteria, patch: SuspendPatch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
         if (limit != null && limit <= 0) {
             return emptyFlow()
         }
@@ -141,14 +140,14 @@ class CachedQueryRepository<T : Any, ID : Any>(
         }
     }
 
-    override suspend fun count(criteria: Criteria<T>?, limit: Int?): Long {
+    override suspend fun count(criteria: Criteria?, limit: Int?): Long {
         if (limit != null && limit <= 0) {
             return 0
         }
         return delegator.count(criteria, limit)
     }
 
-    override suspend fun deleteAll(criteria: Criteria<T>?, limit: Int?, offset: Long?, sort: Sort?) {
+    override suspend fun deleteAll(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?) {
         if (limit != null && limit <= 0) {
             return
         }
@@ -164,7 +163,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
         }
     }
 
-    private suspend fun getUniqueIndexNameAndValue(criteria: Criteria<T>?): Pair<String, Any>? {
+    private suspend fun getUniqueIndexNameAndValue(criteria: Criteria?): Pair<String, Any>? {
         if (criteria == null) return null
 
         val columnsAndValues = getSimpleJoinedColumnsAndValues(criteria) ?: return null
@@ -173,7 +172,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
         return storage.getIndexNameAndValue(columns, values)
     }
 
-    private fun getSimpleJoinedColumnsAndValues(criteria: Criteria<T>): Pair<MutableList<String>, MutableList<Any?>>? {
+    private fun getSimpleJoinedColumnsAndValues(criteria: Criteria): Pair<MutableList<String>, MutableList<Any?>>? {
         val columns = mutableListOf<String>()
         val values = mutableListOf<Any?>()
 
@@ -189,12 +188,11 @@ class CachedQueryRepository<T : Any, ID : Any>(
                     values.addAll(childValues)
                 }
             }
-            is Criteria.Equals<T, *> -> {
+            is Criteria.Equals -> {
                 val key = criteria.key
                 val value = criteria.value
-                val indexName = key.name
 
-                columns.add(indexName)
+                columns.add(key)
                 values.add(value)
             }
             else -> return null

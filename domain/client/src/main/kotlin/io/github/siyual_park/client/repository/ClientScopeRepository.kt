@@ -2,9 +2,10 @@ package io.github.siyual_park.client.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.client.entity.ClientScopeData
-import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
+import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
-import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +17,7 @@ import java.time.Duration
 class ClientScopeRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<ClientScopeData, Long> by R2DBCRepositoryBuilder<ClientScopeData, Long>(entityOperations, ClientScopeData::class)
+) : QueryRepository<ClientScopeData, Long> by R2DBCRepositoryBuilder<ClientScopeData, Long>(entityOperations, ClientScopeData::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()

@@ -34,11 +34,11 @@ class MongoCriteriaParserTest {
     )
 
     private data class TestCase(
-        val query: Criteria<TestData>,
+        val query: Criteria,
         val sql: String? = null,
     )
 
-    private val parser = MongoCriteriaParser<TestData>()
+    private val parser = MongoCriteriaParser(TestData::class)
 
     @Test
     fun parse() {

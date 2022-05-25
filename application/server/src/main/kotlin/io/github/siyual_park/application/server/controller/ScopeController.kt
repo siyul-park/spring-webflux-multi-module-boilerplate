@@ -54,7 +54,7 @@ class ScopeController(
     private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
-    private val rhsFilterParser = rhsFilterParserFactory.createR2dbc(ScopeTokenData::class)
+    private val rhsFilterParser = rhsFilterParserFactory.create(ScopeTokenData::class)
     private val sortParser = sortParserFactory.create(ScopeTokenData::class)
     private val projectionParser = projectionParserFactory.create(ScopeTokenInfo::class)
 

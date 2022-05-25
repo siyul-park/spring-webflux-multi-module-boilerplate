@@ -1,8 +1,9 @@
 package io.github.siyual_park.user.domain
 
-import io.github.siyual_park.data.repository.r2dbc.where
-import io.github.siyual_park.persistence.R2DBCStorage
-import io.github.siyual_park.persistence.SimpleR2DBCStorage
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
+import io.github.siyual_park.persistence.QueryStorage
+import io.github.siyual_park.persistence.SimpleQueryStorage
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.repository.UserRepository
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component
 class UserStorage(
     private val userRepository: UserRepository,
     private val userMapper: UserMapper
-) : R2DBCStorage<User, ULID> by SimpleR2DBCStorage(
+) : QueryStorage<User, ULID> by SimpleQueryStorage(
     userRepository,
     { userMapper.map(it) }
 ) {

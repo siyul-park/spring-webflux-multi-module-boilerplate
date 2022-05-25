@@ -2,10 +2,11 @@ package io.github.siyual_park.client.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.client.entity.ClientCredentialData
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.patch.SuspendPatch
-import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
-import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
 import org.springframework.dao.EmptyResultDataAccessException
@@ -17,7 +18,7 @@ import java.time.Duration
 class ClientCredentialRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<ClientCredentialData, Long> by R2DBCRepositoryBuilder<ClientCredentialData, Long>(entityOperations, ClientCredentialData::class)
+) : QueryRepository<ClientCredentialData, Long> by R2DBCRepositoryBuilder<ClientCredentialData, Long>(entityOperations, ClientCredentialData::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()

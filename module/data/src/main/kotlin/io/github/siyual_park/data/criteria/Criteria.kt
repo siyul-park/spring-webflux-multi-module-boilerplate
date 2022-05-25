@@ -1,122 +1,121 @@
 package io.github.siyual_park.data.criteria
 
 import java.util.regex.Pattern
-import kotlin.reflect.KProperty1
 
-sealed class Criteria<T : Any> {
-    class Empty<T : Any> : Criteria<T>() {
+sealed class Criteria {
+    class Empty : Criteria() {
         override fun toString(): String {
             return "()"
         }
     }
 
-    data class And<T : Any>(val value: List<Criteria<T>>) : Criteria<T>() {
+    data class And(val value: List<Criteria>) : Criteria() {
         override fun toString(): String {
             return "(${value.joinToString(" || ") { it.toString() }}})"
         }
     }
-    data class Or<T : Any>(val value: List<Criteria<T>>) : Criteria<T>() {
+    data class Or(val value: List<Criteria>) : Criteria() {
         override fun toString(): String {
             return "(${value.joinToString(" || ") { it.toString() }})"
         }
     }
 
-    data class Equals<T : Any, V : Any>(val key: KProperty1<T, V?>, val value: V) : Criteria<T>() {
+    data class Equals(val key: String, val value: Any?) : Criteria() {
         override fun toString(): String {
-            return "${key.name} == $value"
+            return "$key == $value"
         }
     }
-    data class NotEquals<T : Any, V : Any>(val key: KProperty1<T, V?>, val value: V) : Criteria<T>() {
+    data class NotEquals(val key: String, val value: Any?) : Criteria() {
         override fun toString(): String {
-            return "${key.name} != $value"
-        }
-    }
-
-    data class Between<T : Any, V : Comparable<V>>(val key: KProperty1<T, V?>, val value: ClosedRange<V>) : Criteria<T>() {
-        override fun toString(): String {
-            return "(${key.name} >= ${value.start} && ${key.name} <= ${value.endInclusive})"
-        }
-    }
-    data class NotBetween<T : Any, V : Comparable<V>>(val key: KProperty1<T, V?>, val value: ClosedRange<V>) : Criteria<T>() {
-        override fun toString(): String {
-            return "(${key.name} < ${value.start} || ${key.name} > ${value.endInclusive})"
+            return "$key != $value"
         }
     }
 
-    data class LessThan<T : Any, V : Comparable<V>>(val key: KProperty1<T, V?>, val value: V) : Criteria<T>() {
+    data class Between(val key: String, val value: ClosedRange<*>) : Criteria() {
         override fun toString(): String {
-            return "${key.name} < $value"
+            return "($key >= ${value.start} && $key <= ${value.endInclusive})"
         }
     }
-    data class LessThanEquals<T : Any, V : Comparable<V>>(val key: KProperty1<T, V?>, val value: V) : Criteria<T>() {
+    data class NotBetween(val key: String, val value: ClosedRange<*>) : Criteria() {
         override fun toString(): String {
-            return "${key.name} <= $value"
-        }
-    }
-
-    data class GreaterThan<T : Any, V : Comparable<V>>(val key: KProperty1<T, V?>, val value: V) : Criteria<T>() {
-        override fun toString(): String {
-            return "${key.name} > $value"
-        }
-    }
-    data class GreaterThanEquals<T : Any, V : Comparable<V>>(val key: KProperty1<T, V?>, val value: V) : Criteria<T>() {
-        override fun toString(): String {
-            return "${key.name} >= $value"
+            return "($key < ${value.start} || $key > ${value.endInclusive})"
         }
     }
 
-    data class IsNull<T : Any, V : Any?>(val key: KProperty1<T, V>) : Criteria<T>() {
+    data class LessThan(val key: String, val value: Any) : Criteria() {
         override fun toString(): String {
-            return "${key.name} == null"
+            return "$key < $value"
         }
     }
-    data class IsNotNull<T : Any, V : Any?>(val key: KProperty1<T, V>) : Criteria<T>() {
+    data class LessThanEquals(val key: String, val value: Any) : Criteria() {
         override fun toString(): String {
-            return "${key.name} != null"
-        }
-    }
-
-    data class Like<T : Any, V : String?>(val key: KProperty1<T, V>, val value: String) : Criteria<T>() {
-        override fun toString(): String {
-            return "${key.name} like $value"
-        }
-    }
-    data class NotLike<T : Any, V : String?>(val key: KProperty1<T, V>, val value: String) : Criteria<T>() {
-        override fun toString(): String {
-            return "${key.name} !like $value"
+            return "$key <= $value"
         }
     }
 
-    data class Regexp<T : Any, V : String?>(val key: KProperty1<T, V>, val value: Pattern) : Criteria<T>() {
+    data class GreaterThan(val key: String, val value: Any) : Criteria() {
         override fun toString(): String {
-            return "${key.name} regexp $value"
+            return "$key > $value"
         }
     }
-    data class NotRegexp<T : Any, V : String?>(val key: KProperty1<T, V>, val value: Pattern) : Criteria<T>() {
+    data class GreaterThanEquals(val key: String, val value: Any) : Criteria() {
         override fun toString(): String {
-            return "${key.name} !regexp $value"
-        }
-    }
-
-    data class In<T : Any, V : Any?>(val key: KProperty1<T, V?>, val value: List<V>) : Criteria<T>() {
-        override fun toString(): String {
-            return "${key.name} in (${value.map { it.toString() }.joinToString { ", " }})"
-        }
-    }
-    data class NotIn<T : Any, V : Any?>(val key: KProperty1<T, V?>, val value: List<V>) : Criteria<T>() {
-        override fun toString(): String {
-            return "${key.name} not in (${value.map { it.toString() }.joinToString { ", " }})"
+            return "$key >= $value"
         }
     }
 
-    data class IsTrue<T : Any, V : Boolean?>(val key: KProperty1<T, V>) : Criteria<T>() {
+    data class IsNull(val key: String) : Criteria() {
         override fun toString(): String {
-            return "${key.name} == true"
+            return "$key == null"
         }
     }
-    data class IsFalse<T : Any, V : Boolean?>(val key: KProperty1<T, V>) : Criteria<T>() {
+    data class IsNotNull(val key: String) : Criteria() {
         override fun toString(): String {
-            return "${key.name} == false"
+            return "$key != null"
+        }
+    }
+
+    data class Like(val key: String, val value: String) : Criteria() {
+        override fun toString(): String {
+            return "$key like $value"
+        }
+    }
+    data class NotLike(val key: String, val value: String) : Criteria() {
+        override fun toString(): String {
+            return "$key !like $value"
+        }
+    }
+
+    data class Regexp(val key: String, val value: Pattern) : Criteria() {
+        override fun toString(): String {
+            return "$key regexp $value"
+        }
+    }
+    data class NotRegexp(val key: String, val value: Pattern) : Criteria() {
+        override fun toString(): String {
+            return "$key !regexp $value"
+        }
+    }
+
+    data class In(val key: String, val value: List<Any?>) : Criteria() {
+        override fun toString(): String {
+            return "$key in (${value.map { it.toString() }.joinToString { ", " }})"
+        }
+    }
+    data class NotIn(val key: String, val value: List<Any?>) : Criteria() {
+        override fun toString(): String {
+            return "$key not in (${value.map { it.toString() }.joinToString { ", " }})"
+        }
+    }
+
+    data class IsTrue(val key: String) : Criteria() {
+        override fun toString(): String {
+            return "$key == true"
+        }
+    }
+    data class IsFalse(val key: String) : Criteria() {
+        override fun toString(): String {
+            return "$key == false"
         }
     }
 }

@@ -4,11 +4,13 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
-import io.github.siyual_park.data.expansion.fieldName
+import io.github.siyual_park.data.criteria.and
+import io.github.siyual_park.data.criteria.greaterThan
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.util.retry
 import kotlinx.coroutines.flow.toList
-import org.springframework.data.mongodb.core.query.Criteria
 import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
@@ -86,9 +88,9 @@ class TokenFactory(
 
         template.limit?.forEach { (key, limit) ->
             val value = claims[key] ?: return@forEach
-            val query = Criteria("claims.$key").`is`(value)
-                .and(fieldName(TokenData::type)).`is`(template.type)
-                .and(fieldName(TokenData::expiredAt)).gt(expiredAt)
+            val query = where("claims.$key").`is`(value)
+                .and(where(TokenData::type).`is`(template.type))
+                .and(where(TokenData::expiredAt).greaterThan(expiredAt))
 
             val count = tokenRepository.count(query, limit = limit)
 

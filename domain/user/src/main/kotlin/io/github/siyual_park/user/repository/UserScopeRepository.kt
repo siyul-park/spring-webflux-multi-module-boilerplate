@@ -1,9 +1,10 @@
 package io.github.siyual_park.user.repository
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.repository.r2dbc.R2DBCRepository
+import io.github.siyual_park.data.criteria.`is`
+import io.github.siyual_park.data.criteria.where
+import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
-import io.github.siyual_park.data.repository.r2dbc.where
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.entity.UserScopeData
@@ -16,7 +17,7 @@ import java.time.Duration
 class UserScopeRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null
-) : R2DBCRepository<UserScopeData, Long> by R2DBCRepositoryBuilder<UserScopeData, Long>(entityOperations, UserScopeData::class)
+) : QueryRepository<UserScopeData, Long> by R2DBCRepositoryBuilder<UserScopeData, Long>(entityOperations, UserScopeData::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()
