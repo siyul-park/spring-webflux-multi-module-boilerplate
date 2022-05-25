@@ -1,5 +1,9 @@
 package io.github.siyual_park.data.repository.mongo
 
+import io.github.siyual_park.data.criteria.Criteria
+import io.github.siyual_park.data.criteria.and
+import io.github.siyual_park.data.criteria.or
+import io.github.siyual_park.data.criteria.where
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.regex.Pattern
