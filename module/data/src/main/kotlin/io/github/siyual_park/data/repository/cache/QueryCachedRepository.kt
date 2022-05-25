@@ -60,7 +60,7 @@ class QueryCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findById(id: ID): T? {
-        return storage.getIfPresent(where(idProperty).`is`(id).toString()) {
+        return storage.getIfPresent(where(idProperty).`is`(id)) {
             delegator.findById(id)
         }
     }
@@ -75,14 +75,14 @@ class QueryCachedRepository<T : Any, ID : Any>(
         if (ids.count() == 0) {
             return emptyFlow()
         }
-        val query = SelectQuery(where(idProperty).`in`(ids.toList()).toString(), ids.count(), null, null)
+        val query = SelectQuery(where(idProperty).`in`(ids.toList()), ids.count(), null, null)
         return storage.get(query) {
             delegator.findAllById(ids)
         }
     }
 
     override suspend fun findOne(criteria: Criteria): T? {
-        return storage.getIfPresent(criteria.toString()) {
+        return storage.getIfPresent(criteria) {
             delegator.findOne(criteria)
         }
     }
@@ -91,7 +91,7 @@ class QueryCachedRepository<T : Any, ID : Any>(
         if (limit != null && limit <= 0) {
             return emptyFlow()
         }
-        val query = SelectQuery(criteria?.toString(), limit, offset, sort)
+        val query = SelectQuery(criteria, limit, offset, sort)
         return storage.get(query) {
             delegator.findAll(criteria, limit, offset, sort)
         }

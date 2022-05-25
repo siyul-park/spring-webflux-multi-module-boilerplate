@@ -1,6 +1,7 @@
 package io.github.siyual_park.data.cache
 
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.test.DummyStringFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -24,8 +25,8 @@ abstract class QueryStorageTestHelper(private val storage: QueryStorage<String>)
 
         assertNull(storage.getIfPresent(key))
         assertEquals(value, storage.getIfPresent(key) { value })
-        assertNull(storage.getIfPresent(SelectQuery(key)))
-        assertEquals(listOf(value), storage.getIfPresent(SelectQuery(key)) { listOf(value) })
+        assertNull(storage.getIfPresent(SelectQuery(where(key).`is`(value))))
+        assertEquals(listOf(value), storage.getIfPresent(SelectQuery(where(key).`is`(value))) { listOf(value) })
     }
 
     @Test
@@ -33,11 +34,11 @@ abstract class QueryStorageTestHelper(private val storage: QueryStorage<String>)
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
 
-        storage.put(SelectQuery(key), listOf(value))
+        storage.put(SelectQuery(where(key).`is`(value)), listOf(value))
 
-        storage.remove(SelectQuery(key))
+        storage.remove(SelectQuery(where(key).`is`(value)))
 
-        assertNull(storage.getIfPresent(SelectQuery(key)))
+        assertNull(storage.getIfPresent(SelectQuery(where(key).`is`(value))))
     }
 
     @Test
@@ -45,9 +46,9 @@ abstract class QueryStorageTestHelper(private val storage: QueryStorage<String>)
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
 
-        storage.put(SelectQuery(key), listOf(value))
+        storage.put(SelectQuery(where(key).`is`(value)), listOf(value))
 
-        assertEquals(listOf(value), storage.getIfPresent(SelectQuery(key)))
+        assertEquals(listOf(value), storage.getIfPresent(SelectQuery(where(key).`is`(value))))
     }
 
     @Test
@@ -55,11 +56,11 @@ abstract class QueryStorageTestHelper(private val storage: QueryStorage<String>)
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
 
-        storage.put(SelectQuery(key), listOf(value))
+        storage.put(SelectQuery(where(key).`is`(value)), listOf(value))
 
         storage.clear()
 
-        assertNull(storage.getIfPresent(SelectQuery(key)))
+        assertNull(storage.getIfPresent(SelectQuery(where(key).`is`(value))))
     }
 
     @Test
@@ -67,10 +68,10 @@ abstract class QueryStorageTestHelper(private val storage: QueryStorage<String>)
         val key = DummyStringFactory.create(10)
         val value = DummyStringFactory.create(10)
 
-        storage.put(SelectQuery(key), listOf(value))
+        storage.put(SelectQuery(where(key).`is`(value)), listOf(value))
 
         val multi = storage.entries()
 
-        assertEquals(setOf(SelectQuery(key) to listOf(value)), multi)
+        assertEquals(setOf(SelectQuery(where(key).`is`(value)) to listOf(value)), multi)
     }
 }
