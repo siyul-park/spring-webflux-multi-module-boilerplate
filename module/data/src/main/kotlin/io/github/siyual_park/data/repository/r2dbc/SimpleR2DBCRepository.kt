@@ -38,7 +38,7 @@ import kotlin.reflect.KProperty1
 
 @Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER", "UNCHECKED_CAST")
 class SimpleR2DBCRepository<T : Any, ID : Any>(
-    private val entityManager: EntityManager<T, ID>,
+    private val entityManager: EntityManager<T, ID?>,
     private val eventPublisher: EventPublisher? = null,
 ) : R2DBCRepository<T, ID> {
     private val entityOperations = entityManager.getOperations()
@@ -217,7 +217,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T): T? {
-        return updateById(entityManager.getId(entity), SuspendPatch.from { entity })
+        return entityManager.getId(entity)?.let { updateById(it, SuspendPatch.from { entity }) }
     }
 
     override suspend fun update(criteria: CriteriaDefinition, patch: Patch<T>): T? {
@@ -252,8 +252,9 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         val propertyDiff = toProperty(diff)
         eventPublisher?.publish(BeforeUpdateEvent(entity, propertyDiff))
 
+        val id = entityManager.getId(entity) ?: return null
         val updateCount = entityOperations.update(
-            query(where(entityManager.getIdColumnName()).`is`(entityManager.getId(entity)))
+            query(where(entityManager.getIdColumnName()).`is`(id))
                 .limit(1),
             Update.from(diff as Map<SqlIdentifier, Any>),
             clazz.java
@@ -264,7 +265,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
             return null
         }
 
-        return findById(entityManager.getId(entity))
+        return findById(id)
             ?.also { eventPublisher?.publish(AfterUpdateEvent(it, propertyDiff)) }
     }
 
@@ -289,7 +290,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     override suspend fun delete(entity: T) {
         eventPublisher?.publish(BeforeDeleteEvent(entity))
 
-        val id = entityManager.getId(entity)
+        val id = entityManager.getId(entity) ?: return
         entityOperations.delete(query(where(entityManager.getIdColumnName()).`is`(id)), clazz.java)
             .subscribeOn(Schedulers.parallel())
             .awaitSingle()
@@ -306,7 +307,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
-        val ids = entities.map { entityManager.getId(it) }
+        val ids = entities.mapNotNull { entityManager.getId(it) }
         return deleteAllById(ids)
     }
 

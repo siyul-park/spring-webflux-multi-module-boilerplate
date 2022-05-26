@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 @Suppress("UNCHECKED_CAST")
 class InMemoryStorage<ID : Any, T : Any>(
     cacheBuilder: (() -> CacheBuilder<Any, Any>),
-    private val id: WeekProperty<T, ID>
+    private val id: WeekProperty<T, ID?>
 ) : Storage<ID, T> {
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
     private val properties = Maps.newConcurrentMap<String, WeekProperty<T, *>>()
@@ -66,7 +66,7 @@ class InMemoryStorage<ID : Any, T : Any>(
             if (entity == null) {
                 null
             } else {
-                this.id.get(entity).let {
+                this.id.get(entity)?.let {
                     this.getIfPresent(it) { entity }
                 }
             }
@@ -97,16 +97,13 @@ class InMemoryStorage<ID : Any, T : Any>(
     }
 
     override suspend fun add(entity: T) {
-        val id = id.get(entity)
+        val id = id.get(entity) ?: return
         cache.put(id, entity)
 
         indexes.forEach { (name, index) ->
             val property = properties[name] ?: return@forEach
             val key = property.get(entity) ?: return@forEach
-
             index as MutableMap<Any, ID>
-            property as WeekProperty<T, Any>
-
             index[key] = id
         }
     }

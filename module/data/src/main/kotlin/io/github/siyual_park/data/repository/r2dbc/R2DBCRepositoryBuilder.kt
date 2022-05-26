@@ -20,7 +20,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     private val clazz: KClass<T>,
 ) {
-    private val entityManager = EntityManager<T, ID>(entityOperations, clazz)
+    private val entityManager = EntityManager<T, ID?>(entityOperations, clazz)
 
     private var eventPublisher: EventPublisher? = null
     private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
@@ -76,8 +76,8 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         }
     }
 
-    private fun createIdProperty() = object : WeekProperty<T, ID> {
-        override fun get(entity: T): ID {
+    private fun createIdProperty() = object : WeekProperty<T, ID?> {
+        override fun get(entity: T): ID? {
             return entityManager.getId(entity)
         }
     }

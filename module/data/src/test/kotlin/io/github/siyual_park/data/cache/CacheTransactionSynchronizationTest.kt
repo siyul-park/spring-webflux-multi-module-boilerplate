@@ -67,7 +67,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
 
         reactiveChainedTransactionManager.registerTransactionManager(reactiveTransactionManager)
 
-        val idProperty = object : WeekProperty<Person, ULID> {
+        val idProperty = object : WeekProperty<Person, ULID?> {
             override fun get(entity: Person): ULID {
                 return entity.id
             }

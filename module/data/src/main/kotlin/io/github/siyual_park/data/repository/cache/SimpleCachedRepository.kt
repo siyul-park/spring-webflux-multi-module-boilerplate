@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.onEach
 class SimpleCachedRepository<T : Any, ID : Any>(
     private val delegator: Repository<T, ID>,
     private val storage: Storage<ID, T>,
-    private val id: WeekProperty<T, ID>
+    private val id: WeekProperty<T, ID?>
 ) : Repository<T, ID> {
 
     override suspend fun create(entity: T): T {

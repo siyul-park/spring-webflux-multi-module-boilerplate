@@ -56,10 +56,10 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
         return current
     }
 
-    private fun createIdProperty(): WeekProperty<T, ID> {
-        val idProperty = idProperty<T, ID>(clazz)
-        return object : WeekProperty<T, ID> {
-            override fun get(entity: T): ID {
+    private fun createIdProperty(): WeekProperty<T, ID?> {
+        val idProperty = idProperty<T, ID?>(clazz)
+        return object : WeekProperty<T, ID?> {
+            override fun get(entity: T): ID? {
                 return idProperty.get(entity)
             }
         }

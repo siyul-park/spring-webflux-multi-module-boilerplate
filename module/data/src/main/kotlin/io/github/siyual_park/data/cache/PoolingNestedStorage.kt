@@ -6,7 +6,7 @@ import io.github.siyual_park.data.WeekProperty
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class PoolingNestedStorage<ID : Any, T : Any>(
     private val pool: Pool<Storage<ID, T>>,
-    private val id: WeekProperty<T, ID>,
+    private val id: WeekProperty<T, ID?>,
     override val parent: NestedStorage<ID, T>? = null
 ) : NestedStorage<ID, T> {
     private val delegator = SuspendLazy { pool.pop().also { it.clear() } }

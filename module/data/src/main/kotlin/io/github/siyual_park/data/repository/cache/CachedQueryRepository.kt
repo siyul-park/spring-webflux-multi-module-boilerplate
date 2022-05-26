@@ -27,7 +27,7 @@ import kotlin.reflect.KClass
 class CachedQueryRepository<T : Any, ID : Any>(
     private val delegator: QueryRepository<T, ID>,
     private val storage: Storage<ID, T>,
-    private val id: WeekProperty<T, ID>,
+    private val id: WeekProperty<T, ID?>,
     private val clazz: KClass<T>
 ) : QueryRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(
@@ -155,7 +155,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
             delegator.deleteAll()
         } else {
             val founded = findAll(criteria, limit, offset, sort)
-                .onEach { id.get(it).let { id -> storage.remove(id) } }
+                .onEach { id.get(it)?.let { id -> storage.remove(id) } }
                 .toList()
 
             delegator.deleteAll(founded)

@@ -7,7 +7,7 @@ import io.github.siyual_park.ulid.ULID
 
 class PoolingNestedStorageTest : NestedStorageTestHelper(
     run {
-        val idProperty = object : WeekProperty<Person, ULID> {
+        val idProperty = object : WeekProperty<Person, ULID?> {
             override fun get(entity: Person): ULID {
                 return entity.id
             }

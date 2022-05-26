@@ -18,7 +18,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaField
 
 @Suppress("UNCHECKED_CAST")
-class EntityManager<T : Any, ID : Any>(
+class EntityManager<T : Any, ID : Any?>(
     private val entityOperations: R2dbcEntityOperations,
     private val clazz: KClass<T>,
 ) {

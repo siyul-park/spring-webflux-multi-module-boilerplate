@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class MultiLevelStorageTest : CoroutineTestHelper() {
-    private val idProperty = object : WeekProperty<Person, ULID> {
+    private val idProperty = object : WeekProperty<Person, ULID?> {
         override fun get(entity: Person): ULID {
             return entity.id
         }
