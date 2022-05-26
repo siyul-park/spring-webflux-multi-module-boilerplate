@@ -12,7 +12,7 @@ class QueryCachedRepositoryTest : TransactionalQueryRepositoryTestHelper(
     repositories = {
         listOf(
             R2DBCRepositoryBuilder<Person, ULID>(it.entityOperations, Person::class)
-                .enableCache {
+                .enableQueryCache {
                     CacheBuilder.newBuilder()
                         .softValues()
                         .expireAfterAccess(Duration.ofMinutes(2))

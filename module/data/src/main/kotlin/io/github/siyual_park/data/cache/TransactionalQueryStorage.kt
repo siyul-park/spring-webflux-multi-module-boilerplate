@@ -25,6 +25,10 @@ class TransactionalQueryStorage<T : Any>(
         return provider.get().entries()
     }
 
+    override suspend fun clear(entity: T) {
+        return provider.get().clear(entity)
+    }
+
     override suspend fun clear() {
         return provider.get().clear()
     }

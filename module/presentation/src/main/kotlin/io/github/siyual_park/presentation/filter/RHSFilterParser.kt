@@ -2,7 +2,6 @@ package io.github.siyual_park.presentation.filter
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.siyual_park.data.criteria.Criteria
-import io.github.siyual_park.data.criteria.not
 import io.github.siyual_park.presentation.exception.FilterInvalidException
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1

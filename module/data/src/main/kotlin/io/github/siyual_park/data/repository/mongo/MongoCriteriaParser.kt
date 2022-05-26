@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.query.Criteria as MongoCriteria
 
 class MongoCriteriaParser<T : Any>(
     private val clazz: KClass<T>
-) : CriteriaParser< MongoCriteria?> {
+) : CriteriaParser<MongoCriteria?> {
     override fun parse(criteria: Criteria): MongoCriteria? {
         return when (criteria) {
             is Criteria.Empty -> null

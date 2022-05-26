@@ -1,6 +1,5 @@
 package io.github.siyual_park.user.domain
 
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.persistence.QueryStorage
 import io.github.siyual_park.persistence.SimpleQueryStorage

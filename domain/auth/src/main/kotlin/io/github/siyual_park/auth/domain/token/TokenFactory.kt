@@ -5,8 +5,6 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.criteria.and
-import io.github.siyual_park.data.criteria.greaterThan
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.util.retry

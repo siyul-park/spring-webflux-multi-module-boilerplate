@@ -5,7 +5,6 @@ import io.github.siyual_park.data.cache.Storage
 import io.github.siyual_park.data.cache.createIndexes
 import io.github.siyual_park.data.cache.getIndexNameAndValue
 import io.github.siyual_park.data.criteria.Criteria
-import io.github.siyual_park.data.criteria.`in`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.SuspendPatch

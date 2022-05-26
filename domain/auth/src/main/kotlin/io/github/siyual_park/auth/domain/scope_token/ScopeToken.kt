@@ -6,10 +6,8 @@ import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.criteria.and
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.findOneOrFail
-import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.data.transaction.currentContextOrNull
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence

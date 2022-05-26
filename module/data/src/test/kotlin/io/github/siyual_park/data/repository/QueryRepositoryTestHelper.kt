@@ -1,7 +1,5 @@
 package io.github.siyual_park.data.repository
 
-import io.github.siyual_park.data.criteria.`in`
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person

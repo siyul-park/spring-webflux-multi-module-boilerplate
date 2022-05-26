@@ -22,6 +22,10 @@ class PoolingNestedQueryStorage<T : Any>(
         delegator.get().put(select, value)
     }
 
+    override suspend fun clear(entity: T) {
+        pool.used().forEach { it.clear(entity) }
+    }
+
     override suspend fun clear() {
         pool.used().forEach { it.clear() }
         delegator.pop()?.let {

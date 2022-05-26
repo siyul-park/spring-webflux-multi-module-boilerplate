@@ -2,8 +2,6 @@ package io.github.siyual_park.auth.domain.scope_token
 
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.data.criteria.`in`
-import io.github.siyual_park.data.criteria.`is`
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.persistence.QueryStorage
 import io.github.siyual_park.persistence.SimpleQueryStorage
