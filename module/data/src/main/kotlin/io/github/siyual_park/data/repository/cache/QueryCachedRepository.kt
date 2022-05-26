@@ -105,13 +105,23 @@ class QueryCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun updateById(id: ID, patch: Patch<T>): T? {
-        storage.clear()
-        return delegator.updateById(id, patch)
+        return delegator.updateById(
+            id,
+            SuspendPatch.from {
+                storage.clear(it)
+                patch.apply(it)
+            }
+        )
     }
 
     override suspend fun updateById(id: ID, patch: SuspendPatch<T>): T? {
-        storage.clear()
-        return delegator.updateById(id, patch)
+        return delegator.updateById(
+            id,
+            SuspendPatch.from {
+                storage.clear(it)
+                patch.apply(it)
+            }
+        )
     }
 
     override suspend fun update(entity: T): T? {
@@ -134,8 +144,15 @@ class QueryCachedRepository<T : Any, ID : Any>(
             return emptyFlow()
         }
         return flow {
-            storage.clear()
-            emitAll(delegator.updateAllById(ids, patch))
+            emitAll(
+                delegator.updateAllById(
+                    ids,
+                    SuspendPatch.from {
+                        storage.clear(it)
+                        patch.apply(it)
+                    }
+                )
+            )
         }
     }
 
@@ -144,8 +161,15 @@ class QueryCachedRepository<T : Any, ID : Any>(
             return emptyFlow()
         }
         return flow {
-            storage.clear()
-            emitAll(delegator.updateAllById(ids, patch))
+            emitAll(
+                delegator.updateAllById(
+                    ids,
+                    SuspendPatch.from {
+                        storage.clear(it)
+                        patch.apply(it)
+                    }
+                )
+            )
         }
     }
 
@@ -171,13 +195,23 @@ class QueryCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: Criteria, patch: Patch<T>): T? {
-        storage.clear()
-        return delegator.update(criteria, patch)
+        return delegator.update(
+            criteria,
+            SuspendPatch.from {
+                storage.clear(it)
+                patch.apply(it)
+            }
+        )
     }
 
     override suspend fun update(criteria: Criteria, patch: SuspendPatch<T>): T? {
-        storage.clear()
-        return delegator.update(criteria, patch)
+        return delegator.update(
+            criteria,
+            SuspendPatch.from {
+                storage.clear(it)
+                patch.apply(it)
+            }
+        )
     }
 
     override fun updateAll(
@@ -191,8 +225,16 @@ class QueryCachedRepository<T : Any, ID : Any>(
             return emptyFlow()
         }
         return flow {
-            storage.clear()
-            emitAll(delegator.updateAll(criteria, patch, limit, offset, sort))
+            emitAll(
+                delegator.updateAll(
+                    criteria,
+                    SuspendPatch.from {
+                        storage.clear(it)
+                        patch.apply(it)
+                    },
+                    limit, offset, sort
+                )
+            )
         }
     }
 
@@ -207,8 +249,16 @@ class QueryCachedRepository<T : Any, ID : Any>(
             return emptyFlow()
         }
         return flow {
-            storage.clear()
-            emitAll(delegator.updateAll(criteria, patch, limit, offset, sort))
+            emitAll(
+                delegator.updateAll(
+                    criteria,
+                    SuspendPatch.from {
+                        storage.clear(it)
+                        patch.apply(it)
+                    },
+                    limit, offset, sort
+                )
+            )
         }
     }
 
