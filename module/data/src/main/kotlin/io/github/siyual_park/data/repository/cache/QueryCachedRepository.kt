@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 import org.springframework.data.domain.Sort
 import kotlin.reflect.KClass
 
@@ -32,15 +33,21 @@ class QueryCachedRepository<T : Any, ID : Any>(
 
     override fun createAll(entities: Flow<T>): Flow<T> {
         return flow {
-            storage.clear()
-            emitAll(delegator.createAll(entities))
+            emitAll(
+                delegator.createAll(
+                    entities.onEach { storage.clear(it) }
+                )
+            )
         }
     }
 
     override fun createAll(entities: Iterable<T>): Flow<T> {
         return flow {
-            storage.clear()
-            emitAll(delegator.createAll(entities))
+            emitAll(
+                delegator.createAll(
+                    entities.onEach { storage.clear(it) }
+                )
+            )
         }
     }
 
@@ -108,17 +115,17 @@ class QueryCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T): T? {
-        storage.clear()
+        storage.clear(entity)
         return delegator.update(entity)
     }
 
     override suspend fun update(entity: T, patch: Patch<T>): T? {
-        storage.clear()
+        storage.clear(entity)
         return delegator.update(entity, patch)
     }
 
     override suspend fun update(entity: T, patch: SuspendPatch<T>): T? {
-        storage.clear()
+        storage.clear(entity)
         return delegator.update(entity, patch)
     }
 
@@ -144,21 +151,21 @@ class QueryCachedRepository<T : Any, ID : Any>(
 
     override fun updateAll(entity: Iterable<T>): Flow<T?> {
         return flow {
-            storage.clear()
+            entity.forEach { storage.clear(it) }
             emitAll(delegator.updateAll(entity))
         }
     }
 
     override fun updateAll(entity: Iterable<T>, patch: Patch<T>): Flow<T?> {
         return flow {
-            storage.clear()
+            entity.forEach { storage.clear(it) }
             emitAll(delegator.updateAll(entity, patch))
         }
     }
 
     override fun updateAll(entity: Iterable<T>, patch: SuspendPatch<T>): Flow<T?> {
         return flow {
-            storage.clear()
+            entity.forEach { storage.clear(it) }
             emitAll(delegator.updateAll(entity, patch))
         }
     }
@@ -211,7 +218,7 @@ class QueryCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun delete(entity: T) {
-        storage.clear()
+        storage.clear(entity)
         return delegator.delete(entity)
     }
 
@@ -227,7 +234,7 @@ class QueryCachedRepository<T : Any, ID : Any>(
         if (entities.count() == 0) {
             return
         }
-        storage.clear()
+        entities.forEach { storage.clear(it) }
         return delegator.deleteAll(entities)
     }
 

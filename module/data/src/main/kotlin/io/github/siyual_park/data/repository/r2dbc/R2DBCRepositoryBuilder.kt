@@ -66,7 +66,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
             val cacheBuilder = queryCacheBuilder
             if (cacheBuilder != null) {
                 val storage = TransactionalQueryStorage<T>(
-                    PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(cacheBuilder) })
+                    PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(clazz, cacheBuilder) })
                 )
 
                 QueryCachedRepository(it, storage, clazz)

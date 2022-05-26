@@ -12,10 +12,11 @@ interface QueryStorage<T : Any> {
     suspend fun getIfPresent(select: SelectQuery, loader: suspend () -> Collection<T>?): Collection<T>?
 
     suspend fun remove(select: SelectQuery)
-
     suspend fun put(select: SelectQuery, value: Collection<T>)
 
+    suspend fun clear(entity: T)
     suspend fun clear()
+
     suspend fun entries(): Set<Pair<SelectQuery, Collection<T>>>
 }
 
