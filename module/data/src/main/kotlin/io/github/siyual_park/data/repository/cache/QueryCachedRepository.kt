@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 import kotlin.reflect.KClass
 
@@ -276,8 +277,7 @@ class QueryCachedRepository<T : Any, ID : Any>(
         if (ids.count() == 0) {
             return
         }
-        storage.clear()
-        return delegator.deleteAllById(ids)
+        deleteAll(delegator.findAllById(ids).toList())
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
@@ -301,7 +301,6 @@ class QueryCachedRepository<T : Any, ID : Any>(
         if (limit != null && limit <= 0) {
             return
         }
-        storage.clear()
-        return delegator.deleteAll(criteria, limit, offset, sort)
+        deleteAll(delegator.findAll(criteria, limit, offset, sort).toList())
     }
 }

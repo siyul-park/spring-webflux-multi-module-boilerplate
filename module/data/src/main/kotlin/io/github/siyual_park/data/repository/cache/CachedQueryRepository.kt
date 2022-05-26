@@ -154,11 +154,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
             storage.clear()
             delegator.deleteAll()
         } else {
-            val founded = findAll(criteria, limit, offset, sort)
-                .onEach { id.get(it)?.let { id -> storage.remove(id) } }
-                .toList()
-
-            delegator.deleteAll(founded)
+            deleteAll(findAll(criteria, limit, offset, sort).toList())
         }
     }
 

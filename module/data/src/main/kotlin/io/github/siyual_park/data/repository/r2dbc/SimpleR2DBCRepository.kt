@@ -307,8 +307,24 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
     }
 
     override suspend fun deleteAll(entities: Iterable<T>) {
+        entities.forEach { eventPublisher?.publish(BeforeDeleteEvent(it)) }
+
         val ids = entities.mapNotNull { entityManager.getId(it) }
-        return deleteAllById(ids)
+        if (ids.isEmpty()) {
+            return
+        }
+
+        entityOperations.delete(
+            query(where(entityManager.getIdColumnName()).`in`(ids.toList()))
+                .limit(ids.size),
+            clazz.java
+        )
+            .subscribeOn(Schedulers.parallel())
+            .awaitSingle()
+
+        entities.forEach {
+            eventPublisher?.publish(AfterDeleteEvent(it))
+        }
     }
 
     override suspend fun deleteAll() {
@@ -336,30 +352,14 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
                 .subscribeOn(Schedulers.parallel())
                 .awaitSingle()
         } else {
-            val entities = entityOperations.select(
+            entityOperations.select(
                 query,
                 clazz.java
             )
                 .subscribeOn(Schedulers.parallel())
                 .asFlow()
-                .onEach { eventPublisher.publish(BeforeDeleteEvent(it)) }
                 .toList()
-            val ids = entities.map { entityManager.getId(it) }
-            if (ids.isEmpty()) {
-                return
-            }
-
-            entityOperations.delete(
-                query(where(entityManager.getIdColumnName()).`in`(ids.toList()))
-                    .limit(ids.size),
-                clazz.java
-            )
-                .subscribeOn(Schedulers.parallel())
-                .awaitSingle()
-
-            entities.forEach {
-                eventPublisher.publish(AfterDeleteEvent(it))
-            }
+                .let { deleteAll(it) }
         }
     }
 
