@@ -4,7 +4,6 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.auth.ClientPrincipal
-import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.client.entity.ClientScopeData
@@ -57,20 +56,14 @@ class Client(
 
     override val clientId by proxy(root, ClientData::id)
 
-    private val credentialContext = fetchContextProvider.get(clientCredentialRepository)
     private val scopeContext = fetchContextProvider.get(clientScopeRepository)
-
-    private val credentialFetcher = credentialContext.join(
-        where(ClientCredentialData::clientId).`is`(clientId),
-        limit = 1
-    )
     private val scopeFetcher = scopeContext.join(
         where(ClientScopeData::clientId).`is`(clientId)
     )
 
     private val credential = SuspendLazy {
         ClientCredential(
-            credentialFetcher.fetchOneOrFail(),
+            clientCredentialRepository.findByClientIdOrFail(clientId),
             clientCredentialRepository,
             eventPublisher
         ).also {
@@ -82,7 +75,6 @@ class Client(
         synchronize(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
-                    credentialFetcher.clear()
                     scopeFetcher.clear()
 
                     clientScopeRepository.deleteAllByClientId(id)

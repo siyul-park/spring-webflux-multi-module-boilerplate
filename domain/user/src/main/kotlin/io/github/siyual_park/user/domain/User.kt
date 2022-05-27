@@ -17,7 +17,6 @@ import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.auth.UserPrincipal
-import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
 import io.github.siyual_park.user.entity.UserScopeData
@@ -55,20 +54,14 @@ class User(
 
     override val userId by proxy(root, UserData::id)
 
-    private val credentialContext = fetchContextProvider.get(userCredentialRepository)
     private val scopeContext = fetchContextProvider.get(userScopeRepository)
-
-    private val credentialFetcher = credentialContext.join(
-        where(UserCredentialData::userId).`is`(userId),
-        limit = 1
-    )
     private val scopeFetcher = scopeContext.join(
         where(UserScopeData::userId).`is`(userId)
     )
 
     private val credential = SuspendLazy {
         UserCredential(
-            credentialFetcher.fetchOneOrFail(),
+            userCredentialRepository.findByUserIdOrFail(userId),
             userCredentialRepository,
             eventPublisher
         ).also {
@@ -80,7 +73,6 @@ class User(
         synchronize(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
-                    credentialFetcher.clear()
                     scopeFetcher.clear()
 
                     userScopeRepository.deleteAllByUserId(id)
