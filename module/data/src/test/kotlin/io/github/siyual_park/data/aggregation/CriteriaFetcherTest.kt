@@ -3,7 +3,6 @@ package io.github.siyual_park.data.aggregation
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.cache.InMemoryQueryStorage
 import io.github.siyual_park.data.cache.Pool
-import io.github.siyual_park.data.cache.PoolStore
 import io.github.siyual_park.data.cache.PoolingNestedQueryStorage
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.criteria.where
@@ -21,8 +20,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class QueryFetcherTest : DataTestHelper() {
-    private val pool = PoolStore<Criteria>()
+class CriteriaFetcherTest : DataTestHelper() {
+    private val links = CriteriaStore<Criteria>()
     private val store = PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() } })
     private val repository = spyk(R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class).build())
     private val mutex = Mutex()
@@ -37,7 +36,7 @@ class QueryFetcherTest : DataTestHelper() {
 
         blocking {
             store.clear()
-            pool.clear()
+            links.clear()
         }
     }
 
@@ -51,11 +50,11 @@ class QueryFetcherTest : DataTestHelper() {
         val criteria1 = where(Person::name).`is`(person1.name)
         val criteria2 = where(Person::name).`is`(person2.name)
 
-        pool.push(criteria1)
-        pool.push(criteria2)
+        links.push(criteria1)
+        links.push(criteria2)
 
-        val fetcher1 = QueryFetcher(criteria1, pool, store, repository, Person::class, mutex)
-        val fetcher2 = QueryFetcher(criteria2, pool, store, repository, Person::class, mutex)
+        val fetcher1 = CriteriaFetcher(criteria1, links, store, repository, Person::class, mutex)
+        val fetcher2 = CriteriaFetcher(criteria2, links, store, repository, Person::class, mutex)
 
         val result1 = fetcher1.fetch().toList()
         val result2 = fetcher2.fetch().toList()

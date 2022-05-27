@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.aggregation
 
-import io.github.siyual_park.data.cache.PoolStore
 import io.github.siyual_park.data.cache.QueryStorage
 import io.github.siyual_park.data.cache.SelectQuery
 import io.github.siyual_park.data.criteria.Criteria
@@ -16,9 +15,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.reflect.KClass
 
-class QueryFetcher<T : Any>(
+class CriteriaFetcher<T : Any>(
     private val criteria: Criteria,
-    private val pool: PoolStore<Criteria>,
+    private val links: CriteriaStore<Criteria>,
     private val store: QueryStorage<T>,
     private val repository: QueryRepository<T, *>,
     clazz: KClass<T>,
@@ -59,7 +58,7 @@ class QueryFetcher<T : Any>(
     }
 
     private suspend fun free(): Set<Criteria> {
-        val curr = pool.entries().toMutableSet()
+        val curr = links.entries().toMutableSet()
         val used = store.entries().mapNotNull { it.first.where }
 
         used.forEach {

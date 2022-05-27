@@ -14,12 +14,6 @@ class PoolStore<T : Any>(
     )
     private val mutex = Mutex()
 
-    suspend fun clear() {
-        mutex.withLock {
-            store.clear()
-        }
-    }
-
     suspend fun push(value: T): Boolean {
         mutex.withLock {
             return store.add(value)
@@ -42,9 +36,5 @@ class PoolStore<T : Any>(
         return mutex.withLock {
             store.forEach { action(it) }
         }
-    }
-
-    fun entries(): Set<T> {
-        return store.toSet()
     }
 }
