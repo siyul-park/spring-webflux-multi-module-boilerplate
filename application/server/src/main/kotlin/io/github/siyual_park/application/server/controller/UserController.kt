@@ -5,6 +5,7 @@ import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.authorization.withAuthorize
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.data.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
@@ -150,7 +151,7 @@ class UserController(
         }
         request.scope?.let {
             if (it.isPresent) {
-                syncScope(user, it.get())
+                syncScope(user, it.get().let { scopeTokenStorage.load(it) }.toSet())
             } else {
                 val existsScope = user.getScope(deep = false).toSet()
                 existsScope.forEach { user.revoke(it) }
@@ -189,13 +190,12 @@ class UserController(
 
     private suspend fun syncScope(
         user: User,
-        scope: Collection<ULID>
+        scope: Set<ScopeToken>
     ) = operator.executeAndAwait {
         val existsScope = user.getScope(deep = false).toSet()
-        val requestScope = scopeTokenStorage.load(scope).toSet()
 
-        val toGrantScope = requestScope.filter { !existsScope.contains(it) }
-        val toRevokeScope = existsScope.filter { !requestScope.contains(it) }
+        val toGrantScope = scope.filter { !existsScope.contains(it) }
+        val toRevokeScope = existsScope.filter { !scope.contains(it) }
 
         if (toGrantScope.isNotEmpty()) {
             authorizator.withAuthorize(listOf("users.scope:create"), null) {

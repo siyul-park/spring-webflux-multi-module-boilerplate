@@ -6,6 +6,7 @@ import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.authorization.withAuthorize
+import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.client.domain.ClientFactory
@@ -146,7 +147,7 @@ class ClientController(
 
         request.scope?.let {
             if (it.isPresent) {
-                syncScope(client, it.get())
+                syncScope(client, it.get().let { scopeTokenStorage.load(it) }.toSet())
             } else {
                 val existsScope = client.getScope(deep = false).toSet()
                 existsScope.forEach { client.revoke(it) }
@@ -172,13 +173,12 @@ class ClientController(
 
     private suspend fun syncScope(
         client: Client,
-        scope: Collection<ULID>
+        scope: Set<ScopeToken>
     ) = operator.executeAndAwait {
         val existsScope = client.getScope(deep = false).toSet()
-        val requestScope = scopeTokenStorage.load(scope).toSet()
 
-        val toGrantScope = requestScope.filter { !existsScope.contains(it) }
-        val toRevokeScope = existsScope.filter { !requestScope.contains(it) }
+        val toGrantScope = scope.filter { !existsScope.contains(it) }
+        val toRevokeScope = existsScope.filter { !scope.contains(it) }
 
         if (toGrantScope.isNotEmpty()) {
             authorizator.withAuthorize(listOf("clients.scope:create"), null) {
