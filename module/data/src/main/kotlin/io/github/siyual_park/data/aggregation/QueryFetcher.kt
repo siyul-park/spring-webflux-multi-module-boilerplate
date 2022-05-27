@@ -28,11 +28,11 @@ class QueryFetcher<T : Any>(
 ) {
     private val parser = RuntimeCriteriaParser(clazz)
 
-    suspend fun fetchOne(): T {
-        return fetchOneOrNull() ?: throw EmptyResultDataAccessException(1)
+    suspend fun fetchOneOrFail(): T {
+        return fetchOne() ?: throw EmptyResultDataAccessException(1)
     }
 
-    suspend fun fetchOneOrNull(): T? {
+    suspend fun fetchOne(): T? {
         return fetch().firstOrNull()
     }
 
