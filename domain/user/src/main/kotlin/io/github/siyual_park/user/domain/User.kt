@@ -10,7 +10,6 @@ import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.findOneOrFail
-import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.PersistencePropagateSynchronization
@@ -81,6 +80,9 @@ class User(
         synchronize(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
+                    credentialFetcher.clear()
+                    scopeFetcher.clear()
+
                     userScopeRepository.deleteAllByUserId(id)
                     credential.get().clear()
                 }
@@ -105,7 +107,7 @@ class User(
                 userId = id,
                 scopeTokenId = scopeToken.id
             )
-        )
+        ).also { scopeContext.clear(it) }
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
@@ -113,6 +115,7 @@ class User(
             where(UserScopeData::userId).`is`(id)
                 .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
         )
+        scopeContext.clear(userScope)
         userScopeRepository.delete(userScope)
     }
 

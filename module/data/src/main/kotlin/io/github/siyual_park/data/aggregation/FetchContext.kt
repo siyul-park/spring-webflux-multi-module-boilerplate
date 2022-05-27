@@ -21,6 +21,10 @@ class FetchContext<T : Any>(
         store.clear()
     }
 
+    suspend fun clear(entity: T) {
+        store.clear(entity)
+    }
+
     fun join(criteria: Criteria?, limit: Int? = null): QueryFetcher<T> {
         val query = SelectQuery(criteria, limit)
         links.push(query)

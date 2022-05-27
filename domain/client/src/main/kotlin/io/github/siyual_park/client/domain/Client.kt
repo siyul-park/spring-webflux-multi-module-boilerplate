@@ -82,6 +82,9 @@ class Client(
         synchronize(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
+                    credentialFetcher.clear()
+                    scopeFetcher.clear()
+
                     clientScopeRepository.deleteAllByClientId(id)
                     if (isConfidential()) {
                         credential.get().clear()
@@ -116,7 +119,7 @@ class Client(
                 clientId = id,
                 scopeTokenId = scopeToken.id
             )
-        )
+        ).also { scopeContext.clear(it) }
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
@@ -124,6 +127,7 @@ class Client(
             where(ClientScopeData::clientId).`is`(id)
                 .and(where(ClientScopeData::scopeTokenId).`is`(scopeToken.id))
         )
+        scopeContext.clear(clientScope)
         clientScopeRepository.delete(clientScope)
     }
 

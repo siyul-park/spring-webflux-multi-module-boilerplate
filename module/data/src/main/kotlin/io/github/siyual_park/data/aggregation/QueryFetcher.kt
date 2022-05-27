@@ -3,6 +3,7 @@ package io.github.siyual_park.data.aggregation
 import io.github.siyual_park.data.cache.QueryStorage
 import io.github.siyual_park.data.cache.ReferenceStore
 import io.github.siyual_park.data.cache.SelectQuery
+import io.github.siyual_park.data.cache.getIfPresent
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.criteria.RuntimeCriteriaParser
 import io.github.siyual_park.data.criteria.or
@@ -27,6 +28,17 @@ class QueryFetcher<T : Any>(
     private val mutex: Mutex = Mutex()
 ) {
     private val parser = RuntimeCriteriaParser(clazz)
+    private var cache: Collection<T>? = null
+
+    suspend fun clear() {
+        mutex.withLock {
+            (store.getIfPresent(query) ?: cache)?.forEach {
+                store.clear(it)
+            } ?: store.clear()
+            links.remove(query)
+            cache = null
+        }
+    }
 
     suspend fun fetchOneOrFail(): T {
         return fetchOne() ?: throw EmptyResultDataAccessException(1)
@@ -40,10 +52,12 @@ class QueryFetcher<T : Any>(
         return flow {
             store.getIfPresent(query)?.let {
                 store.remove(query)
+                cache = it
                 emitAll(it.asFlow())
             } ?: mutex.withLock {
                 store.getIfPresent(query)?.let {
                     store.remove(query)
+                    cache = it
                     emitAll(it.asFlow())
                 } ?: run {
                     val free = free()
@@ -70,6 +84,7 @@ class QueryFetcher<T : Any>(
                         if (key != query) {
                             store.put(key, value)
                         } else {
+                            cache = value
                             emitAll(value.asFlow())
                         }
                     }
@@ -90,7 +105,35 @@ class QueryFetcher<T : Any>(
     }
 
     private fun merge(criteria: Set<Criteria>): Criteria {
-        return criteria.reduce { acc, cur -> cur.or(acc) }
+        return asInOperator(criteria) ?: criteria.reduce { acc, cur -> cur.or(acc) }
+    }
+
+    private fun asInOperator(criteria: Set<Criteria>): Criteria? {
+        if (criteria.all { it is Criteria.In || it is Criteria.Equals }) {
+            val keys = criteria.mapNotNull {
+                when (it) {
+                    is Criteria.In -> it.key
+                    is Criteria.Equals -> it.key
+                    else -> null
+                }
+            }.toSet()
+            if (keys.size == 1) {
+                return Criteria.In(
+                    keys.first(),
+                    criteria.map {
+                        when (it) {
+                            is Criteria.In -> it.value
+                            is Criteria.Equals -> listOf(it.value)
+                            else -> emptyList()
+                        }
+                    }.fold<List<Any?>, MutableList<Any?>>(mutableListOf()) { acc, cur ->
+                        acc.also { it.addAll(cur) }
+                    }.toSet().toList()
+                )
+            }
+        }
+
+        return null
     }
 
     private fun distribute(criteria: Set<SelectQuery>, values: List<T>): Map<SelectQuery, List<T>> {

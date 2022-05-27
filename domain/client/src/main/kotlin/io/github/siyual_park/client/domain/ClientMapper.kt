@@ -31,6 +31,7 @@ class ClientMapper(
             CacheBuilder.newBuilder()
                 .weakKeys()
                 .expireAfterWrite(Duration.ofSeconds(5))
+                .maximumSize(500)
         }
 
         return Client(
