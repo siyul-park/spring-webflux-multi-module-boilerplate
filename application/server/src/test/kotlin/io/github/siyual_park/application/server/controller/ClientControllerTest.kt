@@ -293,14 +293,17 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("clients:update", "clients.scope:create")
+            push = listOf("clients:update", "clients.scope:create", "clients.scope:read")
         )
 
         val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.add(scope) }
         val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+
         val response = clientControllerGateway.update(otherClient.id, request)
+        val clientInfo = response.responseBody.awaitSingle()
 
         assertEquals(HttpStatus.OK, response.status)
+        assertTrue(clientInfo.scope?.orElseGet { null }?.map { it.id?.orElseGet { null } }?.contains(scope.id) == true)
         assertTrue(otherClient.has(scope))
     }
 
@@ -341,14 +344,17 @@ class ClientControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("clients:update", "clients.scope:delete")
+            push = listOf("clients:update", "clients.scope:delete", "clients.scope:read")
         )
 
         val finalScope = otherClient.getScope(false).toSet().toMutableSet().also { it.remove(scope) }
         val request = UpdateClientRequest(scope = Optional.of(finalScope.map { it.id }))
+
         val response = clientControllerGateway.update(otherClient.id, request)
+        val clientInfo = response.responseBody.awaitSingle()
 
         assertEquals(HttpStatus.OK, response.status)
+        assertTrue(clientInfo.scope?.orElseGet { null }?.map { it.id?.orElseGet { null } }?.contains(scope.id) == false)
         assertFalse(otherClient.has(scope))
     }
 

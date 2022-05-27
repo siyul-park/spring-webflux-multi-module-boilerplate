@@ -493,14 +493,17 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("users:update", "users.scope:create")
+            push = listOf("users:update", "users.scope:create", "users.scope:read")
         )
 
         val finalScope = otherUser.getScope(false).toSet().toMutableSet().also { it.add(scope) }
         val request = UpdateUserRequest(scope = Optional.of(finalScope.map { it.id }))
+
         val response = userControllerGateway.update(otherUser.id, request)
+        val userInfo = response.responseBody.awaitSingle()
 
         assertEquals(HttpStatus.OK, response.status)
+        assertTrue(userInfo.scope?.orElseGet { null }?.map { it.id?.orElseGet { null } }?.contains(scope.id) == true)
         assertTrue(otherUser.has(scope))
     }
 
@@ -541,14 +544,17 @@ class UserControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("users:update", "users.scope:delete")
+            push = listOf("users:update", "users.scope:delete", "users.scope:read")
         )
 
         val finalScope = otherUser.getScope(false).toSet().toMutableSet().also { it.remove(scope) }
         val request = UpdateUserRequest(scope = Optional.of(finalScope.map { it.id }))
+
         val response = userControllerGateway.update(otherUser.id, request)
+        val userInfo = response.responseBody.awaitSingle()
 
         assertEquals(HttpStatus.OK, response.status)
+        assertTrue(userInfo.scope?.orElseGet { null }?.map { it.id?.orElseGet { null } }?.contains(scope.id) == false)
         assertFalse(otherUser.has(scope))
     }
 
