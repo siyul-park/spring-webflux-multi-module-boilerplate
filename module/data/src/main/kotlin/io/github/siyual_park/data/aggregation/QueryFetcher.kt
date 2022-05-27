@@ -105,6 +105,12 @@ class QueryFetcher<T : Any>(
             }
         }
 
-        return result
+        return result.mapValues { (key, value) ->
+            if (key.limit != null && value.size > key.limit) {
+                value.subList(0, key.limit)
+            } else {
+                value
+            }
+        }
     }
 }
