@@ -15,33 +15,35 @@ import org.springframework.transaction.reactive.TransactionalOperator
 import java.time.Duration
 
 @Component
-class ClientMapper(
+class ClientsMapper(
     private val clientRepository: ClientRepository,
     private val clientCredentialRepository: ClientCredentialRepository,
     private val clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
-) : Mapper<ClientData, Client> {
-    override val sourceType = object : TypeReference<ClientData>() {}
-    override val targetType = object : TypeReference<Client>() {}
+) : Mapper<Collection<ClientData>, Collection<Client>> {
+    override val sourceType = object : TypeReference<Collection<ClientData>>() {}
+    override val targetType = object : TypeReference<Collection<Client>>() {}
 
-    override suspend fun map(source: ClientData): Client {
+    override suspend fun map(source: Collection<ClientData>): Collection<Client> {
         val fetchContextProvider = FetchContextProvider {
             CacheBuilder.newBuilder()
                 .weakKeys()
                 .expireAfterWrite(Duration.ofSeconds(5))
         }
 
-        return Client(
-            source,
-            clientRepository,
-            clientCredentialRepository,
-            clientScopeRepository,
-            scopeTokenStorage,
-            fetchContextProvider,
-            operator,
-            eventPublisher
-        )
+        return source.map {
+            Client(
+                it,
+                clientRepository,
+                clientCredentialRepository,
+                clientScopeRepository,
+                scopeTokenStorage,
+                fetchContextProvider,
+                operator,
+                eventPublisher
+            )
+        }
     }
 }

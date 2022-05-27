@@ -12,10 +12,12 @@ import org.springframework.stereotype.Component
 @Component
 class UserStorage(
     private val userRepository: UserRepository,
-    private val userMapper: UserMapper
+    private val userMapper: UserMapper,
+    private val usersMapper: UsersMapper,
 ) : QueryStorage<User, ULID> by SimpleQueryStorage(
     userRepository,
-    { userMapper.map(it) }
+    { userMapper.map(it) },
+    { usersMapper.map(it) }
 ) {
     suspend fun load(name: String): User? {
         return load(where(UserData::name).`is`(name))

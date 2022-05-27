@@ -3,20 +3,16 @@ package io.github.siyual_park.data.cache
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength
-import org.apache.commons.collections4.map.ReferenceMap
-import java.util.Collections
 
 class PoolStore<T : Any>(
     type: ReferenceStrength = ReferenceStrength.SOFT
 ) {
-    private val store = Collections.newSetFromMap(
-        Collections.synchronizedMap(ReferenceMap<T, Boolean>(type, ReferenceStrength.HARD))
-    )
+    private val store = ReferenceStore<T>(type)
     private val mutex = Mutex()
 
     suspend fun push(value: T): Boolean {
         mutex.withLock {
-            return store.add(value)
+            return store.push(value)
         }
     }
 
@@ -34,7 +30,7 @@ class PoolStore<T : Any>(
 
     suspend fun forEach(action: suspend (T) -> Unit) {
         return mutex.withLock {
-            store.forEach { action(it) }
+            store.entries().forEach { action(it) }
         }
     }
 }

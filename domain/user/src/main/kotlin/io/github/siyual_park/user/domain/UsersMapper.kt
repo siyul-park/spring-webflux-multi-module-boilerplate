@@ -15,33 +15,35 @@ import org.springframework.transaction.reactive.TransactionalOperator
 import java.time.Duration
 
 @Component
-class UserMapper(
+class UsersMapper(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
-) : Mapper<UserData, User> {
-    override val sourceType = object : TypeReference<UserData>() {}
-    override val targetType = object : TypeReference<User>() {}
+) : Mapper<Collection<UserData>, Collection<User>> {
+    override val sourceType = object : TypeReference<Collection<UserData>>() {}
+    override val targetType = object : TypeReference<Collection<User>>() {}
 
-    override suspend fun map(source: UserData): User {
+    override suspend fun map(source: Collection<UserData>): Collection<User> {
         val fetchContextProvider = FetchContextProvider {
             CacheBuilder.newBuilder()
                 .weakKeys()
                 .expireAfterWrite(Duration.ofSeconds(5))
         }
 
-        return User(
-            source,
-            userRepository,
-            userCredentialRepository,
-            userScopeRepository,
-            scopeTokenStorage,
-            fetchContextProvider,
-            operator,
-            eventPublisher
-        )
+        return source.map {
+            User(
+                it,
+                userRepository,
+                userCredentialRepository,
+                userScopeRepository,
+                scopeTokenStorage,
+                fetchContextProvider,
+                operator,
+                eventPublisher
+            )
+        }
     }
 }

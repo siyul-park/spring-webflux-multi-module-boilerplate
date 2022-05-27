@@ -4,6 +4,7 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.auth.ClientPrincipal
+import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.client.entity.ClientScopeData
@@ -11,11 +12,12 @@ import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
+import io.github.siyual_park.data.aggregation.FetchContextProvider
+import io.github.siyual_park.data.aggregation.get
 import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.findOneOrFail
-import io.github.siyual_park.data.repository.r2dbc.findOneOrFail
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.PersistencePropagateSynchronization
@@ -37,6 +39,7 @@ class Client(
     private val clientCredentialRepository: ClientCredentialRepository,
     private val clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
+    fetchContextProvider: FetchContextProvider,
     operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
 ) : Persistence<ClientData, ULID>(
@@ -48,14 +51,26 @@ class Client(
     ClientEntity,
     Authorizable {
     val id by proxy(root, ClientData::id)
-    override val clientId by proxy(root, ClientData::id)
     var name by proxy(root, ClientData::name)
     val type by proxy(root, ClientData::type)
     var origin by proxy(root, ClientData::origin)
 
+    override val clientId by proxy(root, ClientData::id)
+
+    private val credentialContext = fetchContextProvider.get(clientCredentialRepository)
+    private val scopeContext = fetchContextProvider.get(clientScopeRepository)
+
+    private val credentialFetcher = credentialContext.join(
+        where(ClientCredentialData::clientId).`is`(clientId),
+        limit = 1
+    )
+    private val scopeFetcher = scopeContext.join(
+        where(ClientScopeData::clientId).`is`(clientId)
+    )
+
     private val credential = SuspendLazy {
         ClientCredential(
-            clientCredentialRepository.findByClientIdOrFail(id),
+            credentialFetcher.fetchOneOrFail(),
             clientCredentialRepository,
             eventPublisher
         ).also {
@@ -119,7 +134,7 @@ class Client(
 
     fun getScope(deep: Boolean = true): Flow<ScopeToken> {
         return flow {
-            val scopeTokenIds = clientScopeRepository.findAllByClientId(id)
+            val scopeTokenIds = scopeFetcher.fetch()
                 .map { it.scopeTokenId }
                 .toList()
 

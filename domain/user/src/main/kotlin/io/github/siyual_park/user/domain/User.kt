@@ -4,6 +4,8 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
+import io.github.siyual_park.data.aggregation.FetchContextProvider
+import io.github.siyual_park.data.aggregation.get
 import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
@@ -16,6 +18,7 @@ import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.auth.UserPrincipal
+import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
 import io.github.siyual_park.user.entity.UserScopeData
@@ -36,6 +39,7 @@ class User(
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
+    fetchContextProvider: FetchContextProvider,
     operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
 ) : Persistence<UserData, ULID>(
@@ -52,9 +56,20 @@ class User(
 
     override val userId by proxy(root, UserData::id)
 
+    private val credentialContext = fetchContextProvider.get(userCredentialRepository)
+    private val scopeContext = fetchContextProvider.get(userScopeRepository)
+
+    private val credentialFetcher = credentialContext.join(
+        where(UserCredentialData::userId).`is`(userId),
+        limit = 1
+    )
+    private val scopeFetcher = scopeContext.join(
+        where(UserScopeData::userId).`is`(userId)
+    )
+
     private val credential = SuspendLazy {
         UserCredential(
-            userCredentialRepository.findByUserIdOrFail(id),
+            credentialFetcher.fetchOneOrFail(),
             userCredentialRepository,
             eventPublisher
         ).also {
@@ -108,7 +123,7 @@ class User(
 
     fun getScope(deep: Boolean = true): Flow<ScopeToken> {
         return flow {
-            val scopeTokenIds = userScopeRepository.findAllByUserId(id)
+            val scopeTokenIds = scopeFetcher.fetch()
                 .map { it.scopeTokenId }
                 .toList()
 
