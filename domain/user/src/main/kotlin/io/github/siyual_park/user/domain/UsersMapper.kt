@@ -30,7 +30,7 @@ class UsersMapper(
         val fetchContextProvider = FetchContextProvider {
             CacheBuilder.newBuilder()
                 .weakKeys()
-                .expireAfterWrite(Duration.ofSeconds(5))
+                .expireAfterWrite(Duration.ofSeconds(1))
                 .maximumSize(500)
         }
 
