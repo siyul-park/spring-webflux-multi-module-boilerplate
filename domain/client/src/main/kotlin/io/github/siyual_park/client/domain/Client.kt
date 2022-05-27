@@ -51,10 +51,11 @@ class Client(
     ClientEntity,
     Authorizable {
     val id by proxy(root, ClientData::id)
-    override val clientId by proxy(root, ClientData::id)
     var name by proxy(root, ClientData::name)
     val type by proxy(root, ClientData::type)
     var origin by proxy(root, ClientData::origin)
+
+    override val clientId by proxy(root, ClientData::id)
 
     private val credentialContext = fetchContextProvider.get(clientCredentialRepository)
     private val scopeContext = fetchContextProvider.get(clientScopeRepository)

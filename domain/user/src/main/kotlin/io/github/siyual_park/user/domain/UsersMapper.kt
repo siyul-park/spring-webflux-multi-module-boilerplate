@@ -1,32 +1,32 @@
-package io.github.siyual_park.client.domain
+package io.github.siyual_park.user.domain
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.client.entity.ClientData
-import io.github.siyual_park.client.repository.ClientCredentialRepository
-import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.aggregation.FetchContextProvider
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
+import io.github.siyual_park.user.entity.UserData
+import io.github.siyual_park.user.repository.UserCredentialRepository
+import io.github.siyual_park.user.repository.UserRepository
+import io.github.siyual_park.user.repository.UserScopeRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import java.time.Duration
 
 @Component
-class ClientsMapper(
-    private val clientRepository: ClientRepository,
-    private val clientCredentialRepository: ClientCredentialRepository,
-    private val clientScopeRepository: ClientScopeRepository,
+class UsersMapper(
+    private val userRepository: UserRepository,
+    private val userCredentialRepository: UserCredentialRepository,
+    private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher
-) : Mapper<Collection<ClientData>, Collection<Client>> {
-    override val sourceType = object : TypeReference<Collection<ClientData>>() {}
-    override val targetType = object : TypeReference<Collection<Client>>() {}
+) : Mapper<Collection<UserData>, Collection<User>> {
+    override val sourceType = object : TypeReference<Collection<UserData>>() {}
+    override val targetType = object : TypeReference<Collection<User>>() {}
 
-    override suspend fun map(source: Collection<ClientData>): Collection<Client> {
+    override suspend fun map(source: Collection<UserData>): Collection<User> {
         val fetchContextProvider = FetchContextProvider {
             CacheBuilder.newBuilder()
                 .weakKeys()
@@ -34,11 +34,11 @@ class ClientsMapper(
         }
 
         return source.map {
-            Client(
+            User(
                 it,
-                clientRepository,
-                clientCredentialRepository,
-                clientScopeRepository,
+                userRepository,
+                userCredentialRepository,
+                userScopeRepository,
                 scopeTokenStorage,
                 fetchContextProvider,
                 operator,

@@ -15,7 +15,7 @@ import org.springframework.data.domain.Sort
 class SimpleQueryStorage<T : Any, ID : Any, P : Persistence<T, ID>>(
     private val repository: QueryRepository<T, ID>,
     private val singleMapper: suspend (T) -> P,
-    multiMapper: (suspend (List<T>) -> List<P>)? = null
+    multiMapper: (suspend (Collection<T>) -> Collection<P>)? = null
 ) : QueryStorage<P, ID> {
     private val multiMapper = multiMapper ?: { it.map { singleMapper(it) } }
 
