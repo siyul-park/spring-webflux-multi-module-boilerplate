@@ -1,9 +1,6 @@
 package io.github.siyual_park.data.aggregation
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.cache.InMemoryQueryStorage
-import io.github.siyual_park.data.cache.Pool
-import io.github.siyual_park.data.cache.PoolingNestedQueryStorage
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
@@ -15,29 +12,18 @@ import io.mockk.coVerify
 import io.mockk.spyk
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class FetchContextTest : DataTestHelper() {
-    private val store = PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() } })
+class FetchContextProviderTest : DataTestHelper() {
     private val repository = spyk(R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class).build())
-    private val context = FetchContext(store, repository, Person::class)
+    private val contextProvider = FetchContextProvider { CacheBuilder.newBuilder() }
 
     init {
         migrationManager.register(CreatePerson(entityOperations))
     }
 
-    @BeforeEach
-    override fun setUp() {
-        super.setUp()
-
-        blocking {
-            context.clear()
-        }
-    }
-
     @Test
-    fun join() = blocking {
+    fun get() = blocking {
         val person1 = DummyPerson.create()
             .let { repository.create(it) }
         val person2 = DummyPerson.create()
@@ -46,8 +32,11 @@ class FetchContextTest : DataTestHelper() {
         val criteria1 = where(Person::name).`is`(person1.name)
         val criteria2 = where(Person::name).`is`(person2.name)
 
-        val fetcher1 = context.join(criteria1)
-        val fetcher2 = context.join(criteria2)
+        val context1 = contextProvider.get(repository, Person::class)
+        val context2 = contextProvider.get(repository, Person::class)
+
+        val fetcher1 = context1.join(criteria1)
+        val fetcher2 = context2.join(criteria2)
 
         val result1 = fetcher1.fetch().toList()
         val result2 = fetcher2.fetch().toList()
