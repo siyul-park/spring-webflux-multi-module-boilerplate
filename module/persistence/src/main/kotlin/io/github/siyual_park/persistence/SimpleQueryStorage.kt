@@ -4,45 +4,49 @@ import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.transaction.currentContextOrNull
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 
 class SimpleQueryStorage<T : Any, ID : Any, P : Persistence<T, ID>>(
     private val repository: QueryRepository<T, ID>,
-    private val mapper: suspend (T) -> P
+    private val singleMapper: suspend (T) -> P,
+    multiMapper: (suspend (List<T>) -> List<P>)? = null
 ) : QueryStorage<P, ID> {
+    private val multiMapper = multiMapper ?: { it.map { singleMapper(it) } }
+
     override suspend fun load(id: ID): P? {
         return repository.findById(id)
-            ?.let { mapper(it) }
+            ?.let { singleMapper(it) }
             ?.also { it.link() }
     }
 
     override suspend fun load(criteria: Criteria): P? {
         return repository.findOne(criteria)
-            ?.let { mapper(it) }
+            ?.let { singleMapper(it) }
             ?.also { it.link() }
     }
 
     override fun load(ids: Iterable<ID>): Flow<P> {
         return flow {
             val context = currentContextOrNull()
-            repository.findAllById(ids)
-                .map { mapper(it) }
+
+            multiMapper(repository.findAllById(ids).toList())
                 .onEach { if (context != null) it.link() }
-                .collect { emit(it) }
+                .let { emitAll(it.asFlow()) }
         }
     }
 
     override fun load(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?): Flow<P> {
         return flow {
             val context = currentContextOrNull()
-            repository.findAll(criteria, limit, offset, sort)
-                .map { mapper(it) }
+            multiMapper(repository.findAll(criteria, limit, offset, sort).toList())
                 .onEach { if (context != null) it.link() }
-                .collect { emit(it) }
+                .let { emitAll(it.asFlow()) }
         }
     }
 

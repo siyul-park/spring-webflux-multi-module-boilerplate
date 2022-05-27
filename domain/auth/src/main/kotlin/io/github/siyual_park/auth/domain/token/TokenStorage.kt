@@ -19,7 +19,7 @@ class TokenStorage(
     tokenRepository: TokenRepository,
     tokenMapper: TokenMapper
 ) : QueryStorage<Token, ULID> {
-    private val delegator = SimpleQueryStorage(tokenRepository) { tokenMapper.map(it) }
+    private val delegator = SimpleQueryStorage(tokenRepository, { tokenMapper.map(it) })
 
     fun load(type: String, claims: Map<String, Any>, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<Token> {
         var query: Criteria = where(TokenData::type).`is`(type)

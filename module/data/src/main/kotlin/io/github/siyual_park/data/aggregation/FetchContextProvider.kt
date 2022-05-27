@@ -22,3 +22,5 @@ class FetchContextProvider(
         } as FetchContext<T>
     }
 }
+
+inline fun <reified T : Any> FetchContextProvider.get(repository: QueryRepository<T, *>) = this.get(repository, T::class)

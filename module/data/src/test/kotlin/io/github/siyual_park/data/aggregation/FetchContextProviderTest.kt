@@ -29,14 +29,14 @@ class FetchContextProviderTest : DataTestHelper() {
         val person2 = DummyPerson.create()
             .let { repository.create(it) }
 
-        val criteria1 = where(Person::name).`is`(person1.name)
-        val criteria2 = where(Person::name).`is`(person2.name)
+        val query1 = where(Person::name).`is`(person1.name)
+        val query2 = where(Person::name).`is`(person2.name)
 
         val context1 = contextProvider.get(repository, Person::class)
         val context2 = contextProvider.get(repository, Person::class)
 
-        val fetcher1 = context1.join(criteria1)
-        val fetcher2 = context2.join(criteria2)
+        val fetcher1 = context1.join(query1)
+        val fetcher2 = context2.join(query2)
 
         val result1 = fetcher1.fetch().toList()
         val result2 = fetcher2.fetch().toList()

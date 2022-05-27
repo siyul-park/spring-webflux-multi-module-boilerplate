@@ -4,7 +4,8 @@ import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.cache.InMemoryQueryStorage
 import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.cache.PoolingNestedQueryStorage
-import io.github.siyual_park.data.criteria.Criteria
+import io.github.siyual_park.data.cache.ReferenceStore
+import io.github.siyual_park.data.cache.SelectQuery
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
@@ -20,8 +21,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class CriteriaFetcherTest : DataTestHelper() {
-    private val links = CriteriaStore<Criteria>()
+class QueryFetcherTest : DataTestHelper() {
+    private val links = ReferenceStore<SelectQuery>()
     private val store = PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() } })
     private val repository = spyk(R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class).build())
     private val mutex = Mutex()
@@ -47,14 +48,14 @@ class CriteriaFetcherTest : DataTestHelper() {
         val person2 = DummyPerson.create()
             .let { repository.create(it) }
 
-        val criteria1 = where(Person::name).`is`(person1.name)
-        val criteria2 = where(Person::name).`is`(person2.name)
+        val query1 = SelectQuery(where(Person::name).`is`(person1.name))
+        val query2 = SelectQuery(where(Person::name).`is`(person2.name))
 
-        links.push(criteria1)
-        links.push(criteria2)
+        links.push(query1)
+        links.push(query2)
 
-        val fetcher1 = CriteriaFetcher(criteria1, links, store, repository, Person::class, mutex)
-        val fetcher2 = CriteriaFetcher(criteria2, links, store, repository, Person::class, mutex)
+        val fetcher1 = QueryFetcher(query1, links, store, repository, Person::class, mutex)
+        val fetcher2 = QueryFetcher(query2, links, store, repository, Person::class, mutex)
 
         val result1 = fetcher1.fetch().toList()
         val result2 = fetcher2.fetch().toList()

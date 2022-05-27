@@ -1,10 +1,10 @@
-package io.github.siyual_park.data.aggregation
+package io.github.siyual_park.data.cache
 
 import org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength
 import org.apache.commons.collections4.map.ReferenceMap
 import java.util.Collections
 
-class CriteriaStore<T : Any>(
+class ReferenceStore<T : Any>(
     type: ReferenceStrength = ReferenceStrength.SOFT
 ) {
     private val store = Collections.newSetFromMap(
@@ -13,6 +13,10 @@ class CriteriaStore<T : Any>(
 
     fun clear() {
         store.clear()
+    }
+
+    fun firstOrNull(): T? {
+        return store.firstOrNull()
     }
 
     fun push(value: T): Boolean {
