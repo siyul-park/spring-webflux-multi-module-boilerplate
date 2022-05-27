@@ -9,6 +9,11 @@ class Pool<T : Any>(
     private val free = PoolStore<T>(type)
     private val used = PoolStore<T>(type)
 
+    suspend fun clear() {
+        free.clear()
+        used.clear()
+    }
+
     suspend fun pop(): T {
         val value = free.pop() ?: load()
         used.push(value)
