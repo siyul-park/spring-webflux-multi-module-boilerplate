@@ -144,13 +144,13 @@ class UserController(
 
         request.password?.let {
             updateCredentials(
-                userId,
+                user,
                 it.orElseThrow { throw ValidationException("password is cannot be null") }
             )
         }
         request.scope?.let {
             if (it.isPresent) {
-                syncScope(userId, it.get())
+                syncScope(user, it.get())
             } else {
                 val existsScope = user.getScope(deep = false).toSet()
                 existsScope.forEach { user.revoke(it) }
@@ -175,13 +175,12 @@ class UserController(
     }
 
     private suspend fun updateCredentials(
-        userId: ULID,
+        user: User,
         password: String
     ) = authorizator.withAuthorize(
         listOf("users.credential:update", "users[self].credential:update"),
-        listOf(null, userId)
+        listOf(null, user.id)
     ) {
-        val user = userStorage.loadOrFail(userId)
         val credential = user.getCredential()
 
         credential.setPassword(password)
@@ -189,36 +188,24 @@ class UserController(
     }
 
     private suspend fun syncScope(
-        userId: ULID,
+        user: User,
         scope: Collection<ULID>
     ) = operator.executeAndAwait {
-        val user = userStorage.loadOrFail(userId)
-
         val existsScope = user.getScope(deep = false).toSet()
         val requestScope = scopeTokenStorage.load(scope).toSet()
 
         val toGrantScope = requestScope.filter { !existsScope.contains(it) }
         val toRevokeScope = existsScope.filter { !requestScope.contains(it) }
 
-        toGrantScope.forEach { grant(userId, it.id) }
-        toRevokeScope.forEach { revoke(userId, it.id) }
-    }
-
-    private suspend fun grant(
-        userId: ULID,
-        scopeId: ULID
-    ) = authorizator.withAuthorize(listOf("users.scope:create"), null) {
-        val user = userStorage.loadOrFail(userId)
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        user.grant(scopeToken)
-    }
-
-    private suspend fun revoke(
-        userId: ULID,
-        scopeId: ULID
-    ) = authorizator.withAuthorize(listOf("users.scope:delete"), null) {
-        val user = userStorage.loadOrFail(userId)
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        user.revoke(scopeToken)
+        if (toGrantScope.isNotEmpty()) {
+            authorizator.withAuthorize(listOf("users.scope:create"), null) {
+                toGrantScope.forEach { user.grant(it) }
+            }
+        }
+        if (toRevokeScope.isNotEmpty()) {
+            authorizator.withAuthorize(listOf("users.scope:delete"), null) {
+                toRevokeScope.forEach { user.revoke(it) }
+            }
+        }
     }
 }

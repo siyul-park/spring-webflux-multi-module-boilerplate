@@ -146,7 +146,7 @@ class ClientController(
 
         request.scope?.let {
             if (it.isPresent) {
-                syncScope(clientId, it.get())
+                syncScope(client, it.get())
             } else {
                 val existsScope = client.getScope(deep = false).toSet()
                 existsScope.forEach { client.revoke(it) }
@@ -171,36 +171,24 @@ class ClientController(
     }
 
     private suspend fun syncScope(
-        clientId: ULID,
+        client: Client,
         scope: Collection<ULID>
     ) = operator.executeAndAwait {
-        val client = clientStorage.loadOrFail(clientId)
-
         val existsScope = client.getScope(deep = false).toSet()
         val requestScope = scopeTokenStorage.load(scope).toSet()
 
         val toGrantScope = requestScope.filter { !existsScope.contains(it) }
         val toRevokeScope = existsScope.filter { !requestScope.contains(it) }
 
-        toGrantScope.forEach { grant(clientId, it.id) }
-        toRevokeScope.forEach { revoke(clientId, it.id) }
-    }
-
-    private suspend fun grant(
-        clientId: ULID,
-        scopeId: ULID
-    ) = authorizator.withAuthorize(listOf("clients.scope:create"), null) {
-        val client = clientStorage.loadOrFail(clientId)
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        client.grant(scopeToken)
-    }
-
-    private suspend fun revoke(
-        clientId: ULID,
-        scopeId: ULID
-    ) = authorizator.withAuthorize(listOf("clients.scope:delete"), null) {
-        val client = clientStorage.loadOrFail(clientId)
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        client.revoke(scopeToken)
+        if (toGrantScope.isNotEmpty()) {
+            authorizator.withAuthorize(listOf("clients.scope:create"), null) {
+                toGrantScope.forEach { client.grant(it) }
+            }
+        }
+        if (toRevokeScope.isNotEmpty()) {
+            authorizator.withAuthorize(listOf("clients.scope:delete"), null) {
+                toRevokeScope.forEach { client.revoke(it) }
+            }
+        }
     }
 }
