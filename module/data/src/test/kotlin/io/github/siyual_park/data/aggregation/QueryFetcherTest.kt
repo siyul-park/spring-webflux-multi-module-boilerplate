@@ -70,6 +70,13 @@ class QueryFetcherTest : DataTestHelper() {
                     SelectQuery(where(Person::name).`in`(person2.name))
                 ),
                 results = listOf(setOf(person1, person2), setOf(person2))
+            ),
+            TestCase(
+                queries = listOf(
+                    SelectQuery(where(Person::name).`in`(person1.name, person2.name)),
+                    SelectQuery(where(Person::name).like(person2.name))
+                ),
+                results = listOf(setOf(person1, person2), setOf(person2))
             )
         )
 
