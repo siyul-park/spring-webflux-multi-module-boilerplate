@@ -35,7 +35,7 @@ class UserPrincipalRefreshStrategy(
                 addAll(userScope)
                 addAll(principal.scope)
             }
-                .filter { it.id != refreshTokenScope.get().id && it.id != accessTokenScope.get().id }
+                .filter { it.id != refreshTokenScope.get().id }
                 .toSet()
         )
     }

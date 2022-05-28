@@ -18,19 +18,14 @@ class UserPrincipalRefreshStrategyTest : UserTestHelper() {
         super.setUp()
 
         blocking {
-            val accessToken = scopeTokenFactory.upsert("access-token:create")
             val refreshToken = scopeTokenFactory.upsert("refresh-token:create")
-
             val user = scopeTokenFactory.upsert("user:pack")
-
-            user.grant(accessToken)
             user.grant(refreshToken)
         }
     }
 
     @Test
     fun refresh() = blocking {
-        val accessToken = scopeTokenFactory.upsert("access-token:create")
         val refreshToken = scopeTokenFactory.upsert("refresh-token:create")
 
         val user = DummyCreateUserPayload.create()
@@ -43,9 +38,7 @@ class UserPrincipalRefreshStrategyTest : UserTestHelper() {
         assertEquals(refreshed.userId, principal.userId)
         assertEquals(refreshed.clientId, principal.clientId)
 
-        assertTrue(principal.scope.contains(accessToken))
         assertTrue(principal.scope.contains(refreshToken))
-        assertFalse(refreshed.scope.contains(accessToken))
         assertFalse(refreshed.scope.contains(refreshToken))
     }
 }

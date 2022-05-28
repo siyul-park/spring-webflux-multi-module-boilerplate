@@ -16,7 +16,7 @@ class UserPrincipalClaimEmbeddingStrategyTest : UserTestHelper() {
 
         val claim = userPrincipalClaimEmbeddingStrategy.embedding(principal)
 
-        assertEquals(user.id.toString(), claim["uid"])
+        assertEquals(user.id, claim["uid"])
         assertEquals(null, claim["cid"])
     }
 }

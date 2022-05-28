@@ -10,7 +10,7 @@ class ClientPrincipalClaimEmbeddingStrategy : ClaimEmbeddingStrategy<ClientPrinc
     override suspend fun embedding(principal: ClientPrincipal): Map<String, Any> {
         val claims = mutableMapOf<String, Any>()
 
-        claims["cid"] = principal.id
+        claims["cid"] = principal.clientId
 
         return claims
     }
