@@ -34,7 +34,7 @@ class ClientBasedCorsConfigurationSource(
                     val client = principal.clientId?.let { clientStorage.load(it) } ?: return@runBlocking null
                     return@runBlocking CorsConfiguration()
                         .apply {
-                            addAllowedOriginPattern(client.origin.toString())
+                            allowedOrigins = listOf(client.origin.toString())
                             addAllowedHeader("*")
                             addAllowedMethod("*")
                             allowCredentials = true

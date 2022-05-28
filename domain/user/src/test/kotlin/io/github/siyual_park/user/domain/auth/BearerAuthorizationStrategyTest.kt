@@ -20,9 +20,9 @@ class BearerAuthorizationStrategyTest : UserTestHelper() {
     private val tokenRepository = TokenRepository(mongoTemplate, eventEmitter)
 
     private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage, eventEmitter)
-    private val claimEmbedder = ClaimEmbedder()
-
     private val tokenStorage = TokenStorage(tokenRepository, tokenMapper)
+
+    private val claimEmbedder = ClaimEmbedder()
     private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenRepository, tokenMapper)
 
     private val bearerAuthorizationStrategy = BearerAuthorizationStrategy(tokenStorage)
