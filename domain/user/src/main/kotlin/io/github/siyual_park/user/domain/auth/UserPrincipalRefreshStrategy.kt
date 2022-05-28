@@ -32,11 +32,11 @@ class UserPrincipalRefreshStrategy(
             id = principal.id,
             clientId = principal.clientId,
             scope = mutableSetOf<ScopeToken>().apply {
-                addAll(
-                    userScope.filter { it.id != refreshTokenScope.get().id && it.id != accessTokenScope.get().id }
-                )
+                addAll(userScope)
                 addAll(principal.scope)
             }
+                .filter { it.id != refreshTokenScope.get().id && it.id != accessTokenScope.get().id }
+                .toSet()
         )
     }
 }
