@@ -12,7 +12,7 @@ class ClientPrincipalRefreshStrategyTest : ClientTestHelper() {
 
     @Test
     fun refresh() = blocking {
-        val clientScope = scopeTokenFactory.upsert("client:pack")
+        val clientScope = scopeTokenFactory.upsert("confidential(client):pack")
         val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
         clientScope.grant(customScope)
 
