@@ -20,10 +20,14 @@ import io.github.siyual_park.user.migration.CreateUserScope
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
 import io.github.siyual_park.user.repository.UserScopeRepository
+import io.mockk.coVerify
+import io.mockk.spyk
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -47,7 +51,7 @@ class UserTest : DataTestHelper() {
     private val scopeTokenRepository = ScopeTokenRepository(entityOperations)
     private val userRepository = UserRepository(entityOperations, eventEmitter)
     private val userCredentialRepository = UserCredentialRepository(entityOperations, eventEmitter)
-    private val userScopeRepository = UserScopeRepository(entityOperations, eventEmitter)
+    private val userScopeRepository = spyk(UserScopeRepository(entityOperations, eventEmitter))
 
     private val scopeTokenMapper = ScopeTokenMapper(
         scopeTokenRepository,
@@ -115,23 +119,48 @@ class UserTest : DataTestHelper() {
         assertEquals(loadedUser2, user2)
 
         assertEquals(loadedUser1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
-        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
         assertEquals(loadedUser2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
+
+        coVerify(exactly = 3) { userScopeRepository.findAll(any()) }
+
+        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
         assertEquals(loadedUser2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
+
+        coVerify(exactly = 6) { userScopeRepository.findAll(any()) }
 
         loadedUser1?.grant(customScope)
 
-        assertEquals(loadedUser1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
-        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
-        assertEquals(loadedUser2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
-        assertEquals(loadedUser2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
+        assertEquals(
+            loadedUser1?.getScope(deep = false)?.toSet(),
+            user1.getScope(deep = false).toSet().also {
+                assertTrue(it.contains(customScope))
+            }
+        )
+        assertEquals(
+            loadedUser1?.getScope(deep = true)?.toSet(),
+            user1.getScope(deep = true).toSet().also {
+                assertTrue(it.contains(customScope))
+            }
+        )
+
+        coVerify(exactly = 10) { userScopeRepository.findAll(any()) }
 
         loadedUser2?.grant(customScope)
 
-        assertEquals(loadedUser1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
-        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
-        assertEquals(loadedUser2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
-        assertEquals(loadedUser2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
+        assertEquals(
+            loadedUser2?.getScope(deep = false)?.toSet(),
+            user2.getScope(deep = false).toSet().also {
+                assertTrue(it.contains(customScope))
+            }
+        )
+        assertEquals(
+            loadedUser2?.getScope(deep = true)?.toSet(),
+            user2.getScope(deep = true).toSet().also {
+                assertTrue(it.contains(customScope))
+            }
+        )
+
+        coVerify(exactly = 14) { userScopeRepository.findAll(any()) }
     }
 
     @Test
@@ -154,23 +183,48 @@ class UserTest : DataTestHelper() {
         assertEquals(loadedUser2, user2)
 
         assertEquals(loadedUser1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
-        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
         assertEquals(loadedUser2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
+
+        coVerify(exactly = 3) { userScopeRepository.findAll(any()) }
+
+        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
         assertEquals(loadedUser2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
+
+        coVerify(exactly = 6) { userScopeRepository.findAll(any()) }
 
         loadedUser1?.revoke(customScope)
 
-        assertEquals(loadedUser1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
-        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
-        assertEquals(loadedUser2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
-        assertEquals(loadedUser2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
+        assertEquals(
+            loadedUser1?.getScope(deep = false)?.toSet(),
+            user1.getScope(deep = false).toSet().also {
+                assertFalse(it.contains(customScope))
+            }
+        )
+        assertEquals(
+            loadedUser1?.getScope(deep = true)?.toSet(),
+            user1.getScope(deep = true).toSet().also {
+                assertFalse(it.contains(customScope))
+            }
+        )
+
+        coVerify(exactly = 10) { userScopeRepository.findAll(any()) }
 
         loadedUser2?.revoke(customScope)
 
-        assertEquals(loadedUser1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
-        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
-        assertEquals(loadedUser2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
-        assertEquals(loadedUser2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
+        assertEquals(
+            loadedUser2?.getScope(deep = false)?.toSet(),
+            user2.getScope(deep = false).toSet().also {
+                assertFalse(it.contains(customScope))
+            }
+        )
+        assertEquals(
+            loadedUser2?.getScope(deep = true)?.toSet(),
+            user2.getScope(deep = true).toSet().also {
+                assertFalse(it.contains(customScope))
+            }
+        )
+
+        coVerify(exactly = 14) { userScopeRepository.findAll(any()) }
     }
 
     companion object {
