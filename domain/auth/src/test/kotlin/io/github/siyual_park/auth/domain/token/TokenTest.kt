@@ -34,6 +34,7 @@ class TokenTest : DataTestHelper() {
     ) : Principal
 
     internal class TestClaimEmbeddingStrategy : ClaimEmbeddingStrategy<TestPrincipal> {
+        override val clazz = TestPrincipal::class
         override suspend fun embedding(principal: TestPrincipal): Map<String, Any> {
             return mapOf(
                 "tid" to principal.id
@@ -67,7 +68,7 @@ class TokenTest : DataTestHelper() {
             .register(CreateScopeRelation(entityOperations))
             .register(CreateToken(mongoTemplate))
 
-        claimEmbedder.register(TestPrincipal::class, TestClaimEmbeddingStrategy())
+        claimEmbedder.register(TypeMatchClaimFilter(TestPrincipal::class), TestClaimEmbeddingStrategy())
     }
 
     @Test

@@ -9,8 +9,6 @@ import io.github.siyual_park.data.criteria.RuntimeCriteriaParser
 import io.github.siyual_park.data.criteria.or
 import io.github.siyual_park.data.repository.QueryRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
@@ -45,21 +43,13 @@ class QueryFetcher<T : Any>(
     }
 
     suspend fun fetchOne(): T? {
-        return fetch().firstOrNull()
+        return fetch().toList().firstOrNull()
     }
 
     fun fetch(): Flow<T> {
         return flow {
-            store.getIfPresent(query)?.let {
-                store.remove(query)
-                cache = it
-                emitAll(it.asFlow())
-            } ?: mutex.withLock {
-                store.getIfPresent(query)?.let {
-                    store.remove(query)
-                    cache = it
-                    emitAll(it.asFlow())
-                } ?: run {
+            pop()?.onEach { emit(it) } ?: mutex.withLock {
+                pop()?.onEach { emit(it) } ?: run {
                     val free = free()
                     val merged = mutableSetOf<SelectQuery>().also {
                         it.addAll(free)
@@ -85,11 +75,19 @@ class QueryFetcher<T : Any>(
                             store.put(key, value)
                         } else {
                             cache = value
-                            emitAll(value.asFlow())
+                            value.onEach { emit(it) }
                         }
                     }
                 }
             }
+        }
+    }
+
+    private suspend fun pop(): Collection<T>? {
+        return store.getIfPresent(query)?.let {
+            store.remove(query)
+            cache = it
+            it
         }
     }
 

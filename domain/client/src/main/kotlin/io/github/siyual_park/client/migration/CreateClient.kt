@@ -7,6 +7,7 @@ import io.github.siyual_park.data.migration.createUpdatedAtTrigger
 import io.github.siyual_park.data.migration.dropTable
 import io.github.siyual_park.data.migration.fetchSQL
 import io.github.siyual_park.data.migration.isDriver
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -55,7 +56,7 @@ class CreateClient(
         entityOperations.createUniqueIndex(tableName, listOf("name"))
 
         mongoTemplate.getCollection("tokens").awaitSingle().apply {
-            createIndex(BasicDBObject("claims.cid", 1)).awaitSingle()
+            createIndex(BasicDBObject("claims.cid", 1)).awaitFirstOrNull()
         }
     }
 
@@ -63,7 +64,7 @@ class CreateClient(
         entityOperations.dropTable(tableName)
 
         mongoTemplate.getCollection("tokens").awaitSingle().apply {
-            dropIndex(BasicDBObject("claims.cid", 1)).awaitSingle()
+            dropIndex(BasicDBObject("claims.cid", 1)).awaitFirstOrNull()
         }
     }
 }

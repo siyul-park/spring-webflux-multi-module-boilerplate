@@ -16,6 +16,8 @@ import io.mockk.spyk
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.sync.Mutex
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -25,8 +27,6 @@ class QueryFetcherTest : DataTestHelper() {
         val results: List<Set<Person>>
     )
 
-    private val links = ReferenceStore<SelectQuery>()
-    private val store = InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() }
     private val repository = spyk(R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class).build())
     private val mutex = Mutex()
 
@@ -37,15 +37,13 @@ class QueryFetcherTest : DataTestHelper() {
     @BeforeEach
     override fun setUp() {
         super.setUp()
-
-        blocking {
-            store.clear()
-            links.clear()
-        }
     }
 
     @Test
     fun fetch() = blocking {
+        val links = ReferenceStore<SelectQuery>()
+        val store = spyk(InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() })
+
         val person1 = DummyPerson.create()
             .let { repository.create(it) }
         val person2 = DummyPerson.create()
@@ -72,6 +70,13 @@ class QueryFetcherTest : DataTestHelper() {
                     SelectQuery(where(Person::name).`in`(person2.name))
                 ),
                 results = listOf(setOf(person1, person2), setOf(person2))
+            ),
+            TestCase(
+                queries = listOf(
+                    SelectQuery(where(Person::name).`in`(person1.name, person2.name)),
+                    SelectQuery(where(Person::name).like(person2.name))
+                ),
+                results = listOf(setOf(person1, person2), setOf(person2))
             )
         )
 
@@ -93,6 +98,9 @@ class QueryFetcherTest : DataTestHelper() {
 
     @Test
     fun clear() = blocking {
+        val links = ReferenceStore<SelectQuery>()
+        val store = spyk(InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() })
+
         val person1 = DummyPerson.create()
             .let { repository.create(it) }
         val person2 = DummyPerson.create()
@@ -111,7 +119,9 @@ class QueryFetcherTest : DataTestHelper() {
         val fetcher3 = QueryFetcher(query3, links, store, repository, Person::class, mutex)
 
         fetcher1.clear()
+
         assertEquals(0, store.entries().size)
+        assertEquals(2, links.entries().size)
 
         store.clear()
         links.clear()
@@ -121,8 +131,16 @@ class QueryFetcherTest : DataTestHelper() {
         links.push(query3)
 
         fetcher1.fetchOne()
+
+        assertNotNull(store.getIfPresent(query2))
+        assertNotNull(store.getIfPresent(query3))
+
         fetcher2.clear()
-        assertEquals(0, store.entries().size)
+
+        assertNull(store.getIfPresent(query2))
+        assertNull(store.getIfPresent(query3))
+
+        assertEquals(2, links.entries().size)
 
         store.clear()
         links.clear()
@@ -132,8 +150,18 @@ class QueryFetcherTest : DataTestHelper() {
         links.push(query3)
 
         fetcher2.fetchOne()
+
+        assertNotNull(store.getIfPresent(query1))
+        assertNull(store.getIfPresent(query2))
+        assertNotNull(store.getIfPresent(query3))
+
         fetcher3.clear()
-        assertEquals(0, store.entries().size)
+
+        assertNull(store.getIfPresent(query1))
+        assertNull(store.getIfPresent(query2))
+        assertNull(store.getIfPresent(query3))
+
+        assertEquals(2, links.entries().size)
 
         store.clear()
         links.clear()
@@ -143,7 +171,17 @@ class QueryFetcherTest : DataTestHelper() {
         links.push(query3)
 
         fetcher3.fetchOne()
+
+        assertNotNull(store.getIfPresent(query1))
+        assertNotNull(store.getIfPresent(query2))
+        assertNull(store.getIfPresent(query3))
+
         fetcher1.clear()
-        assertEquals(1, store.entries().size)
+
+        assertNotNull(store.getIfPresent(query2))
+        assertNull(store.getIfPresent(query1))
+        assertNull(store.getIfPresent(query3))
+
+        assertEquals(2, links.entries().size)
     }
 }

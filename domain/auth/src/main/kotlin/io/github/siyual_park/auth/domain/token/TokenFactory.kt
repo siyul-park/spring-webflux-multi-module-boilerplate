@@ -37,7 +37,13 @@ class TokenFactory(
         val finalPush = merge(template.push, push)
         val finalFilter = merge(template.filter, filter)
 
-        val baseClaims = claimEmbedder.embedding(principal)
+        val baseClaims = claimEmbedder.embedding(principal).mapValues { (_, value) ->
+            if (value is String) {
+                value
+            } else {
+                value.toString()
+            }
+        }
         val scope = mutableSetOf<ScopeToken>().also { scope ->
             scope.addAll(
                 principal.scope

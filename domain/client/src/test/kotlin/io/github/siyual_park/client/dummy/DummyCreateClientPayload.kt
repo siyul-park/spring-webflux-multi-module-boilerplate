@@ -1,4 +1,4 @@
-package io.github.siyual_park.application.server.dummy
+package io.github.siyual_park.client.dummy
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.client.domain.CreateClientPayload

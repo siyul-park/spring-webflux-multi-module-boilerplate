@@ -1,23 +1,26 @@
 package io.github.siyual_park.auth.domain.token
 
-import io.github.siyual_park.auth.domain.Principal
-import io.github.siyual_park.auth.exception.UnsupportedPrincipalException
 import org.springframework.stereotype.Component
-import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
 @Component
 class ClaimEmbedder {
-    private val processors = mutableMapOf<Class<*>, ClaimEmbeddingStrategy<*>>()
+    private val processors = mutableListOf<Pair<ClaimEmbedFilter, ClaimEmbeddingStrategy<*>>>()
 
-    fun <T : Principal> register(clazz: KClass<T>, processor: ClaimEmbeddingStrategy<T>): ClaimEmbedder {
-        processors[clazz.java] = processor
+    fun <T : Any> register(filter: ClaimEmbedFilter, processor: ClaimEmbeddingStrategy<T>): ClaimEmbedder {
+        processors.add(filter to processor)
         return this
     }
 
-    suspend fun <T : Principal> embedding(principal: T): Map<String, Any> {
-        val processor = processors[principal.javaClass] ?: throw UnsupportedPrincipalException()
-        processor as ClaimEmbeddingStrategy<T>
-        return processor.embedding(principal)
+    suspend fun <PRINCIPAL : Any> embedding(principal: PRINCIPAL): Map<String, Any> {
+        val processors = processors
+            .filter { (_, strategy) -> strategy.clazz.isInstance(principal) }
+            .filter { (filter, _) -> filter.isSubscribe(principal) }
+            .map { (_, strategy) -> strategy }
+
+        return processors.map {
+            it as ClaimEmbeddingStrategy<PRINCIPAL>
+            it.embedding(principal)
+        }.fold(mutableMapOf()) { acc, cur -> acc.also { it.putAll(cur) } }
     }
 }
