@@ -214,29 +214,22 @@ class UserTest : DataTestHelper() {
 
     @Test
     fun clear() = blocking {
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
-        val template = DummyCreateUserPayload.Template(
-            scope = Optional.of(listOf(customScope))
-        )
-
-        val user1 = DummyCreateUserPayload.create(template)
-            .let { userFactory.create(it) }
-        val user2 = DummyCreateUserPayload.create(template)
+        val user = DummyCreateUserPayload.create()
             .let { userFactory.create(it) }
 
-        val users = userStorage.load(listOf(user1.id, user2.id)).toList()
+        user.clear()
+        assertNull(userStorage.load(user.id))
+    }
 
-        val loadedUser1 = users.find { it.id == user1.id }
-        val loadedUser2 = users.find { it.id == user2.id }
+    @Test
+    fun toPrincipal() = blocking {
+        val user = DummyCreateUserPayload.create()
+            .let { userFactory.create(it) }
+        val principal = user.toPrincipal()
 
-        assertNotNull(loadedUser1)
-        assertNotNull(loadedUser2)
-
-        loadedUser1?.clear()
-        assertNull(userStorage.load(user1.id))
-
-        loadedUser2?.clear()
-        assertNull(userStorage.load(user2.id))
+        assertEquals(user.id.toString(), principal.id)
+        assertEquals(user.id, principal.userId)
+        assertEquals(user.getScope(deep = true).toSet(), principal.scope)
     }
 
     companion object {
