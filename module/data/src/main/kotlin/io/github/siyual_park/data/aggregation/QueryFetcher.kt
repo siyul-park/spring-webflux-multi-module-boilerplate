@@ -45,21 +45,13 @@ class QueryFetcher<T : Any>(
     }
 
     suspend fun fetchOne(): T? {
-        return fetch().firstOrNull()
+        return fetch().toList().firstOrNull()
     }
 
     fun fetch(): Flow<T> {
         return flow {
-            store.getIfPresent(query)?.let {
-                store.remove(query)
-                cache = it
-                emitAll(it.asFlow())
-            } ?: mutex.withLock {
-                store.getIfPresent(query)?.let {
-                    store.remove(query)
-                    cache = it
-                    emitAll(it.asFlow())
-                } ?: run {
+            pop()?.also { emitAll(it.asFlow()) } ?: mutex.withLock {
+                pop()?.also { emitAll(it.asFlow()) } ?: run {
                     val free = free()
                     val merged = mutableSetOf<SelectQuery>().also {
                         it.addAll(free)
@@ -90,6 +82,14 @@ class QueryFetcher<T : Any>(
                     }
                 }
             }
+        }
+    }
+
+    private suspend fun pop(): Collection<T>? {
+        return store.getIfPresent(query)?.let {
+            store.remove(query)
+            cache = it
+            it
         }
     }
 
