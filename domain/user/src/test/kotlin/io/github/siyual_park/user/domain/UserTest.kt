@@ -114,23 +114,24 @@ class UserTest : DataTestHelper() {
             .let { userFactory.create(it) }
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
-        val loadedUser1 = users.find { it.id == user1.id }
-        val loadedUser2 = users.find { it.id == user2.id }
 
-        assertNotNull(loadedUser1)
-        assertNotNull(loadedUser2)
+        val loaded1 = users.find { it.id == user1.id }
+        val loaded2 = users.find { it.id == user2.id }
 
-        loadedUser1?.grant(customScope)
-        assertTrue(loadedUser1?.has(customScope) == true)
-        loadedUser1?.getScope(deep = false)?.toSet()?.also {
+        assertNotNull(loaded1)
+        assertNotNull(loaded2)
+
+        loaded1?.grant(customScope)
+        assertTrue(loaded1?.has(customScope) == true)
+        loaded1?.getScope(deep = false)?.toSet()?.also {
             assertTrue(it.contains(customScope))
         }
 
         coVerify(exactly = 1) { userScopeRepository.findAll(any()) }
 
-        loadedUser2?.grant(customScope)
-        assertTrue(loadedUser2?.has(customScope) == true)
-        loadedUser2?.getScope(deep = false)?.toSet()?.also {
+        loaded2?.grant(customScope)
+        assertTrue(loaded2?.has(customScope) == true)
+        loaded2?.getScope(deep = false)?.toSet()?.also {
             assertTrue(it.contains(customScope))
         }
 
@@ -151,23 +152,23 @@ class UserTest : DataTestHelper() {
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
 
-        val loadedUser1 = users.find { it.id == user1.id }
-        val loadedUser2 = users.find { it.id == user2.id }
+        val loaded1 = users.find { it.id == user1.id }
+        val loaded2 = users.find { it.id == user2.id }
 
-        assertNotNull(loadedUser1)
-        assertNotNull(loadedUser2)
+        assertNotNull(loaded1)
+        assertNotNull(loaded2)
 
-        loadedUser1?.revoke(customScope)
-        assertTrue(loadedUser1?.has(customScope) == false)
-        loadedUser1?.getScope(deep = false)?.toSet()?.also {
+        loaded1?.revoke(customScope)
+        assertTrue(loaded1?.has(customScope) == false)
+        loaded1?.getScope(deep = false)?.toSet()?.also {
             assertFalse(it.contains(customScope))
         }
 
         coVerify(exactly = 1) { userScopeRepository.findAll(any()) }
 
-        loadedUser2?.revoke(customScope)
-        assertTrue(loadedUser2?.has(customScope) == false)
-        loadedUser2?.getScope(deep = false)?.toSet()?.also {
+        loaded2?.revoke(customScope)
+        assertTrue(loaded2?.has(customScope) == false)
+        loaded2?.getScope(deep = false)?.toSet()?.also {
             assertFalse(it.contains(customScope))
         }
 
@@ -188,26 +189,29 @@ class UserTest : DataTestHelper() {
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
 
-        val loadedUser1 = users.find { it.id == user1.id }
-        val loadedUser2 = users.find { it.id == user2.id }
+        val loaded1 = users.find { it.id == user1.id }
+        val loaded2 = users.find { it.id == user2.id }
 
-        assertEquals(loadedUser1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
-        assertEquals(loadedUser2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
+        assertNotNull(loaded1)
+        assertNotNull(loaded2)
+
+        assertEquals(loaded1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
+        assertEquals(loaded2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
 
         coVerify(exactly = 3) { userScopeRepository.findAll(any()) }
 
-        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
-        assertEquals(loadedUser2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
+        assertEquals(loaded1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
+        assertEquals(loaded2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
 
         coVerify(exactly = 6) { userScopeRepository.findAll(any()) }
 
-        loadedUser1?.getScope(deep = false)?.toSet()
-        loadedUser1?.getScope(deep = false)?.toSet()
+        loaded1?.getScope(deep = false)?.toSet()
+        loaded1?.getScope(deep = false)?.toSet()
 
         coVerify(exactly = 8) { userScopeRepository.findAll(any()) }
 
-        loadedUser2?.getScope(deep = false)?.toSet()
-        loadedUser2?.getScope(deep = false)?.toSet()
+        loaded2?.getScope(deep = false)?.toSet()
+        loaded2?.getScope(deep = false)?.toSet()
 
         coVerify(exactly = 9) { userScopeRepository.findAll(any()) }
     }
