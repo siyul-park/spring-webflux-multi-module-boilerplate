@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.toSet
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -115,52 +117,24 @@ class UserTest : DataTestHelper() {
         val loadedUser1 = users.find { it.id == user1.id }
         val loadedUser2 = users.find { it.id == user2.id }
 
-        assertEquals(loadedUser1, user1)
-        assertEquals(loadedUser2, user2)
-
-        assertEquals(loadedUser1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
-        assertEquals(loadedUser2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
-
-        coVerify(exactly = 3) { userScopeRepository.findAll(any()) }
-
-        assertEquals(loadedUser1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
-        assertEquals(loadedUser2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
-
-        coVerify(exactly = 6) { userScopeRepository.findAll(any()) }
+        assertNotNull(loadedUser1)
+        assertNotNull(loadedUser2)
 
         loadedUser1?.grant(customScope)
+        assertTrue(loadedUser1?.has(customScope) == true)
+        loadedUser1?.getScope(deep = false)?.toSet()?.also {
+            assertTrue(it.contains(customScope))
+        }
 
-        assertEquals(
-            loadedUser1?.getScope(deep = false)?.toSet(),
-            user1.getScope(deep = false).toSet().also {
-                assertTrue(it.contains(customScope))
-            }
-        )
-        assertEquals(
-            loadedUser1?.getScope(deep = true)?.toSet(),
-            user1.getScope(deep = true).toSet().also {
-                assertTrue(it.contains(customScope))
-            }
-        )
-
-        coVerify(exactly = 10) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 1) { userScopeRepository.findAll(any()) }
 
         loadedUser2?.grant(customScope)
+        assertTrue(loadedUser2?.has(customScope) == true)
+        loadedUser2?.getScope(deep = false)?.toSet()?.also {
+            assertTrue(it.contains(customScope))
+        }
 
-        assertEquals(
-            loadedUser2?.getScope(deep = false)?.toSet(),
-            user2.getScope(deep = false).toSet().also {
-                assertTrue(it.contains(customScope))
-            }
-        )
-        assertEquals(
-            loadedUser2?.getScope(deep = true)?.toSet(),
-            user2.getScope(deep = true).toSet().also {
-                assertTrue(it.contains(customScope))
-            }
-        )
-
-        coVerify(exactly = 14) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 2) { userScopeRepository.findAll(any()) }
     }
 
     @Test
@@ -176,11 +150,46 @@ class UserTest : DataTestHelper() {
             .let { userFactory.create(it) }
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
+
         val loadedUser1 = users.find { it.id == user1.id }
         val loadedUser2 = users.find { it.id == user2.id }
 
-        assertEquals(loadedUser1, user1)
-        assertEquals(loadedUser2, user2)
+        assertNotNull(loadedUser1)
+        assertNotNull(loadedUser2)
+
+        loadedUser1?.revoke(customScope)
+        assertTrue(loadedUser1?.has(customScope) == false)
+        loadedUser1?.getScope(deep = false)?.toSet()?.also {
+            assertFalse(it.contains(customScope))
+        }
+
+        coVerify(exactly = 1) { userScopeRepository.findAll(any()) }
+
+        loadedUser2?.revoke(customScope)
+        assertTrue(loadedUser2?.has(customScope) == false)
+        loadedUser2?.getScope(deep = false)?.toSet()?.also {
+            assertFalse(it.contains(customScope))
+        }
+
+        coVerify(exactly = 2) { userScopeRepository.findAll(any()) }
+    }
+
+    @Test
+    fun getScope() = blocking {
+        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
+        val template = DummyCreateUserPayload.Template(
+            scope = Optional.of(listOf(customScope))
+        )
+
+        val user1 = DummyCreateUserPayload.create(template)
+            .let { userFactory.create(it) }
+        val user2 = DummyCreateUserPayload.create(template)
+            .let { userFactory.create(it) }
+
+        val users = userStorage.load(listOf(user1.id, user2.id)).toList()
+
+        val loadedUser1 = users.find { it.id == user1.id }
+        val loadedUser2 = users.find { it.id == user2.id }
 
         assertEquals(loadedUser1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
         assertEquals(loadedUser2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
@@ -192,39 +201,42 @@ class UserTest : DataTestHelper() {
 
         coVerify(exactly = 6) { userScopeRepository.findAll(any()) }
 
-        loadedUser1?.revoke(customScope)
+        loadedUser1?.getScope(deep = false)?.toSet()
+        loadedUser1?.getScope(deep = false)?.toSet()
 
-        assertEquals(
-            loadedUser1?.getScope(deep = false)?.toSet(),
-            user1.getScope(deep = false).toSet().also {
-                assertFalse(it.contains(customScope))
-            }
-        )
-        assertEquals(
-            loadedUser1?.getScope(deep = true)?.toSet(),
-            user1.getScope(deep = true).toSet().also {
-                assertFalse(it.contains(customScope))
-            }
-        )
+        coVerify(exactly = 8) { userScopeRepository.findAll(any()) }
 
-        coVerify(exactly = 10) { userScopeRepository.findAll(any()) }
+        loadedUser2?.getScope(deep = false)?.toSet()
+        loadedUser2?.getScope(deep = false)?.toSet()
 
-        loadedUser2?.revoke(customScope)
+        coVerify(exactly = 9) { userScopeRepository.findAll(any()) }
+    }
 
-        assertEquals(
-            loadedUser2?.getScope(deep = false)?.toSet(),
-            user2.getScope(deep = false).toSet().also {
-                assertFalse(it.contains(customScope))
-            }
-        )
-        assertEquals(
-            loadedUser2?.getScope(deep = true)?.toSet(),
-            user2.getScope(deep = true).toSet().also {
-                assertFalse(it.contains(customScope))
-            }
+    @Test
+    fun clear() = blocking {
+        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
+        val template = DummyCreateUserPayload.Template(
+            scope = Optional.of(listOf(customScope))
         )
 
-        coVerify(exactly = 14) { userScopeRepository.findAll(any()) }
+        val user1 = DummyCreateUserPayload.create(template)
+            .let { userFactory.create(it) }
+        val user2 = DummyCreateUserPayload.create(template)
+            .let { userFactory.create(it) }
+
+        val users = userStorage.load(listOf(user1.id, user2.id)).toList()
+
+        val loadedUser1 = users.find { it.id == user1.id }
+        val loadedUser2 = users.find { it.id == user2.id }
+
+        assertNotNull(loadedUser1)
+        assertNotNull(loadedUser2)
+
+        loadedUser1?.clear()
+        assertNull(userStorage.load(user1.id))
+
+        loadedUser2?.clear()
+        assertNull(userStorage.load(user2.id))
     }
 
     companion object {
