@@ -54,6 +54,7 @@ class CacheProvider<K : Any, T : Any>(
 
     suspend fun remove(key: K) {
         cache.invalidate(key)
+        mutexes.remove(key)
     }
 
     suspend fun entries(): Set<Pair<K, T>> {

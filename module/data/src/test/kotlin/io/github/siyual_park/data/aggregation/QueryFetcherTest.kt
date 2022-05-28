@@ -113,6 +113,9 @@ class QueryFetcherTest : DataTestHelper() {
         fetcher1.clear()
         assertEquals(0, store.entries().size)
 
+        store.clear()
+        links.clear()
+
         links.push(query1)
         links.push(query2)
         links.push(query3)
@@ -120,6 +123,20 @@ class QueryFetcherTest : DataTestHelper() {
         fetcher1.fetchOne()
         fetcher2.clear()
         assertEquals(0, store.entries().size)
+
+        store.clear()
+        links.clear()
+
+        links.push(query1)
+        links.push(query2)
+        links.push(query3)
+
+        fetcher2.fetchOne()
+        fetcher3.clear()
+        assertEquals(0, store.entries().size)
+
+        store.clear()
+        links.clear()
 
         links.push(query1)
         links.push(query2)
