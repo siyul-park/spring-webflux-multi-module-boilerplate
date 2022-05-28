@@ -7,6 +7,9 @@ dependencies {
     implementation(project(":module:mapper"))
 
     implementation(project(":domain:auth"))
+
+    testImplementation(project(":module:test"))
+    testImplementation(project(":module:coroutine-test"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")
