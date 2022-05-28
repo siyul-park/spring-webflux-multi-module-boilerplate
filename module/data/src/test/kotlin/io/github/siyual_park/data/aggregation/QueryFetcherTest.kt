@@ -2,8 +2,6 @@ package io.github.siyual_park.data.aggregation
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.cache.InMemoryQueryStorage
-import io.github.siyual_park.data.cache.Pool
-import io.github.siyual_park.data.cache.PoolingNestedQueryStorage
 import io.github.siyual_park.data.cache.ReferenceStore
 import io.github.siyual_park.data.cache.SelectQuery
 import io.github.siyual_park.data.criteria.where
@@ -28,7 +26,7 @@ class QueryFetcherTest : DataTestHelper() {
     )
 
     private val links = ReferenceStore<SelectQuery>()
-    private val store = PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() } })
+    private val store = InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() }
     private val repository = spyk(R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class).build())
     private val mutex = Mutex()
 
