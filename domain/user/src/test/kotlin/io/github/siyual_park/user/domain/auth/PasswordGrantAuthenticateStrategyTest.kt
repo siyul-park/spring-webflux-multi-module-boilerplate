@@ -31,7 +31,7 @@ class PasswordGrantAuthenticateStrategyTest : UserTestHelper(
 
     protected val clientStorage = ClientStorage(clientRepository, clientMapper, clientsMapper)
 
-    private val bearerAuthorizationStrategy = PasswordGrantAuthenticateStrategy(userStorage, clientStorage)
+    private val authorizationStrategy = PasswordGrantAuthenticateStrategy(userStorage, clientStorage)
 
     init {
         migrationManager
@@ -48,7 +48,7 @@ class PasswordGrantAuthenticateStrategyTest : UserTestHelper(
 
         assertEquals(
             principal,
-            bearerAuthorizationStrategy.authenticate(PasswordGrantPayload(payload.name, payload.password, null))
+            authorizationStrategy.authenticate(PasswordGrantPayload(payload.name, payload.password, null))
         )
     }
 }

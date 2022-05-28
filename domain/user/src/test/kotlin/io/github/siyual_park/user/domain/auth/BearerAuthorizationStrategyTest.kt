@@ -25,7 +25,7 @@ class BearerAuthorizationStrategyTest : UserTestHelper() {
     private val claimEmbedder = ClaimEmbedder()
     private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenRepository, tokenMapper)
 
-    private val bearerAuthorizationStrategy = BearerAuthorizationStrategy(tokenStorage)
+    private val authorizationStrategy = BearerAuthorizationStrategy(tokenStorage)
 
     init {
         claimEmbedder.register(TypeMatchClaimFilter(UserEntity::class), UserEntityClaimEmbeddingStrategy())
@@ -42,7 +42,7 @@ class BearerAuthorizationStrategyTest : UserTestHelper() {
 
         val token = tokenFactory.create(principal, Duration.ofMinutes(30))
 
-        assertNull(bearerAuthorizationStrategy.authenticate(AuthorizationPayload("invalid", token.signature)))
-        assertEquals(principal, bearerAuthorizationStrategy.authenticate(AuthorizationPayload("bearer", token.signature)))
+        assertNull(authorizationStrategy.authenticate(AuthorizationPayload("invalid", token.signature)))
+        assertEquals(principal, authorizationStrategy.authenticate(AuthorizationPayload("bearer", token.signature)))
     }
 }
