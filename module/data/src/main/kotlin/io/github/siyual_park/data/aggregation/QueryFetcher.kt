@@ -50,8 +50,8 @@ class QueryFetcher<T : Any>(
 
     fun fetch(): Flow<T> {
         return flow {
-            pop()?.also { emitAll(it.asFlow()) } ?: mutex.withLock {
-                pop()?.also { emitAll(it.asFlow()) } ?: run {
+            pop()?.onEach { emit(it) } ?: mutex.withLock {
+                pop()?.onEach { emit(it) } ?: run {
                     val free = free()
                     val merged = mutableSetOf<SelectQuery>().also {
                         it.addAll(free)
@@ -77,7 +77,7 @@ class QueryFetcher<T : Any>(
                             store.put(key, value)
                         } else {
                             cache = value
-                            emitAll(value.asFlow())
+                            value.onEach { emit(it) }
                         }
                     }
                 }
