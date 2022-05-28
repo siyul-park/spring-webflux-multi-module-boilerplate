@@ -17,6 +17,5 @@ class UserEntityClaimEmbeddingStrategyTest : UserTestHelper() {
         val claim = userEntityClaimEmbeddingStrategy.embedding(principal)
 
         assertEquals(user.id, claim["uid"])
-        assertEquals(null, claim["cid"])
     }
 }
