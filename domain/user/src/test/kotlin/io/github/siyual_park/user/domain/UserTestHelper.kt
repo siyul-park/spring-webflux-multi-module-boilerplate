@@ -21,9 +21,12 @@ import io.mockk.spyk
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
+import org.springframework.core.convert.converter.Converter
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 
-abstract class UserTestHelper : DataTestHelper() {
+abstract class UserTestHelper(
+    converters: Collection<Converter<*, *>> = emptyList()
+) : DataTestHelper(converters) {
     init {
         migrationManager
             .register(CreateScopeToken(entityOperations))
