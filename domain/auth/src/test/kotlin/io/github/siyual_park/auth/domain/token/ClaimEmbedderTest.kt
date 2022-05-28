@@ -14,6 +14,8 @@ class ClaimEmbedderTest : DataTestHelper() {
     ) : Principal
 
     internal class TestClaimEmbeddingStrategy : ClaimEmbeddingStrategy<TestPrincipal> {
+        override val clazz = TestPrincipal::class
+
         override suspend fun embedding(principal: TestPrincipal): Map<String, Any> {
             return mapOf(
                 "id" to principal.id
@@ -27,7 +29,7 @@ class ClaimEmbedderTest : DataTestHelper() {
     fun embedding() = blocking {
         val principal = TestPrincipal(DummyStringFactory.create(10), emptySet())
 
-        claimEmbedder.register(TestPrincipal::class, TestClaimEmbeddingStrategy())
+        claimEmbedder.register(TypeMatchClaimFilter(TestPrincipal::class), TestClaimEmbeddingStrategy())
 
         val claims = claimEmbedder.embedding(principal)
 

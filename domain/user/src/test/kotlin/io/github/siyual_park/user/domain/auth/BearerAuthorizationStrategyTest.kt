@@ -6,9 +6,11 @@ import io.github.siyual_park.auth.domain.token.TokenFactoryProvider
 import io.github.siyual_park.auth.domain.token.TokenMapper
 import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
+import io.github.siyual_park.auth.domain.token.TypeMatchClaimFilter
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.user.domain.UserTestHelper
 import io.github.siyual_park.user.dummy.DummyCreateUserPayload
+import io.github.siyual_park.user.entity.UserEntity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -26,7 +28,7 @@ class BearerAuthorizationStrategyTest : UserTestHelper() {
     private val bearerAuthorizationStrategy = BearerAuthorizationStrategy(tokenStorage)
 
     init {
-        claimEmbedder.register(UserPrincipal::class, UserPrincipalClaimEmbeddingStrategy())
+        claimEmbedder.register(TypeMatchClaimFilter(UserEntity::class), UserEntityClaimEmbeddingStrategy())
     }
 
     @Test

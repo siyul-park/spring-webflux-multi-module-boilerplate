@@ -37,7 +37,7 @@ class TokenFactory(
         val finalPush = merge(template.push, push)
         val finalFilter = merge(template.filter, filter)
 
-        val baseClaims = claimEmbedder.embedding(principal).mapValues { (key, value) ->
+        val baseClaims = claimEmbedder.embedding(principal).mapValues { (_, value) ->
             if (value is String) {
                 value
             } else {
