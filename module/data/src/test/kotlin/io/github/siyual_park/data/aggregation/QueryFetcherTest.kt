@@ -133,6 +133,8 @@ class QueryFetcherTest : DataTestHelper() {
         assertNull(store.getIfPresent(query2))
         assertNull(store.getIfPresent(query3))
 
+        assertEquals(2, links.entries().size)
+
         store.clear()
         links.clear()
 
@@ -152,6 +154,8 @@ class QueryFetcherTest : DataTestHelper() {
         assertNull(store.getIfPresent(query2))
         assertNull(store.getIfPresent(query3))
 
+        assertEquals(2, links.entries().size)
+
         store.clear()
         links.clear()
 
@@ -170,5 +174,7 @@ class QueryFetcherTest : DataTestHelper() {
         assertNotNull(store.getIfPresent(query2))
         assertNull(store.getIfPresent(query1))
         assertNull(store.getIfPresent(query3))
+
+        assertEquals(2, links.entries().size)
     }
 }
