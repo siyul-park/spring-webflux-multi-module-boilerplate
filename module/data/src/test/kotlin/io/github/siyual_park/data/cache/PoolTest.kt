@@ -1,6 +1,8 @@
 package io.github.siyual_park.data.cache
 
+import com.github.javafaker.Faker
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.util.username
 import org.apache.commons.collections4.map.AbstractReferenceMap
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -9,6 +11,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class PoolTest : CoroutineTestHelper() {
+    private val faker = Faker()
+
     @Test
     fun pop() = blocking {
         val pool = Pool(AbstractReferenceMap.ReferenceStrength.HARD) { faker.name().username(10) }
