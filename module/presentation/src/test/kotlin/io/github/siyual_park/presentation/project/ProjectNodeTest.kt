@@ -1,5 +1,7 @@
 package io.github.siyual_park.presentation.project
 
+import com.github.javafaker.Faker
+import io.github.siyual_park.util.username
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
@@ -15,6 +17,8 @@ class ProjectNodeTest {
         val b: Optional<String>?,
         val c: Optional<String>?
     )
+
+    private val faker = Faker()
 
     @Test
     fun from() {
