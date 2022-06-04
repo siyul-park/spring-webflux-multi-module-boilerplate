@@ -1,8 +1,7 @@
 package io.github.siyual_park.user.domain
 
+import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
 import io.github.siyual_park.persistence.loadOrFail
-import io.github.siyual_park.user.dummy.DummyCreateUserPayload
-import io.github.siyual_park.user.dummy.DummyScopeNameFactory
 import io.mockk.coVerify
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -27,10 +26,10 @@ class UserTest : UserTestHelper() {
 
     @Test
     fun sync() = blocking {
-        val user = DummyCreateUserPayload.create()
+        val user = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
 
-        val other = DummyCreateUserPayload.create()
+        val other = MockCreateUserPayloadFactory.create()
 
         user.name = other.name
         user.email = other.email
@@ -51,11 +50,11 @@ class UserTest : UserTestHelper() {
 
     @Test
     fun grant() = blocking {
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
-        val user1 = DummyCreateUserPayload.create()
+        val user1 = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
-        val user2 = DummyCreateUserPayload.create()
+        val user2 = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
@@ -85,14 +84,14 @@ class UserTest : UserTestHelper() {
 
     @Test
     fun revoke() = blocking {
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
-        val template = DummyCreateUserPayload.Template(
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val template = MockCreateUserPayloadFactory.Template(
             scope = Optional.of(listOf(customScope))
         )
 
-        val user1 = DummyCreateUserPayload.create(template)
+        val user1 = MockCreateUserPayloadFactory.create(template)
             .let { userFactory.create(it) }
-        val user2 = DummyCreateUserPayload.create(template)
+        val user2 = MockCreateUserPayloadFactory.create(template)
             .let { userFactory.create(it) }
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
@@ -122,14 +121,14 @@ class UserTest : UserTestHelper() {
 
     @Test
     fun getScope() = blocking {
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
-        val template = DummyCreateUserPayload.Template(
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val template = MockCreateUserPayloadFactory.Template(
             scope = Optional.of(listOf(customScope))
         )
 
-        val user1 = DummyCreateUserPayload.create(template)
+        val user1 = MockCreateUserPayloadFactory.create(template)
             .let { userFactory.create(it) }
-        val user2 = DummyCreateUserPayload.create(template)
+        val user2 = MockCreateUserPayloadFactory.create(template)
             .let { userFactory.create(it) }
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
@@ -163,7 +162,7 @@ class UserTest : UserTestHelper() {
 
     @Test
     fun clear() = blocking {
-        val user = DummyCreateUserPayload.create()
+        val user = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
 
         user.clear()
@@ -172,7 +171,7 @@ class UserTest : UserTestHelper() {
 
     @Test
     fun toPrincipal() = blocking {
-        val user = DummyCreateUserPayload.create()
+        val user = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
         val principal = user.toPrincipal()
 

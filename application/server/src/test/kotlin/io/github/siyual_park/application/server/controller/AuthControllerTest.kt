@@ -3,12 +3,12 @@ package io.github.siyual_park.application.server.controller
 import io.github.siyual_park.IntegrationTest
 import io.github.siyual_park.application.server.dto.GrantType
 import io.github.siyual_park.application.server.dto.request.CreateTokenRequest
-import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
-import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.gateway.AuthControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.client.domain.ClientFactory
+import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserFactory
 import kotlinx.coroutines.reactive.awaitSingle
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -29,9 +29,9 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `POST token, status = 201, when grant_type = password`() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val createUserPayload = DummyCreateUserPayload.create()
+        val createUserPayload = MockCreateUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
         val tokenResponse = authControllerGateway.createToken(
@@ -56,12 +56,12 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `POST token, status = 401, when grant_type = password`() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val createUserPayload = DummyCreateUserPayload.create()
+        val createUserPayload = MockCreateUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
-        val otherUserRequest = DummyCreateUserPayload.create()
+        val otherUserRequest = MockCreateUserPayloadFactory.create()
 
         val tokenResponse = authControllerGateway.createToken(
             CreateTokenRequest(
@@ -77,9 +77,9 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `POST token, status = 400, when grant_type = password`() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val createUserPayload = DummyCreateUserPayload.create()
+        val createUserPayload = MockCreateUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
         val case1 = authControllerGateway.createToken(
@@ -118,7 +118,7 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `POST token, status = 201, when grant_type = client_credentials`() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         val tokenResponse = authControllerGateway.createToken(
@@ -141,9 +141,9 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `POST token, status = 201, when grant_type = refresh_token`() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val createUserPayload = DummyCreateUserPayload.create()
+        val createUserPayload = MockCreateUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
         val tokensByPassword = authControllerGateway.createToken(
@@ -177,7 +177,7 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `POST token, status = 401, when grant_type = refresh_token`() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         val response = authControllerGateway.createToken(
@@ -193,9 +193,9 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `POST token, status = 400, when grant_type = refresh_token`() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val createUserPayload = DummyCreateUserPayload.create()
+        val createUserPayload = MockCreateUserPayloadFactory.create()
             .also { userFactory.create(it) }
 
         val case1 = authControllerGateway.createToken(
@@ -226,7 +226,7 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `GET principal, status = 200, when type = client_principal`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
@@ -247,7 +247,7 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `GET principal, status = 403, when type = client_principal`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
@@ -262,7 +262,7 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `GET principal, status = 200, when type = user_principal`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
@@ -282,7 +282,7 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `GET principal, status = 403, when type = user_principal`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
@@ -297,7 +297,7 @@ class AuthControllerTest @Autowired constructor(
 
     @Test
     fun `DELETE principal, status = 204`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(

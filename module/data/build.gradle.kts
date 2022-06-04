@@ -5,7 +5,6 @@ dependencies {
     implementation(project(":module:event"))
     implementation(project(":module:util"))
 
-    testImplementation(project(":module:test"))
     implementation(project(":module:coroutine-test"))
 
     implementation("org.junit.jupiter:junit-jupiter-api:$junit_version")

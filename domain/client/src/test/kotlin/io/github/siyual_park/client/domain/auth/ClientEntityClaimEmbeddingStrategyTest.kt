@@ -1,7 +1,7 @@
 package io.github.siyual_park.client.domain.auth
 
 import io.github.siyual_park.client.domain.ClientTestHelper
-import io.github.siyual_park.client.dummy.DummyCreateClientPayload
+import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -10,7 +10,7 @@ class ClientEntityClaimEmbeddingStrategyTest : ClientTestHelper() {
 
     @Test
     fun embedding() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
         val principal = client.toPrincipal()
 

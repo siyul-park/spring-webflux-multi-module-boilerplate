@@ -1,7 +1,7 @@
 package io.github.siyual_park.user.domain.auth
 
+import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserTestHelper
-import io.github.siyual_park.user.dummy.DummyCreateUserPayload
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -10,7 +10,7 @@ class UserEntityClaimEmbeddingStrategyTest : UserTestHelper() {
 
     @Test
     fun embedding() = blocking {
-        val user = DummyCreateUserPayload.create()
+        val user = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
         val principal = user.toPrincipal()
 

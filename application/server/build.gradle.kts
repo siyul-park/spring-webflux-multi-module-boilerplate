@@ -18,7 +18,6 @@ dependencies {
     implementation(project(":module:persistence"))
     implementation(project(":module:presentation"))
 
-    testImplementation(project(":module:test"))
     testImplementation(project(":module:coroutine-test"))
 }
 

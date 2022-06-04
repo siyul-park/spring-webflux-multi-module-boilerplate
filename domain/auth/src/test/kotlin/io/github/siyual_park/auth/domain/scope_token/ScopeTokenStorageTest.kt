@@ -1,7 +1,5 @@
 package io.github.siyual_park.auth.domain.scope_token
 
-import io.github.siyual_park.auth.dummy.DummyCreateScopeTokenPayload
-import io.github.siyual_park.auth.dummy.DummyScopeNameFactory
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
@@ -39,7 +37,7 @@ class ScopeTokenStorageTest : DataTestHelper() {
 
     @Test
     fun load() = blocking {
-        val origin = DummyCreateScopeTokenPayload.create()
+        val origin = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
 
         val found = scopeTokenStorage.load(origin.name)
@@ -49,9 +47,9 @@ class ScopeTokenStorageTest : DataTestHelper() {
 
     @Test
     fun loadOrFail() = blocking {
-        val origin = DummyCreateScopeTokenPayload.create()
+        val origin = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val otherName = DummyScopeNameFactory.create(10)
+        val otherName = MockScopeNameFactory.create()
 
         val found = scopeTokenStorage.loadOrFail(origin.name)
         assertEquals(origin, found)
@@ -60,9 +58,9 @@ class ScopeTokenStorageTest : DataTestHelper() {
 
     @Test
     fun loadMany() = blocking {
-        val origin1 = DummyCreateScopeTokenPayload.create()
+        val origin1 = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val origin2 = DummyCreateScopeTokenPayload.create()
+        val origin2 = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
 
         val found = scopeTokenStorage.load(listOf(origin1.name, origin2.name)).toList()

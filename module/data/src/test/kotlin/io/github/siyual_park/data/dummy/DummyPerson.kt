@@ -1,8 +1,9 @@
 package io.github.siyual_park.data.dummy
 
+import com.github.javafaker.Faker
 import io.github.siyual_park.data.entity.Person
-import io.github.siyual_park.test.DummyNameFactory
-import io.github.siyual_park.test.resolveNotNull
+import io.github.siyual_park.util.resolveNotNull
+import io.github.siyual_park.util.username
 import java.util.Optional
 import kotlin.random.Random
 
@@ -12,9 +13,11 @@ object DummyPerson {
         val age: Optional<Int>? = null,
     )
 
+    private val faker = Faker()
+
     fun create(template: PersonTemplate? = null): Person {
         return Person(
-            name = resolveNotNull(template?.name) { DummyNameFactory.create(10) },
+            name = resolveNotNull(template?.name) { faker.name().username(10) },
             age = resolveNotNull(template?.age) { Random.nextInt() },
         )
     }

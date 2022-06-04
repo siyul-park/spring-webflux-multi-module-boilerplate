@@ -1,11 +1,12 @@
 package io.github.siyual_park.auth.domain.token
 
+import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.Principal
+import io.github.siyual_park.auth.domain.scope_token.MockCreateScopeTokenPayloadFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.dummy.DummyCreateScopeTokenPayload
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.migration.CreateToken
@@ -15,7 +16,7 @@ import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.event.EventEmitter
-import io.github.siyual_park.test.DummyStringFactory
+import io.github.siyual_park.util.username
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -41,6 +42,8 @@ class TokenTest : DataTestHelper() {
             )
         }
     }
+
+    private val faker = Faker()
 
     private val eventEmitter = EventEmitter()
 
@@ -73,9 +76,9 @@ class TokenTest : DataTestHelper() {
 
     @Test
     fun create() = blocking {
-        val scopeToken = DummyCreateScopeTokenPayload.create()
+        val scopeToken = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val principal = TestPrincipal(DummyStringFactory.create(10), setOf(scopeToken))
+        val principal = TestPrincipal(faker.name().username(10), setOf(scopeToken))
 
         val template = TokenTemplate(
             type = "test",
@@ -95,7 +98,7 @@ class TokenTest : DataTestHelper() {
 
     @Test
     fun setGet() = blocking {
-        val principal = TestPrincipal(DummyStringFactory.create(10), setOf())
+        val principal = TestPrincipal(faker.name().username(10), setOf())
 
         val template = TokenTemplate(
             type = "test",
@@ -107,8 +110,8 @@ class TokenTest : DataTestHelper() {
 
         val token = factory.create(principal, Duration.ofMinutes(10))
 
-        val key = DummyStringFactory.create(10)
-        val value = DummyStringFactory.create(10)
+        val key = faker.name().username(10)
+        val value = faker.name().username(10)
 
         token[key] = value
         assertEquals(value, token[key])
@@ -119,9 +122,9 @@ class TokenTest : DataTestHelper() {
 
     @Test
     fun getScope() = blocking {
-        val scopeToken = DummyCreateScopeTokenPayload.create()
+        val scopeToken = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val principal = TestPrincipal(DummyStringFactory.create(10), setOf(scopeToken))
+        val principal = TestPrincipal(faker.name().username(10), setOf(scopeToken))
 
         val template = TokenTemplate(
             type = "test",
@@ -144,9 +147,9 @@ class TokenTest : DataTestHelper() {
 
     @Test
     fun grant() = blocking {
-        val scopeToken = DummyCreateScopeTokenPayload.create()
+        val scopeToken = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val principal = TestPrincipal(DummyStringFactory.create(10), setOf())
+        val principal = TestPrincipal(faker.name().username(10), setOf())
 
         val template = TokenTemplate(
             type = "test",
@@ -167,9 +170,9 @@ class TokenTest : DataTestHelper() {
 
     @Test
     fun revoke() = blocking {
-        val scopeToken = DummyCreateScopeTokenPayload.create()
+        val scopeToken = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val principal = TestPrincipal(DummyStringFactory.create(10), setOf(scopeToken))
+        val principal = TestPrincipal(faker.name().username(10), setOf(scopeToken))
 
         val template = TokenTemplate(
             type = "test",

@@ -1,5 +1,6 @@
 dependencies {
     implementation(project(":module:ulid"))
+    implementation(project(":module:util"))
     implementation(project(":module:data"))
     implementation(project(":module:event"))
     implementation(project(":module:presentation"))
@@ -8,7 +9,6 @@ dependencies {
 
     implementation(project(":domain:auth"))
 
-    testImplementation(project(":module:test"))
     testImplementation(project(":module:coroutine-test"))
 }
 

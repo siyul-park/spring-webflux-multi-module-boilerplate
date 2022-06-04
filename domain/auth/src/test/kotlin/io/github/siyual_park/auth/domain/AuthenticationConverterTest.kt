@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain
 
+import com.github.javafaker.Faker
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
-import io.github.siyual_park.test.DummyStringFactory
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -14,14 +14,16 @@ import org.springframework.mock.web.server.MockServerWebExchange
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
 
 class AuthenticationConverterTest : CoroutineTestHelper() {
+    private val faker = Faker()
+
     private val authenticationConverter = AuthenticationConverter()
 
     @Test
     fun convertSuccess() = blocking {
         val request = MockServerHttpRequest.get("/")
 
-        val type = DummyStringFactory.create(10)
-        val credentials = DummyStringFactory.create(10)
+        val type = faker.random().hex()
+        val credentials = faker.random().hex()
 
         val headers = HttpHeaders().also {
             it[HttpHeaders.AUTHORIZATION] = "$type $credentials"
@@ -44,7 +46,7 @@ class AuthenticationConverterTest : CoroutineTestHelper() {
         assertNull(authentication)
 
         val headers = HttpHeaders().also {
-            it[HttpHeaders.AUTHORIZATION] = DummyStringFactory.create(10)
+            it[HttpHeaders.AUTHORIZATION] = faker.random().hex()
         }
         request.headers(headers)
 

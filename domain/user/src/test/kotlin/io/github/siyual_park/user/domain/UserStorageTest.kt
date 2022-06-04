@@ -1,6 +1,5 @@
 package io.github.siyual_park.user.domain
 
-import io.github.siyual_park.user.dummy.DummyCreateUserPayload
 import kotlinx.coroutines.flow.toSet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -18,9 +17,9 @@ class UserStorageTest : UserTestHelper() {
 
     @Test
     fun load() = blocking {
-        val user1 = DummyCreateUserPayload.create()
+        val user1 = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
-        val user2 = DummyCreateUserPayload.create()
+        val user2 = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
 
         assertEquals(userStorage.load(user1.id), user1)

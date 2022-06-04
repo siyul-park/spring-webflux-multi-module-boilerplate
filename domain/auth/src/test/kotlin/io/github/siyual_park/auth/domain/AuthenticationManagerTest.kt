@@ -1,12 +1,12 @@
 package io.github.siyual_park.auth.domain
 
+import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.authentication.AllowAllAuthenticateFilter
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationStrategy
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.exception.AuthorizeException
 import io.github.siyual_park.data.test.DataTestHelper
-import io.github.siyual_park.test.DummyStringFactory
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -30,6 +30,7 @@ class AuthenticationManagerTest : DataTestHelper() {
             }
         }
     }
+    private val faker = Faker()
 
     private val filter = AllowAllAuthenticateFilter()
     private val authenticator = Authenticator()
@@ -37,8 +38,8 @@ class AuthenticationManagerTest : DataTestHelper() {
 
     @Test
     fun authenticate() = blocking {
-        val type = DummyStringFactory.create(10)
-        val credentials = DummyStringFactory.create(10)
+        val type = faker.random().hex()
+        val credentials = faker.random().hex()
 
         val athentication = UsernamePasswordAuthenticationToken(type, credentials)
 

@@ -12,6 +12,7 @@ val json_patch_version: String by project
 val springdoc_version: String by project
 val sentry_logback_version: String by project
 val embed_mongo_version: String by project
+val javafaker_version: String by project
 
 buildscript {
     val kotlin_version: String by project
@@ -123,6 +124,8 @@ allprojects {
         implementation("org.springdoc:springdoc-openapi-webflux-ui:$springdoc_version")
         implementation("org.springdoc:springdoc-openapi-security:$springdoc_version")
         implementation("org.springdoc:springdoc-openapi-kotlin:$springdoc_version")
+
+        implementation("com.github.javafaker:javafaker:$javafaker_version")
     }
 
     tasks.withType<Copy> {

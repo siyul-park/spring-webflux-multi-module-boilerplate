@@ -1,9 +1,10 @@
 package io.github.siyual_park.auth.domain.token
 
+import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.data.test.DataTestHelper
-import io.github.siyual_park.test.DummyStringFactory
+import io.github.siyual_park.util.username
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -23,11 +24,13 @@ class ClaimEmbedderTest : DataTestHelper() {
         }
     }
 
+    private val faker = Faker()
+
     private val claimEmbedder = ClaimEmbedder()
 
     @Test
     fun embedding() = blocking {
-        val principal = TestPrincipal(DummyStringFactory.create(10), emptySet())
+        val principal = TestPrincipal(faker.name().username(19), emptySet())
 
         claimEmbedder.register(TypeMatchClaimFilter(TestPrincipal::class), TestClaimEmbeddingStrategy())
 

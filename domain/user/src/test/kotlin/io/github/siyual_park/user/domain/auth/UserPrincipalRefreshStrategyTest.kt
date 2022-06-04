@@ -1,8 +1,8 @@
 package io.github.siyual_park.user.domain.auth
 
+import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
+import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserTestHelper
-import io.github.siyual_park.user.dummy.DummyCreateUserPayload
-import io.github.siyual_park.user.dummy.DummyScopeNameFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -13,10 +13,10 @@ class UserPrincipalRefreshStrategyTest : UserTestHelper() {
     @Test
     fun refresh() = blocking {
         val userScope = scopeTokenFactory.upsert("user:pack")
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
         userScope.grant(customScope)
 
-        val user = DummyCreateUserPayload.create()
+        val user = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
         val principal = UserPrincipal(id = user.id.toString(), scope = setOf())
 

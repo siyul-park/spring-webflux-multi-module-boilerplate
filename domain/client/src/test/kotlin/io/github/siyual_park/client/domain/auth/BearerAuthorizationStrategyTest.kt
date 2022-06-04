@@ -9,7 +9,7 @@ import io.github.siyual_park.auth.domain.token.TokenTemplate
 import io.github.siyual_park.auth.domain.token.TypeMatchClaimFilter
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.client.domain.ClientTestHelper
-import io.github.siyual_park.client.dummy.DummyCreateClientPayload
+import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.client.entity.ClientEntity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -37,7 +37,7 @@ class BearerAuthorizationStrategyTest : ClientTestHelper() {
         val template = TokenTemplate(type = "test")
         val tokenFactory = tokenFactoryProvider.get(template)
 
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
         val principal = client.toPrincipal()
 
