@@ -1,9 +1,9 @@
 package io.github.siyual_park.auth.domain.principal_refresher
 
+import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.data.test.DataTestHelper
-import io.github.siyual_park.test.DummyStringFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -21,12 +21,13 @@ class PrincipalRefresherTest : DataTestHelper() {
         }
     }
 
+    private val faker = Faker()
     private val principalRefresher = PrincipalRefresher()
 
     @Test
     fun refresh() = blocking {
-        val principal1 = TestPrincipal(DummyStringFactory.create(10), emptySet())
-        val principal2 = TestPrincipal(DummyStringFactory.create(10), emptySet())
+        val principal1 = TestPrincipal(faker.name().username(), emptySet())
+        val principal2 = TestPrincipal(faker.name().username(), emptySet())
 
         principalRefresher.register(TestPrincipal::class, TestPrincipalRefreshStrategy(principal2))
 

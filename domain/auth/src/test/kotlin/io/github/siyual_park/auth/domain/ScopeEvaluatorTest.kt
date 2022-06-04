@@ -3,11 +3,11 @@ package io.github.siyual_park.auth.domain
 import io.github.siyual_park.auth.domain.authorization.AllowAllAuthorizeFilter
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.authorization.PrincipalHasScopeAuthorizeStrategy
+import io.github.siyual_park.auth.domain.scope_token.MockCreateScopeTokenPayloadFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.dummy.DummyCreateScopeTokenPayload
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
@@ -55,9 +55,9 @@ class ScopeEvaluatorTest : DataTestHelper() {
 
     @Test
     fun hasPermission() = blocking {
-        val scopeToken1 = DummyCreateScopeTokenPayload.create()
+        val scopeToken1 = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val scopeToken2 = DummyCreateScopeTokenPayload.create()
+        val scopeToken2 = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
 
         val principal = TestPrincipal(

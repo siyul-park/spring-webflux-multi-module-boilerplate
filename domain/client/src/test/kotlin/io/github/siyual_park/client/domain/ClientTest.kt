@@ -1,7 +1,6 @@
 package io.github.siyual_park.client.domain
 
-import io.github.siyual_park.client.dummy.DummyCreateClientPayload
-import io.github.siyual_park.client.dummy.DummyScopeNameFactory
+import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
 import io.github.siyual_park.persistence.loadOrFail
 import io.mockk.coVerify
 import kotlinx.coroutines.flow.toList
@@ -17,10 +16,10 @@ import java.util.Optional
 class ClientTest : ClientTestHelper() {
     @Test
     fun sync() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
-        val other = DummyCreateClientPayload.create()
+        val other = MockCreateClientPayloadFactory.create()
 
         client.name = other.name
         client.origin = other.origin
@@ -41,11 +40,11 @@ class ClientTest : ClientTestHelper() {
 
     @Test
     fun grant() = blocking {
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
-        val client1 = DummyCreateClientPayload.create()
+        val client1 = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val client2 = DummyCreateClientPayload.create()
+        val client2 = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         val clients = clientStorage.load(listOf(client1.id, client2.id)).toList()
@@ -75,14 +74,14 @@ class ClientTest : ClientTestHelper() {
 
     @Test
     fun revoke() = blocking {
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
-        val template = DummyCreateClientPayload.Template(
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val template = MockCreateClientPayloadFactory.Template(
             scope = Optional.of(listOf(customScope))
         )
 
-        val client1 = DummyCreateClientPayload.create(template)
+        val client1 = MockCreateClientPayloadFactory.create(template)
             .let { clientFactory.create(it) }
-        val client2 = DummyCreateClientPayload.create(template)
+        val client2 = MockCreateClientPayloadFactory.create(template)
             .let { clientFactory.create(it) }
 
         val clients = clientStorage.load(listOf(client1.id, client2.id)).toList()
@@ -112,14 +111,14 @@ class ClientTest : ClientTestHelper() {
 
     @Test
     fun getScope() = blocking {
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
-        val template = DummyCreateClientPayload.Template(
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val template = MockCreateClientPayloadFactory.Template(
             scope = Optional.of(listOf(customScope))
         )
 
-        val client1 = DummyCreateClientPayload.create(template)
+        val client1 = MockCreateClientPayloadFactory.create(template)
             .let { clientFactory.create(it) }
-        val client2 = DummyCreateClientPayload.create(template)
+        val client2 = MockCreateClientPayloadFactory.create(template)
             .let { clientFactory.create(it) }
 
         val clients = clientStorage.load(listOf(client1.id, client2.id)).toList()
@@ -153,7 +152,7 @@ class ClientTest : ClientTestHelper() {
 
     @Test
     fun clear() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         client.clear()
@@ -162,7 +161,7 @@ class ClientTest : ClientTestHelper() {
 
     @Test
     fun toPrincipal() = blocking {
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
         val principal = client.toPrincipal()
 

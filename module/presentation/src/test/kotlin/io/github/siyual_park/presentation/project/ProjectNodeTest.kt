@@ -1,6 +1,5 @@
 package io.github.siyual_park.presentation.project
 
-import io.github.siyual_park.test.DummyStringFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
@@ -42,8 +41,8 @@ class ProjectNodeTest {
             a = null,
             b = Optional.of(
                 B(
-                    b = Optional.of(DummyStringFactory.create(10)),
-                    c = Optional.of(DummyStringFactory.create(10))
+                    b = Optional.of(faker.name().username(10)),
+                    c = Optional.of(faker.name().username(10))
                 )
             )
         )

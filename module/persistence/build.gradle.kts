@@ -4,7 +4,6 @@ dependencies {
     implementation(project(":module:ulid"))
     implementation(project(":module:util"))
 
-    testImplementation(project(":module:test"))
     testImplementation(project(":module:coroutine-test"))
 }
 

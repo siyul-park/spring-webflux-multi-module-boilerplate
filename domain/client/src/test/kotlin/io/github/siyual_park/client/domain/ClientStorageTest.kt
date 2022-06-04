@@ -1,6 +1,5 @@
 package io.github.siyual_park.client.domain
 
-import io.github.siyual_park.client.dummy.DummyCreateClientPayload
 import kotlinx.coroutines.flow.toSet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -19,9 +18,9 @@ class ClientStorageTest : ClientTestHelper() {
 
     @Test
     fun load() = blocking {
-        val client1 = DummyCreateClientPayload.create()
+        val client1 = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val client2 = DummyCreateClientPayload.create()
+        val client2 = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         assertEquals(client1, clientStorage.load(client1.id))

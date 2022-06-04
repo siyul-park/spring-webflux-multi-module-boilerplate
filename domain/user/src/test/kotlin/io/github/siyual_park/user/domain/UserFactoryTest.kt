@@ -1,8 +1,7 @@
 package io.github.siyual_park.user.domain
 
+import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.user.dummy.DummyCreateUserPayload
-import io.github.siyual_park.user.dummy.DummyScopeNameFactory
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -22,7 +21,7 @@ class UserFactoryTest : UserTestHelper() {
 
     @Test
     fun `create, when use default`() = blocking {
-        val payload = DummyCreateUserPayload.create()
+        val payload = MockCreateUserPayloadFactory.create()
         val user = userFactory.create(payload)
 
         assertEquals(payload.name, user.name)
@@ -36,10 +35,10 @@ class UserFactoryTest : UserTestHelper() {
 
     @Test
     fun `create, when use custom scope`() = blocking {
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
-        val payload = DummyCreateUserPayload.create(
-            DummyCreateUserPayload.Template(
+        val payload = MockCreateUserPayloadFactory.create(
+            MockCreateUserPayloadFactory.Template(
                 scope = Optional.of(listOf(customScope))
             )
         )

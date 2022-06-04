@@ -1,8 +1,8 @@
 package io.github.siyual_park.client.domain.auth
 
+import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
 import io.github.siyual_park.client.domain.ClientTestHelper
-import io.github.siyual_park.client.dummy.DummyCreateClientPayload
-import io.github.siyual_park.client.dummy.DummyScopeNameFactory
+import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -13,10 +13,10 @@ class ClientPrincipalRefreshStrategyTest : ClientTestHelper() {
     @Test
     fun refresh() = blocking {
         val clientScope = scopeTokenFactory.upsert("confidential(client):pack")
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
         clientScope.grant(customScope)
 
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
         val principal = ClientPrincipal(id = client.id.toString(), scope = setOf())
 

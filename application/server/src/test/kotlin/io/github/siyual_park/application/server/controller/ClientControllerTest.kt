@@ -1,19 +1,21 @@
 package io.github.siyual_park.application.server.controller
 
+import com.github.javafaker.Faker
 import io.github.siyual_park.IntegrationTest
+import io.github.siyual_park.application.server.dto.request.MockCreateClientRequestFactory
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
-import io.github.siyual_park.application.server.dummy.DummyCreateClientPayload
-import io.github.siyual_park.application.server.dummy.DummyCreateClientRequest
-import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
 import io.github.siyual_park.application.server.gateway.ClientControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
+import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
+import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
-import io.github.siyual_park.test.DummyNameFactory
+import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserFactory
+import io.github.siyual_park.util.username
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
@@ -37,9 +39,11 @@ class ClientControllerTest @Autowired constructor(
     private val clientStorage: ClientStorage
 ) : CoroutineTestHelper() {
 
+    private val faker = Faker()
+
     @Test
     fun `POST clients, status = 201`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
@@ -48,8 +52,8 @@ class ClientControllerTest @Autowired constructor(
         )
 
         ClientType.values().forEach {
-            val request = DummyCreateClientRequest.create(
-                DummyCreateClientRequest.Template(
+            val request = MockCreateClientRequestFactory.create(
+                MockCreateClientRequestFactory.Template(
                     type = Optional.of(it)
                 )
             )
@@ -78,7 +82,7 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `POST clients, status = 409`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
@@ -86,7 +90,7 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:create")
         )
 
-        val request = DummyCreateClientRequest.create()
+        val request = MockCreateClientRequestFactory.create()
         clientControllerGateway.create(request)
 
         val response = clientControllerGateway.create(request)
@@ -95,7 +99,7 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `POST clients, status = 400`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
@@ -103,9 +107,9 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:create")
         )
 
-        val request = DummyCreateClientRequest.create(
-            DummyCreateClientRequest.Template(
-                name = Optional.of(DummyNameFactory.create(25))
+        val request = MockCreateClientRequestFactory.create(
+            MockCreateClientRequestFactory.Template(
+                name = Optional.of(faker.name().username(25))
             )
         )
 
@@ -115,7 +119,7 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `POST clients, status = 403`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
@@ -123,7 +127,7 @@ class ClientControllerTest @Autowired constructor(
             pop = listOf("clients:create")
         )
 
-        val request = DummyCreateClientRequest.create()
+        val request = MockCreateClientRequestFactory.create()
         val response = clientControllerGateway.create(request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
@@ -131,10 +135,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `GET clients, status = 200`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
@@ -165,10 +169,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `GET clients, status = 403`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val client = DummyCreateClientPayload.create()
+        val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
@@ -187,10 +191,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `GET clients_{client-id}, status = 200`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
@@ -214,10 +218,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `GET clients_{client-id}, status = 403`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
@@ -232,10 +236,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `GET clients_{client-id}, status = 404`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         otherClient.clear()
@@ -252,10 +256,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH clients_{client-id}, status = 200`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
@@ -263,7 +267,7 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:update")
         )
 
-        val name = DummyNameFactory.create(10)
+        val name = faker.name().username()
         val request = UpdateClientRequest(
             name = Optional.of(name),
         )
@@ -283,13 +287,13 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH clients_{client-id}, status = 200, with grant scope`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -309,13 +313,13 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH clients_{client-id}, status = 403, with grant scope`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -332,13 +336,13 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH clients_{client-id}, status = 200, with revoke scope`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
         otherClient.grant(scope)
 
@@ -360,13 +364,13 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH clients_{client-id}, status = 403, with revoke scope`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
-        val scope = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+        val scope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
         otherClient.grant(scope)
 
@@ -385,10 +389,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH clients_{client-id}, status = 400, when name is null`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
@@ -406,10 +410,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH clients_{client-id}, status = 400, when name is excess size`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
@@ -417,7 +421,7 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:update")
         )
 
-        val name = DummyNameFactory.create(25)
+        val name = faker.name().username(25)
         val request = UpdateClientRequest(
             name = Optional.of(name),
         )
@@ -428,10 +432,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH clients_{client-id}, status = 403`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
@@ -440,7 +444,7 @@ class ClientControllerTest @Autowired constructor(
         )
 
         val request = UpdateClientRequest(
-            name = Optional.of(DummyNameFactory.create(10)),
+            name = Optional.of(faker.name().username()),
             origin = Optional.of(otherClient.origin)
         )
         val response = clientControllerGateway.update(otherClient.id, request)
@@ -450,10 +454,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `DELEATE clients_{client-id}, status = 200`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(
@@ -471,10 +475,10 @@ class ClientControllerTest @Autowired constructor(
 
     @Test
     fun `DELEATE clients_{client-id}, status = 403`() = blocking {
-        val principal = DummyCreateClientPayload.create()
+        val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = DummyCreateClientPayload.create()
+        val otherClient = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         gatewayAuthorization.setPrincipal(

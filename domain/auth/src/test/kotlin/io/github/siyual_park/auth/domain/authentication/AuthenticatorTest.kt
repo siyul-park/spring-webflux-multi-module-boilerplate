@@ -1,11 +1,11 @@
 package io.github.siyual_park.auth.domain.authentication
 
+import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.exception.AuthorizeException
 import io.github.siyual_park.auth.exception.UnauthorizatedException
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
-import io.github.siyual_park.test.DummyStringFactory
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -34,6 +34,7 @@ class AuthenticatorTest : CoroutineTestHelper() {
         }
     }
 
+    private val faker = Faker()
     private val filter = AllowAllAuthenticateFilter()
 
     @Test
@@ -52,8 +53,8 @@ class AuthenticatorTest : CoroutineTestHelper() {
     fun authenticate() = blocking {
         val authenticator = Authenticator()
 
-        val type = DummyStringFactory.create(10)
-        val credentials = DummyStringFactory.create(10)
+        val type = faker.random().hex()
+        val credentials = faker.random().hex()
 
         assertThrows<UnauthorizatedException> { authenticator.authenticate(AuthorizationPayload(type, credentials)) }
 

@@ -1,16 +1,15 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.IntegrationTest
+import io.github.siyual_park.application.server.dto.request.MockCreateScopeTokenRequestFactory
 import io.github.siyual_park.application.server.dto.request.UpdateScopeTokenRequest
-import io.github.siyual_park.application.server.dummy.DummyCreateScopeTokenRequest
-import io.github.siyual_park.application.server.dummy.DummyCreateUserPayload
-import io.github.siyual_park.application.server.dummy.DummyScopeNameFactory
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.ScopeControllerGateway
+import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
-import io.github.siyual_park.test.DummyNameFactory
+import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserFactory
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -36,10 +35,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `POST scope, status = 201`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val request = DummyCreateScopeTokenRequest.create()
+        val request = MockCreateScopeTokenRequestFactory.create()
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -61,10 +60,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `POST scope, status = 403`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val request = DummyCreateScopeTokenRequest.create()
+        val request = MockCreateScopeTokenRequestFactory.create()
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -78,10 +77,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `GET scope, status = 200`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = DummyNameFactory.create(10)
+        val name = MockScopeNameFactory.create()
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -110,10 +109,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `GET scope, status = 403`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = DummyNameFactory.create(10)
+        val name = MockScopeNameFactory.create()
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -133,10 +132,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `GET scope_{scope-id}, status = 200`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = DummyNameFactory.create(10)
+        val name = MockScopeNameFactory.create()
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -158,10 +157,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `GET scope_{scope-id}, status = 403`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = DummyNameFactory.create(10)
+        val name = MockScopeNameFactory.create()
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -176,10 +175,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH scope_{scope-id}, status = 200`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = DummyNameFactory.create(10)
+        val name = MockScopeNameFactory.create()
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -187,7 +186,7 @@ class ScopeControllerTest @Autowired constructor(
             push = listOf("scope:update")
         )
 
-        val updatedName = DummyScopeNameFactory.create(10)
+        val updatedName = MockScopeNameFactory.create()
         val request = UpdateScopeTokenRequest(
             name = Optional.of(updatedName)
         )
@@ -205,10 +204,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH scope_{scope-id}, status = 403`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = DummyNameFactory.create(10)
+        val name = MockScopeNameFactory.create()
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -216,7 +215,7 @@ class ScopeControllerTest @Autowired constructor(
             pop = listOf("scope:update")
         )
 
-        val updatedName = DummyScopeNameFactory.create(10)
+        val updatedName = MockScopeNameFactory.create()
         val request = UpdateScopeTokenRequest(
             name = Optional.of(updatedName)
         )
@@ -227,10 +226,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `DELETE scope_{scope-id}, status = 204`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = DummyNameFactory.create(10)
+        val name = MockScopeNameFactory.create()
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -247,10 +246,10 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `DELETE scope_{scope-id}, status = 403`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val name = DummyNameFactory.create(10)
+        val name = MockScopeNameFactory.create()
         val scopeToken = scopeTokenFactory.upsert(name)
 
         gatewayAuthorization.setPrincipal(
@@ -265,11 +264,11 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH scope_{scope-id}, status = 200, when add child`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert(MockScopeNameFactory.create(10, "pack"))
+        val child = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -286,11 +285,11 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH scope_{scope-id}, status = 403, when add child`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert(MockScopeNameFactory.create(10, "pack"))
+        val child = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -307,11 +306,11 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH scope_{scope-id}, status = 200, when delete child`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert(MockScopeNameFactory.create(10, "pack"))
+        val child = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
         parent.grant(child)
 
@@ -330,11 +329,11 @@ class ScopeControllerTest @Autowired constructor(
 
     @Test
     fun `PATCH scope_{scope-id}, status = 403, when remove child`() = blocking {
-        val principal = DummyCreateUserPayload.create()
+        val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert("${DummyNameFactory.create(10)}:pack")
-        val child = scopeTokenFactory.upsert(DummyNameFactory.create(10))
+        val parent = scopeTokenFactory.upsert(MockScopeNameFactory.create(10, "pack"))
+        val child = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
         parent.grant(child)
 

@@ -11,8 +11,8 @@ import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.converter.StringToURLConverter
 import io.github.siyual_park.data.converter.URLToStringConverter
+import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserTestHelper
-import io.github.siyual_park.user.dummy.DummyCreateUserPayload
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -42,7 +42,7 @@ class PasswordGrantAuthenticateStrategyTest : UserTestHelper(
 
     @Test
     fun authenticate() = blocking {
-        val payload = DummyCreateUserPayload.create()
+        val payload = MockCreateUserPayloadFactory.create()
         val user = userFactory.create(payload)
         val principal = user.toPrincipal()
 

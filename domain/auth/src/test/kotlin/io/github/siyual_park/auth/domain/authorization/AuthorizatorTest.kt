@@ -1,10 +1,10 @@
 package io.github.siyual_park.auth.domain.authorization
 
 import io.github.siyual_park.auth.domain.Principal
+import io.github.siyual_park.auth.domain.scope_token.MockCreateScopeTokenPayloadFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.dummy.DummyCreateScopeTokenPayload
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
@@ -45,9 +45,9 @@ class AuthorizatorTest : DataTestHelper() {
 
     @Test
     fun authorize() = blocking {
-        val scopeToken1 = DummyCreateScopeTokenPayload.create()
+        val scopeToken1 = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val scopeToken2 = DummyCreateScopeTokenPayload.create()
+        val scopeToken2 = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
 
         val principal = object : Principal {

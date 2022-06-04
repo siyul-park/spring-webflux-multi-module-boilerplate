@@ -1,8 +1,7 @@
 package io.github.siyual_park.client.domain
 
+import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.client.dummy.DummyCreateClientPayload
-import io.github.siyual_park.client.dummy.DummyScopeNameFactory
 import io.github.siyual_park.client.entity.ClientType
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -23,8 +22,8 @@ class ClientFactoryTest : ClientTestHelper() {
 
     @Test
     fun `create, when use confidential`() = blocking {
-        val payload = DummyCreateClientPayload.create(
-            DummyCreateClientPayload.Template(
+        val payload = MockCreateClientPayloadFactory.create(
+            MockCreateClientPayloadFactory.Template(
                 type = Optional.of(ClientType.CONFIDENTIAL)
             )
         )
@@ -42,8 +41,8 @@ class ClientFactoryTest : ClientTestHelper() {
 
     @Test
     fun `create, when use public`() = blocking {
-        val payload = DummyCreateClientPayload.create(
-            DummyCreateClientPayload.Template(
+        val payload = MockCreateClientPayloadFactory.create(
+            MockCreateClientPayloadFactory.Template(
                 type = Optional.of(ClientType.PUBLIC)
             )
         )
@@ -60,10 +59,10 @@ class ClientFactoryTest : ClientTestHelper() {
 
     @Test
     fun `create, when use custom scope`() = blocking {
-        val customScope = scopeTokenFactory.upsert(DummyScopeNameFactory.create(10))
+        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
 
-        val payload = DummyCreateClientPayload.create(
-            DummyCreateClientPayload.Template(
+        val payload = MockCreateClientPayloadFactory.create(
+            MockCreateClientPayloadFactory.Template(
                 scope = Optional.of(listOf(customScope))
             )
         )
