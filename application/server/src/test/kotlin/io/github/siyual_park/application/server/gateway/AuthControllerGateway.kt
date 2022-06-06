@@ -28,7 +28,7 @@ class AuthControllerGateway(
 
     suspend fun readSelf(): FluxExchangeResult<PrincipalInfo> {
         return client.get()
-            .uri("/principal")
+            .uri("/self")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult(PrincipalInfo::class.java)
@@ -36,7 +36,7 @@ class AuthControllerGateway(
 
     suspend fun deleteSelf(): FluxExchangeResult<Unit> {
         return client.delete()
-            .uri("/principal")
+            .uri("/self")
             .header(HttpHeaders.AUTHORIZATION, gatewayAuthorization.getAuthorization())
             .exchange()
             .returnResult()

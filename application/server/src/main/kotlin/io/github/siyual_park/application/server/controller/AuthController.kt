@@ -149,7 +149,7 @@ class AuthController(
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
-    @GetMapping("/principal")
+    @GetMapping("/self")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasPermission(null, 'principal[self]:read')")
     suspend fun readSelf(
@@ -160,7 +160,7 @@ class AuthController(
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
-    @DeleteMapping("/principal")
+    @DeleteMapping("/self")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasPermission(null, 'principal[self]:delete')")
     suspend fun deleteSelf(authentication: Authentication) {

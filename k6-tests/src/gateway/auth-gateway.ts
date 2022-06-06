@@ -34,18 +34,18 @@ class AuthGateway {
 
   read(authorization: string): PrincipalInfo {
     const response = http.get(
-      `${url}/principal`,
+      `${url}/self`,
       {
         headers: {
           'Authorization': authorization,
         },
-        tags: { type: 'GET_principal' },
+        tags: { type: 'GET_self' },
       },
     );
 
     log(response);
     check(response, {
-      ['GET /principal is status 200']: (r) => r.status === 200,
+      ['GET /self is status 200']: (r) => r.status === 200,
     });
 
     return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as PrincipalInfo;
