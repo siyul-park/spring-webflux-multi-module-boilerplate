@@ -9,7 +9,7 @@ import log from './log';
 const url = __ENV.URL;
 
 class AuthGateway {
-  createToken(request: CreateTokenRequest): TokenInfo {
+  createToken(request: CreateTokenRequest): TokenInfo | null {
     const response = http.post(
       `${url}/token`,
       camelToSnake(request) as StructuredRequestBody,
@@ -26,6 +26,9 @@ class AuthGateway {
       [`POST /token ${request.grantType} is status 201`]: (r) => r.status === 201,
     });
 
+    if (response.status !== 201) {
+      return null;
+    }
     return snakeToCamel(JSON.parse(response.body as string) as Record<string, unknown>) as TokenInfo;
   }
 
