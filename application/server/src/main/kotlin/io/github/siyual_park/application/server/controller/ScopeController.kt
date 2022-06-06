@@ -138,7 +138,7 @@ class ScopeController(
 
         request.children?.let {
             if (it.isPresent) {
-                syncScope(scopeId, it.get())
+                syncScope(scopeToken, it.get().let { scopeTokenStorage.load(it) }.toSet())
             } else {
                 val existsScope = scopeToken.children().toSet()
                 existsScope.forEach { scopeToken.revoke(it) }
@@ -161,36 +161,23 @@ class ScopeController(
     }
 
     suspend fun syncScope(
-        clientId: ULID,
-        scope: Collection<ULID>
+        parent: ScopeToken,
+        scope: Collection<ScopeToken>
     ) = operator.executeAndAwait {
-        val parent = scopeTokenStorage.loadOrFail(clientId)
-
         val existsScope = parent.children().toSet()
-        val requestScope = scopeTokenStorage.load(scope).toSet()
 
-        val toGrantScope = requestScope.filter { !existsScope.contains(it) }
-        val toRevokeScope = existsScope.filter { !requestScope.contains(it) }
+        val toGrantScope = scope.filter { !existsScope.contains(it) }
+        val toRevokeScope = existsScope.filter { !scope.contains(it) }
 
-        toGrantScope.forEach { grant(clientId, it.id) }
-        toRevokeScope.forEach { revoke(clientId, it.id) }
-    }
-
-    private suspend fun grant(
-        clientId: ULID,
-        scopeId: ULID
-    ) = authorizator.withAuthorize(listOf("scope.children:create"), null) {
-        val parent = scopeTokenStorage.loadOrFail(clientId)
-        val child = scopeTokenStorage.loadOrFail(scopeId)
-        parent.grant(child)
-    }
-
-    private suspend fun revoke(
-        clientId: ULID,
-        scopeId: ULID
-    ) = authorizator.withAuthorize(listOf("scope.children:delete"), null) {
-        val parent = scopeTokenStorage.loadOrFail(clientId)
-        val child = scopeTokenStorage.loadOrFail(scopeId)
-        parent.revoke(child)
+        if (toGrantScope.isNotEmpty()) {
+            authorizator.withAuthorize(listOf("scope.children:create"), null) {
+                toGrantScope.forEach { parent.grant(it) }
+            }
+        }
+        if (toRevokeScope.isNotEmpty()) {
+            authorizator.withAuthorize(listOf("scope.children:delete"), null) {
+                toRevokeScope.forEach { parent.revoke(it) }
+            }
+        }
     }
 }
