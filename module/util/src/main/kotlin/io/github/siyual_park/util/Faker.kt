@@ -1,9 +1,12 @@
 package io.github.siyual_park.util
 
+import com.github.javafaker.Faker
 import com.github.javafaker.Internet
 import com.github.javafaker.Lorem
 import com.github.javafaker.Name
 import java.net.URL
+
+private val faker = Faker()
 
 fun Name.username(size: Int? = null): String {
     if (size == null) {
@@ -12,7 +15,7 @@ fun Name.username(size: Int? = null): String {
 
     var builder = StringBuilder()
     while (builder.length < size) {
-        builder = builder.append(username())
+        builder = builder.append(faker.random().hex())
     }
 
     return builder.toString().slice(0 until size)
@@ -25,7 +28,7 @@ fun Lorem.word(size: Int? = null): String {
 
     var builder = StringBuilder()
     while (builder.length < size) {
-        builder = builder.append(word())
+        builder = builder.append(faker.random().hex())
     }
 
     return builder.toString().slice(0 until size)
