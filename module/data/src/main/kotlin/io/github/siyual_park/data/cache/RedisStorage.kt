@@ -54,11 +54,30 @@ class RedisStorage<ID : Any, T : Any>(
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
-        TODO("Not yet implemented")
+        val indexMap = indexes[index] ?: return null
+        indexMap as RMapCacheReactive<Any, ID>
+        val id = indexMap.get(key).awaitFirstOrNull() ?: return null
+
+        return getIfPresent(id)
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
-        TODO("Not yet implemented")
+        val indexMap = indexes[index] ?: return null
+        indexMap as RMapCacheReactive<Any, ID>
+        val id = indexMap.get(key).awaitFirstOrNull()
+
+        return if (id == null) {
+            val entity = loader()
+            if (entity == null) {
+                null
+            } else {
+                this.id.get(entity)?.let {
+                    this.getIfPresent(it) { entity }
+                }
+            }
+        } else {
+            getIfPresent(id, loader)
+        }
     }
 
     override suspend fun getIfPresent(id: ID): T? {
