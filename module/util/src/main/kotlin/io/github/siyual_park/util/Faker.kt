@@ -9,11 +9,13 @@ import java.net.URL
 private val faker = Faker()
 
 fun Name.username(size: Int? = null): String {
+    var builder = StringBuilder()
+    builder = builder.append(username())
+
     if (size == null) {
-        return username()
+        return builder.toString()
     }
 
-    var builder = StringBuilder()
     while (builder.length < size) {
         builder = builder.append(faker.random().hex())
     }
@@ -22,11 +24,13 @@ fun Name.username(size: Int? = null): String {
 }
 
 fun Lorem.word(size: Int? = null): String {
+    var builder = StringBuilder()
+    builder = builder.append(word())
+
     if (size == null) {
-        return word()
+        return builder.toString()
     }
 
-    var builder = StringBuilder()
     while (builder.length < size) {
         builder = builder.append(faker.random().hex())
     }
