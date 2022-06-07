@@ -12,7 +12,6 @@ import org.redisson.codec.TypedJsonJacksonCodec
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
 
 @Suppress("UNCHECKED_CAST")
 class RedisStorage<ID : Any, T : Any>(
@@ -21,15 +20,15 @@ class RedisStorage<ID : Any, T : Any>(
     private val ttl: Duration,
     private val size: Int,
     private val objectMapper: ObjectMapper,
-    private val id: KProperty1<T, ID?>,
-    private val clazz: KClass<T>,
+    private val id: WeekProperty<T, ID>,
+    private val keyClass: KClass<ID>,
+    valueClass: KClass<T>,
 ) : Storage<ID, T> {
-    private val idClazz = (id.returnType.classifier!! as KClass<*>)
 
     private val indexes = Maps.newConcurrentMap<String, RMapCacheReactive<*, ID>>()
     private val properties = Maps.newConcurrentMap<String, WeekProperty<T, *>>()
-    private val codec = TypedJsonJacksonCodec(idClazz.java, clazz.java, objectMapper)
-    private val store = redisClient.getMapCache<ID, T>("cache:data:$name", codec)
+    private val codec = TypedJsonJacksonCodec(keyClass.java, valueClass.java, objectMapper)
+    private val store = redisClient.getMapCache<ID, T>("$name:data", codec)
 
     init {
         runBlocking {
@@ -38,8 +37,8 @@ class RedisStorage<ID : Any, T : Any>(
     }
 
     override suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>) {
-        val codec = TypedJsonJacksonCodec(idClazz.java, objectMapper)
-        indexes[name] = redisClient.getMapCache<KEY, ID>("cache:index:${this.name}:$name", codec)
+        val codec = TypedJsonJacksonCodec(keyClass.java, objectMapper)
+        indexes[name] = redisClient.getMapCache<KEY, ID>("${this.name}:index:$name", codec)
         properties[name] = property
     }
 
@@ -74,7 +73,7 @@ class RedisStorage<ID : Any, T : Any>(
             if (entity == null) {
                 null
             } else {
-                this.id.get(entity)?.let {
+                this.id.get(entity).let {
                     this.getIfPresent(it) { entity }
                 }
             }
