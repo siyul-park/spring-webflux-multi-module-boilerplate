@@ -20,7 +20,7 @@ class RedisStorage<ID : Any, T : Any>(
     private val ttl: Duration,
     private val size: Int,
     private val objectMapper: ObjectMapper,
-    private val id: WeekProperty<T, ID>,
+    private val id: WeekProperty<T, ID?>,
     private val keyClass: KClass<ID>,
     valueClass: KClass<T>,
 ) : Storage<ID, T> {
@@ -73,7 +73,7 @@ class RedisStorage<ID : Any, T : Any>(
             if (entity == null) {
                 null
             } else {
-                this.id.get(entity).let {
+                this.id.get(entity)?.let {
                     this.getIfPresent(it) { entity }
                 }
             }
