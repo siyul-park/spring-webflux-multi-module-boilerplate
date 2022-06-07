@@ -13,6 +13,8 @@ val springdoc_version: String by project
 val sentry_logback_version: String by project
 val embed_mongo_version: String by project
 val javafaker_version: String by project
+val redisson_version: String by project
+val embedded_redis_version: String by project
 
 buildscript {
     val kotlin_version: String by project
@@ -126,6 +128,15 @@ allprojects {
         implementation("org.springdoc:springdoc-openapi-kotlin:$springdoc_version")
 
         implementation("com.github.javafaker:javafaker:$javafaker_version")
+
+        implementation("org.redisson:redisson-spring-boot-starter:$redisson_version") {
+            exclude("org.slf4j")
+            exclude("ch.qos.logback")
+        }
+        implementation("it.ozimov:embedded-redis:$embedded_redis_version") {
+            exclude("org.slf4j")
+            exclude("ch.qos.logback")
+        }
     }
 
     tasks.withType<Copy> {
