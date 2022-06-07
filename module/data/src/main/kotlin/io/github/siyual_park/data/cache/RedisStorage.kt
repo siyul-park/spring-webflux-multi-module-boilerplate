@@ -1,5 +1,6 @@
 package io.github.siyual_park.data.cache
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import io.github.siyual_park.data.WeekProperty
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -7,36 +8,38 @@ import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.redisson.api.RMapCacheReactive
 import org.redisson.api.RedissonReactiveClient
+import org.redisson.codec.TypedJsonJacksonCodec
 import java.time.Duration
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 
 @Suppress("UNCHECKED_CAST")
 class RedisStorage<ID : Any, T : Any>(
     private val redisClient: RedissonReactiveClient,
-    private val configuration: Configuration,
-    private val id: WeekProperty<T, ID?>
+    private val name: String,
+    private val ttl: Duration,
+    private val size: Int,
+    private val objectMapper: ObjectMapper,
+    private val id: KProperty1<T, ID?>,
+    private val clazz: KClass<T>,
 ) : Storage<ID, T> {
-    data class Configuration(
-        val name: String,
-        val ttl: Duration,
-        val size: Int
-    )
-
-    private val name = configuration.name
-    private val ttl = configuration.ttl
+    private val idClazz = (id.returnType.classifier!! as KClass<*>)
 
     private val indexes = Maps.newConcurrentMap<String, RMapCacheReactive<*, ID>>()
     private val properties = Maps.newConcurrentMap<String, WeekProperty<T, *>>()
-    private val store = redisClient.getMapCache<ID, T>("cache:data:$name")
+    private val codec = TypedJsonJacksonCodec(idClazz.java, clazz.java, objectMapper)
+    private val store = redisClient.getMapCache<ID, T>("cache:data:$name", codec)
 
     init {
         runBlocking {
-            store.setMaxSize(configuration.size).awaitFirstOrNull()
+            store.setMaxSize(size).awaitFirstOrNull()
         }
     }
 
     override suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>) {
-        indexes[name] = redisClient.getMapCache<KEY, ID>("cache:index:$name")
+        val codec = TypedJsonJacksonCodec(idClazz.java, objectMapper)
+        indexes[name] = redisClient.getMapCache<KEY, ID>("cache:index:${this.name}:$name", codec)
         properties[name] = property
     }
 

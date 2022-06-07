@@ -20,7 +20,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
 import java.time.Duration
 
-class ClientBasedCorsConfigurationSourceTest : ClientTestHelper() {
+class ClientBasedCorsCacheConfigurationSourceTest : ClientTestHelper() {
     private val tokenRepository = TokenRepository(mongoTemplate, eventEmitter)
 
     private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage, eventEmitter)
