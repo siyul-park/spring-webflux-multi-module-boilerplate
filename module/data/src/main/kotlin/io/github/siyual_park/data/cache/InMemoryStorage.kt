@@ -47,7 +47,7 @@ class InMemoryStorage<ID : Any, T : Any>(
     }
 
     override suspend fun containsIndex(name: String): Boolean {
-        return indexes.keys.contains(name)
+        return properties.contains(name)
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
