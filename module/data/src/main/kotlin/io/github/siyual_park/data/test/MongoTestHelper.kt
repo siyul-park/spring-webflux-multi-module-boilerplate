@@ -37,15 +37,16 @@ class MongoTestHelper : ResourceTestHelper {
 
     private val starter = MongodStarter.getInstance(runtimeConfig)
 
-    private var mongodExecutable: MongodExecutable
-    private var mongoClient: MongoClient
-    var mongoTemplate: ReactiveMongoTemplate
+    private lateinit var mongodExecutable: MongodExecutable
+    private lateinit var mongoClient: MongoClient
+    lateinit var mongoTemplate: ReactiveMongoTemplate
 
     private val database = UUID.randomUUID().toString()
 
-    init {
+    override fun setUp() {
         val mongodExecutableAndClient = createEmbeddedMongoDBClients()
         mongodExecutable = mongodExecutableAndClient.first
+        mongodExecutable.start()
 
         mongoClient = mongodExecutableAndClient.second
         mongoTemplate = createReactiveMongoTemplate(
@@ -56,10 +57,6 @@ class MongoTestHelper : ResourceTestHelper {
                 ULIDToBinaryConverter(),
             )
         )
-    }
-
-    override fun setUp() {
-        mongodExecutable.start()
     }
 
     override fun tearDown() {
