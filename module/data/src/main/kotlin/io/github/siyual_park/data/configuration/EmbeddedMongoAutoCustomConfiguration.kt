@@ -13,13 +13,13 @@ import de.flapdoodle.embed.process.io.Processors
 import de.flapdoodle.embed.process.io.Slf4jLevel
 import de.flapdoodle.embed.process.io.progress.Slf4jProgressListener
 import de.flapdoodle.embed.process.store.ExtractedArtifactStore
-import io.github.siyual_park.data.property.EmbeddedMongoCustomProperties
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfigureBefore
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.data.mongo.ReactiveStreamsMongoClientDependsOnBeanFactoryPostProcessor
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.MongoProperties
@@ -40,12 +40,13 @@ import java.util.stream.Stream
 @EnableConfigurationProperties(MongoProperties::class, EmbeddedMongoProperties::class)
 @AutoConfigureBefore(MongoAutoConfiguration::class, MongoReactiveAutoConfiguration::class)
 @ConditionalOnClass(MongoClientSettings::class, MongodStarter::class)
+@ConditionalOnProperty(name = ["spring.mongodb.embedded.enable"], havingValue = "true")
 @Import(
     EmbeddedMongoAutoCustomConfiguration.ReactiveStreamsDependsOnBeanFactoryPostProcessor::class
 )
+
 class EmbeddedMongoAutoCustomConfiguration(
     mongoProperties: MongoProperties,
-    private val embeddedMongoCustomProperties: EmbeddedMongoCustomProperties
 ) {
     private val embeddedMongoAutoConfiguration = EmbeddedMongoAutoConfiguration(mongoProperties)
 
@@ -56,37 +57,24 @@ class EmbeddedMongoAutoCustomConfiguration(
         runtimeConfig: RuntimeConfig?,
         context: ApplicationContext?
     ): MongodExecutable? {
-        if (!embeddedMongoCustomProperties.enable || mongodConfig == null) {
-            return null
-        }
-
         return embeddedMongoAutoConfiguration.embeddedMongoServer(mongodConfig, runtimeConfig, context)
     }
 
     @Bean
     @ConditionalOnMissingBean
     fun embeddedMongoConfiguration(embeddedProperties: EmbeddedMongoProperties): MongodConfig? {
-        if (!embeddedMongoCustomProperties.enable) {
-            return null
-        }
-
         return embeddedMongoAutoConfiguration.embeddedMongoConfiguration(embeddedProperties)
     }
 
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(Logger::class)
     @ConditionalOnMissingBean(RuntimeConfig::class)
-    internal class RuntimeConfigConfiguration(
-        private val embeddedMongoCustomProperties: EmbeddedMongoCustomProperties
-    ) {
+    @ConditionalOnProperty(name = ["spring.mongodb.embedded.enable"], havingValue = "true")
+    internal class RuntimeConfigConfiguration {
         @Bean
         fun embeddedMongoRuntimeConfig(
             downloadConfigBuilderCustomizers: ObjectProvider<DownloadConfigBuilderCustomizer>
         ): RuntimeConfig? {
-            if (!embeddedMongoCustomProperties.enable) {
-                return null
-            }
-
             val logger = LoggerFactory.getLogger(javaClass.getPackage().name + ".EmbeddedMongo")
             val processOutput = ProcessOutput.builder()
                 .output(Processors.logTo(logger, Slf4jLevel.INFO))

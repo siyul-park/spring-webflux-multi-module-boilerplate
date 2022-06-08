@@ -116,6 +116,10 @@ class EntityManager<T : Any, ID : Any?>(
         return clazz.memberProperties.find { it.javaField == current.field }
     }
 
+    fun getIdProperty(): KProperty1<T, ID> {
+        return idProperty
+    }
+
     fun getOperations(): R2dbcEntityOperations {
         return entityOperations
     }

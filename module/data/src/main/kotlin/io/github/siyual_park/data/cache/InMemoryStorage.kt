@@ -47,7 +47,7 @@ class InMemoryStorage<ID : Any, T : Any>(
     }
 
     override suspend fun containsIndex(name: String): Boolean {
-        return indexes.keys.contains(name)
+        return properties.contains(name)
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
@@ -58,7 +58,7 @@ class InMemoryStorage<ID : Any, T : Any>(
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
-        val indexMap = getIndex(index)
+        val indexMap = indexes[index] ?: return null
         val id = indexMap[key]
 
         return if (id == null) {
@@ -115,9 +115,5 @@ class InMemoryStorage<ID : Any, T : Any>(
     override suspend fun clear() {
         cache.invalidateAll()
         indexes.forEach { (_, index) -> index.run { clear() } }
-    }
-
-    private fun getIndex(index: String): MutableMap<*, ID> {
-        return indexes[index] ?: throw RuntimeException("Can't find index.")
     }
 }

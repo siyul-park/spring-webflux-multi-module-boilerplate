@@ -58,8 +58,8 @@ class TokenFactoryTest : DataTestHelper() {
     private val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper, eventEmitter)
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
     private val claimEmbedder = ClaimEmbedder()
-    private val tokenRepository = TokenRepository(mongoTemplate, eventEmitter)
-    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage, eventEmitter)
+    private val tokenRepository = TokenRepository(mongoTemplate, eventPublisher = eventEmitter)
+    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage, eventPublisher = eventEmitter)
 
     private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenRepository, tokenMapper)
 

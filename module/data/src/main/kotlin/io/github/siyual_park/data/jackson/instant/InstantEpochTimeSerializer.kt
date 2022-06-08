@@ -1,4 +1,4 @@
-package io.github.siyual_park.json.converter.instant
+package io.github.siyual_park.data.jackson.instant
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer

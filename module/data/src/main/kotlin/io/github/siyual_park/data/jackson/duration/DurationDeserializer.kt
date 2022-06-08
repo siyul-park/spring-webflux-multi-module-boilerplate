@@ -1,4 +1,4 @@
-package io.github.siyual_park.json.converter.duration
+package io.github.siyual_park.data.jackson.duration
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext

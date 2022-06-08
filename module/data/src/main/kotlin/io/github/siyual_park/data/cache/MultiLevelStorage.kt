@@ -35,9 +35,13 @@ class MultiLevelStorage<ID : Any, T : Any>(
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
-        for (storage in Reversed(storages)) {
+        for (i in storages.indices.reversed()) {
+            val storage = storages[i]
             val value = storage.getIfPresent(index, key)
             if (value != null) {
+                for (j in i + 1 until storages.size) {
+                    storages[j].add(value)
+                }
                 return value
             }
         }
@@ -55,9 +59,13 @@ class MultiLevelStorage<ID : Any, T : Any>(
     }
 
     override suspend fun getIfPresent(id: ID): T? {
-        for (storage in Reversed(storages)) {
+        for (i in storages.indices.reversed()) {
+            val storage = storages[i]
             val value = storage.getIfPresent(id)
             if (value != null) {
+                for (j in i + 1 until storages.size) {
+                    storages[j].add(value)
+                }
                 return value
             }
         }
