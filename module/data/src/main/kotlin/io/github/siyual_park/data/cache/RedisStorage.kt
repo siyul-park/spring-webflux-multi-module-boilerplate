@@ -28,7 +28,7 @@ class RedisStorage<ID : Any, T : Any>(
     private val indexes = Maps.newConcurrentMap<String, RMapCacheReactive<*, ID>>()
     private val properties = Maps.newConcurrentMap<String, WeekProperty<T, *>>()
     private val codec = TypedJsonJacksonCodec(keyClass.java, valueClass.java, objectMapper)
-    private val store = redisClient.getMapCache<ID, T>("$name:data", codec)
+    private val store = redisClient.getMapCache<ID, T>(name, codec)
 
     init {
         runBlocking {
@@ -38,7 +38,7 @@ class RedisStorage<ID : Any, T : Any>(
 
     override suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>) {
         val codec = TypedJsonJacksonCodec(keyClass.java, objectMapper)
-        indexes[name] = redisClient.getMapCache<KEY, ID>("${this.name}:index:$name", codec)
+        indexes[name] = redisClient.getMapCache<KEY, ID>("${this.name}:$name", codec)
         properties[name] = property
     }
 
@@ -113,9 +113,9 @@ class RedisStorage<ID : Any, T : Any>(
             val property = properties[name] ?: return@forEach
             val key = property.get(entity) ?: return@forEach
             index as RMapCacheReactive<Any, ID>
-            index.put(key, id, ttl.toSeconds(), TimeUnit.SECONDS).awaitFirstOrNull()
+            index.fastPut(key, id, ttl.toSeconds(), TimeUnit.SECONDS).awaitFirstOrNull()
         }
-        store.put(id, entity, ttl.toSeconds(), TimeUnit.SECONDS).awaitFirstOrNull()
+        store.fastPut(id, entity, ttl.toSeconds(), TimeUnit.SECONDS).awaitFirstOrNull()
     }
 
     override suspend fun entries(): Set<Pair<ID, T>> {
