@@ -32,7 +32,7 @@ class RedisStorage<ID : Any, T : Any>(
 
     init {
         runBlocking {
-            store.setMaxSize(size).awaitFirstOrNull()
+            store.trySetMaxSize(size).awaitFirstOrNull()
         }
     }
 
