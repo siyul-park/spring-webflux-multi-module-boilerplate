@@ -1,9 +1,8 @@
-package io.github.siyual_park.data.repository.cache
+package io.github.siyual_park.data.repository.r2dbc
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.repository.TransactionalQueryRepositoryTestHelper
-import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import java.time.Duration
