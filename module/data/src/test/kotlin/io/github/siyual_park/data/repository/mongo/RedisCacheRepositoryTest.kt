@@ -20,7 +20,7 @@ class RedisCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
     repositories = {
         listOf(
             MongoRepositoryBuilder<Person, ULID>(mongoTemplate, Person::class)
-                .setObjectMapper(
+                .enableJsonMapping(
                     jacksonObjectMapper().apply {
                         registerModule(ULIDModule())
                         registerModule(InstantEpochTimeModule())

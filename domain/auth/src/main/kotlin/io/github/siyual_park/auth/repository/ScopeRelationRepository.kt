@@ -1,5 +1,6 @@
 package io.github.siyual_park.auth.repository
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.entity.ScopeRelationData
 import io.github.siyual_park.data.criteria.where
@@ -17,14 +18,16 @@ import java.time.Duration
 class ScopeRelationRepository(
     entityOperations: R2dbcEntityOperations,
     redisClient: RedissonReactiveClient? = null,
+    objectMapper: ObjectMapper? = null,
     eventPublisher: EventPublisher? = null
 ) : QueryRepository<ScopeRelationData, Long> by R2DBCRepositoryBuilder<ScopeRelationData, Long>(entityOperations, ScopeRelationData::class)
     .enableEvent(eventPublisher)
+    .enableJsonMapping(objectMapper)
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
-            .expireAfterAccess(Duration.ofMinutes(5))
-            .expireAfterWrite(Duration.ofMinutes(10))
+            .expireAfterAccess(Duration.ofMinutes(1))
+            .expireAfterWrite(Duration.ofMinutes(2))
             .maximumSize(1_000)
     })
     .enableCache(

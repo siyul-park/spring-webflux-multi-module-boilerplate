@@ -30,7 +30,7 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
 
     private var objectMapper: ObjectMapper? = null
 
-    fun setObjectMapper(objectMapper: ObjectMapper?): MongoRepositoryBuilder<T, ID> {
+    fun enableJsonMapping(objectMapper: ObjectMapper?): MongoRepositoryBuilder<T, ID> {
         this.objectMapper = objectMapper
         return this
     }

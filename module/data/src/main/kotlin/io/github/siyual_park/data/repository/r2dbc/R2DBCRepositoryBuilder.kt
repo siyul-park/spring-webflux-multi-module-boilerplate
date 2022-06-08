@@ -39,7 +39,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
 
     private var objectMapper: ObjectMapper? = null
 
-    fun setObjectMapper(objectMapper: ObjectMapper?): R2DBCRepositoryBuilder<T, ID> {
+    fun enableJsonMapping(objectMapper: ObjectMapper?): R2DBCRepositoryBuilder<T, ID> {
         this.objectMapper = objectMapper
         return this
     }

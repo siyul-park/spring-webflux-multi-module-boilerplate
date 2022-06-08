@@ -18,7 +18,7 @@ class RedisCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
     repositories = {
         listOf(
             R2DBCRepositoryBuilder<Person, ULID>(it.entityOperations, Person::class)
-                .setObjectMapper(
+                .enableJsonMapping(
                     jacksonObjectMapper().apply {
                         registerModule(ULIDModule())
                         registerModule(InstantEpochTimeModule())

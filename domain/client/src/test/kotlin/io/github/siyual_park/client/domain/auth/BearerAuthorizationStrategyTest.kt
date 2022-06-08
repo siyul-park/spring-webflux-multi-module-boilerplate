@@ -18,7 +18,7 @@ import java.time.Duration
 
 class BearerAuthorizationStrategyTest : ClientTestHelper() {
 
-    private val tokenRepository = TokenRepository(mongoTemplate, eventEmitter)
+    private val tokenRepository = TokenRepository(mongoTemplate, eventPublisher = eventEmitter)
 
     private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage, eventEmitter)
     private val tokenStorage = TokenStorage(tokenRepository, tokenMapper)
