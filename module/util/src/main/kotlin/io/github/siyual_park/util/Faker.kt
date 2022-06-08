@@ -5,17 +5,16 @@ import com.github.javafaker.Internet
 import com.github.javafaker.Lorem
 import com.github.javafaker.Name
 import java.net.URL
+import java.security.SecureRandom
 
-private val faker = Faker()
+private val faker = Faker(SecureRandom())
 
 fun Name.username(size: Int? = null): String {
-    var builder = StringBuilder()
-    builder = builder.append(username())
-
     if (size == null) {
-        return builder.toString()
+        return username()
     }
 
+    var builder = StringBuilder()
     while (builder.length < size) {
         builder = builder.append(faker.random().hex())
     }
@@ -24,13 +23,11 @@ fun Name.username(size: Int? = null): String {
 }
 
 fun Lorem.word(size: Int? = null): String {
-    var builder = StringBuilder()
-    builder = builder.append(word())
-
     if (size == null) {
-        return builder.toString()
+        return word()
     }
 
+    var builder = StringBuilder()
     while (builder.length < size) {
         builder = builder.append(faker.random().hex())
     }
