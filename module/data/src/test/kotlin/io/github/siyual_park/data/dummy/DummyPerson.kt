@@ -17,7 +17,7 @@ object DummyPerson {
 
     fun create(template: PersonTemplate? = null): Person {
         return Person(
-            name = resolveNotNull(template?.name) { faker.name().username(10) },
+            name = resolveNotNull(template?.name) { faker.name().username(15) },
             age = resolveNotNull(template?.age) { Random.nextInt() },
         )
     }

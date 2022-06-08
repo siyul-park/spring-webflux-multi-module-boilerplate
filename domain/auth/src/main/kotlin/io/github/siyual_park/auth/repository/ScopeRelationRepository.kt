@@ -8,6 +8,7 @@ import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
+import org.redisson.api.RedissonReactiveClient
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 import java.time.Duration
@@ -15,16 +16,22 @@ import java.time.Duration
 @Repository
 class ScopeRelationRepository(
     entityOperations: R2dbcEntityOperations,
+    redisClient: RedissonReactiveClient? = null,
     eventPublisher: EventPublisher? = null
 ) : QueryRepository<ScopeRelationData, Long> by R2DBCRepositoryBuilder<ScopeRelationData, Long>(entityOperations, ScopeRelationData::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
-            .expireAfterAccess(Duration.ofMinutes(10))
-            .expireAfterWrite(Duration.ofMinutes(30))
+            .expireAfterAccess(Duration.ofMinutes(5))
+            .expireAfterWrite(Duration.ofMinutes(10))
             .maximumSize(1_000)
     })
+    .enableCache(
+        redisClient = redisClient,
+        ttl = Duration.ofHours(1),
+        size = 5_000
+    )
     .enableQueryCache({
         CacheBuilder.newBuilder()
             .softValues()

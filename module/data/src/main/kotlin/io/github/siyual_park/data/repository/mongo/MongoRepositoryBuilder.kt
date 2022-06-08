@@ -1,5 +1,6 @@
 package io.github.siyual_park.data.repository.mongo
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.cache.InMemoryStorage
@@ -10,7 +11,9 @@ import io.github.siyual_park.data.expansion.idProperty
 import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.cache.CachedQueryRepository
 import io.github.siyual_park.event.EventPublisher
+import org.redisson.api.RedissonReactiveClient
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import java.time.Duration
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
@@ -21,6 +24,17 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
     private var eventPublisher: EventPublisher? = null
     private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
 
+    private var redisClient: RedissonReactiveClient? = null
+    private var ttl: Duration? = null
+    private var size: Int? = null
+
+    private var objectMapper: ObjectMapper? = null
+
+    fun setObjectMapper(objectMapper: ObjectMapper?): MongoRepositoryBuilder<T, ID> {
+        this.objectMapper = objectMapper
+        return this
+    }
+
     fun enableEvent(eventPublisher: EventPublisher?): MongoRepositoryBuilder<T, ID> {
         this.eventPublisher = eventPublisher
         return this
@@ -28,6 +42,13 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
 
     fun enableCache(cacheBuilder: (() -> CacheBuilder<Any, Any>)?): MongoRepositoryBuilder<T, ID> {
         this.cacheBuilder = cacheBuilder
+        return this
+    }
+
+    fun enableCache(redisClient: RedissonReactiveClient?, ttl: Duration?, size: Int?): MongoRepositoryBuilder<T, ID> {
+        this.redisClient = redisClient
+        this.ttl = ttl
+        this.size = size
         return this
     }
 

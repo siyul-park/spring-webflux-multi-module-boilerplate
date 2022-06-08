@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.redisson.api.RedissonReactiveClient
 import java.time.Duration
 
-class RedisCachedQueryRepositoryTest : TransactionalQueryRepositoryTestHelper(
+class RedisCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
     repositories = {
         listOf(
             R2DBCRepositoryBuilder<Person, ULID>(it.entityOperations, Person::class)

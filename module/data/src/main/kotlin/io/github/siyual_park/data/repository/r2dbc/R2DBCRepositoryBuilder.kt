@@ -54,7 +54,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    fun enableCache(redisClient: RedissonReactiveClient, ttl: Duration, size: Int): R2DBCRepositoryBuilder<T, ID> {
+    fun enableCache(redisClient: RedissonReactiveClient?, ttl: Duration?, size: Int?): R2DBCRepositoryBuilder<T, ID> {
         this.redisClient = redisClient
         this.ttl = ttl
         this.size = size
