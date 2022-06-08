@@ -25,8 +25,6 @@ class ScopeTokenTest : DataTestHelper() {
             .register(CreateScopeRelation(entityOperations))
     }
 
-    private val faker = Faker()
-
     private val eventEmitter = EventEmitter()
 
     private val scopeRelationRepository = ScopeRelationRepository(entityOperations)
@@ -57,7 +55,7 @@ class ScopeTokenTest : DataTestHelper() {
     fun has() = blocking {
         val packPayload = MockCreateScopeTokenPayloadFactory.create(
             MockCreateScopeTokenPayloadFactory.Template(
-                name = Optional.of(faker.lorem().word(10) + ":pack")
+                name = Optional.of(MockScopeNameFactory.create(10, "pack"))
             )
         )
         val payload = MockCreateScopeTokenPayloadFactory.create()
@@ -78,7 +76,7 @@ class ScopeTokenTest : DataTestHelper() {
     fun grant() = blocking {
         val packPayload = MockCreateScopeTokenPayloadFactory.create(
             MockCreateScopeTokenPayloadFactory.Template(
-                name = Optional.of(faker.lorem().word(10) + ":pack")
+                name = Optional.of(MockScopeNameFactory.create(10, "pack"))
             )
         )
         val payload = MockCreateScopeTokenPayloadFactory.create()
@@ -97,7 +95,7 @@ class ScopeTokenTest : DataTestHelper() {
     fun revoke() = blocking {
         val packPayload = MockCreateScopeTokenPayloadFactory.create(
             MockCreateScopeTokenPayloadFactory.Template(
-                name = Optional.of(faker.lorem().word(10) + ":pack")
+                name = Optional.of(MockScopeNameFactory.create(10, "pack"))
             )
         )
         val payload = MockCreateScopeTokenPayloadFactory.create()
@@ -119,7 +117,7 @@ class ScopeTokenTest : DataTestHelper() {
     fun children() = blocking {
         val packPayload = MockCreateScopeTokenPayloadFactory.create(
             MockCreateScopeTokenPayloadFactory.Template(
-                name = Optional.of(faker.lorem().word(10) + ":pack")
+                name = Optional.of(MockScopeNameFactory.create(10, "pack"))
             )
         )
         val payload = MockCreateScopeTokenPayloadFactory.create()
@@ -140,12 +138,12 @@ class ScopeTokenTest : DataTestHelper() {
     fun resolve() = blocking {
         val packPayload1 = MockCreateScopeTokenPayloadFactory.create(
             MockCreateScopeTokenPayloadFactory.Template(
-                name = Optional.of(faker.lorem().word(10) + ":pack")
+                name = Optional.of(MockScopeNameFactory.create(10, "pack"))
             )
         )
         val packPayload2 = MockCreateScopeTokenPayloadFactory.create(
             MockCreateScopeTokenPayloadFactory.Template(
-                name = Optional.of(faker.lorem().word(10) + ":pack")
+                name = Optional.of(MockScopeNameFactory.create(10, "pack"))
             )
         )
         val payload1 = MockCreateScopeTokenPayloadFactory.create()
