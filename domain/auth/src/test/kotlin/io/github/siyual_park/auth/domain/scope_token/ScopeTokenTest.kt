@@ -1,13 +1,11 @@
 package io.github.siyual_park.auth.domain.scope_token
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.event.EventEmitter
-import io.github.siyual_park.util.word
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
