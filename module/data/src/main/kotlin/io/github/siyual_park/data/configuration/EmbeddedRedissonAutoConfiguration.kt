@@ -1,5 +1,6 @@
 package io.github.siyual_park.data.configuration
 
+import de.flapdoodle.embed.process.runtime.Network
 import org.redisson.Redisson
 import org.redisson.api.RedissonClient
 import org.redisson.spring.starter.RedissonAutoConfiguration
@@ -24,6 +25,10 @@ import redis.embedded.RedisServer
 class EmbeddedRedissonAutoConfiguration(
     private val redisProperties: RedisProperties,
 ) : RedissonAutoConfiguration() {
+    init {
+        redisProperties.port = Network.getFreeServerPort()
+    }
+
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnMissingBean(RedisServer::class)
     fun redisServer(): RedisServer {
