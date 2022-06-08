@@ -18,7 +18,7 @@ export const options: Options = {
   ],
 };
 
-matrixType(options, ['GET_principal']);
+matrixType(options, ['GET_self']);
 
 const authGateway = new AuthGateway();
 

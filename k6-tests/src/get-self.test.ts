@@ -9,7 +9,7 @@ export const options: Options = {
   duration: '10s',
 };
 
-matrixType(options, ['POST_token', 'GET_principal']);
+matrixType(options, ['GET_self']);
 
 const authGateway = new AuthGateway();
 
