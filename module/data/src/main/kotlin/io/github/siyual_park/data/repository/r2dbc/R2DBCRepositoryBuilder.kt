@@ -2,6 +2,7 @@ package io.github.siyual_park.data.repository.r2dbc
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.google.common.base.CaseFormat
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.cache.InMemoryQueryStorage
@@ -84,7 +85,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
                         MultiLevelNestedStorage(
                             RedisStorage(
                                 redisClient,
-                                name = "test",
+                                name = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, clazz.simpleName ?: ""),
                                 ttl = ttl ?: Duration.ofMinutes(1),
                                 size = size ?: 1000,
                                 objectMapper = objectMapper ?: jacksonObjectMapper(),
