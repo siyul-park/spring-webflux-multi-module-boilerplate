@@ -16,7 +16,7 @@ class RedisStorage<ID : Any, T : Any>(
     redisClient: RedissonClient,
     name: String,
     private val ttl: Duration,
-    private val size: Int,
+    size: Int,
     private val objectMapper: ObjectMapper,
     private val id: WeekProperty<T, ID?>,
     private val keyClass: KClass<ID>,
@@ -27,9 +27,7 @@ class RedisStorage<ID : Any, T : Any>(
     private val store = redisClient.getMapCache<String, String>(name)
 
     init {
-        runBlocking {
-            store.setMaxSize(size)
-        }
+        store.setMaxSize(size)
     }
 
     override suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>) {
