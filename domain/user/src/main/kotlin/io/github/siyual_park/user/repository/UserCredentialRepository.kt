@@ -23,11 +23,11 @@ class UserCredentialRepository(
 ) : QueryRepository<UserCredentialData, Long> by R2DBCRepositoryBuilder<UserCredentialData, Long>(entityOperations, UserCredentialData::class)
     .enableEvent(eventPublisher)
     .enableJsonMapping(objectMapper)
-    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 10_000)
+    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 100_000)
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
-            .expireAfterWrite(Duration.ofSeconds(1))
+            .expireAfterWrite(Duration.ofMinutes(1))
             .maximumSize(1_000)
     })
     .build() {

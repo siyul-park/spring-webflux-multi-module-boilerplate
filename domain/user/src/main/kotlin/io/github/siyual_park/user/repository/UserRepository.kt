@@ -21,11 +21,11 @@ class UserRepository(
 ) : QueryRepository<UserData, ULID> by R2DBCRepositoryBuilder<UserData, ULID>(entityOperations, UserData::class)
     .enableEvent(eventPublisher)
     .enableJsonMapping(objectMapper)
-    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 10_000)
+    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 100_000)
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
-            .expireAfterWrite(Duration.ofSeconds(1))
+            .expireAfterWrite(Duration.ofMinutes(1))
             .maximumSize(1_000)
     })
     .build()
