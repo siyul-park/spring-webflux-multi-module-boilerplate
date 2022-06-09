@@ -3,16 +3,17 @@ package io.github.siyual_park.data.cache
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import io.github.siyual_park.data.WeekProperty
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.future.asDeferred
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
-import org.redisson.api.RedissonReactiveClient
+import org.redisson.api.RedissonClient
 import java.time.Duration
+import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
 class RedisStorage<ID : Any, T : Any>(
-    redisClient: RedissonReactiveClient,
+    redisClient: RedissonClient,
     name: String,
     private val ttl: Duration,
     private val size: Int,
@@ -27,8 +28,7 @@ class RedisStorage<ID : Any, T : Any>(
 
     init {
         runBlocking {
-            store.trySetMaxSize(size).awaitFirstOrNull()
-            store.expire(ttl).awaitFirstOrNull()
+            store.trySetMaxSize(size)
         }
     }
 
@@ -49,7 +49,7 @@ class RedisStorage<ID : Any, T : Any>(
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
-        return store.get(writeKey(index, key)).awaitFirstOrNull()?.let {
+        return store.getAsync(writeKey(index, key)).asDeferred().await()?.let {
             getIfPresent(readId(it))
         }
     }
@@ -59,7 +59,7 @@ class RedisStorage<ID : Any, T : Any>(
     }
 
     override suspend fun getIfPresent(id: ID): T? {
-        return store.get(writeKey("_id", id)).awaitFirstOrNull()?.let {
+        return store.getAsync(writeKey("_id", id)).asDeferred().await()?.let {
             objectMapper.readValue(it, valueClass.java)
         }
     }
@@ -77,7 +77,7 @@ class RedisStorage<ID : Any, T : Any>(
             keys.add(writeKey(key, property.get(entity)))
         }
 
-        store.fastRemove(*keys.toTypedArray()).awaitFirstOrNull()
+        store.fastRemoveAsync(*keys.toTypedArray()).asDeferred().await()
     }
 
     override suspend fun add(entity: T) {
@@ -89,18 +89,18 @@ class RedisStorage<ID : Any, T : Any>(
             values[writeKey(key, property.get(entity))] = writeValue(id)
         }
 
-        store.putAll(values).awaitFirstOrNull()
+        store.putAllAsync(values, ttl.toSeconds(), TimeUnit.SECONDS).asDeferred().await()
     }
 
     override suspend fun entries(): Set<Pair<ID, T>> {
-        return store.readAllMap().awaitSingle().entries
+        return store.readAllMapAsync().asDeferred().await().entries
             .filter { (key) -> key.startsWith("_id:") }
             .map { (key, value) -> readId(key.removePrefix("_id:")) to readValue(value) }
             .toSet()
     }
 
     override suspend fun clear() {
-        store.delete().awaitFirstOrNull()
+        store.deleteAsync().asDeferred().await()
     }
 
     private fun <T> writeKey(type: String, value: T): String {

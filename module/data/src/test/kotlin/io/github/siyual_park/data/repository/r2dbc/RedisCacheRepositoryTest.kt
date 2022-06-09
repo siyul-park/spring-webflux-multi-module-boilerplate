@@ -11,7 +11,7 @@ import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.ulid.jackson.ULIDModule
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import org.redisson.api.RedissonReactiveClient
+import org.redisson.api.RedissonClient
 import java.time.Duration
 
 class RedisCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
@@ -42,7 +42,7 @@ class RedisCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
     companion object {
         private val helper = RedisTestHelper()
 
-        val redisClient: RedissonReactiveClient
+        val redisClient: RedissonClient
             get() = helper.redisClient
 
         @BeforeAll

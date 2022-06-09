@@ -18,7 +18,7 @@ import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.cache.CachedQueryRepository
 import io.github.siyual_park.data.repository.cache.QueryCachedRepository
 import io.github.siyual_park.event.EventPublisher
-import org.redisson.api.RedissonReactiveClient
+import org.redisson.api.RedissonClient
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import java.time.Duration
 import kotlin.reflect.KClass
@@ -33,7 +33,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
     private var queryCacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
 
-    private var redisClient: RedissonReactiveClient? = null
+    private var redisClient: RedissonClient? = null
     private var ttl: Duration? = null
     private var size: Int? = null
 
@@ -54,7 +54,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    fun enableCache(redisClient: RedissonReactiveClient?, ttl: Duration?, size: Int?): R2DBCRepositoryBuilder<T, ID> {
+    fun enableCache(redisClient: RedissonClient?, ttl: Duration?, size: Int?): R2DBCRepositoryBuilder<T, ID> {
         this.redisClient = redisClient
         this.ttl = ttl
         this.size = size

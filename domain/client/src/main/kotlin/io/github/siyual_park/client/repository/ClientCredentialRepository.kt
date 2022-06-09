@@ -9,7 +9,7 @@ import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
-import org.redisson.api.RedissonReactiveClient
+import org.redisson.api.RedissonClient
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
@@ -19,7 +19,7 @@ import java.time.Duration
 class ClientCredentialRepository(
     entityOperations: R2dbcEntityOperations,
     objectMapper: ObjectMapper? = null,
-    redisClient: RedissonReactiveClient,
+    redisClient: RedissonClient,
     eventPublisher: EventPublisher? = null
 ) : QueryRepository<ClientCredentialData, Long> by R2DBCRepositoryBuilder<ClientCredentialData, Long>(entityOperations, ClientCredentialData::class)
     .enableEvent(eventPublisher)

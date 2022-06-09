@@ -16,8 +16,7 @@ class RedisTestHelper : ResourceTestHelper {
         useSingleServer().address = "redis://localhost:$port"
     }
 
-    private val redisson = Redisson.create(config)
-    val redisClient = redisson.reactive()
+    val redisClient = Redisson.create(config)
 
     override fun setUp() {
         try {
