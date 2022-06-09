@@ -26,22 +26,20 @@ class ClientBasedCorsConfigurationSource(
                 return null
             }
 
-            return runBlocking {
-                val payload = AuthorizationPayload(token[0], token[1])
-                val principal = authenticator.authenticate(payload)
+            val payload = AuthorizationPayload(token[0], token[1])
+            val principal = runBlocking { authenticator.authenticate(payload) }
 
-                if (principal is ClientEntity) {
-                    val client = principal.clientId?.let { clientStorage.load(it) } ?: return@runBlocking null
-                    return@runBlocking CorsConfiguration()
-                        .apply {
-                            allowedOrigins = listOf(client.origin.toString())
-                            addAllowedHeader("*")
-                            addAllowedMethod("*")
-                            allowCredentials = true
-                        }
-                }
-                return@runBlocking null
+            if (principal is ClientEntity) {
+                val client = principal.clientId?.let { runBlocking { clientStorage.load(it) } } ?: return null
+                return CorsConfiguration()
+                    .apply {
+                        allowedOrigins = listOf(client.origin.toString())
+                        addAllowedHeader("*")
+                        addAllowedMethod("*")
+                        allowCredentials = true
+                    }
             }
+            return null
         } catch (e: Exception) {
             return null
         }

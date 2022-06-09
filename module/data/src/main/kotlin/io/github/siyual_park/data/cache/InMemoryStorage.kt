@@ -4,10 +4,6 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.Maps
 import io.github.siyual_park.data.WeekProperty
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import java.util.Collections
-import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
@@ -17,7 +13,6 @@ class InMemoryStorage<ID : Any, T : Any>(
 ) : Storage<ID, T> {
     private val indexes = Maps.newConcurrentMap<String, MutableMap<*, ID>>()
     private val properties = Maps.newConcurrentMap<String, WeekProperty<T, *>>()
-    private val mutexes = Collections.synchronizedMap(WeakHashMap<ID, Mutex>())
 
     private val cache: Cache<ID, T> = cacheBuilder()
         .removalListener<ID, T> {
@@ -26,9 +21,6 @@ class InMemoryStorage<ID : Any, T : Any>(
                     val extractor = properties[name] ?: return@forEach
                     index.remove(extractor.get(entity))
                 }
-            }
-            it.key?.let { id ->
-                mutexes.remove(id)
             }
         }.build()
 
@@ -80,16 +72,7 @@ class InMemoryStorage<ID : Any, T : Any>(
     }
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
-        val existed = cache.getIfPresent(id)
-        if (existed != null) {
-            return existed
-        }
-
-        val mutex = mutexes.getOrPut(id) { Mutex() }
-        return mutex.withLock {
-            cache.getIfPresent(id)
-                ?: loader()?.also { add(it) }
-        }
+        return cache.getIfPresent(id) ?: loader()?.also { add(it) }
     }
 
     override suspend fun remove(id: ID) {

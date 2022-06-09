@@ -1,9 +1,5 @@
 package io.github.siyual_park.data.aggregation
 
-import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.cache.InMemoryQueryStorage
-import io.github.siyual_park.data.cache.Pool
-import io.github.siyual_park.data.cache.PoolingNestedQueryStorage
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
@@ -19,9 +15,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class FetchContextTest : DataTestHelper() {
-    private val store = PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() } })
     private val repository = spyk(R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class).build())
-    private val context = FetchContext(store, repository, Person::class)
+    private val context = FetchContext(repository, Person::class)
 
     init {
         migrationManager.register(CreatePerson(entityOperations))

@@ -1,6 +1,5 @@
 package io.github.siyual_park.user.domain
 
-import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.data.aggregation.FetchContextProvider
 import io.github.siyual_park.event.EventPublisher
@@ -12,7 +11,6 @@ import io.github.siyual_park.user.repository.UserRepository
 import io.github.siyual_park.user.repository.UserScopeRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
-import java.time.Duration
 
 @Component
 class UserMapper(
@@ -27,12 +25,7 @@ class UserMapper(
     override val targetType = object : TypeReference<User>() {}
 
     override suspend fun map(source: UserData): User {
-        val fetchContextProvider = FetchContextProvider {
-            CacheBuilder.newBuilder()
-                .weakKeys()
-                .expireAfterWrite(Duration.ofSeconds(1))
-                .maximumSize(500)
-        }
+        val fetchContextProvider = FetchContextProvider()
 
         return User(
             source,

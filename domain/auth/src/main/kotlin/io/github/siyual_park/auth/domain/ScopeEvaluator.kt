@@ -21,31 +21,29 @@ class ScopeEvaluator(
             return false
         }
 
-        return runBlocking {
-            try {
-                val scope: List<*> = getScope(permission)?.let {
-                    when (it) {
-                        is Collection<*> -> it
-                        is ScopeToken -> listOf(it)
-                        else -> null
-                    }
-                }?.toList() ?: return@runBlocking false
-                val adjustTargetDomainObject = (
-                    if (targetDomainObject == null) {
-                        null
+        try {
+            val scope = runBlocking { getScope(permission) }?.let {
+                when (it) {
+                    is Collection<*> -> it
+                    is ScopeToken -> listOf(it)
+                    else -> null
+                }
+            }?.toList() ?: return false
+            val adjustTargetDomainObject = (
+                if (targetDomainObject == null) {
+                    null
+                } else {
+                    if (permission is Collection<*>) {
+                        (targetDomainObject as? Collection<Any?>)?.toList() ?: return false
                     } else {
-                        if (permission is Collection<*>) {
-                            (targetDomainObject as? Collection<Any?>)?.toList() ?: return@runBlocking false
-                        } else {
-                            listOf(targetDomainObject)
-                        }
+                        listOf(targetDomainObject)
                     }
-                    )?.map { adjustTargetDomainObject(it) }
+                }
+                )?.map { adjustTargetDomainObject(it) }
 
-                return@runBlocking authorizator.authorize(principal, scope, adjustTargetDomainObject)
-            } catch (e: Exception) {
-                return@runBlocking false
-            }
+            return runBlocking { authorizator.authorize(principal, scope, adjustTargetDomainObject) }
+        } catch (e: Exception) {
+            return false
         }
     }
 
