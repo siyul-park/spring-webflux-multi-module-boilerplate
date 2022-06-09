@@ -50,12 +50,7 @@ class MultiLevelStorage<ID : Any, T : Any>(
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
-        val value = getIfPresent(index, key)
-        if (value != null) {
-            return value
-        }
-
-        return loader()?.also { add(it) }
+        return getIfPresent(index, key) ?: loader()?.also { add(it) }
     }
 
     override suspend fun getIfPresent(id: ID): T? {
@@ -74,12 +69,7 @@ class MultiLevelStorage<ID : Any, T : Any>(
     }
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
-        val value = getIfPresent(id)
-        if (value != null) {
-            return value
-        }
-
-        return loader()?.also { add(it) }
+        return getIfPresent(id) ?: loader()?.also { add(it) }
     }
 
     override suspend fun remove(id: ID) {
