@@ -27,4 +27,5 @@ class ClientRepository(
             .softValues()
             .expireAfterWrite(Duration.ofSeconds(1))
             .maximumSize(1_000)
-    }).build()
+    })
+    .build()
