@@ -18,16 +18,16 @@ class ClientBasedCorsConfigurationSource(
     private val clientStorage: ClientStorage,
 ) : CorsConfigurationSource {
     override fun getCorsConfiguration(exchange: ServerWebExchange): Mono<CorsConfiguration> {
+        val headers = exchange.request.headers
+        val authorization = headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return Mono.empty()
+
+        val token = authorization.split(" ")
+        if (token.size != 2) {
+            return Mono.empty()
+        }
+
         return mono {
             try {
-                val headers = exchange.request.headers
-                val authorization = headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return@mono null
-
-                val token = authorization.split(" ")
-                if (token.size != 2) {
-                    return@mono null
-                }
-
                 val payload = AuthorizationPayload(token[0], token[1])
                 val principal = authenticator.authenticate(payload)
                 if (principal !is ClientEntity) {
