@@ -44,6 +44,7 @@ class SecurityConfiguration(
             .cors().disable()
             .csrf().disable()
             .formLogin().disable()
+            .logout().disable()
             .httpBasic().disable()
             .addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .authorizeExchange { it.anyExchange().permitAll() }
