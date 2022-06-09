@@ -28,7 +28,7 @@ class RedisStorage<ID : Any, T : Any>(
 
     init {
         runBlocking {
-            store.trySetMaxSize(size)
+            store.setMaxSize(size)
         }
     }
 
