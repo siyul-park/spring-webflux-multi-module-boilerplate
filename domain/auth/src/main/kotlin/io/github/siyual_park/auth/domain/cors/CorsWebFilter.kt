@@ -1,5 +1,8 @@
 package io.github.siyual_park.auth.domain.cors
 
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
+import kotlinx.coroutines.reactor.mono
 import org.springframework.web.cors.reactive.CorsProcessor
 import org.springframework.web.cors.reactive.CorsUtils
 import org.springframework.web.cors.reactive.DefaultCorsProcessor
@@ -13,15 +16,15 @@ class CorsWebFilter(
     private val processor: CorsProcessor = DefaultCorsProcessor()
 ) : WebFilter {
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
-        val request = exchange.request
-        return configSource.getCorsConfiguration(exchange)
-            .flatMap { corsConfiguration ->
-                val isValid = processor.process(corsConfiguration, exchange)
-                if (!isValid || CorsUtils.isPreFlightRequest(request)) {
-                    Mono.empty()
-                } else {
-                    chain.filter(exchange)
-                }
+        return mono {
+            val request = exchange.request
+            val corsConfiguration = configSource.getCorsConfiguration(exchange).awaitSingleOrNull()
+            val isValid = processor.process(corsConfiguration, exchange)
+            if (!isValid || CorsUtils.isPreFlightRequest(request)) {
+                null
+            } else {
+                chain.filter(exchange).awaitSingle()
             }
+        }
     }
 }

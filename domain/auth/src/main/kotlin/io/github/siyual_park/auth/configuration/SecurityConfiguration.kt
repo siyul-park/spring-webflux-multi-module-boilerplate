@@ -39,18 +39,15 @@ class SecurityConfiguration(
         authenticationWebFilter.setAuthenticationFailureHandler { _, exception -> Mono.error(exception) }
 
         val corsSpec = CorsSpec(applicationContext)
-        val corsFilter = corsSpec.getCorsFilter()
 
         return httpSecurity
             .cors().disable()
-            .apply {
-                corsFilter?.let { addFilterAt(it, SecurityWebFiltersOrder.CORS) }
-            }
             .csrf().disable()
             .formLogin().disable()
             .httpBasic().disable()
             .addFilterAt(authenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             .authorizeExchange { it.anyExchange().permitAll() }
+            .also { corsSpec.configure(it) }
             .build()
     }
 }

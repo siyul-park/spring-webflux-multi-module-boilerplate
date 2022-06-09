@@ -2,6 +2,8 @@ package io.github.siyual_park.auth.domain.cors
 
 import org.springframework.context.ApplicationContext
 import org.springframework.core.ResolvableType
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder
+import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.web.cors.reactive.CorsProcessor
 import org.springframework.web.cors.reactive.DefaultCorsProcessor
 
@@ -11,7 +13,14 @@ class CorsSpec(
 ) {
     private var corsFilter: CorsWebFilter? = source?.let { CorsWebFilter(it) }
 
-    fun getCorsFilter(): CorsWebFilter? {
+    fun configure(http: ServerHttpSecurity) {
+        val corsFilter = getCorsFilter()
+        if (corsFilter != null) {
+            http.addFilterAt(corsFilter, SecurityWebFiltersOrder.CORS)
+        }
+    }
+
+    private fun getCorsFilter(): CorsWebFilter? {
         if (corsFilter != null) {
             return corsFilter
         }
