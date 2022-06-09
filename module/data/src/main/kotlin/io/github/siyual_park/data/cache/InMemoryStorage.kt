@@ -50,21 +50,7 @@ class InMemoryStorage<ID : Any, T : Any>(
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY, loader: suspend () -> T?): T? {
-        val indexMap = indexes[index] ?: return null
-        val id = indexMap[key]
-
-        return if (id == null) {
-            val entity = loader()
-            if (entity == null) {
-                null
-            } else {
-                this.id.get(entity)?.let {
-                    this.getIfPresent(it) { entity }
-                }
-            }
-        } else {
-            getIfPresent(id, loader)
-        }
+        return getIfPresent(index, key) ?: loader()?.also { add(it) }
     }
 
     override suspend fun getIfPresent(id: ID): T? {
