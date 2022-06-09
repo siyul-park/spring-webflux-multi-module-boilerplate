@@ -38,7 +38,7 @@ class QueryAggregator<T : Any>(
     )
 
     private val links = ReferenceStore<SelectQuery>()
-    private val cache = WeakHashMap<SelectQuery, Collection<T>>()
+    private val latest = WeakHashMap<SelectQuery, Collection<T>>()
     private val parser = RuntimeCriteriaParser(clazz)
 
     private val mutex = Mutex()
@@ -46,8 +46,8 @@ class QueryAggregator<T : Any>(
     suspend fun clear() {
         mutex.withLock {
             store.clear()
+            latest.clear()
             links.clear()
-            cache.clear()
         }
     }
 
@@ -59,11 +59,11 @@ class QueryAggregator<T : Any>(
 
     suspend fun clear(query: SelectQuery) {
         mutex.withLock {
-            (store.getIfPresent(query) ?: cache[query])?.forEach {
+            (store.getIfPresent(query) ?: latest[query])?.forEach {
                 store.clear(it)
             } ?: store.clear()
+            latest.remove(query)
             links.remove(query)
-            cache.remove(query)
         }
     }
 
@@ -99,7 +99,7 @@ class QueryAggregator<T : Any>(
                         if (key != query) {
                             store.put(key, value)
                         } else {
-                            cache[query] = value
+                            latest[query] = value
                             value.onEach { emit(it) }
                         }
                     }
@@ -111,7 +111,7 @@ class QueryAggregator<T : Any>(
     private suspend fun pop(query: SelectQuery): Collection<T>? {
         return store.getIfPresent(query)?.let {
             store.remove(query)
-            cache[query] = it
+            latest[query] = it
             it
         }
     }
