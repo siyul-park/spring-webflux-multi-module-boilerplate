@@ -14,7 +14,7 @@ class CacheScheduler {
     private val samplingMin = 1L
     private val samplingMax = 150L
 
-    fun useCache(size: Int): Boolean {
+    fun isCacheFaster(size: Int): Boolean {
         return getSample(size, cacheSamples) <= getSample(size, nonCacheSamples)
     }
 

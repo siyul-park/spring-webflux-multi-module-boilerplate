@@ -62,7 +62,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
         }
 
         val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
-        return if (cacheScheduler.useCache(1)) {
+        return if (cacheScheduler.isCacheFaster(1)) {
             cacheScheduler.measureCache(1) {
                 storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
             }
@@ -86,7 +86,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
                 val indexNameAndValue = getUniqueIndexNameAndValue(criteria)
                 if (indexNameAndValue != null) {
                     val (indexName, value) = indexNameAndValue
-                    if (cacheScheduler.useCache(1)) {
+                    if (cacheScheduler.isCacheFaster(1)) {
                         return@flow cacheScheduler.measureCache(1) {
                             storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
                                 ?.let { emit(it) }
@@ -108,7 +108,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
                     if (storage.containsIndex(key)) {
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
-                        if (cacheScheduler.useCache(value.size)) {
+                        if (cacheScheduler.isCacheFaster(value.size)) {
                             return@flow cacheScheduler.measureCache(value.size) {
                                 value.forEach { current ->
                                     val cached = current?.let { storage.getIfPresent(key, ArrayList<Any?>().apply { add(it) }) }

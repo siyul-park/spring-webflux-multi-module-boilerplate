@@ -56,7 +56,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findById(id: ID): T? {
-        return if (cacheScheduler.useCache(1)) {
+        return if (cacheScheduler.isCacheFaster(1)) {
             cacheScheduler.measureCache(1) {
                 storage.getIfPresent(id) {
                     delegator.findById(id)
@@ -80,7 +80,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
 
     override fun findAllById(ids: Iterable<ID>): Flow<T> {
         val size = ids.count()
-        return if (cacheScheduler.useCache(size)) {
+        return if (cacheScheduler.isCacheFaster(size)) {
             flow {
                 cacheScheduler.measureCache(size) {
                     val result = mutableListOf<T>()
