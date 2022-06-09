@@ -4,6 +4,7 @@ import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.entity.ClientEntity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
@@ -27,10 +28,10 @@ class ClientBasedCorsConfigurationSource(
             }
 
             val payload = AuthorizationPayload(token[0], token[1])
-            val principal = runBlocking { authenticator.authenticate(payload) }
+            val principal = runBlocking(Dispatchers.IO) { authenticator.authenticate(payload) }
 
             if (principal is ClientEntity) {
-                val client = principal.clientId?.let { runBlocking { clientStorage.load(it) } } ?: return null
+                val client = principal.clientId?.let { runBlocking(Dispatchers.IO) { clientStorage.load(it) } } ?: return null
                 return CorsConfiguration()
                     .apply {
                         allowedOrigins = listOf(client.origin.toString())
