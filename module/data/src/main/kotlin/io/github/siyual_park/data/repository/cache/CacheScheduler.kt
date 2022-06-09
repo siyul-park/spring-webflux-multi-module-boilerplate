@@ -17,7 +17,7 @@ class CacheScheduler {
     private val samplingMin = 1L
     private val samplingMax = 150L
 
-    private val cacheValidDuration = Duration.ofMinutes(1)
+    private val cacheValidDuration = Duration.ofMinutes(10)
 
     fun isCacheFaster(size: Int): Boolean {
         val now = Instant.now()
