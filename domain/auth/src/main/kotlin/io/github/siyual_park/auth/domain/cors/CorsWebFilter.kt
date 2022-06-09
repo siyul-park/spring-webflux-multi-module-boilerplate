@@ -1,6 +1,5 @@
 package io.github.siyual_park.auth.domain.cors
 
-import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.reactor.mono
 import org.springframework.web.cors.reactive.CorsProcessor
@@ -23,7 +22,7 @@ class CorsWebFilter(
             if (!isValid || CorsUtils.isPreFlightRequest(request)) {
                 null
             } else {
-                chain.filter(exchange).awaitSingle()
+                chain.filter(exchange).awaitSingleOrNull()
             }
         }
     }

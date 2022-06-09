@@ -63,11 +63,10 @@ class ScopeController(
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasPermission(null, 'scope:create')")
     suspend fun create(
         @Valid @RequestBody request: CreateScopeTokenRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ScopeTokenInfo {
+    ): ScopeTokenInfo = authorizator.withAuthorize(listOf("scope:create")) {
         val projectionNode = projectionParser.parse(fields)
         val payload = CreateScopeTokenPayload(
             name = request.name,
@@ -75,13 +74,12 @@ class ScopeController(
             system = false
         )
         val scopeToken = scopeTokenFactory.create(payload)
-        return mapperContext.map(Projection(scopeToken, projectionNode))
+        mapperContext.map(Projection(scopeToken, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'scope:read')")
     suspend fun readAll(
         @RequestParam("id", required = false) id: String? = null,
         @RequestParam("name", required = false) name: String? = null,
@@ -91,7 +89,7 @@ class ScopeController(
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): OffsetPage<ScopeTokenInfo> {
+    ): OffsetPage<ScopeTokenInfo> = authorizator.withAuthorize(listOf("scope:read")) {
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
@@ -108,7 +106,7 @@ class ScopeController(
             page = page
         )
 
-        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
+        offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
@@ -118,44 +116,46 @@ class ScopeController(
     suspend fun read(
         @PathVariable("scope-id") scopeId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ScopeTokenInfo {
+    ): ScopeTokenInfo = authorizator.withAuthorize(listOf("scope:read")) {
         val projectionNode = projectionParser.parse(fields)
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        return mapperContext.map(Projection(scopeToken, projectionNode))
+        mapperContext.map(Projection(scopeToken, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PatchMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'scope:update')")
     suspend fun update(
         @PathVariable("scope-id") scopeId: ULID,
         @Valid @RequestBody request: UpdateScopeTokenRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ScopeTokenInfo = operator.executeAndAwait {
-        val projectionNode = projectionParser.parse(fields)
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+    ): ScopeTokenInfo = authorizator.withAuthorize(listOf("scope:update")) {
+        operator.executeAndAwait {
+            val projectionNode = projectionParser.parse(fields)
+            val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
 
-        request.children?.let {
-            if (it.isPresent) {
-                syncScope(scopeToken, it.get().let { scopeTokenStorage.load(it) }.toSet())
-            } else {
-                val existsScope = scopeToken.children().toSet()
-                existsScope.forEach { scopeToken.revoke(it) }
+            request.children?.let {
+                if (it.isPresent) {
+                    syncScope(scopeToken, it.get().let { scopeTokenStorage.load(it) }.toSet())
+                } else {
+                    val existsScope = scopeToken.children().toSet()
+                    existsScope.forEach { scopeToken.revoke(it) }
+                }
             }
-        }
 
-        val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
-        patch.apply(scopeToken).sync()
+            val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
+            patch.apply(scopeToken).sync()
 
-        mapperContext.map(Projection(scopeToken, projectionNode))
-    }!!
+            mapperContext.map(Projection(scopeToken, projectionNode))
+        }!!
+    }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @DeleteMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission(null, 'scope:delete')")
-    suspend fun delete(@PathVariable("scope-id") scopeId: ULID) {
+    suspend fun delete(
+        @PathVariable("scope-id") scopeId: ULID
+    ) = authorizator.withAuthorize(listOf("scope:delete")) {
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
         scopeToken.clear()
     }

@@ -29,7 +29,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.toSet
 import org.springframework.http.HttpStatus
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -69,11 +68,10 @@ class UserController(
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasPermission(null, 'users:create')")
     suspend fun create(
         @Valid @RequestBody request: CreateUserRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): UserInfo {
+    ): UserInfo = authorizator.withAuthorize(listOf("users:create")) {
         val projectionNode = projectionParser.parse(fields)
         val payload = CreateUserPayload(
             name = request.name,
@@ -81,13 +79,12 @@ class UserController(
             password = request.password
         )
         val user = userFactory.create(payload)
-        return mapperContext.map(Projection(user, projectionNode))
+        mapperContext.map(Projection(user, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'users:read')")
     suspend fun readAll(
         @RequestParam("id", required = false) id: String? = null,
         @RequestParam("name", required = false) name: String? = null,
@@ -97,7 +94,7 @@ class UserController(
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): OffsetPage<UserInfo> {
+    ): OffsetPage<UserInfo> = authorizator.withAuthorize(listOf("users:read")) {
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
@@ -114,63 +111,64 @@ class UserController(
             page = page
         )
 
-        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
+        offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission({null, #userId}, {'users:read', 'users[self]:read'})")
     suspend fun read(
         @PathVariable("user-id") userId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): UserInfo {
+    ): UserInfo = authorizator.withAuthorize(listOf("users:read", "users[self]:read"), listOf(null, userId)) {
         val projectionNode = projectionParser.parse(fields)
         val user = userStorage.loadOrFail(userId)
-        return mapperContext.map(Projection(user, projectionNode))
+        mapperContext.map(Projection(user, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PatchMapping("/{user-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission({null, #userId}, {'users:update', 'users[self]:update'})")
     suspend fun update(
         @PathVariable("user-id") userId: ULID,
         @Valid @RequestBody request: UpdateUserRequest,
         @AuthenticationPrincipal principal: UserPrincipal,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): UserInfo = operator.executeAndAwait {
-        val projectionNode = projectionParser.parse(fields)
-        val user = userStorage.loadOrFail(userId)
+    ): UserInfo = authorizator.withAuthorize(listOf("users:update", "users[self]:update"), listOf(null, userId)) {
+        operator.executeAndAwait {
+            val projectionNode = projectionParser.parse(fields)
+            val user = userStorage.loadOrFail(userId)
 
-        request.password?.let {
-            updateCredentials(
-                user,
-                it.orElseThrow { throw ValidationException("password is cannot be null") }
-            )
-        }
-        request.scope?.let {
-            if (it.isPresent) {
-                syncScope(user, it.get().let { scopeTokenStorage.load(it) }.toSet())
-            } else {
-                val existsScope = user.getScope(deep = false).toSet()
-                existsScope.forEach { user.revoke(it) }
+            request.password?.let {
+                updateCredentials(
+                    user,
+                    it.orElseThrow { throw ValidationException("password is cannot be null") }
+                )
             }
-        }
+            request.scope?.let {
+                if (it.isPresent) {
+                    syncScope(user, it.get().let { scopeTokenStorage.load(it) }.toSet())
+                } else {
+                    val existsScope = user.getScope(deep = false).toSet()
+                    existsScope.forEach { user.revoke(it) }
+                }
+            }
 
-        val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(
-            request.copy(password = null, scope = null)
-        )
-        patch.apply(user).sync()
+            val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(
+                request.copy(password = null, scope = null)
+            )
+            patch.apply(user).sync()
 
-        mapperContext.map(Projection(user, projectionNode))
-    }!!
+            mapperContext.map(Projection(user, projectionNode))
+        }!!
+    }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @DeleteMapping("/{user-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission({null, #userId}, {'users:delete', 'users[self]:delete'})")
-    suspend fun delete(@PathVariable("user-id") userId: ULID) {
+    suspend fun delete(
+        @PathVariable("user-id") userId: ULID
+    ) = authorizator.withAuthorize(listOf("users:delete", "users[self]:delete"), listOf(null, userId)) {
         val user = userStorage.loadOrFail(userId)
         user.clear()
     }
