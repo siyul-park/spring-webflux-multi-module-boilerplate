@@ -5,7 +5,6 @@ import com.google.common.collect.Maps
 import io.github.siyual_park.data.WeekProperty
 import kotlinx.coroutines.future.asDeferred
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.runBlocking
 import org.redisson.api.RedissonClient
 import java.time.Duration
 import java.util.concurrent.TimeUnit
