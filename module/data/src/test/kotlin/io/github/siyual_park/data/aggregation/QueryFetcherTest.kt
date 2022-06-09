@@ -92,8 +92,6 @@ class QueryFetcherTest : DataTestHelper() {
 
     @Test
     fun clear() = blocking {
-        val queryAggregator = QueryAggregator(repository, Person::class)
-
         val person = DummyPerson.create()
             .let { repository.create(it) }
 
