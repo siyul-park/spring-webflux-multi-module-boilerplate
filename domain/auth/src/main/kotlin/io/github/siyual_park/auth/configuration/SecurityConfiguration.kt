@@ -3,6 +3,7 @@ package io.github.siyual_park.auth.configuration
 import io.github.siyual_park.auth.domain.AuthenticationConverter
 import io.github.siyual_park.auth.domain.AuthenticationManager
 import io.github.siyual_park.auth.domain.ScopeEvaluator
+import io.github.siyual_park.auth.domain.cors.CorsSpec
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -14,7 +15,6 @@ import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
-import org.springframework.web.cors.reactive.CorsConfigurationSource
 import reactor.core.publisher.Mono
 
 @Configuration
@@ -25,7 +25,6 @@ class SecurityConfiguration(
     private val authenticationManager: AuthenticationManager,
     private val authenticationConverter: AuthenticationConverter,
     private val scopeEvaluator: ScopeEvaluator,
-    private val corsConfigurationSource: CorsConfigurationSource
 ) {
     @Bean
     @DependsOn("methodSecurityExpressionHandler")
@@ -39,8 +38,13 @@ class SecurityConfiguration(
         authenticationWebFilter.setServerAuthenticationConverter(authenticationConverter)
         authenticationWebFilter.setAuthenticationFailureHandler { _, exception -> Mono.error(exception) }
 
+        val corsSpec = CorsSpec(applicationContext)
+        val corsFilter = corsSpec.getCorsFilter()
+
         return httpSecurity
-            .cors().configurationSource(corsConfigurationSource).and()
+            .apply {
+                corsFilter?.let { addFilterAt(it, SecurityWebFiltersOrder.CORS) }
+            }
             .csrf().disable()
             .formLogin().disable()
             .httpBasic().disable()

@@ -12,6 +12,7 @@ import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.client.domain.ClientTestHelper
 import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.client.entity.ClientEntity
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -62,7 +63,7 @@ class ClientBasedCorsCacheConfigurationSourceTest : ClientTestHelper() {
         request.headers(headers)
         val exchange = MockServerWebExchange.from(request)
 
-        val corsConfiguration = clientBasedCorsConfigurationSource.getCorsConfiguration(exchange)
+        val corsConfiguration = clientBasedCorsConfigurationSource.getCorsConfiguration(exchange).awaitSingleOrNull()
 
         assertNotNull(corsConfiguration)
         assertEquals(listOf(client.origin.toString()), corsConfiguration?.allowedOrigins)
