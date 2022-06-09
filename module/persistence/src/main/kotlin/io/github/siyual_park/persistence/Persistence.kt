@@ -9,8 +9,6 @@ import io.github.siyual_park.data.repository.update
 import io.github.siyual_park.data.transaction.currentContextOrNull
 import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.reactor.mono
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.springframework.transaction.reactive.TransactionSynchronization
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -26,7 +24,6 @@ open class Persistence<T : Any, ID : Any>(
     protected val root = LazyMutable.from(value)
 
     private val synchronizations = Collections.synchronizedSet(mutableSetOf<PersistenceSynchronization>())
-    private val mutex = Mutex()
     private var isCleared = false
 
     private val synchronization = object : TransactionSynchronization {
@@ -60,28 +57,23 @@ open class Persistence<T : Any, ID : Any>(
         if (isCleared) {
             return
         }
+        isCleared = true
 
-        mutex.withLock {
-            if (isCleared) {
-                return@withLock
-            }
-            isCleared = true
-            try {
-                withTransaction {
-                    synchronizations.forEach {
-                        it.beforeClear()
-                    }
-                    eventPublisher?.publish(BeforeDeleteEvent(this))
-                    runClear()
-                    eventPublisher?.publish(AfterDeleteEvent(this))
-                    synchronizations.forEach {
-                        it.afterClear()
-                    }
+        try {
+            withTransaction {
+                synchronizations.forEach {
+                    it.beforeClear()
                 }
-            } catch (exception: Exception) {
-                isCleared = false
-                throw exception
+                eventPublisher?.publish(BeforeDeleteEvent(this))
+                runClear()
+                eventPublisher?.publish(AfterDeleteEvent(this))
+                synchronizations.forEach {
+                    it.afterClear()
+                }
             }
+        } catch (exception: Exception) {
+            isCleared = false
+            throw exception
         }
     }
 
@@ -92,19 +84,17 @@ open class Persistence<T : Any, ID : Any>(
 
     suspend fun sync(): Boolean {
         var result = false
-        mutex.withLock {
-            withTransaction {
-                synchronizations.forEach {
-                    it.beforeSync()
-                }
-                if (root.isUpdated()) {
-                    eventPublisher?.publish(BeforeUpdateEvent(this))
-                    result = runSync()
-                    eventPublisher?.publish(AfterUpdateEvent(this))
-                }
-                synchronizations.forEach {
-                    it.afterSync()
-                }
+        withTransaction {
+            synchronizations.forEach {
+                it.beforeSync()
+            }
+            if (root.isUpdated()) {
+                eventPublisher?.publish(BeforeUpdateEvent(this))
+                result = runSync()
+                eventPublisher?.publish(AfterUpdateEvent(this))
+            }
+            synchronizations.forEach {
+                it.afterSync()
             }
         }
 
