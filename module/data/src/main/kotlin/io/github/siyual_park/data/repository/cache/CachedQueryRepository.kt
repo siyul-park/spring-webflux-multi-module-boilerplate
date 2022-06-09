@@ -129,7 +129,7 @@ class CachedQueryRepository<T : Any, ID : Any>(
                             }
                         } else {
                             return@flow cacheScheduler.measureNonCache(value.size) {
-                                fallback()
+                                emitAll(fallback())
                             }
                         }
                     }

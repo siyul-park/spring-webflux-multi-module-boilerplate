@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import java.time.Duration
 
-class InMemoryCacheRepositoryTest : QueryRepositoryTestHelper(
+class InMemoryMongoCacheRepositoryTest : QueryRepositoryTestHelper(
     repositories = {
         listOf(
             MongoRepositoryBuilder<Person, ULID>(mongoTemplate, Person::class)

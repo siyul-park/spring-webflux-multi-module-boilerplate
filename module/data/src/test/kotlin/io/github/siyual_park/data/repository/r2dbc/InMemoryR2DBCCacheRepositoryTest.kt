@@ -7,7 +7,7 @@ import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.ulid.ULID
 import java.time.Duration
 
-class InMemoryCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
+class InMemoryR2DBCCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
     repositories = {
         listOf(
             R2DBCRepositoryBuilder<Person, ULID>(it.entityOperations, Person::class)
