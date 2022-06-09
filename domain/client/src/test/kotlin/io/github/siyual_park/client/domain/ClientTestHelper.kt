@@ -45,9 +45,9 @@ abstract class ClientTestHelper : DataTestHelper(
 
     protected val scopeRelationRepository = ScopeRelationRepository(entityOperations)
     protected val scopeTokenRepository = ScopeTokenRepository(entityOperations)
-    protected val clientRepository = ClientRepository(entityOperations, eventEmitter)
-    protected val clientCredentialRepository = ClientCredentialRepository(entityOperations, eventEmitter)
-    protected val clientScopeRepository = spyk(ClientScopeRepository(entityOperations, eventEmitter))
+    protected val clientRepository = ClientRepository(entityOperations, eventPublisher = eventEmitter)
+    protected val clientCredentialRepository = ClientCredentialRepository(entityOperations, eventPublisher = eventEmitter)
+    protected val clientScopeRepository = spyk(ClientScopeRepository(entityOperations, eventPublisher = eventEmitter))
 
     protected val scopeTokenMapper = ScopeTokenMapper(
         scopeTokenRepository,

@@ -18,18 +18,18 @@ import java.time.Duration
 class UserCredentialRepository(
     entityOperations: R2dbcEntityOperations,
     objectMapper: ObjectMapper? = null,
-    redisClient: RedissonClient,
+    redisClient: RedissonClient? = null,
     eventPublisher: EventPublisher? = null
 ) : QueryRepository<UserCredentialData, Long> by R2DBCRepositoryBuilder<UserCredentialData, Long>(entityOperations, UserCredentialData::class)
     .enableEvent(eventPublisher)
     .enableJsonMapping(objectMapper)
+    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 10_000)
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterWrite(Duration.ofSeconds(1))
             .maximumSize(1_000)
     })
-    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 10_000)
     .build() {
     suspend fun findByUserIdOrFail(userId: ULID): UserCredentialData {
         return findByUserId(userId) ?: throw EmptyResultDataAccessException(1)

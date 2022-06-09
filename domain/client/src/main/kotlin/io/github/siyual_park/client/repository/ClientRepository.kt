@@ -16,16 +16,15 @@ import java.time.Duration
 class ClientRepository(
     entityOperations: R2dbcEntityOperations,
     objectMapper: ObjectMapper? = null,
-    redisClient: RedissonClient,
+    redisClient: RedissonClient? = null,
     eventPublisher: EventPublisher? = null
 ) : QueryRepository<ClientData, ULID> by R2DBCRepositoryBuilder<ClientData, ULID>(entityOperations, ClientData::class)
     .enableEvent(eventPublisher)
     .enableJsonMapping(objectMapper)
+    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 10_000)
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
             .expireAfterWrite(Duration.ofSeconds(1))
             .maximumSize(1_000)
-    })
-    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 10_000)
-    .build()
+    }).build()

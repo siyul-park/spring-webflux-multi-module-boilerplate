@@ -41,9 +41,9 @@ abstract class UserTestHelper(
 
     protected val scopeRelationRepository = ScopeRelationRepository(entityOperations)
     protected val scopeTokenRepository = ScopeTokenRepository(entityOperations)
-    protected val userRepository = UserRepository(entityOperations, eventEmitter)
-    protected val userCredentialRepository = UserCredentialRepository(entityOperations, eventEmitter)
-    protected val userScopeRepository = spyk(UserScopeRepository(entityOperations, eventEmitter))
+    protected val userRepository = UserRepository(entityOperations, eventPublisher = eventEmitter)
+    protected val userCredentialRepository = UserCredentialRepository(entityOperations, eventPublisher = eventEmitter)
+    protected val userScopeRepository = spyk(UserScopeRepository(entityOperations, eventPublisher = eventEmitter))
 
     protected val scopeTokenMapper = ScopeTokenMapper(
         scopeTokenRepository,

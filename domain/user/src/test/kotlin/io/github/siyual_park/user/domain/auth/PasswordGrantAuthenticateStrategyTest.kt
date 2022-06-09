@@ -22,8 +22,8 @@ class PasswordGrantAuthenticateStrategyTest : UserTestHelper(
         StringToURLConverter()
     )
 ) {
-    protected val clientRepository = ClientRepository(entityOperations, eventEmitter)
-    protected val clientCredentialRepository = ClientCredentialRepository(entityOperations, eventEmitter)
+    protected val clientRepository = ClientRepository(entityOperations, eventPublisher = eventEmitter)
+    protected val clientCredentialRepository = ClientCredentialRepository(entityOperations, eventPublisher = eventEmitter)
     protected val clientScopeRepository = ClientScopeRepository(entityOperations, eventEmitter)
 
     protected val clientMapper = ClientMapper(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage, transactionalOperator, eventEmitter)
