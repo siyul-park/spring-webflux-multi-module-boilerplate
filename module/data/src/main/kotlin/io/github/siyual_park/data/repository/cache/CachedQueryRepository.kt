@@ -36,8 +36,6 @@ class CachedQueryRepository<T : Any, ID : Any>(
         id,
     ) {
 
-    private val cacheScheduler = CacheScheduler()
-
     init {
         runBlocking { storage.createIndexes(clazz) }
     }
@@ -55,20 +53,12 @@ class CachedQueryRepository<T : Any, ID : Any>(
 
     override suspend fun findOne(criteria: Criteria): T? {
         val fallback = suspend {
-            cacheScheduler.measureNonCache(1) {
-                delegator.findOne(criteria)
-                    ?.also { storage.add(it) }
-            }
+            delegator.findOne(criteria)
+                ?.also { storage.add(it) }
         }
 
         val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
-        return if (cacheScheduler.isCacheFaster(1)) {
-            cacheScheduler.measureCache(1) {
-                storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
-            }
-        } else {
-            fallback()
-        }
+        return storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
     }
 
     override fun findAll(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -86,17 +76,9 @@ class CachedQueryRepository<T : Any, ID : Any>(
                 val indexNameAndValue = getUniqueIndexNameAndValue(criteria)
                 if (indexNameAndValue != null) {
                     val (indexName, value) = indexNameAndValue
-                    if (cacheScheduler.isCacheFaster(1)) {
-                        return@flow cacheScheduler.measureCache(1) {
-                            storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
-                                ?.let { emit(it) }
-                        }
-                    } else {
-                        return@flow cacheScheduler.measureNonCache(1) {
-                            delegator.findOne(criteria)
-                                ?.let { emit(it) }
-                        }
-                    }
+                    storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
+                        ?.let { emit(it) }
+                    return@flow
                 }
             }
 
@@ -108,30 +90,22 @@ class CachedQueryRepository<T : Any, ID : Any>(
                     if (storage.containsIndex(key)) {
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
-                        if (cacheScheduler.isCacheFaster(value.size)) {
-                            return@flow cacheScheduler.measureCache(value.size) {
-                                value.forEach { current ->
-                                    val cached = current?.let { storage.getIfPresent(key, ArrayList<Any?>().apply { add(it) }) }
-                                    if (cached == null) {
-                                        notCachedKey.add(current)
-                                    } else {
-                                        result.add(cached)
-                                    }
-                                }
-
-                                if (notCachedKey.isNotEmpty()) {
-                                    delegator.findAll(where(key).`in`(notCachedKey))
-                                        .onEach { storage.add(it) }
-                                        .collect { result.add(it) }
-                                }
-
-                                emitAll(result.asFlow())
-                            }
-                        } else {
-                            return@flow cacheScheduler.measureNonCache(value.size) {
-                                emitAll(fallback())
+                        value.forEach { current ->
+                            val cached = current?.let { storage.getIfPresent(key, ArrayList<Any?>().apply { add(it) }) }
+                            if (cached == null) {
+                                notCachedKey.add(current)
+                            } else {
+                                result.add(cached)
                             }
                         }
+
+                        if (notCachedKey.isNotEmpty()) {
+                            delegator.findAll(where(key).`in`(notCachedKey))
+                                .onEach { storage.add(it) }
+                                .collect { result.add(it) }
+                        }
+
+                        return@flow emitAll(result.asFlow())
                     }
                 }
             }

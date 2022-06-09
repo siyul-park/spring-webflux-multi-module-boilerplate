@@ -17,7 +17,6 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     private val storage: Storage<ID, T>,
     private val id: WeekProperty<T, ID?>
 ) : Repository<T, ID> {
-    private val cacheScheduler = CacheScheduler()
 
     override suspend fun create(entity: T): T {
         return delegator.create(entity)
@@ -56,16 +55,8 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findById(id: ID): T? {
-        return if (cacheScheduler.isCacheFaster(1)) {
-            cacheScheduler.measureCache(1) {
-                storage.getIfPresent(id) {
-                    delegator.findById(id)
-                }
-            }
-        } else {
-            cacheScheduler.measureNonCache(1) {
-                delegator.findById(id)
-            }
+        return storage.getIfPresent(id) {
+            delegator.findById(id)
         }
     }
 
@@ -79,49 +70,35 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override fun findAllById(ids: Iterable<ID>): Flow<T> {
-        val size = ids.count()
-        return if (cacheScheduler.isCacheFaster(size)) {
-            flow {
-                cacheScheduler.measureCache(size) {
-                    val result = mutableListOf<T>()
-                    val notCachedIds = mutableListOf<ID>()
+        return flow {
+            val result = mutableListOf<T>()
+            val notCachedIds = mutableListOf<ID>()
 
-                    ids.forEach { id ->
-                        val cached = storage.getIfPresent(id)
-                        if (cached == null) {
-                            notCachedIds.add(id)
-                        } else {
-                            result.add(cached)
-                        }
-                    }
-
-                    if (notCachedIds.isNotEmpty()) {
-                        delegator.findAllById(notCachedIds)
-                            .onEach { storage.add(it) }
-                            .collect { result.add(it) }
-                    }
-
-                    emitAll(
-                        result.also {
-                            it.sortWith { p1, p2 ->
-                                val p1Id = id.get(p1)
-                                val p2Id = id.get(p2)
-
-                                ids.indexOf(p1Id) - ids.indexOf(p2Id)
-                            }
-                        }.asFlow()
-                    )
+            ids.forEach { id ->
+                val cached = storage.getIfPresent(id)
+                if (cached == null) {
+                    notCachedIds.add(id)
+                } else {
+                    result.add(cached)
                 }
             }
-        } else {
-            flow {
-                cacheScheduler.measureNonCache(size) {
-                    emitAll(
-                        delegator.findAllById(ids)
-                            .onEach { storage.add(it) }
-                    )
-                }
+
+            if (notCachedIds.isNotEmpty()) {
+                delegator.findAllById(notCachedIds)
+                    .onEach { storage.add(it) }
+                    .collect { result.add(it) }
             }
+
+            emitAll(
+                result.also {
+                    it.sortWith { p1, p2 ->
+                        val p1Id = id.get(p1)
+                        val p2Id = id.get(p2)
+
+                        ids.indexOf(p1Id) - ids.indexOf(p2Id)
+                    }
+                }.asFlow()
+            )
         }
     }
 
