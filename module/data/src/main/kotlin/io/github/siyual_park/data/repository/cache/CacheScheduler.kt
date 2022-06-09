@@ -15,7 +15,7 @@ class CacheScheduler {
     private val samplingMax = 150L
 
     fun isCacheFaster(size: Int): Boolean {
-        return getSample(size, cacheSamples) <= getSample(size, nonCacheSamples)
+        return getSample(size, cacheSamples) < getSample(size, nonCacheSamples)
     }
 
     private fun getSample(size: Int, sample: List<AtomicLong>): Long {
@@ -23,11 +23,7 @@ class CacheScheduler {
         val (firstValue, fistRate) = firstSample
         val (secondValue, secondRate) = secondSample
 
-        val result = firstValue.get() * fistRate + secondValue.get() + secondRate
-        if (result == 0L) {
-            return Long.MAX_VALUE
-        }
-        return result
+        return (firstValue.get() * fistRate + secondValue.get() + secondRate) * size
     }
 
     fun getSamples(size: Int, sample: List<AtomicLong>): Pair<Pair<AtomicLong, Long>, Pair<AtomicLong, Long>> {
