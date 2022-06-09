@@ -6,16 +6,27 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.max
 
 class CacheScheduler {
     val cacheSamples = List(5) { AtomicLong(0) }
     val nonCacheSamples = List(5) { AtomicLong(0) }
 
+    val cacheSampleUpdatedAt = AtomicLong(0)
+
     private val samplingMin = 1L
     private val samplingMax = 150L
 
+    private val cacheValidDuration = Duration.ofMinutes(1)
+
     fun isCacheFaster(size: Int): Boolean {
-        return getSample(size, cacheSamples) < getSample(size, nonCacheSamples)
+        val now = Instant.now()
+        val updatedAt = Instant.ofEpochSecond(cacheSampleUpdatedAt.get())
+
+        val diff = Duration.between(updatedAt, now)
+        val weight = 1 - max(diff.toMillis().toDouble() / cacheValidDuration.toMillis(), 1.0)
+
+        return getSample(size, cacheSamples) * weight < getSample(size, nonCacheSamples)
     }
 
     private fun getSample(size: Int, sample: List<AtomicLong>): Long {
@@ -46,7 +57,10 @@ class CacheScheduler {
 }
 
 inline fun <T> CacheScheduler.measureCache(size: Int, action: () -> T): T {
-    return measure(size, cacheSamples, action)
+    return measure(size, cacheSamples, action).also {
+        val now = Instant.now()
+        cacheSampleUpdatedAt.set(now.epochSecond)
+    }
 }
 
 inline fun <T> CacheScheduler.measureNonCache(size: Int, action: () -> T): T {
