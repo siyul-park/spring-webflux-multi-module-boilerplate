@@ -4,7 +4,6 @@ import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.springframework.security.access.PermissionEvaluator
 import org.springframework.security.core.Authentication
@@ -42,7 +41,7 @@ class ScopeEvaluator(
                 }
                 )?.map { adjustTargetDomainObject(it) }
 
-            return runBlocking(Dispatchers.IO) { authorizator.authorize(principal, scope, adjustTargetDomainObject) }
+            return runBlocking { authorizator.authorize(principal, scope, adjustTargetDomainObject) }
         } catch (e: Exception) {
             return false
         }
@@ -60,7 +59,7 @@ class ScopeEvaluator(
     private fun getScope(permission: Any?): Any? {
         return when (permission) {
             is String -> {
-                runBlocking(Dispatchers.IO) { scopeTokenStorage.loadOrFail(permission) }
+                runBlocking { scopeTokenStorage.loadOrFail(permission) }
             }
             is Collection<*> -> {
                 permission.map { getScope(it) }.toList()
