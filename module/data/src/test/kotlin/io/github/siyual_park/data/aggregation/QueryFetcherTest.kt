@@ -1,8 +1,5 @@
 package io.github.siyual_park.data.aggregation
 
-import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.cache.InMemoryQueryStorage
-import io.github.siyual_park.data.cache.ReferenceStore
 import io.github.siyual_park.data.cache.SelectQuery
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.dummy.DummyPerson
@@ -14,10 +11,7 @@ import io.github.siyual_park.ulid.ULID
 import io.mockk.coVerify
 import io.mockk.spyk
 import kotlinx.coroutines.flow.toSet
-import kotlinx.coroutines.sync.Mutex
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -28,7 +22,7 @@ class QueryFetcherTest : DataTestHelper() {
     )
 
     private val repository = spyk(R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class).build())
-    private val mutex = Mutex()
+    private val queryAggregator = spyk(QueryAggregator(repository, Person::class))
 
     init {
         migrationManager.register(CreatePerson(entityOperations))
@@ -37,12 +31,14 @@ class QueryFetcherTest : DataTestHelper() {
     @BeforeEach
     override fun setUp() {
         super.setUp()
+
+        blocking {
+            queryAggregator.clear()
+        }
     }
 
     @Test
     fun fetch() = blocking {
-        val links = ReferenceStore<SelectQuery>()
-        val store = spyk(InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() })
 
         val person1 = DummyPerson.create()
             .let { repository.create(it) }
@@ -81,107 +77,32 @@ class QueryFetcherTest : DataTestHelper() {
         )
 
         testCase.forEachIndexed { i, case ->
-            links.clear()
-            store.clear()
+            queryAggregator.clear()
 
-            case.queries.forEach { links.push(it) }
-            val fetchers = case.queries.map { QueryFetcher(it, links, store, repository, Person::class, mutex) }
+            case.queries.forEach { queryAggregator.link(it) }
+            val fetchers = case.queries.map { QueryFetcher(it, queryAggregator) }
 
             fetchers.forEachIndexed { index, queryFetcher ->
                 assertEquals(case.results[index], queryFetcher.fetch().toSet())
             }
 
-            assertEquals(0, store.entries().size)
             coVerify(exactly = i + 1) { repository.findAll(any()) }
         }
     }
 
     @Test
     fun clear() = blocking {
-        val links = ReferenceStore<SelectQuery>()
-        val store = spyk(InMemoryQueryStorage(Person::class) { CacheBuilder.newBuilder() })
-
-        val person1 = DummyPerson.create()
-            .let { repository.create(it) }
-        val person2 = DummyPerson.create()
+        val person = DummyPerson.create()
             .let { repository.create(it) }
 
-        val query1 = SelectQuery(where(Person::name).`is`(person1.name))
-        val query2 = SelectQuery(where(Person::name).`is`(person2.name))
-        val query3 = SelectQuery(where(Person::name).`in`(person1.name, person2.name))
+        val query = SelectQuery(where(Person::name).`is`(person.name))
 
-        links.push(query1)
-        links.push(query2)
-        links.push(query3)
+        queryAggregator.link(query)
 
-        val fetcher1 = QueryFetcher(query1, links, store, repository, Person::class, mutex)
-        val fetcher2 = QueryFetcher(query2, links, store, repository, Person::class, mutex)
-        val fetcher3 = QueryFetcher(query3, links, store, repository, Person::class, mutex)
+        val fetcher = QueryFetcher(query, queryAggregator)
 
-        fetcher1.clear()
+        fetcher.clear()
 
-        assertEquals(0, store.entries().size)
-        assertEquals(2, links.entries().size)
-
-        store.clear()
-        links.clear()
-
-        links.push(query1)
-        links.push(query2)
-        links.push(query3)
-
-        fetcher1.fetchOne()
-
-        assertNotNull(store.getIfPresent(query2))
-        assertNotNull(store.getIfPresent(query3))
-
-        fetcher2.clear()
-
-        assertNull(store.getIfPresent(query2))
-        assertNull(store.getIfPresent(query3))
-
-        assertEquals(2, links.entries().size)
-
-        store.clear()
-        links.clear()
-
-        links.push(query1)
-        links.push(query2)
-        links.push(query3)
-
-        fetcher2.fetchOne()
-
-        assertNotNull(store.getIfPresent(query1))
-        assertNull(store.getIfPresent(query2))
-        assertNotNull(store.getIfPresent(query3))
-
-        fetcher3.clear()
-
-        assertNull(store.getIfPresent(query1))
-        assertNull(store.getIfPresent(query2))
-        assertNull(store.getIfPresent(query3))
-
-        assertEquals(2, links.entries().size)
-
-        store.clear()
-        links.clear()
-
-        links.push(query1)
-        links.push(query2)
-        links.push(query3)
-
-        fetcher3.fetchOne()
-
-        assertNotNull(store.getIfPresent(query1))
-        assertNotNull(store.getIfPresent(query2))
-        assertNull(store.getIfPresent(query3))
-
-        fetcher1.clear()
-
-        assertNotNull(store.getIfPresent(query2))
-        assertNull(store.getIfPresent(query1))
-        assertNull(store.getIfPresent(query3))
-
-        assertEquals(2, links.entries().size)
+        coVerify(exactly = 1) { queryAggregator.clear(query) }
     }
 }

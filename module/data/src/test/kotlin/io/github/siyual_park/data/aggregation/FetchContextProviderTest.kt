@@ -1,6 +1,5 @@
 package io.github.siyual_park.data.aggregation
 
-import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
@@ -16,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class FetchContextProviderTest : DataTestHelper() {
     private val repository = spyk(R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class).build())
-    private val contextProvider = FetchContextProvider { CacheBuilder.newBuilder() }
+    private val contextProvider = FetchContextProvider()
 
     init {
         migrationManager.register(CreatePerson(entityOperations))

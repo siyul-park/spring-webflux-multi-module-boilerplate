@@ -67,11 +67,10 @@ class ClientController(
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasPermission(null, 'clients:create')")
     suspend fun create(
         @Valid @RequestBody request: CreateClientRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ClientDetailInfo {
+    ): ClientDetailInfo = authorizator.withAuthorize(listOf("clients:create")) {
         val projectionNode = projectionParser.parse(fields)
         val payload = CreateClientPayload(
             name = request.name,
@@ -79,13 +78,12 @@ class ClientController(
             origin = request.origin
         )
         val client = clientFactory.create(payload)
-        return mapperContext.map(Projection(client, projectionNode))
+        mapperContext.map(Projection(client, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'clients:read')")
     suspend fun readAll(
         @RequestParam("id", required = false) id: String? = null,
         @RequestParam("name", required = false) name: String? = null,
@@ -97,7 +95,7 @@ class ClientController(
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): OffsetPage<ClientInfo> {
+    ): OffsetPage<ClientInfo> = authorizator.withAuthorize(listOf("clients:read")) {
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
@@ -117,20 +115,19 @@ class ClientController(
             page = page
         )
 
-        return offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
+        offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/{client-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission({null, #clientId}, {'clients:read', 'clients[self]:read'})")
     suspend fun read(
         @PathVariable("client-id") clientId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ClientInfo {
+    ): ClientInfo = authorizator.withAuthorize(listOf("clients:read", "clients[self]:read"), listOf(null, clientId)) {
         val projectionNode = projectionParser.parse(fields)
         val client = clientStorage.loadOrFail(clientId)
-        return mapperContext.map(Projection(client, projectionNode))
+        mapperContext.map(Projection(client, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
@@ -141,32 +138,33 @@ class ClientController(
         @PathVariable("client-id") clientId: ULID,
         @Valid @RequestBody request: UpdateClientRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ClientInfo = operator.executeAndAwait {
-        val projectionNode = projectionParser.parse(fields)
-        val client = clientStorage.loadOrFail(clientId)
+    ): ClientInfo = authorizator.withAuthorize(listOf("clients:update", "clients[self]:update"), listOf(null, clientId)) {
+        operator.executeAndAwait {
+            val projectionNode = projectionParser.parse(fields)
+            val client = clientStorage.loadOrFail(clientId)
 
-        request.scope?.let {
-            if (it.isPresent) {
-                syncScope(client, it.get().let { scopeTokenStorage.load(it) }.toSet())
-            } else {
-                val existsScope = client.getScope(deep = false).toSet()
-                existsScope.forEach { client.revoke(it) }
+            request.scope?.let {
+                if (it.isPresent) {
+                    syncScope(client, it.get().let { scopeTokenStorage.load(it) }.toSet())
+                } else {
+                    val existsScope = client.getScope(deep = false).toSet()
+                    existsScope.forEach { client.revoke(it) }
+                }
             }
-        }
 
-        val patch = PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null))
-        patch.apply(client).sync()
+            val patch = PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null))
+            patch.apply(client).sync()
 
-        mapperContext.map(Projection(client, projectionNode))
-    }!!
+            mapperContext.map(Projection(client, projectionNode))
+        }!!
+    }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @DeleteMapping("/{client-id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasPermission({null, #clientId}, {'clients:delete', 'clients[self]:delete'})")
     suspend fun delete(
         @PathVariable("client-id") clientId: ULID,
-    ) {
+    ) = authorizator.withAuthorize(listOf("clients:delete", "clients[self]:delete"), listOf(null, clientId)) {
         val client = clientStorage.loadOrFail(clientId)
         client.clear()
     }

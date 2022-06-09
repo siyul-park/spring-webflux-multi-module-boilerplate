@@ -41,23 +41,17 @@ class CachedQueryRepository<T : Any, ID : Any>(
     }
 
     override suspend fun exists(criteria: Criteria): Boolean {
-        val fallback = suspend { delegator.exists(criteria) }
-        val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
-
-        return if (storage.getIfPresent(indexName, value) != null) {
-            true
-        } else {
-            fallback()
-        }
+        return getUniqueIndexNameAndValue(criteria)
+            ?.let { (indexName, value) -> storage.getIfPresent(indexName, value) }
+            ?.let { true }
+            ?: delegator.exists(criteria)
     }
 
     override suspend fun findOne(criteria: Criteria): T? {
-        val fallback = suspend {
+        val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return kotlin.run {
             delegator.findOne(criteria)
                 ?.also { storage.add(it) }
         }
-
-        val (indexName, value) = getUniqueIndexNameAndValue(criteria) ?: return fallback()
         return storage.getIfPresent(indexName, value) { delegator.findOne(criteria) }
     }
 
@@ -67,11 +61,6 @@ class CachedQueryRepository<T : Any, ID : Any>(
         }
 
         return flow {
-            val fallback = {
-                delegator.findAll(criteria, limit, offset, sort)
-                    .onEach { storage.add(it) }
-            }
-
             if (criteria != null && (offset == null || offset == 0L)) {
                 val indexNameAndValue = getUniqueIndexNameAndValue(criteria)
                 if (indexNameAndValue != null) {
@@ -110,7 +99,10 @@ class CachedQueryRepository<T : Any, ID : Any>(
                 }
             }
 
-            return@flow emitAll(fallback())
+            return@flow emitAll(
+                delegator.findAll(criteria, limit, offset, sort)
+                    .onEach { storage.add(it) }
+            )
         }
     }
 

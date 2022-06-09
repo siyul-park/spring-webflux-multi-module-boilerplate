@@ -1,6 +1,5 @@
 package io.github.siyual_park.auth.domain.authorization
 
-import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.getPrincipal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
@@ -8,22 +7,14 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.exception.PrincipalIdNotExistsException
 import io.github.siyual_park.auth.exception.RequiredPermissionException
-import io.github.siyual_park.data.cache.CacheProvider
 import org.springframework.stereotype.Component
-import java.time.Duration
 
 @Suppress("UNCHECKED_CAST")
 @Component
 class Authorizator(
-    private val scopeTokenStorage: ScopeTokenStorage,
-    cacheBuilder: CacheBuilder<Any, Any> = CacheBuilder.newBuilder()
-        .softValues()
-        .expireAfterAccess(Duration.ofMinutes(1))
-        .expireAfterWrite(Duration.ofMinutes(2))
-        .maximumSize(10_000)
+    private val scopeTokenStorage: ScopeTokenStorage
 ) {
     private val strategies = mutableListOf<Pair<AuthorizeFilter, AuthorizeStrategy>>()
-    private val cacheProvider = CacheProvider<ArrayList<Any?>, Boolean>(cacheBuilder)
 
     fun register(filter: AuthorizeFilter, strategy: AuthorizeStrategy): Authorizator {
         strategies.add(filter to strategy)
@@ -113,24 +104,9 @@ class Authorizator(
         scopeToken: ScopeToken,
         targetDomainObject: Any? = null
     ): Boolean {
-        val key = cacheKey(principal, scopeToken, targetDomainObject)
-        return cacheProvider.get(key) {
-            strategies.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
-                .map { (_, evaluator) -> evaluator }
-                .all { it.authorize(principal, scopeToken, targetDomainObject) }
-        }
-    }
-
-    private fun cacheKey(
-        principal: Principal,
-        scopeToken: ScopeToken,
-        targetDomainObject: Any? = null
-    ): ArrayList<Any?> {
-        return ArrayList<Any?>().apply {
-            add(principal)
-            add(scopeToken.raw().id)
-            add(targetDomainObject)
-        }
+        return strategies.filter { (filter, _) -> filter.isSubscribe(principal, scopeToken) }
+            .map { (_, evaluator) -> evaluator }
+            .all { it.authorize(principal, scopeToken, targetDomainObject) }
     }
 }
 

@@ -1,6 +1,5 @@
 package io.github.siyual_park.client.domain
 
-import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
@@ -12,7 +11,6 @@ import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
-import java.time.Duration
 
 @Component
 class ClientsMapper(
@@ -27,12 +25,7 @@ class ClientsMapper(
     override val targetType = object : TypeReference<Collection<Client>>() {}
 
     override suspend fun map(source: Collection<ClientData>): Collection<Client> {
-        val fetchContextProvider = FetchContextProvider {
-            CacheBuilder.newBuilder()
-                .weakKeys()
-                .expireAfterWrite(Duration.ofSeconds(1))
-                .maximumSize(500)
-        }
+        val fetchContextProvider = FetchContextProvider()
 
         return source.map {
             Client(
