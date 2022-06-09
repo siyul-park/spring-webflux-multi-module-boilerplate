@@ -35,6 +35,7 @@ class ClientBasedCorsConfigurationSource(
                 }
 
                 val client = principal.clientId?.let { clientStorage.load(it) } ?: return@mono null
+
                 CorsConfiguration()
                     .apply {
                         allowedOrigins = listOf(client.origin.toString())

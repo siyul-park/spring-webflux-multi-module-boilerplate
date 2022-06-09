@@ -19,7 +19,9 @@ class CorsWebFilter(
                 val isValid = processor.process(corsConfiguration, exchange)
                 if (!isValid || CorsUtils.isPreFlightRequest(request)) {
                     Mono.empty()
-                } else chain.filter(exchange)
+                } else {
+                    chain.filter(exchange)
+                }
             }
     }
 }

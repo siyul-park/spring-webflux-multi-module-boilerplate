@@ -42,6 +42,7 @@ class SecurityConfiguration(
         val corsFilter = corsSpec.getCorsFilter()
 
         return httpSecurity
+            .cors().disable()
             .apply {
                 corsFilter?.let { addFilterAt(it, SecurityWebFiltersOrder.CORS) }
             }
