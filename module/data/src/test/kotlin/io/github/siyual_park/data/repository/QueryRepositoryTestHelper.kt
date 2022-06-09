@@ -60,7 +60,7 @@ abstract class QueryRepositoryTestHelper(
             .let { personRepository.create(it) }
         val foundPersons = personRepository.findAll(where(Person::name).`in`(person.name)).toList()
 
-        assertEquals(foundPersons.size, 1)
+        assertEquals(1, foundPersons.size)
         assertEquals(person.id, foundPersons[0].id)
         assertNotNull(foundPersons[0].createdAt)
         assertNotNull(foundPersons[0].updatedAt)

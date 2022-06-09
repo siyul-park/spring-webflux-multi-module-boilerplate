@@ -12,7 +12,7 @@ import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.ulid.jackson.ULIDModule
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import org.redisson.api.RedissonReactiveClient
+import org.redisson.api.RedissonClient
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import java.time.Duration
 
@@ -45,7 +45,7 @@ class RedisCacheRepositoryTest : QueryRepositoryTestHelper(
         private val redisHelper = RedisTestHelper()
         private val mongoHelper = MongoTestHelper()
 
-        val redisClient: RedissonReactiveClient
+        val redisClient: RedissonClient
             get() = redisHelper.redisClient
         val mongoTemplate: ReactiveMongoTemplate
             get() = mongoHelper.mongoTemplate

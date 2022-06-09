@@ -1,5 +1,6 @@
 package io.github.siyual_park.client.repository
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.data.criteria.where
@@ -8,6 +9,7 @@ import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
+import org.redisson.api.RedissonClient
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
@@ -16,9 +18,13 @@ import java.time.Duration
 @Repository
 class ClientCredentialRepository(
     entityOperations: R2dbcEntityOperations,
+    objectMapper: ObjectMapper? = null,
+    redisClient: RedissonClient? = null,
     eventPublisher: EventPublisher? = null
 ) : QueryRepository<ClientCredentialData, Long> by R2DBCRepositoryBuilder<ClientCredentialData, Long>(entityOperations, ClientCredentialData::class)
     .enableEvent(eventPublisher)
+    .enableJsonMapping(objectMapper)
+    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 10_000)
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()

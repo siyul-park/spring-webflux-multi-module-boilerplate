@@ -55,7 +55,9 @@ class SimpleCachedRepository<T : Any, ID : Any>(
     }
 
     override suspend fun findById(id: ID): T? {
-        return storage.getIfPresent(id) { delegator.findById(id) }
+        return storage.getIfPresent(id) {
+            delegator.findById(id)
+        }
     }
 
     override fun findAll(): Flow<T> {
@@ -71,6 +73,7 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         return flow {
             val result = mutableListOf<T>()
             val notCachedIds = mutableListOf<ID>()
+
             ids.forEach { id ->
                 val cached = storage.getIfPresent(id)
                 if (cached == null) {
