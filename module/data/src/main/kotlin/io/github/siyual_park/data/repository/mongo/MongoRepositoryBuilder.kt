@@ -18,6 +18,7 @@ import io.github.siyual_park.event.EventPublisher
 import org.redisson.api.RedissonClient
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import java.time.Duration
+import java.time.Instant
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
@@ -29,7 +30,7 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
     private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
 
     private var redisClient: RedissonClient? = null
-    private var ttl: Duration? = null
+    private var expiredAt: WeekProperty<T, Instant?>? = null
     private var size: Int? = null
 
     private var objectMapper: ObjectMapper? = null
@@ -49,9 +50,9 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    fun enableCache(redisClient: RedissonClient?, ttl: Duration?, size: Int?): MongoRepositoryBuilder<T, ID> {
+    fun enableCache(redisClient: RedissonClient?, expiredAt: WeekProperty<T, Instant?>?, size: Int?): MongoRepositoryBuilder<T, ID> {
         this.redisClient = redisClient
-        this.ttl = ttl
+        this.expiredAt = expiredAt
         this.size = size
         return this
     }
@@ -76,10 +77,10 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
                             RedisStorage(
                                 redisClient,
                                 name = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, clazz.simpleName ?: ""),
-                                ttl = ttl ?: Duration.ofMinutes(1),
                                 size = size ?: 1000,
                                 objectMapper = objectMapper ?: jacksonObjectMapper(),
                                 id = idProperty,
+                                expiredAt = expiredAt ?: WeekProperty { Instant.now().plus(Duration.ofMinutes(1)) },
                                 keyClass = idProperty<T, ID?>(clazz).returnType.classifier as KClass<ID>,
                                 valueClass = clazz,
                             ),
@@ -101,10 +102,6 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
 
     private fun createIdProperty(): WeekProperty<T, ID?> {
         val idProperty = idProperty<T, ID?>(clazz)
-        return object : WeekProperty<T, ID?> {
-            override fun get(entity: T): ID? {
-                return idProperty.get(entity)
-            }
-        }
+        return WeekProperty { entity -> idProperty.get(entity) }
     }
 }

@@ -21,6 +21,7 @@ import io.github.siyual_park.event.EventPublisher
 import org.redisson.api.RedissonClient
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import java.time.Duration
+import java.time.Instant
 import kotlin.reflect.KClass
 
 class R2DBCRepositoryBuilder<T : Any, ID : Any>(
@@ -34,7 +35,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     private var queryCacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
 
     private var redisClient: RedissonClient? = null
-    private var ttl: Duration? = null
+    private var expiredAt: WeekProperty<T, Instant?>? = null
     private var size: Int? = null
 
     private var objectMapper: ObjectMapper? = null
@@ -54,9 +55,9 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    fun enableCache(redisClient: RedissonClient?, ttl: Duration?, size: Int?): R2DBCRepositoryBuilder<T, ID> {
+    fun enableCache(redisClient: RedissonClient?, expiredAt: WeekProperty<T, Instant?>?, size: Int?): R2DBCRepositoryBuilder<T, ID> {
         this.redisClient = redisClient
-        this.ttl = ttl
+        this.expiredAt = expiredAt
         this.size = size
         return this
     }
@@ -86,10 +87,10 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
                             RedisStorage(
                                 redisClient,
                                 name = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, clazz.simpleName ?: ""),
-                                ttl = ttl ?: Duration.ofMinutes(1),
                                 size = size ?: 1000,
                                 objectMapper = objectMapper ?: jacksonObjectMapper(),
                                 id = idProperty,
+                                expiredAt = expiredAt ?: WeekProperty { Instant.now().plus(Duration.ofMinutes(1)) },
                                 keyClass = entityManager.getIdProperty().returnType.classifier as KClass<ID>,
                                 valueClass = clazz,
                             ),
@@ -119,9 +120,5 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         }
     }
 
-    private fun createIdProperty() = object : WeekProperty<T, ID?> {
-        override fun get(entity: T): ID? {
-            return entityManager.getId(entity)
-        }
-    }
+    private fun createIdProperty() = WeekProperty<T, ID?> { entity -> entityManager.getId(entity) }
 }

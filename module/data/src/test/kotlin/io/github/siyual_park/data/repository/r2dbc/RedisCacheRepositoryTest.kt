@@ -13,6 +13,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.redisson.api.RedissonClient
 import java.time.Duration
+import java.time.Instant
 
 class RedisCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
     repositories = {
@@ -24,7 +25,7 @@ class RedisCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
                         registerModule(InstantEpochTimeModule())
                     }
                 )
-                .enableCache(redisClient, ttl = Duration.ofMinutes(10), size = 1000)
+                .enableCache(redisClient, expiredAt = { Instant.now().plus(Duration.ofMinutes(30)) }, size = 1000)
                 .enableCache {
                     CacheBuilder.newBuilder()
                         .softValues()

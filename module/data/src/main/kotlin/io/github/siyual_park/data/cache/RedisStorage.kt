@@ -4,9 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import io.github.siyual_park.data.WeekProperty
 import kotlinx.coroutines.future.asDeferred
-import kotlinx.coroutines.future.await
 import org.redisson.api.RedissonClient
+import java.lang.Long.max
 import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
@@ -14,10 +15,10 @@ import kotlin.reflect.KClass
 class RedisStorage<ID : Any, T : Any>(
     redisClient: RedissonClient,
     name: String,
-    private val ttl: Duration,
     size: Int,
     private val objectMapper: ObjectMapper,
     private val id: WeekProperty<T, ID?>,
+    private val expiredAt: WeekProperty<T, Instant?>,
     private val keyClass: KClass<ID>,
     private val valueClass: KClass<T>,
 ) : Storage<ID, T> {
@@ -86,7 +87,9 @@ class RedisStorage<ID : Any, T : Any>(
             values[writeKey(key, property.get(entity))] = writeValue(id)
         }
 
-        store.putAllAsync(values, ttl.toSeconds(), TimeUnit.SECONDS).asDeferred().await()
+        val expiredAt = expiredAt.get(entity)
+        val now = Instant.now()
+        store.putAllAsync(values, max(Duration.between(now, expiredAt).toSeconds(), 0L), TimeUnit.SECONDS).asDeferred().await()
     }
 
     override suspend fun entries(): Set<Pair<ID, T>> {

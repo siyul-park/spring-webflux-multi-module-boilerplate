@@ -1,7 +1,6 @@
 package io.github.siyual_park.data.cache
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.test.RedisTestHelper
 import io.github.siyual_park.ulid.ULID
@@ -10,14 +9,10 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.redisson.api.RedissonClient
 import java.time.Duration
+import java.time.Instant
 
 class RedisStorageTest : StorageTestHelper(
     run {
-        val idProperty = object : WeekProperty<Person, ULID?> {
-            override fun get(entity: Person): ULID {
-                return entity.id
-            }
-        }
         val objectMapper = jacksonObjectMapper().apply {
             registerModule(ULIDModule())
         }
@@ -25,10 +20,10 @@ class RedisStorageTest : StorageTestHelper(
         RedisStorage(
             redisClient,
             name = "test",
-            ttl = Duration.ofMinutes(30),
             size = 1000,
             objectMapper = objectMapper,
-            id = idProperty,
+            id = { it.id },
+            expiredAt = { Instant.now().plus(Duration.ofMinutes(30)) },
             keyClass = ULID::class,
             valueClass = Person::class,
         )

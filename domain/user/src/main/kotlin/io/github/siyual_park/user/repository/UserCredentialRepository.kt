@@ -13,6 +13,7 @@ import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 import java.time.Duration
+import java.time.Instant
 
 @Repository
 class UserCredentialRepository(
@@ -23,7 +24,7 @@ class UserCredentialRepository(
 ) : QueryRepository<UserCredentialData, Long> by R2DBCRepositoryBuilder<UserCredentialData, Long>(entityOperations, UserCredentialData::class)
     .enableEvent(eventPublisher)
     .enableJsonMapping(objectMapper)
-    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 100_000)
+    .enableCache(redisClient, expiredAt = { Instant.now().plus(Duration.ofHours(1)) }, size = 100_000)
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()

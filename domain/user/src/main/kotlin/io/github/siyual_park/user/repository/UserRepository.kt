@@ -11,6 +11,7 @@ import org.redisson.api.RedissonClient
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 import java.time.Duration
+import java.time.Instant
 
 @Repository
 class UserRepository(
@@ -21,7 +22,7 @@ class UserRepository(
 ) : QueryRepository<UserData, ULID> by R2DBCRepositoryBuilder<UserData, ULID>(entityOperations, UserData::class)
     .enableEvent(eventPublisher)
     .enableJsonMapping(objectMapper)
-    .enableCache(redisClient, ttl = Duration.ofHours(1), size = 100_000)
+    .enableCache(redisClient, expiredAt = { Instant.now().plus(Duration.ofHours(1)) }, size = 100_000)
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()

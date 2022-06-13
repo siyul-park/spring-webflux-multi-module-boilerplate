@@ -11,14 +11,11 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.redisson.api.RedissonClient
 import java.time.Duration
+import java.time.Instant
 
 class MultiLevelNestedStorageTest : NestedStorageTestHelper(
     run {
-        val idProperty = object : WeekProperty<Person, ULID?> {
-            override fun get(entity: Person): ULID {
-                return entity.id
-            }
-        }
+        val idProperty = WeekProperty<Person, ULID?> { entity -> entity.id }
         val objectMapper = jacksonObjectMapper().apply {
             registerModule(ULIDModule())
         }
@@ -27,10 +24,10 @@ class MultiLevelNestedStorageTest : NestedStorageTestHelper(
             RedisStorage(
                 redisClient,
                 name = "test",
-                ttl = Duration.ofMinutes(30),
                 size = 1000,
                 objectMapper = objectMapper,
                 id = idProperty,
+                expiredAt = { Instant.now().plus(Duration.ofMinutes(30)) },
                 keyClass = ULID::class,
                 valueClass = Person::class,
             ),
