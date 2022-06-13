@@ -139,13 +139,15 @@ allprojects {
         }
     }
 
+    java {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
     tasks.withType<Copy> {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
-        sourceCompatibility = JavaVersion.VERSION_11.toString()
-        targetCompatibility = JavaVersion.VERSION_11.toString()
-
         kotlinOptions {
             freeCompilerArgs = listOf(
                 "-Xjsr305=strict",
