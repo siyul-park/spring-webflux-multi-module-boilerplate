@@ -175,7 +175,7 @@ class UserTest : UserTestHelper() {
             .let { userFactory.create(it) }
         val principal = user.toPrincipal()
 
-        assertEquals(user.id.toString(), principal.id)
+        assertEquals(user.id, principal.id)
         assertEquals(user.id, principal.userId)
         assertEquals(user.getScope(deep = true).toSet(), principal.scope)
     }

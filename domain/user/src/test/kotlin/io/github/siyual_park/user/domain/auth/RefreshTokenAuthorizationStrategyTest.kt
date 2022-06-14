@@ -42,7 +42,7 @@ class RefreshTokenAuthorizationStrategyTest : UserTestHelper() {
         val token = tokenFactory.create(principal, Duration.ofMinutes(30))
 
         assertEquals(
-            principal,
+            principal.copy(id = token.id),
             refreshTokenAuthorizationStrategy.authenticate(RefreshTokenPayload(token.signature))
         )
     }
