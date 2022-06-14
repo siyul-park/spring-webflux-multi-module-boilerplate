@@ -16,6 +16,7 @@ import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.event.EventEmitter
+import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.util.username
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.AfterAll
@@ -30,7 +31,7 @@ import java.time.Duration
 
 class TokenTest : DataTestHelper() {
     internal class TestPrincipal(
-        override val id: String,
+        override val id: ULID,
         override var scope: Set<ScopeToken>
     ) : Principal
 
@@ -78,7 +79,7 @@ class TokenTest : DataTestHelper() {
     fun create() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val principal = TestPrincipal(faker.name().username(10), setOf(scopeToken))
+        val principal = TestPrincipal(ULID.randomULID(), setOf(scopeToken))
 
         val template = TokenTemplate(
             type = "test",
@@ -98,7 +99,7 @@ class TokenTest : DataTestHelper() {
 
     @Test
     fun setGet() = blocking {
-        val principal = TestPrincipal(faker.name().username(10), setOf())
+        val principal = TestPrincipal(ULID.randomULID(), setOf())
 
         val template = TokenTemplate(
             type = "test",
@@ -124,7 +125,7 @@ class TokenTest : DataTestHelper() {
     fun getScope() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val principal = TestPrincipal(faker.name().username(10), setOf(scopeToken))
+        val principal = TestPrincipal(ULID.randomULID(), setOf(scopeToken))
 
         val template = TokenTemplate(
             type = "test",
@@ -149,7 +150,7 @@ class TokenTest : DataTestHelper() {
     fun grant() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val principal = TestPrincipal(faker.name().username(10), setOf())
+        val principal = TestPrincipal(ULID.randomULID(), setOf())
 
         val template = TokenTemplate(
             type = "test",
@@ -172,7 +173,7 @@ class TokenTest : DataTestHelper() {
     fun revoke() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val principal = TestPrincipal(faker.name().username(10), setOf(scopeToken))
+        val principal = TestPrincipal(ULID.randomULID(), setOf(scopeToken))
 
         val template = TokenTemplate(
             type = "test",
