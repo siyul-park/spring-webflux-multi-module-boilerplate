@@ -18,7 +18,7 @@ class UserPrincipalRefreshStrategyTest : UserTestHelper() {
 
         val user = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
-        val principal = UserPrincipal(id = user.id.toString(), scope = setOf())
+        val principal = UserPrincipal(userId = user.id, scope = setOf())
 
         val refreshed = userPrincipalRefreshStrategy.refresh(principal)
 

@@ -19,6 +19,7 @@ class UserPrincipalRefreshStrategy(
 
         return UserPrincipal(
             id = principal.id,
+            userId = principal.userId,
             clientId = principal.clientId,
             scope = userScope
         )

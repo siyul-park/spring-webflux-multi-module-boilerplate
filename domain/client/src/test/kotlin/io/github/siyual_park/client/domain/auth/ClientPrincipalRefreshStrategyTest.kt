@@ -18,7 +18,7 @@ class ClientPrincipalRefreshStrategyTest : ClientTestHelper() {
 
         val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val principal = ClientPrincipal(id = client.id.toString(), scope = setOf())
+        val principal = ClientPrincipal(clientId = client.id, scope = setOf())
 
         val refreshed = clientPrincipalRefreshStrategy.refresh(principal)
 

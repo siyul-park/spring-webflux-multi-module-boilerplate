@@ -8,6 +8,7 @@ import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserFactory
 import kotlinx.coroutines.reactive.awaitSingle
@@ -240,7 +241,7 @@ class AuthControllerTest @Autowired constructor(
 
         val principalInfo = response.responseBody.awaitSingle()
 
-        assertEquals(principal.id, principalInfo.id?.orElse(null))
+        assertEquals(principal.clientId, principalInfo.claims?.orElse(null)?.get("cid")?.let { ULID.fromString(it.toString()) })
         assertEquals("client_principal", principalInfo.type?.orElse(null))
         assertTrue(principalInfo.claims?.orElse(null)?.get("cid") == principal.clientId.toString())
     }
@@ -276,7 +277,8 @@ class AuthControllerTest @Autowired constructor(
 
         val principalInfo = response.responseBody.awaitSingle()
 
-        assertEquals(principal.id, principalInfo.id?.orElse(null))
+        assertEquals(principal.userId, principalInfo.claims?.orElse(null)?.get("uid")?.let { ULID.fromString(it.toString()) })
+        assertEquals(principal.clientId, principalInfo.claims?.orElse(null)?.get("cid")?.let { ULID.fromString(it.toString()) })
         assertEquals("user_principal", principalInfo.type?.orElse(null))
     }
 

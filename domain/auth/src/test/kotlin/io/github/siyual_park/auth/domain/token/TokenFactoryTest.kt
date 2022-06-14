@@ -1,6 +1,5 @@
 package io.github.siyual_park.auth.domain.token
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.MockCreateScopeTokenPayloadFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
@@ -16,7 +15,7 @@ import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.event.EventEmitter
-import io.github.siyual_park.util.username
+import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -28,7 +27,7 @@ import java.time.Instant
 
 class TokenFactoryTest : DataTestHelper() {
     internal class TestPrincipal(
-        override val id: String,
+        override val id: ULID,
         override var scope: Set<ScopeToken>
     ) : Principal
 
@@ -40,8 +39,6 @@ class TokenFactoryTest : DataTestHelper() {
             )
         }
     }
-
-    private val faker = Faker()
 
     private val eventEmitter = EventEmitter()
 
@@ -76,7 +73,7 @@ class TokenFactoryTest : DataTestHelper() {
     fun create() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
             .let { scopeTokenFactory.create(it) }
-        val principal = TestPrincipal(faker.name().username(10), setOf(scopeToken))
+        val principal = TestPrincipal(ULID.randomULID(), setOf(scopeToken))
 
         val template = TokenTemplate(
             type = "test",

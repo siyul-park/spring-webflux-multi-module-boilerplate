@@ -25,7 +25,8 @@ class RefreshTokenAuthorizationStrategy(
         }
 
         return UserPrincipal(
-            id = token["uid"].toString(),
+            id = token.id,
+            userId = ULID.fromString(token["uid"].toString()),
             clientId = token["cid"]?.toString()?.let { ULID.fromString(it) },
             scope = token.getScope(deep = true).toSet()
         )

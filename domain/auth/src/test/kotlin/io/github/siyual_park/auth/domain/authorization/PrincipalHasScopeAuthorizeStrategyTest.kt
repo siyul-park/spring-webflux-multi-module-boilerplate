@@ -11,6 +11,7 @@ import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.event.EventEmitter
+import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -44,11 +45,11 @@ class PrincipalHasScopeAuthorizeStrategyTest : DataTestHelper() {
             .let { scopeTokenFactory.create(it) }
 
         val principal1 = object : Principal {
-            override val id: String = ""
+            override val id = ULID.randomULID()
             override var scope: Set<ScopeToken> = setOf(scopeToken)
         }
         val principal2 = object : Principal {
-            override val id: String = ""
+            override val id = ULID.randomULID()
             override var scope: Set<ScopeToken> = emptySet()
         }
 

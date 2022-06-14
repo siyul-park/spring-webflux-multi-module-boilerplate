@@ -7,9 +7,8 @@ import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.entity.UserEntity
 
 data class UserPrincipal(
-    override val id: String,
+    override val id: ULID = ULID.randomULID(),
+    override val userId: ULID,
     override val clientId: ULID? = null,
     override var scope: Set<ScopeToken>,
-) : Principal, UserEntity, ClientEntity {
-    override val userId = ULID.fromString(id)
-}
+) : Principal, UserEntity, ClientEntity

@@ -20,6 +20,7 @@ class ClientPrincipalRefreshStrategy(
 
         return ClientPrincipal(
             id = principal.id,
+            clientId = principal.clientId,
             scope = clientScope
         )
     }

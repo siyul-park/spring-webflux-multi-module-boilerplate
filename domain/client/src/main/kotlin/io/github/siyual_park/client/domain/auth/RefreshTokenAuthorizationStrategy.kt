@@ -4,6 +4,7 @@ import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
 import io.github.siyual_park.auth.domain.authentication.AuthenticateStrategy
 import io.github.siyual_park.auth.domain.authentication.RefreshTokenPayload
 import io.github.siyual_park.auth.domain.token.TokenStorage
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.toSet
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
@@ -24,7 +25,8 @@ class RefreshTokenAuthorizationStrategy(
         }
 
         return ClientPrincipal(
-            id = token["cid"].toString(),
+            id = token.id,
+            clientId = ULID.fromString(token["cid"].toString()),
             scope = token.getScope(deep = true).toSet()
         )
     }

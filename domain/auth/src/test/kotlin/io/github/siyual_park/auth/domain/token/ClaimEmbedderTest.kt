@@ -1,16 +1,15 @@
 package io.github.siyual_park.auth.domain.token
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.data.test.DataTestHelper
-import io.github.siyual_park.util.username
+import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class ClaimEmbedderTest : DataTestHelper() {
     internal class TestPrincipal(
-        override val id: String,
+        override val id: ULID,
         override var scope: Set<ScopeToken>
     ) : Principal
 
@@ -24,13 +23,11 @@ class ClaimEmbedderTest : DataTestHelper() {
         }
     }
 
-    private val faker = Faker()
-
     private val claimEmbedder = ClaimEmbedder()
 
     @Test
     fun embedding() = blocking {
-        val principal = TestPrincipal(faker.name().username(19), emptySet())
+        val principal = TestPrincipal(ULID.randomULID(), emptySet())
 
         claimEmbedder.register(TypeMatchClaimFilter(TestPrincipal::class), TestClaimEmbeddingStrategy())
 

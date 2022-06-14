@@ -160,7 +160,8 @@ class Client(
         scope.addAll(push.toList())
 
         return ClientPrincipal(
-            id = clientId.toString(),
+            id = id,
+            clientId = clientId,
             scope = scope.toSet()
         )
     }

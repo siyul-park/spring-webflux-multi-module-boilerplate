@@ -165,7 +165,7 @@ class ClientTest : ClientTestHelper() {
             .let { clientFactory.create(it) }
         val principal = client.toPrincipal()
 
-        assertEquals(client.id.toString(), principal.id)
+        assertEquals(client.id, principal.id)
         assertEquals(client.id, principal.clientId)
         assertEquals(client.getScope(deep = true).toSet(), principal.scope)
     }

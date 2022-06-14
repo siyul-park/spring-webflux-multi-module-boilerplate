@@ -6,6 +6,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.exception.AuthorizeException
 import io.github.siyual_park.auth.exception.UnauthorizatedException
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -20,7 +21,7 @@ class AuthenticatorTest : CoroutineTestHelper() {
             }
 
             return object : Principal {
-                override val id = ""
+                override val id = ULID.randomULID()
                 override var scope = emptySet<ScopeToken>()
             }
         }

@@ -7,6 +7,7 @@ import io.github.siyual_park.auth.domain.authentication.AuthorizationStrategy
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.exception.AuthorizeException
 import io.github.siyual_park.data.test.DataTestHelper
+import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -25,7 +26,7 @@ class AuthenticationManagerTest : DataTestHelper() {
             }
 
             return object : Principal {
-                override val id = ""
+                override val id = ULID.randomULID()
                 override var scope = emptySet<ScopeToken>()
             }
         }

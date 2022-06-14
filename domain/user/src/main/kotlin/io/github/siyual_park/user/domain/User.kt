@@ -147,7 +147,8 @@ class User(
         scope.addAll(push.toList())
 
         return UserPrincipal(
-            id = userId.toString(),
+            id = id,
+            userId = userId,
             clientId = clientEntity?.clientId,
             scope = scope.toSet()
         )

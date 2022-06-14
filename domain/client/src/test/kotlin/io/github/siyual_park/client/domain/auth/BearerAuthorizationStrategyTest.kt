@@ -44,6 +44,6 @@ class BearerAuthorizationStrategyTest : ClientTestHelper() {
         val token = tokenFactory.create(principal, Duration.ofMinutes(30))
 
         assertNull(bearerAuthorizationStrategy.authenticate(AuthorizationPayload("invalid", token.signature)))
-        assertEquals(principal, bearerAuthorizationStrategy.authenticate(AuthorizationPayload("bearer", token.signature)))
+        assertEquals(principal.copy(id = token.id), bearerAuthorizationStrategy.authenticate(AuthorizationPayload("bearer", token.signature)))
     }
 }

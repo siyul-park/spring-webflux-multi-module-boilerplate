@@ -10,7 +10,7 @@ class AuthenticationAdapter(
     private val authorities = principal.scope.map { GrantedAuthorityAdapter(it) }
 
     override fun getName(): String {
-        return principal.id
+        return principal.id.toString()
     }
 
     override fun getAuthorities(): List<GrantedAuthorityAdapter> {

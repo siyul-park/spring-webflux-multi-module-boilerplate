@@ -14,6 +14,7 @@ import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.event.EventEmitter
+import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -21,7 +22,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 class ScopeEvaluatorTest : DataTestHelper() {
     internal class TestPrincipal(
-        override val id: String,
+        override val id: ULID,
         override var scope: Set<ScopeToken>
     ) : Principal
 
@@ -61,7 +62,7 @@ class ScopeEvaluatorTest : DataTestHelper() {
             .let { scopeTokenFactory.create(it) }
 
         val principal = TestPrincipal(
-            "",
+            ULID.randomULID(),
             setOf(scopeToken1)
         )
 
