@@ -24,7 +24,7 @@ class RedisStorage<ID : Any, T : Any>(
 ) : Storage<ID, T> {
 
     private val properties = Maps.newConcurrentMap<String, WeekProperty<T, *>>()
-    private val store = redisClient.getMapCache<String, ByteArray>(name)
+    private val store = redisClient.getMapCache<String, String>(name)
 
     init {
         store.setMaxSize(size)
@@ -81,7 +81,7 @@ class RedisStorage<ID : Any, T : Any>(
     override suspend fun add(entity: T) {
         val id = id.get(entity) ?: return
 
-        val values = mutableMapOf<String, ByteArray>()
+        val values = mutableMapOf<String, String>()
         values[writeKey("_id", id)] = writeValue(entity)
         properties.forEach { (key, property) ->
             values[writeKey(key, property.get(entity))] = writeValue(id)
@@ -95,7 +95,7 @@ class RedisStorage<ID : Any, T : Any>(
     override suspend fun entries(): Set<Pair<ID, T>> {
         return store.readAllMapAsync().asDeferred().await().entries
             .filter { (key) -> key.startsWith("_id:") }
-            .map { (key, value) -> readId(key.removePrefix("_id:").toByteArray()) to readValue(value) }
+            .map { (key, value) -> readId(key.removePrefix("_id:")) to readValue(value) }
             .toSet()
     }
 
@@ -107,15 +107,15 @@ class RedisStorage<ID : Any, T : Any>(
         return "$type:${writeValue(value)}"
     }
 
-    private fun <T> writeValue(value: T): ByteArray {
-        return objectMapper.writeValueAsBytes(value)
+    private fun <T> writeValue(value: T): String {
+        return objectMapper.writeValueAsString(value)
     }
 
-    private fun readId(value: ByteArray): ID {
+    private fun readId(value: String): ID {
         return objectMapper.readValue(value, keyClass.java)
     }
 
-    private fun readValue(value: ByteArray): T {
+    private fun readValue(value: String): T {
         return objectMapper.readValue(value, valueClass.java)
     }
 }
