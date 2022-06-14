@@ -19,7 +19,7 @@ class ScopeTokenRepository(
     .enableCache({
         CacheBuilder.newBuilder()
             .softValues()
-            .expireAfterWrite(Duration.ofSeconds(1))
+            .expireAfterWrite(Duration.ofMinutes(1))
             .maximumSize(1_000)
     })
     .build()
