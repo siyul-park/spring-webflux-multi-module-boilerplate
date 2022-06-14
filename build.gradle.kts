@@ -129,10 +129,7 @@ allprojects {
 
         implementation("com.github.javafaker:javafaker:$javafaker_version")
 
-        implementation("org.redisson:redisson-spring-boot-starter:$redisson_version") {
-            exclude("org.slf4j")
-            exclude("ch.qos.logback")
-        }
+        implementation("org.redisson:redisson-spring-boot-starter:$redisson_version")
         implementation("it.ozimov:embedded-redis:$embedded_redis_version") {
             exclude("org.slf4j")
             exclude("ch.qos.logback")
