@@ -92,7 +92,7 @@ class TokenTest : DataTestHelper() {
         val token = factory.create(principal, Duration.ofMinutes(10))
 
         assertEquals("test", token.type)
-        assertEquals(principal.id, token["tid"])
+        assertEquals(principal.id, token["tid"]?.let { ULID.fromString(it.toString()) })
         assertTrue(token.has(scopeToken))
         assertTrue(token.isActivated())
     }

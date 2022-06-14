@@ -86,13 +86,13 @@ class TokenFactoryTest : DataTestHelper() {
         val token1 = factory.create(principal, Duration.ofMinutes(10))
 
         assertEquals("test", token1.type)
-        assertEquals(principal.id, token1["tid"])
+        assertEquals(principal.id, token1["tid"]?.let { ULID.fromString(it.toString()) })
         assertTrue(token1.has(scopeToken))
 
         val token2 = factory.create(principal, Duration.ofMinutes(10))
 
         assertEquals("test", token2.type)
-        assertEquals(principal.id, token1["tid"])
+        assertEquals(principal.id, token1["tid"]?.let { ULID.fromString(it.toString()) })
         assertTrue(token2.has(scopeToken))
 
         token1.reload()
