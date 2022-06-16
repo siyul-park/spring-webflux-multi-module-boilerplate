@@ -1,9 +1,9 @@
-FROM openjdk:19-jdk AS builder
+FROM openjdk:20-jdk AS builder
 COPY . .
 RUN chmod +x gradlew
 RUN ./gradlew bootJar -x test
 
-FROM openjdk:19-slim
+FROM openjdk:20-slim
 ARG APPLICATION
 ARG PORT
 ENV PORT $PORT
