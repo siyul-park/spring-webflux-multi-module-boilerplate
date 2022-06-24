@@ -85,12 +85,12 @@ class ClientController(
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     suspend fun readAll(
-        @RequestParam("id", required = false) id: String? = null,
-        @RequestParam("name", required = false) name: String? = null,
-        @RequestParam("type", required = false) type: String? = null,
-        @RequestParam("origin", required = false) origin: String? = null,
-        @RequestParam("created_at", required = false) createdAt: String? = null,
-        @RequestParam("updated_at", required = false) updatedAt: String? = null,
+        @RequestParam("id", required = false) id: List<String>? = null,
+        @RequestParam("name", required = false) name: List<String>? = null,
+        @RequestParam("type", required = false) type: List<String>? = null,
+        @RequestParam("origin", required = false) origin: List<String>? = null,
+        @RequestParam("created_at", required = false) createdAt: List<String>? = null,
+        @RequestParam("updated_at", required = false) updatedAt: List<String>? = null,
         @RequestParam("sort", required = false) sort: String? = null,
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
@@ -99,12 +99,12 @@ class ClientController(
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
-                ClientData::id to listOf(id),
-                ClientData::name to listOf(name),
-                ClientData::type to listOf(type),
-                ClientData::origin to listOf(origin),
-                ClientData::createdAt to listOf(createdAt),
-                ClientData::updatedAt to listOf(updatedAt)
+                ClientData::id to id,
+                ClientData::name to name,
+                ClientData::type to type,
+                ClientData::origin to origin,
+                ClientData::createdAt to createdAt,
+                ClientData::updatedAt to updatedAt
             )
         )
 

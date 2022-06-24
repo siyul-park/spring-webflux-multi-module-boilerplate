@@ -14,7 +14,7 @@ class RHSFilterParser<T : Any>(
 ) {
     private val regex = Regex("(.[^:]+):(.+)")
 
-    fun parse(query: Map<KProperty1<T, *>, Collection<String?>>): Criteria {
+    fun parse(query: Map<KProperty1<T, *>, Collection<String?>?>): Criteria {
         try {
             var criteria = Criteria.And(listOf())
             query.forEach { (key, values) ->
@@ -22,7 +22,7 @@ class RHSFilterParser<T : Any>(
                 val clazz = property.returnType.classifier as? KClass<*>
                     ?: throw FilterInvalidException("Can't find operand type.")
 
-                values.filterNotNull().forEach { value ->
+                values?.filterNotNull()?.forEach { value ->
                     val result = regex.find(value) ?: throw FilterInvalidException()
                     val (operator, operand) = result.destructured
 

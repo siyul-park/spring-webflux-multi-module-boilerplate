@@ -86,10 +86,10 @@ class UserController(
     @GetMapping("")
     @ResponseStatus(HttpStatus.OK)
     suspend fun readAll(
-        @RequestParam("id", required = false) id: String? = null,
-        @RequestParam("name", required = false) name: String? = null,
-        @RequestParam("created_at", required = false) createdAt: String? = null,
-        @RequestParam("updated_at", required = false) updatedAt: String? = null,
+        @RequestParam("id", required = false) id: List<String>? = null,
+        @RequestParam("name", required = false) name: List<String>? = null,
+        @RequestParam("created_at", required = false) createdAt: List<String>? = null,
+        @RequestParam("updated_at", required = false) updatedAt: List<String>? = null,
         @RequestParam("sort", required = false) sort: String? = null,
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
@@ -98,10 +98,10 @@ class UserController(
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
-                UserData::id to listOf(id),
-                UserData::name to listOf(name),
-                UserData::createdAt to listOf(createdAt),
-                UserData::updatedAt to listOf(updatedAt)
+                UserData::id to id,
+                UserData::name to name,
+                UserData::createdAt to createdAt,
+                UserData::updatedAt to updatedAt
             )
         )
         val offsetPage = offsetPaginator.paginate(
