@@ -20,6 +20,7 @@ import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.presentation.filter.RHSFilterParserFactory
 import io.github.siyual_park.presentation.pagination.OffsetPage
 import io.github.siyual_park.presentation.pagination.OffsetPaginator
+import io.github.siyual_park.presentation.pagination.map
 import io.github.siyual_park.presentation.project.Projection
 import io.github.siyual_park.presentation.project.ProjectionParserFactory
 import io.github.siyual_park.presentation.sort.SortParserFactory
@@ -115,7 +116,7 @@ class ClientController(
             page = page
         )
 
-        offsetPage.mapDataAsync { mapperContext.map(Projection(it, projectionNode)) }
+        offsetPage.map { mapperContext.map(Projection(it, projectionNode)) }
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
