@@ -6,6 +6,7 @@ import { dummyCreateUserRequest } from './dummy';
 
 import matrixScenarios from './matrix-scenarios';
 import client from './client';
+export { default as handleSummary } from './handle-summary';
 
 export const options: Options = {
   scenarios: {

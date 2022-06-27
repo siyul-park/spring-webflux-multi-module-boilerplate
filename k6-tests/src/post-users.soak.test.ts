@@ -5,6 +5,7 @@ import { dummyCreateUserRequest } from './dummy';
 
 import client from './client';
 import matrixType from './matrix-type';
+export { default as handleSummary } from './handle-summary';
 
 export const options: Options = {
   stages: [

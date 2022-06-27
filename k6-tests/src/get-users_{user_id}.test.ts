@@ -3,8 +3,10 @@ import { Options } from 'k6/options';
 import { UserGateway } from './gateway';
 import { UserInfo } from './response';
 import { dummyCreateUserRequest } from './dummy';
+
 import client from './client';
 import matrixType from './matrix-type';
+export { default as handleSummary } from './handle-summary';
 
 export const options: Options = {
   vus: 200,

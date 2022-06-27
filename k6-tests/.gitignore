@@ -1,3 +1,11 @@
-node_modules
-yarn-error.log
-dist
+/.gradle
+/.idea
+/out
+/build
+/tmp
+*.iml
+*.ipr
+*.iws
+
+/dist
+/node_modules
