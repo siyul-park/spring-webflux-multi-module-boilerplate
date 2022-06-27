@@ -14,7 +14,11 @@ class SortParserTest {
 
     @Test
     fun parse() {
-        val sort = sortParser.parse("desc:name")
+        var sort = sortParser.parse(listOf("desc:name", "asc:id"))
+        assertEquals(Order.desc("name"), sort.getOrderFor("name"))
+        assertEquals(Order.asc("id"), sort.getOrderFor("id"))
+
+        sort = sortParser.parse("desc:name")
         assertEquals(Order.desc("name"), sort.getOrderFor("name"))
 
         assertThrows(SortInvalidException::class.java) { sortParser.parse("desc:not_found") }

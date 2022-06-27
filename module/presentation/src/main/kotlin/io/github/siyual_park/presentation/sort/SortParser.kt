@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedField
 import io.github.siyual_park.data.expansion.columnName
 import io.github.siyual_park.presentation.exception.SortInvalidException
 import org.springframework.data.domain.Sort
-import java.net.URLDecoder
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
@@ -17,8 +16,10 @@ class SortParser<T : Any>(
 ) {
     private val regex = Regex("(.[^:]+):(.+)")
 
-    fun parseFromEncoded(sort: String): Sort {
-        return parse(URLDecoder.decode(sort, "UTF-8"))
+    fun parse(sort: Collection<String>): Sort {
+        return sort
+            .map { parse(it) }
+            .reduce { acc, cur -> acc.and(cur) }
     }
 
     fun parse(sort: String): Sort {

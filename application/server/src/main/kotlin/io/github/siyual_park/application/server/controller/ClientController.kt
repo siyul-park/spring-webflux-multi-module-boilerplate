@@ -92,7 +92,7 @@ class ClientController(
         @RequestParam("origin", required = false) origin: List<String>? = null,
         @RequestParam("created_at", required = false) createdAt: List<String>? = null,
         @RequestParam("updated_at", required = false) updatedAt: List<String>? = null,
-        @RequestParam("sort", required = false) sort: String? = null,
+        @RequestParam("sort", required = false) sort: List<String>? = null,
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
