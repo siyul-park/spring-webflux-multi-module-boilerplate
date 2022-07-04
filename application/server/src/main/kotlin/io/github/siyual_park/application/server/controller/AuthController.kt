@@ -57,6 +57,9 @@ class AuthController(
 ) {
     private val projectionParser = projectionParserFactory.create(PrincipalInfo::class)
 
+    private val tokenScope = SuspendLazy {
+        scopeTokenStorage.loadOrFail("token:create")
+    }
     private val accessTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("access-token:create")
     }
@@ -101,7 +104,7 @@ class AuthController(
     private suspend fun auth(request: CreateTokenRequest): Principal {
         authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
             .also {
-                if (!authorizator.authorize(it, "token:create")) {
+                if (!authorizator.authorize(it, tokenScope.get())) {
                     throw RequiredPermissionException()
                 }
             }

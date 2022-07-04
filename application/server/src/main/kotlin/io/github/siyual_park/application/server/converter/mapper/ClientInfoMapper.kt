@@ -2,8 +2,8 @@ package io.github.siyual_park.application.server.converter.mapper
 
 import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
+import io.github.siyual_park.auth.domain.SuspendSecurityContextHolder
 import io.github.siyual_park.auth.domain.authorization.Authorizator
-import io.github.siyual_park.auth.domain.getPrincipal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.mapper.Mapper
@@ -48,7 +48,7 @@ class ClientInfoMapper(
     }
 
     private suspend fun authorize(source: Client): Boolean {
-        val principal = getPrincipal() ?: return false
+        val principal = SuspendSecurityContextHolder.getPrincipal() ?: return false
         return authorizator.authorize(
             principal,
             listOf("clients[self].scope:read", "clients.scope:read"),

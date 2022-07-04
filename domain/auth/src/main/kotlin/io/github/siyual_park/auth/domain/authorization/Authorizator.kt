@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.authorization
 
 import io.github.siyual_park.auth.domain.Principal
-import io.github.siyual_park.auth.domain.getPrincipal
+import io.github.siyual_park.auth.domain.SuspendSecurityContextHolder
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
@@ -115,7 +115,7 @@ suspend inline fun <T> Authorizator.withAuthorize(
     targetDomainObjects: List<*>? = null,
     func: () -> T
 ): T {
-    val principal = getPrincipal() ?: throw PrincipalIdNotExistsException()
+    val principal = SuspendSecurityContextHolder.getPrincipal() ?: throw PrincipalIdNotExistsException()
     if (!authorize(principal, scope, targetDomainObjects)) {
         throw RequiredPermissionException()
     }
