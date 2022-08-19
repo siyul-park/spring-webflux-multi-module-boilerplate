@@ -1,8 +1,6 @@
 package io.github.siyual_park.user.domain.auth
 
-import io.github.siyual_park.client.domain.ClientMapper
 import io.github.siyual_park.client.domain.ClientStorage
-import io.github.siyual_park.client.domain.ClientsMapper
 import io.github.siyual_park.client.migration.CreateClient
 import io.github.siyual_park.client.migration.CreateClientCredential
 import io.github.siyual_park.client.migration.CreateClientScope
@@ -26,10 +24,7 @@ class PasswordGrantAuthenticateStrategyTest : UserTestHelper(
     protected val clientCredentialRepository = ClientCredentialRepository(entityOperations, eventPublisher = eventEmitter)
     protected val clientScopeRepository = ClientScopeRepository(entityOperations, eventEmitter)
 
-    protected val clientMapper = ClientMapper(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage, transactionalOperator, eventEmitter)
-    protected val clientsMapper = ClientsMapper(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage, transactionalOperator, eventEmitter)
-
-    protected val clientStorage = ClientStorage(clientRepository, clientMapper, clientsMapper)
+    protected val clientStorage = ClientStorage(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage, transactionalOperator, eventEmitter)
 
     private val authorizationStrategy = PasswordGrantAuthenticateStrategy(userStorage, clientStorage)
 

@@ -10,6 +10,7 @@ import io.github.siyual_park.user.entity.UserCredentialData
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.repository.UserCredentialRepository
 import io.github.siyual_park.user.repository.UserRepository
+import io.github.siyual_park.user.repository.UserScopeRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -19,12 +20,14 @@ import java.security.MessageDigest
 class UserFactory(
     private val userRepository: UserRepository,
     private val userCredentialRepository: UserCredentialRepository,
-    private val userMapper: UserMapper,
+    userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
     private val hashAlgorithm: String = "SHA-256"
 ) {
+    private val userMapper = UserMapper(userRepository, userCredentialRepository, userScopeRepository, scopeTokenStorage, operator, eventPublisher)
+
     private val defaultScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("user:pack")
     }

@@ -79,7 +79,6 @@ class QueryFetcherTest : DataTestHelper() {
         testCase.forEachIndexed { i, case ->
             queryAggregator.clear()
 
-            case.queries.forEach { queryAggregator.link(it) }
             val fetchers = case.queries.map { QueryFetcher(it, queryAggregator) }
 
             fetchers.forEachIndexed { index, queryFetcher ->
@@ -96,9 +95,6 @@ class QueryFetcherTest : DataTestHelper() {
             .let { repository.create(it) }
 
         val query = SelectQuery(where(Person::name).`is`(person.name))
-
-        queryAggregator.link(query)
-
         val fetcher = QueryFetcher(query, queryAggregator)
 
         fetcher.clear()

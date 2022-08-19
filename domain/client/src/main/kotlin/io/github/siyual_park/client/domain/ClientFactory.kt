@@ -7,6 +7,7 @@ import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
+import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.event.AfterCreateEvent
 import io.github.siyual_park.event.EventPublisher
@@ -19,12 +20,14 @@ import java.security.SecureRandom
 class ClientFactory(
     private val clientRepository: ClientRepository,
     private val clientCredentialRepository: ClientCredentialRepository,
-    private val clientMapper: ClientMapper,
+    clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublisher
 ) {
     private val random = SecureRandom.getInstance("SHA1PRNG")
+
+    private val clientMapper = ClientMapper(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage, operator, eventPublisher)
 
     private val confidentialClientScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("confidential(client):pack")

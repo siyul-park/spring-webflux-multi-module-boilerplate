@@ -10,6 +10,10 @@ class QueryFetcher<T : Any>(
     private val query: SelectQuery,
     private val queryAggregator: QueryAggregator<T>
 ) {
+    init {
+        queryAggregator.link(query)
+    }
+
     suspend fun clear() {
         queryAggregator.clear(query)
     }

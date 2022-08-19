@@ -27,7 +27,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.toSet
 import org.springframework.http.HttpStatus
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -113,7 +112,6 @@ class ScopeController(
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/{scope-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasPermission(null, 'scope:read')")
     suspend fun read(
         @PathVariable("scope-id") scopeId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,

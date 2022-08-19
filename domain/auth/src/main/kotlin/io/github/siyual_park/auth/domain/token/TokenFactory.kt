@@ -13,18 +13,16 @@ import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
 
+private val random = SecureRandom.getInstance("SHA1PRNG").apply {
+    setSeed(generateSeed(128))
+}
+
 class TokenFactory(
     private val template: TokenTemplate,
     private val claimEmbedder: ClaimEmbedder,
     private val tokenRepository: TokenRepository,
     private val tokenMapper: TokenMapper,
 ) {
-    private val random = SecureRandom.getInstance("SHA1PRNG")
-
-    init {
-        random.setSeed(random.generateSeed(128))
-    }
-
     suspend fun create(
         principal: Principal,
         age: Duration,

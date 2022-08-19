@@ -20,8 +20,6 @@ class FetchContext<T : Any>(
     }
 
     fun join(criteria: Criteria?, limit: Int? = null): QueryFetcher<T> {
-        val query = SelectQuery(criteria, limit)
-        queryAggregator.link(query)
-        return QueryFetcher(query, queryAggregator)
+        return QueryFetcher(SelectQuery(criteria, limit), queryAggregator)
     }
 }
