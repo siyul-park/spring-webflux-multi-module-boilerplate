@@ -37,7 +37,7 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew bootJar -x test
-      - run: cp application/server/build/libs/*.jar application.jar
+      - run: cp application/server/build/libs/server.jar application.jar
       - name: Run server
         run: java -jar application.jar &
         env:
