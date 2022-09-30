@@ -1,6 +1,9 @@
 package io.github.siyual_park.data.cache
 
 import io.github.siyual_park.data.WeekProperty
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 
 class TransactionalStorage<ID : Any, T : Any>(
     private val root: NestedStorage<ID, T>,
@@ -37,6 +40,10 @@ class TransactionalStorage<ID : Any, T : Any>(
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
         return provider.get().getIfPresent(id, loader)
+    }
+
+    override fun getAll(ids: Iterable<ID>): Flow<T?> {
+        return flow { emitAll(provider.get().getAll(ids)) }
     }
 
     override suspend fun remove(id: ID) {

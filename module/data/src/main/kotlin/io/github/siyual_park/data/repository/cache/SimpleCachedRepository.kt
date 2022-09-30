@@ -8,6 +8,7 @@ import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
@@ -69,13 +70,16 @@ class SimpleCachedRepository<T : Any, ID : Any>(
         }
     }
 
+    @Suppress("NAME_SHADOWING")
     override fun findAllById(ids: Iterable<ID>): Flow<T> {
         return flow {
+            val ids = ids.toList()
+
             val result = mutableListOf<T>()
             val notCachedIds = mutableListOf<ID>()
 
-            ids.forEach { id ->
-                val cached = storage.getIfPresent(id)
+            storage.getAll(ids).collectIndexed { index, cached ->
+                val id = ids[index]
                 if (cached == null) {
                     notCachedIds.add(id)
                 } else {

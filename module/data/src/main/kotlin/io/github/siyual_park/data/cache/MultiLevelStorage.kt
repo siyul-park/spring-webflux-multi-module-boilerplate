@@ -2,6 +2,11 @@ package io.github.siyual_park.data.cache
 
 import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.util.Reversed
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import java.util.Collections
 
 class MultiLevelStorage<ID : Any, T : Any>(
@@ -70,6 +75,31 @@ class MultiLevelStorage<ID : Any, T : Any>(
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
         return getIfPresent(id) ?: loader()?.also { add(it) }
+    }
+
+    @Suppress("NAME_SHADOWING")
+    override fun getAll(ids: Iterable<ID>): Flow<T?> {
+        return flow {
+            val ids = ids.toList()
+            val result = MutableList<T?>(ids.size) { null }
+
+            for (i in storages.indices.reversed()) {
+                val storage = storages[i]
+                val value = storage.getAll(ids).toList()
+
+                value.forEachIndexed { index, it ->
+                    if (it != null) {
+                        result[index] = it
+                    }
+                }
+
+                if (result.filterNotNull().size == ids.size) {
+                    emitAll(result.asFlow())
+                    return@flow
+                }
+            }
+            emitAll(result.asFlow())
+        }
     }
 
     override suspend fun remove(id: ID) {

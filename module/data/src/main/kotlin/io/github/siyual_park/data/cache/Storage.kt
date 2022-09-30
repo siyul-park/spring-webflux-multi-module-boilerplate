@@ -3,6 +3,7 @@ package io.github.siyual_park.data.cache
 import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.annotation.Key
 import io.github.siyual_park.data.expansion.columnName
+import kotlinx.coroutines.flow.Flow
 import org.springframework.data.annotation.Id
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -21,6 +22,8 @@ interface Storage<ID : Any, T : Any> {
 
     suspend fun getIfPresent(id: ID): T?
     suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T?
+
+    fun getAll(ids: Iterable<ID>): Flow<T?>
 
     suspend fun remove(id: ID)
     suspend fun add(entity: T)

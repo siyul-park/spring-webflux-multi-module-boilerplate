@@ -5,6 +5,7 @@ import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.ulid.ULID
+import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
@@ -76,6 +77,42 @@ abstract class StorageTestHelper(
         assertEquals(value, storage.getIfPresent(value.id) { value })
         storage.remove(value.id)
         assertEquals(value, storage.getIfPresent("name", value.name) { value })
+    }
+
+    @Test
+    fun getAll() = blocking {
+        val value1 = DummyPerson.create()
+        val value2 = DummyPerson.create()
+
+        storage.createIndex("name", nameIndex)
+
+        var result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(2, result.size)
+        assertEquals(0, result.filterNotNull().size)
+
+        storage.add(value1)
+
+        result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(2, result.size)
+        assertEquals(1, result.filterNotNull().size)
+
+        storage.add(value2)
+
+        result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(2, result.size)
+        assertEquals(2, result.filterNotNull().size)
+
+        storage.remove(value1.id)
+
+        result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(2, result.size)
+        assertEquals(1, result.filterNotNull().size)
+
+        storage.remove(value2.id)
+
+        result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(2, result.size)
+        assertEquals(0, result.filterNotNull().size)
     }
 
     @Test

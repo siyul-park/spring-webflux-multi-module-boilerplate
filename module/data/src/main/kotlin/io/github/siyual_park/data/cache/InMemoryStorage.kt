@@ -4,6 +4,8 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.Maps
 import io.github.siyual_park.data.WeekProperty
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
@@ -59,6 +61,10 @@ class InMemoryStorage<ID : Any, T : Any>(
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
         return cache.getIfPresent(id) ?: loader()?.also { add(it) }
+    }
+
+    override fun getAll(ids: Iterable<ID>): Flow<T?> {
+        return flow { ids.forEach { emit(getIfPresent(it)) } }
     }
 
     override suspend fun remove(id: ID) {

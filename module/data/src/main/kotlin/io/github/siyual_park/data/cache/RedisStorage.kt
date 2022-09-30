@@ -3,6 +3,10 @@ package io.github.siyual_park.data.cache
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Maps
 import io.github.siyual_park.data.WeekProperty
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.future.asDeferred
 import org.redisson.api.RedissonClient
 import java.lang.Long.max
@@ -64,6 +68,20 @@ class RedisStorage<ID : Any, T : Any>(
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
         return getIfPresent(id) ?: loader()?.also { add(it) }
+    }
+
+    @Suppress("NAME_SHADOWING")
+    override fun getAll(ids: Iterable<ID>): Flow<T?> {
+        return flow {
+            val ids = ids.map { writeKey("_id", it) }
+            val result = MutableList<T?>(ids.size) { null }
+
+            store.getAllAsync(ids.toSet()).asDeferred().await().forEach { (key, value) ->
+                result[ids.indexOf(key)] = objectMapper.readValue(value, valueClass.java)
+            }
+
+            emitAll(result.asFlow())
+        }
     }
 
     override suspend fun remove(id: ID) {

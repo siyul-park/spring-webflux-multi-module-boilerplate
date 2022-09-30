@@ -2,6 +2,12 @@ package io.github.siyual_park.data.cache
 
 import com.google.common.collect.Sets
 import io.github.siyual_park.data.WeekProperty
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 class PoolingNestedStorage<ID : Any, T : Any>(
@@ -87,6 +93,23 @@ class PoolingNestedStorage<ID : Any, T : Any>(
         return delegator.get().getIfPresent(id) ?: guard { parent?.getIfPresent(id) }
     }
 
+    override fun getAll(ids: Iterable<ID>): Flow<T?> {
+        return flow {
+            val result = delegator.get().getAll(ids).toList().toMutableList()
+            if (result.filterNotNull().size != ids.count()) {
+                parent?.let {
+                    guard(it.getAll(ids)).toList().forEachIndexed { i, it ->
+                        if (it != null) {
+                            result[i] = it
+                        }
+                    }
+                }
+            }
+
+            emitAll(result.asFlow())
+        }
+    }
+
     override suspend fun remove(id: ID) {
         delegator.get().remove(id)
         removed?.add(id)
@@ -107,6 +130,14 @@ class PoolingNestedStorage<ID : Any, T : Any>(
 
     override suspend fun entries(): Set<Pair<ID, T>> {
         return delegator.get().entries()
+    }
+
+    private fun guard(loader: Flow<T?>): Flow<T?> {
+        return flow {
+            loader.onEach {
+                emit(guard { it })
+            }
+        }
     }
 
     private suspend fun guard(loader: suspend () -> T?): T? {
