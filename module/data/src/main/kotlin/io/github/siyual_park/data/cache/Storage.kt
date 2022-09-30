@@ -23,6 +23,7 @@ interface Storage<ID : Any, T : Any> {
     suspend fun getIfPresent(id: ID): T?
     suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T?
 
+    fun <KEY : Any> getAll(index: String, keys: Iterable<KEY>): Flow<T?>
     fun getAll(ids: Iterable<ID>): Flow<T?>
 
     suspend fun remove(id: ID)

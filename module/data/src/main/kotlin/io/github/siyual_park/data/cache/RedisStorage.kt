@@ -5,6 +5,7 @@ import com.google.common.collect.Maps
 import io.github.siyual_park.data.WeekProperty
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.future.asDeferred
@@ -68,6 +69,28 @@ class RedisStorage<ID : Any, T : Any>(
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
         return getIfPresent(id) ?: loader()?.also { add(it) }
+    }
+
+    @Suppress("NAME_SHADOWING")
+    override fun <KEY : Any> getAll(index: String, keys: Iterable<KEY>): Flow<T?> {
+        return flow {
+            val keys = keys.map { writeKey(index, it) }
+            val ids = MutableList<ID?>(keys.size) { null }
+            val result = MutableList<T?>(keys.size) { null }
+
+            store.getAllAsync(keys.toSet()).asDeferred().await().forEach { (key, value) ->
+                ids[keys.indexOf(key)] = readId(value)
+            }
+
+            val notNullIds = ids.filterNotNull()
+            getAll(notNullIds).collectIndexed { index, value ->
+                val id = notNullIds[index]
+                val originIndex = ids.indexOf(id)
+                result[originIndex] = value
+            }
+
+            emitAll(result.asFlow())
+        }
     }
 
     @Suppress("NAME_SHADOWING")

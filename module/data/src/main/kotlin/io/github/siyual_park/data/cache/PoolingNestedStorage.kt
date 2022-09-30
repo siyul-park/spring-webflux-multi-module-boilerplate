@@ -93,6 +93,23 @@ class PoolingNestedStorage<ID : Any, T : Any>(
         return delegator.get().getIfPresent(id) ?: guard { parent?.getIfPresent(id) }
     }
 
+    override fun <KEY : Any> getAll(index: String, keys: Iterable<KEY>): Flow<T?> {
+        return flow {
+            val result = delegator.get().getAll(index, keys).toList().toMutableList()
+            if (result.filterNotNull().size != keys.count()) {
+                parent?.let {
+                    guard(it.getAll(index, keys)).toList().forEachIndexed { i, it ->
+                        if (it != null) {
+                            result[i] = it
+                        }
+                    }
+                }
+            }
+
+            emitAll(result.asFlow())
+        }
+    }
+
     override fun getAll(ids: Iterable<ID>): Flow<T?> {
         return flow {
             val result = delegator.get().getAll(ids).toList().toMutableList()

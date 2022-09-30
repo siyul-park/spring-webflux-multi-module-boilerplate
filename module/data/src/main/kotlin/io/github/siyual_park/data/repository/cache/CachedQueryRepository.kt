@@ -14,6 +14,7 @@ import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
@@ -79,8 +80,9 @@ class CachedQueryRepository<T : Any, ID : Any>(
                     if (storage.containsIndex(key)) {
                         val result = mutableListOf<T>()
                         val notCachedKey = mutableListOf<Any?>()
-                        value.forEach { current ->
-                            val cached = current?.let { storage.getIfPresent(key, ArrayList<Any?>().apply { add(it) }) }
+
+                        storage.getAll(key, value.map { ArrayList<Any?>().apply { add(it) } }).collectIndexed { index, cached ->
+                            val current = value[index]
                             if (cached == null) {
                                 notCachedKey.add(current)
                             } else {

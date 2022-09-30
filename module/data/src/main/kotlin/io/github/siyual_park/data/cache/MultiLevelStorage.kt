@@ -78,6 +78,31 @@ class MultiLevelStorage<ID : Any, T : Any>(
     }
 
     @Suppress("NAME_SHADOWING")
+    override fun <KEY : Any> getAll(index: String, keys: Iterable<KEY>): Flow<T?> {
+        return flow {
+            val keys = keys.toList()
+            val result = MutableList<T?>(keys.size) { null }
+
+            for (i in storages.indices.reversed()) {
+                val storage = storages[i]
+                val value = storage.getAll(index, keys).toList()
+
+                value.forEachIndexed { index, it ->
+                    if (it != null) {
+                        result[index] = it
+                    }
+                }
+
+                if (result.filterNotNull().size == keys.size) {
+                    emitAll(result.asFlow())
+                    return@flow
+                }
+            }
+            emitAll(result.asFlow())
+        }
+    }
+
+    @Suppress("NAME_SHADOWING")
     override fun getAll(ids: Iterable<ID>): Flow<T?> {
         return flow {
             val ids = ids.toList()

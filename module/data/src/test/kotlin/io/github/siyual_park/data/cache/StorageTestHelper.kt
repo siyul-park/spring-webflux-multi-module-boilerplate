@@ -87,30 +87,35 @@ abstract class StorageTestHelper(
         storage.createIndex("name", nameIndex)
 
         var result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(result, storage.getAll("name", listOf(value1.name, value2.name)).toList())
         assertEquals(2, result.size)
         assertEquals(0, result.filterNotNull().size)
 
         storage.add(value1)
 
         result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(result, storage.getAll("name", listOf(value1.name, value2.name)).toList())
         assertEquals(2, result.size)
         assertEquals(1, result.filterNotNull().size)
 
         storage.add(value2)
 
         result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(result, storage.getAll("name", listOf(value1.name, value2.name)).toList())
         assertEquals(2, result.size)
         assertEquals(2, result.filterNotNull().size)
 
         storage.remove(value1.id)
 
         result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(result, storage.getAll("name", listOf(value1.name, value2.name)).toList())
         assertEquals(2, result.size)
         assertEquals(1, result.filterNotNull().size)
 
         storage.remove(value2.id)
 
         result = storage.getAll(listOf(value1.id, value2.id)).toList()
+        assertEquals(result, storage.getAll("name", listOf(value1.name, value2.name)).toList())
         assertEquals(2, result.size)
         assertEquals(0, result.filterNotNull().size)
     }

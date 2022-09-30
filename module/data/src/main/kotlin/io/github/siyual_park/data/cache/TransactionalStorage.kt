@@ -42,6 +42,10 @@ class TransactionalStorage<ID : Any, T : Any>(
         return provider.get().getIfPresent(id, loader)
     }
 
+    override fun <KEY : Any> getAll(index: String, keys: Iterable<KEY>): Flow<T?> {
+        return flow { emitAll(provider.get().getAll(index, keys)) }
+    }
+
     override fun getAll(ids: Iterable<ID>): Flow<T?> {
         return flow { emitAll(provider.get().getAll(ids)) }
     }

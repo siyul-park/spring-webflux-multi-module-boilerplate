@@ -63,6 +63,10 @@ class InMemoryStorage<ID : Any, T : Any>(
         return cache.getIfPresent(id) ?: loader()?.also { add(it) }
     }
 
+    override fun <KEY : Any> getAll(index: String, keys: Iterable<KEY>): Flow<T?> {
+        return flow { keys.forEach { emit(getIfPresent(index, it)) } }
+    }
+
     override fun getAll(ids: Iterable<ID>): Flow<T?> {
         return flow { ids.forEach { emit(getIfPresent(it)) } }
     }
