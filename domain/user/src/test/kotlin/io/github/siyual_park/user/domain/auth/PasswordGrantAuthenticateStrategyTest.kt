@@ -20,11 +20,11 @@ class PasswordGrantAuthenticateStrategyTest : UserTestHelper(
         StringToURLConverter()
     )
 ) {
-    protected val clientRepository = ClientRepository(entityOperations, eventPublisher = eventEmitter)
-    protected val clientCredentialRepository = ClientCredentialRepository(entityOperations, eventPublisher = eventEmitter)
-    protected val clientScopeRepository = ClientScopeRepository(entityOperations, eventEmitter)
+    protected val clientRepository = ClientRepository(entityOperations)
+    protected val clientCredentialRepository = ClientCredentialRepository(entityOperations)
+    protected val clientScopeRepository = ClientScopeRepository(entityOperations,)
 
-    protected val clientStorage = ClientStorage(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage, transactionalOperator, eventEmitter)
+    protected val clientStorage = ClientStorage(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage)
 
     private val authorizationStrategy = PasswordGrantAuthenticateStrategy(userStorage, clientStorage)
 

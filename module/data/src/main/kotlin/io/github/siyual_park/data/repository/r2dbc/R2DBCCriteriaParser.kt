@@ -30,12 +30,11 @@ class R2DBCCriteriaParser<T : Any>(
             is Criteria.IsNotNull -> parse(criteria)
             is Criteria.Like -> parse(criteria)
             is Criteria.NotLike -> parse(criteria)
-            is Criteria.Regexp -> parse(criteria)
-            is Criteria.NotRegexp -> parse(criteria)
             is Criteria.In -> parse(criteria)
             is Criteria.NotIn -> parse(criteria)
             is Criteria.IsTrue -> parse(criteria)
             is Criteria.IsFalse -> parse(criteria)
+            else -> throw RuntimeException()
         }
     }
 
@@ -110,13 +109,6 @@ class R2DBCCriteriaParser<T : Any>(
     }
     private fun parse(criteria: Criteria.NotLike): R2DBCCriteria {
         return where(criteria.key).notLike(criteria.value)
-    }
-
-    private fun parse(criteria: Criteria.Regexp): R2DBCCriteria {
-        throw RuntimeException()
-    }
-    private fun parse(criteria: Criteria.NotRegexp): R2DBCCriteria {
-        throw RuntimeException()
     }
 
     private fun parse(criteria: Criteria.In): R2DBCCriteria {

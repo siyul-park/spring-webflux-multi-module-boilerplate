@@ -4,7 +4,7 @@ import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.event.AfterDeleteEvent
-import io.github.siyual_park.data.transaction.doAfterCommit
+import io.github.siyual_park.data.transaction.SuspendTransactionSynchronization
 import io.github.siyual_park.event.EventConsumer
 import io.github.siyual_park.event.Subscribe
 import org.springframework.stereotype.Component
@@ -17,7 +17,7 @@ class CascadeDeleteToken(
     override suspend fun consume(event: AfterDeleteEvent<*>) {
         val entity = event.entity as? ClientData ?: return
 
-        doAfterCommit {
+        SuspendTransactionSynchronization.doAfterCommit {
             tokenRepository.deleteAll(where("claims.cid").`is`(entity.id.toString()))
         }
     }

@@ -3,7 +3,6 @@ package io.github.siyual_park.auth.domain.token
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
-import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
 import org.springframework.stereotype.Component
@@ -11,8 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class TokenMapper(
     private val tokenRepository: TokenRepository,
-    private val scopeTokenStorage: ScopeTokenStorage,
-    private val eventPublisher: EventPublisher
+    private val scopeTokenStorage: ScopeTokenStorage
 ) : Mapper<TokenData, Token> {
     override val sourceType = object : TypeReference<TokenData>() {}
     override val targetType = object : TypeReference<Token>() {}
@@ -22,7 +20,6 @@ class TokenMapper(
             source,
             tokenRepository,
             scopeTokenStorage,
-            eventPublisher
         )
     }
 }

@@ -73,7 +73,7 @@ class MongoTestHelper : ResourceTestHelper {
     private fun createEmbeddedMongoDBClients(): Pair<MongodExecutable, MongoClient> {
         val port = Network.getFreeServerPort()
         val mongodConfig = MongodConfig.builder()
-            .version(Version.Main.PRODUCTION)
+            .version(Version.Main.V4_4)
             .cmdOptions(
                 ImmutableMongoCmdOptions.builder()
                     .syncDelay(0)

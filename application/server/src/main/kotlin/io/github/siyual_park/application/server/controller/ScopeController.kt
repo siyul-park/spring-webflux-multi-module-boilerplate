@@ -155,8 +155,10 @@ class ScopeController(
     suspend fun delete(
         @PathVariable("scope-id") scopeId: ULID
     ) = authorizator.withAuthorize(listOf("scope:delete")) {
-        val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
-        scopeToken.clear()
+        operator.executeAndAwait {
+            val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
+            scopeToken.clear()
+        }
     }
 
     suspend fun syncScope(

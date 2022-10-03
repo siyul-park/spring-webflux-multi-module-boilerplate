@@ -6,7 +6,6 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.repository.updateById
-import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
@@ -23,12 +22,7 @@ class Token(
     value: TokenData,
     private val tokenRepository: TokenRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
-    eventPublisher: EventPublisher
-) : Persistence<TokenData, ULID>(
-    value,
-    tokenRepository,
-    eventPublisher = eventPublisher
-),
+) : Persistence<TokenData, ULID>(value, tokenRepository),
     Authorizable {
     val id by proxyNotNull(root, TokenData::id)
     val type by proxy(root, TokenData::type)

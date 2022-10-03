@@ -11,6 +11,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.util.username
@@ -419,17 +420,12 @@ class UserControllerTest @Autowired constructor(
         val principal = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it).toPrincipal() }
 
-        val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
-
-        otherUser.clear()
-
         gatewayAuthorization.setPrincipal(
             principal,
             push = listOf("users:read")
         )
 
-        val response = userControllerGateway.read(otherUser.id)
+        val response = userControllerGateway.read(ULID.randomULID())
 
         assertEquals(HttpStatus.NOT_FOUND, response.status)
     }

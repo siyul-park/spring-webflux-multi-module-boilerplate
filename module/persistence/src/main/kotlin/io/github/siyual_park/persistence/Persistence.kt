@@ -1,25 +1,16 @@
 package io.github.siyual_park.persistence
 
-import io.github.siyual_park.data.event.AfterDeleteEvent
-import io.github.siyual_park.data.event.AfterUpdateEvent
-import io.github.siyual_park.data.event.BeforeDeleteEvent
-import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.update
-import io.github.siyual_park.data.transaction.currentContextOrNull
-import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.data.transaction.SuspendTransactionContextHolder
 import kotlinx.coroutines.reactor.mono
 import org.springframework.transaction.reactive.TransactionSynchronization
-import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 import reactor.core.publisher.Mono
 import java.util.Collections
 
 open class Persistence<T : Any, ID : Any>(
     value: T,
     private val repository: Repository<T, ID>,
-    private val operator: TransactionalOperator? = null,
-    private val eventPublisher: EventPublisher? = null,
 ) {
     protected val root = LazyMutable.from(value)
 
@@ -45,7 +36,7 @@ open class Persistence<T : Any, ID : Any>(
     }
 
     suspend fun link(): Boolean {
-        val context = currentContextOrNull() ?: return false
+        val context = SuspendTransactionContextHolder.getContext() ?: return false
         val synchronizations = context.synchronizations ?: return false
 
         synchronizations.add(synchronization)
@@ -60,16 +51,15 @@ open class Persistence<T : Any, ID : Any>(
         isCleared = true
 
         try {
-            withTransaction {
-                synchronizations.forEach {
-                    it.beforeClear()
-                }
-                eventPublisher?.publish(BeforeDeleteEvent(this))
-                runClear()
-                eventPublisher?.publish(AfterDeleteEvent(this))
-                synchronizations.forEach {
-                    it.afterClear()
-                }
+            synchronizations.forEach {
+                it.beforeClear()
+            }
+
+            repository.delete(root.raw())
+            root.clear()
+
+            synchronizations.forEach {
+                it.afterClear()
             }
         } catch (exception: Exception) {
             isCleared = false
@@ -77,48 +67,29 @@ open class Persistence<T : Any, ID : Any>(
         }
     }
 
-    protected open suspend fun runClear() {
-        repository.delete(root.raw())
-        root.clear()
-    }
-
     suspend fun sync(): Boolean {
         var result = false
-        withTransaction {
+        if (root.isUpdated()) {
             synchronizations.forEach {
                 it.beforeSync()
             }
-            if (root.isUpdated()) {
-                eventPublisher?.publish(BeforeUpdateEvent(this))
-                result = runSync()
-                eventPublisher?.publish(AfterUpdateEvent(this))
+
+            val updated = repository.update(root.raw()) {
+                val commands = root.checkout()
+                commands.forEach { (property, command) ->
+                    property.set(it, command)
+                }
+                root.raw(it)
             }
+            updated?.let { root.raw(it) }
+            result = updated != null
+
             synchronizations.forEach {
                 it.afterSync()
             }
         }
 
         return result
-    }
-
-    protected open suspend fun runSync(): Boolean {
-        val updated = repository.update(root.raw()) {
-            val commands = root.checkout()
-            commands.forEach { (property, command) ->
-                property.set(it, command)
-            }
-            root.raw(it)
-        }
-        updated?.let { root.raw(it) }
-        return updated != null
-    }
-
-    private suspend fun <U : Any> withTransaction(func: suspend () -> U): U? {
-        return if (operator == null) {
-            func()
-        } else {
-            operator.executeAndAwait { func() }
-        }
     }
 
     override fun hashCode(): Int {

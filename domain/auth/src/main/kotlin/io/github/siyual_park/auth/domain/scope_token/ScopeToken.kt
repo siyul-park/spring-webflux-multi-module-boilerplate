@@ -8,8 +8,7 @@ import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.findOneOrFail
-import io.github.siyual_park.data.transaction.currentContextOrNull
-import io.github.siyual_park.event.EventPublisher
+import io.github.siyual_park.data.transaction.SuspendTransactionContextHolder
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
@@ -21,21 +20,13 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
-import org.springframework.transaction.reactive.TransactionalOperator
 import java.util.Collections.synchronizedList
 
 class ScopeToken(
     value: ScopeTokenData,
     private val scopeTokenRepository: ScopeTokenRepository,
-    private val scopeRelationRepository: ScopeRelationRepository,
-    private val operator: TransactionalOperator,
-    private val eventPublisher: EventPublisher,
-) : Persistence<ScopeTokenData, ULID>(
-    value,
-    scopeTokenRepository,
-    operator = operator,
-    eventPublisher = eventPublisher
-),
+    private val scopeRelationRepository: ScopeRelationRepository
+) : Persistence<ScopeTokenData, ULID>(value, scopeTokenRepository),
     Authorizable {
 
     val id by proxy(root, ScopeTokenData::id)
@@ -114,12 +105,12 @@ class ScopeToken(
                     relations.addAll(currentRelations)
 
                     scopeTokenRepository.findAllById(currentRelations.map { it.childId }.toList())
-                        .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository, operator, eventPublisher) }
+                        .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository) }
                         .collect { task.add(it) }
                 }
             }
 
-            val context = currentContextOrNull()
+            val context = SuspendTransactionContextHolder.getContext()
             store
                 .onEach { if (context != null) it.link() }
                 .forEach { scopeToken ->
@@ -145,7 +136,7 @@ class ScopeToken(
                 val task = synchronizedList(mutableListOf<ScopeToken>())
                 children().collect { task.add(it) }
 
-                val context = currentContextOrNull()
+                val context = SuspendTransactionContextHolder.getContext()
                 while (task.isNotEmpty()) {
                     val packed = task.filter { it.isPacked() }
                     val notPacked = task.filter { !it.isPacked() }
@@ -156,7 +147,7 @@ class ScopeToken(
                     if (packed.isNotEmpty()) {
                         val relations = scopeRelationRepository.findAllByParentId(packed.map { it.id })
                         scopeTokenRepository.findAllById(relations.map { it.childId }.toList())
-                            .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository, operator, eventPublisher) }
+                            .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository) }
                             .collect { task.add(it) }
                     }
                 }
@@ -169,10 +160,10 @@ class ScopeToken(
             if (!isPacked()) {
                 throw UnsupportedOperationException("Scope[$id] is not support pack operator")
             }
-            val context = currentContextOrNull()
+            val context = SuspendTransactionContextHolder.getContext()
             val relations = scopeRelationRepository.findAllByParentId(id)
             scopeTokenRepository.findAllById(relations.map { it.childId }.toList())
-                .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository, operator, eventPublisher) }
+                .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository) }
                 .onEach { if (context != null) it.link() }
                 .collect { emit(it) }
         }

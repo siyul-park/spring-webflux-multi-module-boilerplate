@@ -2,7 +2,7 @@ package io.github.siyual_park.persistence
 
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.repository.QueryRepository
-import io.github.siyual_park.data.transaction.currentContextOrNull
+import io.github.siyual_park.data.transaction.SuspendTransactionContextHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
@@ -33,7 +33,7 @@ class SimpleQueryStorage<T : Any, ID : Any, P : Persistence<T, ID>>(
 
     override fun load(ids: Iterable<ID>): Flow<P> {
         return flow {
-            val context = currentContextOrNull()
+            val context = SuspendTransactionContextHolder.getContext()
 
             multiMapper(repository.findAllById(ids).toList())
                 .onEach { if (context != null) it.link() }
@@ -43,7 +43,7 @@ class SimpleQueryStorage<T : Any, ID : Any, P : Persistence<T, ID>>(
 
     override fun load(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?): Flow<P> {
         return flow {
-            val context = currentContextOrNull()
+            val context = SuspendTransactionContextHolder.getContext()
             multiMapper(repository.findAll(criteria, limit, offset, sort).toList())
                 .onEach { if (context != null) it.link() }
                 .let { emitAll(it.asFlow()) }

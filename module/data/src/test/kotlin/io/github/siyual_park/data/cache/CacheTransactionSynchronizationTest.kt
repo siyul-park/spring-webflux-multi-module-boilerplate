@@ -6,7 +6,7 @@ import io.github.siyual_park.data.WeekProperty
 import io.github.siyual_park.data.dummy.DummyPerson
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.transaction.ReactiveChainedTransactionManager
-import io.github.siyual_park.data.transaction.currentContextOrNull
+import io.github.siyual_park.data.transaction.SuspendTransactionContextHolder
 import io.github.siyual_park.ulid.ULID
 import io.mockk.every
 import io.mockk.mockk
@@ -83,7 +83,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
         )
 
         transactionalOperator.executeAndAwait {
-            val child = storage.fork().also { cacheTransactionSynchronization.put(currentContextOrNull()!!, it) }
+            val child = storage.fork().also { cacheTransactionSynchronization.put(SuspendTransactionContextHolder.getContext()!!, it) }
             val person = DummyPerson.create()
 
             assertNull(child.getIfPresent(person.id))
@@ -98,11 +98,11 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
             assertEquals(person, child.getIfPresent(person.id))
             assertEquals(person, storage.getIfPresent(person.id))
 
-            assertNull(cacheTransactionSynchronization.get(currentContextOrNull()!!))
+            assertNull(cacheTransactionSynchronization.get(SuspendTransactionContextHolder.getContext()!!))
         }
 
         transactionalOperator.executeAndAwait {
-            val child = storage.fork().also { cacheTransactionSynchronization.put(currentContextOrNull()!!, it) }
+            val child = storage.fork().also { cacheTransactionSynchronization.put(SuspendTransactionContextHolder.getContext()!!, it) }
             val person = DummyPerson.create()
 
             assertNull(child.getIfPresent(person.id))
@@ -117,7 +117,7 @@ class CacheTransactionSynchronizationTest : CoroutineTestHelper() {
             assertNull(child.getIfPresent(person.id))
             assertNull(storage.getIfPresent(person.id))
 
-            assertNull(cacheTransactionSynchronization.get(currentContextOrNull()!!))
+            assertNull(cacheTransactionSynchronization.get(SuspendTransactionContextHolder.getContext()!!))
         }
     }
 }

@@ -13,6 +13,7 @@ import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.util.username
@@ -239,17 +240,12 @@ class ClientControllerTest @Autowired constructor(
         val principal = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it).toPrincipal() }
 
-        val otherClient = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
-
-        otherClient.clear()
-
         gatewayAuthorization.setPrincipal(
             principal,
             push = listOf("clients:read")
         )
 
-        val response = clientControllerGateway.read(otherClient.id)
+        val response = clientControllerGateway.read(ULID.randomULID())
 
         assertEquals(HttpStatus.NOT_FOUND, response.status)
     }

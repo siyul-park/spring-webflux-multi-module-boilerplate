@@ -17,7 +17,6 @@ import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.findOneOrFail
-import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.PersistencePropagateSynchronization
 import io.github.siyual_park.persistence.PersistenceSynchronization
@@ -30,7 +29,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import org.springframework.transaction.reactive.TransactionalOperator
 
 class Client(
     value: ClientData,
@@ -38,17 +36,8 @@ class Client(
     private val clientCredentialRepository: ClientCredentialRepository,
     private val clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
-    fetchContextProvider: FetchContextProvider,
-    operator: TransactionalOperator,
-    private val eventPublisher: EventPublisher
-) : Persistence<ClientData, ULID>(
-    value,
-    clientRepository,
-    operator,
-    eventPublisher
-),
-    ClientEntity,
-    Authorizable {
+    fetchContextProvider: FetchContextProvider
+) : Persistence<ClientData, ULID>(value, clientRepository), ClientEntity, Authorizable {
     val id by proxy(root, ClientData::id)
     var name by proxy(root, ClientData::name)
     val type by proxy(root, ClientData::type)
@@ -64,8 +53,7 @@ class Client(
     private val credential = SuspendLazy {
         ClientCredential(
             clientCredentialRepository.findByClientIdOrFail(clientId),
-            clientCredentialRepository,
-            eventPublisher
+            clientCredentialRepository
         ).also {
             synchronize(PersistencePropagateSynchronization(it))
         }

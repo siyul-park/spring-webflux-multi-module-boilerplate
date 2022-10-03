@@ -1,7 +1,6 @@
 package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.domain.hash
-import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
@@ -11,13 +10,8 @@ import java.security.MessageDigest
 
 class UserCredential(
     value: UserCredentialData,
-    userCredentialRepository: UserCredentialRepository,
-    eventPublisher: EventPublisher
-) : Persistence<UserCredentialData, Long>(
-    value,
-    userCredentialRepository,
-    eventPublisher = eventPublisher
-) {
+    userCredentialRepository: UserCredentialRepository
+) : Persistence<UserCredentialData, Long>(value, userCredentialRepository) {
     val id by proxyNotNull(root, UserCredentialData::id)
     val userId by proxy(root, UserCredentialData::userId)
 

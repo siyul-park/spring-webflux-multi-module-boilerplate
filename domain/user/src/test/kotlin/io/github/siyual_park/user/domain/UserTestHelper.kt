@@ -10,7 +10,6 @@ import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
-import io.github.siyual_park.event.EventEmitter
 import io.github.siyual_park.user.migration.CreateUser
 import io.github.siyual_park.user.migration.CreateUserCredential
 import io.github.siyual_park.user.migration.CreateUserScope
@@ -37,25 +36,18 @@ abstract class UserTestHelper(
             .register(CreateUserScope(entityOperations))
     }
 
-    protected val eventEmitter = EventEmitter()
-
     protected val scopeRelationRepository = ScopeRelationRepository(entityOperations)
     protected val scopeTokenRepository = ScopeTokenRepository(entityOperations)
-    protected val userRepository = UserRepository(entityOperations, eventPublisher = eventEmitter)
-    protected val userCredentialRepository = UserCredentialRepository(entityOperations, eventPublisher = eventEmitter)
-    protected val userScopeRepository = spyk(UserScopeRepository(entityOperations, eventPublisher = eventEmitter))
+    protected val userRepository = UserRepository(entityOperations)
+    protected val userCredentialRepository = UserCredentialRepository(entityOperations)
+    protected val userScopeRepository = spyk(UserScopeRepository(entityOperations))
 
-    protected val scopeTokenMapper = ScopeTokenMapper(
-        scopeTokenRepository,
-        scopeRelationRepository,
-        transactionalOperator,
-        eventEmitter
-    )
+    protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository)
     protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
-    protected val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper, eventEmitter)
+    protected val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper)
 
-    protected val userFactory = UserFactory(userRepository, userCredentialRepository, userScopeRepository, scopeTokenStorage, transactionalOperator, eventEmitter)
-    protected val userStorage = UserStorage(userRepository, userCredentialRepository, userScopeRepository, scopeTokenStorage, transactionalOperator, eventEmitter)
+    protected val userFactory = UserFactory(userRepository, userCredentialRepository, userScopeRepository, scopeTokenStorage)
+    protected val userStorage = UserStorage(userRepository, userCredentialRepository, userScopeRepository, scopeTokenStorage)
 
     @BeforeEach
     override fun setUp() {

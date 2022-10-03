@@ -1,6 +1,7 @@
 package io.github.siyual_park.client.event.consumer
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
+import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.property.RootClientProperty
 import io.github.siyual_park.data.event.AfterCreateEvent
@@ -13,10 +14,11 @@ import org.springframework.stereotype.Component
 @Subscribe(filterBy = AfterCreateEvent::class)
 class SyncRootClientScope(
     private val clientStorage: ClientStorage,
+    private val scopeTokenMapper: ScopeTokenMapper,
     private val property: RootClientProperty,
 ) : EventConsumer<AfterCreateEvent<*>> {
     override suspend fun consume(event: AfterCreateEvent<*>) {
-        val entity = event.entity as? ScopeToken ?: return
+        val entity = (event.entity as? ScopeTokenData)?.let { scopeTokenMapper.map(it) } ?: return
         val client = clientStorage.load(property.name) ?: return
 
         try {
