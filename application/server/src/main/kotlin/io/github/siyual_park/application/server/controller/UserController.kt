@@ -155,10 +155,8 @@ class UserController(
                 }
             }
 
-            val patch = PropertyOverridePatch.of<User, UpdateUserRequest>(
-                request.copy(password = null, scope = null)
-            )
-            patch.apply(user).sync()
+            PropertyOverridePatch.of<User, UpdateUserRequest>(request.copy(password = null, scope = null))
+                .apply(user)
 
             mapperContext.map(Projection(user, projectionNode))
         }!!

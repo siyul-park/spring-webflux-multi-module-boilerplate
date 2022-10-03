@@ -29,9 +29,9 @@ class UserInfoMapper(
         val value = source.value
         val raw = value.raw()
         return UserInfo(
-            id = node.project(UserInfo::id) { raw.id },
-            name = node.project(UserInfo::name) { raw.name },
-            email = node.project(UserInfo::email) { raw.email },
+            id = node.project(UserInfo::id) { value.id },
+            name = node.project(UserInfo::name) { value.name },
+            email = node.project(UserInfo::email) { value.email },
             scope = node.project(UserInfo::scope) { getScope(source.value, it) },
             createdAt = node.project(UserInfo::createdAt) { raw.createdAt },
             updatedAt = node.project(UserInfo::createdAt) { raw.updatedAt }

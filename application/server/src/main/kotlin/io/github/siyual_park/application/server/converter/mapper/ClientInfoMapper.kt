@@ -29,9 +29,9 @@ class ClientInfoMapper(
         val value = source.value
         val raw = value.raw()
         return ClientInfo(
-            id = node.project(ClientInfo::id) { raw.id },
-            name = node.project(ClientInfo::name) { raw.name },
-            type = node.project(ClientInfo::type) { raw.type },
+            id = node.project(ClientInfo::id) { value.id },
+            name = node.project(ClientInfo::name) { value.name },
+            type = node.project(ClientInfo::type) { value.type },
             origin = node.project(ClientInfo::origin) { raw.origin },
             scope = node.project(ClientInfo::scope) { getScope(value, it) },
             createdAt = node.project(ClientInfo::createdAt) { raw.createdAt },

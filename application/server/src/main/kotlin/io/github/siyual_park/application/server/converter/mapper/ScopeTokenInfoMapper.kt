@@ -23,10 +23,10 @@ class ScopeTokenInfoMapper : Mapper<Projection<ScopeToken>, ScopeTokenInfo> {
         val value = source.value
         val raw = value.raw()
         return ScopeTokenInfo(
-            id = node.project(ScopeTokenInfo::id) { raw.id },
-            name = node.project(ScopeTokenInfo::name) { raw.name },
-            description = node.project(ScopeTokenInfo::description) { raw.description },
-            system = node.project(ScopeTokenInfo::system) { raw.system },
+            id = node.project(ScopeTokenInfo::id) { value.id },
+            name = node.project(ScopeTokenInfo::name) { value.name },
+            description = node.project(ScopeTokenInfo::description) { value.description },
+            system = node.project(ScopeTokenInfo::system) { value.isSystem() },
             children = node.project(ScopeTokenInfo::children) {
                 if (value.isPacked()) {
                     val finalRelations = relations ?: value.relations().toSet()

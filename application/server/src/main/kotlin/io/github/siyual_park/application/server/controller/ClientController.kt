@@ -151,8 +151,8 @@ class ClientController(
                 }
             }
 
-            val patch = PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null))
-            patch.apply(client).sync()
+            PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null))
+                .apply(client)
 
             mapperContext.map(Projection(client, projectionNode))
         }!!

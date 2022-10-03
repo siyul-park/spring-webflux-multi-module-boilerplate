@@ -142,8 +142,8 @@ class ScopeController(
                 }
             }
 
-            val patch = PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
-            patch.apply(scopeToken).sync()
+            PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
+                .apply(scopeToken)
 
             mapperContext.map(Projection(scopeToken, projectionNode))
         }!!
