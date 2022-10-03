@@ -36,6 +36,7 @@ class CreateMigrationCheckpoint(
                     ")"
             )
         }
+        entityOperations.createUniqueIndex(tableName, listOf("version"))
     }
 
     override suspend fun down() {

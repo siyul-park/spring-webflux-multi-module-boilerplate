@@ -94,15 +94,15 @@ class PersistenceTest : DataTestHelper() {
         transactional {
             repositories().forEach {
                 func(it)
-                migrationManager.revert()
-                migrationManager.run()
+                migrationManager.down()
+                migrationManager.up()
             }
         }
         blocking {
             repositories().forEach {
                 func(it)
-                migrationManager.revert()
-                migrationManager.run()
+                migrationManager.down()
+                migrationManager.up()
             }
         }
     }

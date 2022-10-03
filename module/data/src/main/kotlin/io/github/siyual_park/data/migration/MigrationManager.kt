@@ -33,25 +33,11 @@ class MigrationManager(
         return this
     }
 
-    suspend fun sync() {
-        run()
-    }
-
-    suspend fun run(): Unit = logging {
+    suspend fun up() = logging {
         if (!createMigrationCheckpoint.isApplied()) {
             createUpdatedAtFunction.up()
             createMigrationCheckpoint.up()
         }
-
-        while (
-            migrationCheckpointRepository.exists(where(MigrationCheckpoint::status).`is`(MigrationStatus.PENDING))
-        ) {
-            delay(Duration.ofSeconds(30).toMillis())
-        }
-
-        migrationCheckpointRepository.deleteAll(
-            where(MigrationCheckpoint::status).`is`(MigrationStatus.REJECT)
-        )
 
         val migrationCheckpoints = migrationCheckpointRepository.findAll(
             criteria = where(MigrationCheckpoint::status).`is`(MigrationStatus.COMPLETE),
@@ -69,8 +55,8 @@ class MigrationManager(
                 MigrationCheckpoint(version = i, status = MigrationStatus.PENDING)
                     .let { migrationCheckpointRepository.create(it) }
             } catch (e: DataIntegrityViolationException) {
-                waitingComplete()
-                return@logging
+                waitingComplete(i)
+                break
             }
 
             try {
@@ -87,27 +73,7 @@ class MigrationManager(
         }
     }
 
-    suspend fun clear() = logging {
-        migrations.asReversed()
-            .forEach {
-                try {
-                    it.down()
-                } catch (e: RuntimeException) {
-                    logger.error(e.message, e)
-                }
-            }
-
-        try {
-            if (createMigrationCheckpoint.isApplied()) {
-                createMigrationCheckpoint.down()
-                createUpdatedAtFunction.down()
-            }
-        } catch (e: RuntimeException) {
-            logger.error(e.message, e)
-        }
-    }
-
-    suspend fun revert() = logging {
+    suspend fun down() = logging {
         val migrationCheckpoints = migrationCheckpointRepository.findAll(
             criteria = where(MigrationCheckpoint::status).`is`(MigrationStatus.COMPLETE),
             sort = Sort.by(columnName(MigrationCheckpoint::version)).descending()
@@ -126,12 +92,15 @@ class MigrationManager(
         }
     }
 
-    private suspend fun waitingComplete() {
-        while (
-            migrationCheckpointRepository.count(where(MigrationCheckpoint::status).`is`(MigrationStatus.COMPLETE))
-            == migrations.size.toLong()
-        ) {
-            delay(Duration.ofSeconds(30).toMillis())
+    private suspend fun waitingComplete(version: Int) {
+        while (true) {
+            val exits = migrationCheckpointRepository.findOne(where(MigrationCheckpoint::version).`is`(version))
+            when (exits?.status) {
+                MigrationStatus.PENDING -> delay(Duration.ofSeconds(1).toMillis())
+                MigrationStatus.COMPLETE -> return
+                MigrationStatus.REJECT -> throw RuntimeException("Migration Checkpoints[@$version] is rejected.")
+                null -> throw RuntimeException("Migration Checkpoints[@$version] is conflict.")
+            }
         }
     }
 

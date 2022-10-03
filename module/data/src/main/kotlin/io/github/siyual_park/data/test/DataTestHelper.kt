@@ -42,14 +42,14 @@ abstract class DataTestHelper(
         super.setUp()
 
         blocking {
-            migrationManager.run()
+            migrationManager.up()
         }
     }
 
     @AfterEach
     override fun tearDown() {
         blocking {
-            migrationManager.revert()
+            migrationManager.down()
         }
 
         super.tearDown()

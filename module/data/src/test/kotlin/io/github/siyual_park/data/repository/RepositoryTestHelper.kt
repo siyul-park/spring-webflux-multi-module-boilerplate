@@ -485,8 +485,8 @@ abstract class RepositoryTestHelper<R : Repository<Person, ULID>>(
         blocking {
             repositories(this@RepositoryTestHelper).forEach {
                 func(it)
-                migrationManager.revert()
-                migrationManager.run()
+                migrationManager.down()
+                migrationManager.up()
             }
         }
     }

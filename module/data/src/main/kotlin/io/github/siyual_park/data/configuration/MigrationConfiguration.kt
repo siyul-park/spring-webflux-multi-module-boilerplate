@@ -17,10 +17,8 @@ class MigrationConfiguration(
     @Order(0)
     fun migration() = runBlocking {
         if (property.clear) {
-            migrationManager.clear()
+            migrationManager.down()
         }
-        if (property.sync) {
-            migrationManager.sync()
-        }
+        migrationManager.up()
     }
 }
