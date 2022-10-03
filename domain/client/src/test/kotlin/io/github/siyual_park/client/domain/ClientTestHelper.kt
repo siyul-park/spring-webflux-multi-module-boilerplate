@@ -18,7 +18,6 @@ import io.github.siyual_park.data.converter.StringToURLConverter
 import io.github.siyual_park.data.converter.URLToStringConverter
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
-import io.github.siyual_park.event.EventEmitter
 import io.mockk.spyk
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -41,25 +40,18 @@ abstract class ClientTestHelper : DataTestHelper(
             .register(CreateClientScope(entityOperations))
     }
 
-    protected val eventEmitter = EventEmitter()
-
     protected val scopeRelationRepository = ScopeRelationRepository(entityOperations)
     protected val scopeTokenRepository = ScopeTokenRepository(entityOperations)
-    protected val clientRepository = ClientRepository(entityOperations, eventPublisher = eventEmitter)
-    protected val clientCredentialRepository = ClientCredentialRepository(entityOperations, eventPublisher = eventEmitter)
-    protected val clientScopeRepository = spyk(ClientScopeRepository(entityOperations, eventPublisher = eventEmitter))
+    protected val clientRepository = ClientRepository(entityOperations)
+    protected val clientCredentialRepository = ClientCredentialRepository(entityOperations)
+    protected val clientScopeRepository = spyk(ClientScopeRepository(entityOperations))
 
-    protected val scopeTokenMapper = ScopeTokenMapper(
-        scopeTokenRepository,
-        scopeRelationRepository,
-        transactionalOperator,
-        eventEmitter
-    )
+    protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository)
     protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
-    protected val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper, eventEmitter)
+    protected val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper)
 
-    protected val clientFactory = ClientFactory(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage, transactionalOperator, eventEmitter)
-    protected val clientStorage = ClientStorage(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage, transactionalOperator, eventEmitter)
+    protected val clientFactory = ClientFactory(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage)
+    protected val clientStorage = ClientStorage(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage)
 
     @BeforeEach
     override fun setUp() {

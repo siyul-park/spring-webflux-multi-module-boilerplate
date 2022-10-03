@@ -1,25 +1,16 @@
 package io.github.siyual_park.persistence
 
-import io.github.siyual_park.data.event.AfterDeleteEvent
-import io.github.siyual_park.data.event.AfterUpdateEvent
-import io.github.siyual_park.data.event.BeforeDeleteEvent
-import io.github.siyual_park.data.event.BeforeUpdateEvent
 import io.github.siyual_park.data.repository.Repository
 import io.github.siyual_park.data.repository.update
 import io.github.siyual_park.data.transaction.currentContextOrNull
-import io.github.siyual_park.event.EventPublisher
 import kotlinx.coroutines.reactor.mono
 import org.springframework.transaction.reactive.TransactionSynchronization
-import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 import reactor.core.publisher.Mono
 import java.util.Collections
 
 open class Persistence<T : Any, ID : Any>(
     value: T,
     private val repository: Repository<T, ID>,
-    private val operator: TransactionalOperator? = null,
-    private val eventPublisher: EventPublisher? = null,
 ) {
     protected val root = LazyMutable.from(value)
 
@@ -60,16 +51,12 @@ open class Persistence<T : Any, ID : Any>(
         isCleared = true
 
         try {
-            withTransaction {
-                synchronizations.forEach {
-                    it.beforeClear()
-                }
-                eventPublisher?.publish(BeforeDeleteEvent(this))
-                runClear()
-                eventPublisher?.publish(AfterDeleteEvent(this))
-                synchronizations.forEach {
-                    it.afterClear()
-                }
+            synchronizations.forEach {
+                it.beforeClear()
+            }
+            runClear()
+            synchronizations.forEach {
+                it.afterClear()
             }
         } catch (exception: Exception) {
             isCleared = false
@@ -84,15 +71,11 @@ open class Persistence<T : Any, ID : Any>(
 
     suspend fun sync(): Boolean {
         var result = false
-        withTransaction {
+        if (root.isUpdated()) {
             synchronizations.forEach {
                 it.beforeSync()
             }
-            if (root.isUpdated()) {
-                eventPublisher?.publish(BeforeUpdateEvent(this))
-                result = runSync()
-                eventPublisher?.publish(AfterUpdateEvent(this))
-            }
+            result = runSync()
             synchronizations.forEach {
                 it.afterSync()
             }
@@ -111,14 +94,6 @@ open class Persistence<T : Any, ID : Any>(
         }
         updated?.let { root.raw(it) }
         return updated != null
-    }
-
-    private suspend fun <U : Any> withTransaction(func: suspend () -> U): U? {
-        return if (operator == null) {
-            func()
-        } else {
-            operator.executeAndAwait { func() }
-        }
     }
 
     override fun hashCode(): Int {

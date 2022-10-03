@@ -73,14 +73,16 @@ class UserController(
         @Valid @RequestBody request: CreateUserRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): UserInfo = authorizator.withAuthorize(listOf("users:create")) {
-        val projectionNode = projectionParser.parse(fields)
-        val payload = CreateUserPayload(
-            name = request.name,
-            email = request.email,
-            password = request.password
-        )
-        val user = userFactory.create(payload)
-        mapperContext.map(Projection(user, projectionNode))
+        operator.executeAndAwait {
+            val projectionNode = projectionParser.parse(fields)
+            val payload = CreateUserPayload(
+                name = request.name,
+                email = request.email,
+                password = request.password
+            )
+            val user = userFactory.create(payload)
+            mapperContext.map(Projection(user, projectionNode))
+        }!!
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
@@ -168,8 +170,10 @@ class UserController(
     suspend fun delete(
         @PathVariable("user-id") userId: ULID
     ) = authorizator.withAuthorize(listOf("users:delete", "users[self]:delete"), listOf(null, userId)) {
-        val user = userStorage.loadOrFail(userId)
-        user.clear()
+        operator.executeAndAwait {
+            val user = userStorage.loadOrFail(userId)
+            user.clear()
+        }
     }
 
     private suspend fun updateCredentials(
@@ -179,16 +183,15 @@ class UserController(
         listOf("users.credential:update", "users[self].credential:update"),
         listOf(null, user.id)
     ) {
-        val credential = user.getCredential()
-
-        credential.setPassword(password)
-        credential.sync()
+        user.getCredential().apply {
+            setPassword(password)
+        }
     }
 
     private suspend fun syncScope(
         user: User,
         scope: Set<ScopeToken>
-    ) = operator.executeAndAwait {
+    ) {
         val existsScope = user.getScope(deep = false).toSet()
 
         val toGrantScope = scope.filter { !existsScope.contains(it) }

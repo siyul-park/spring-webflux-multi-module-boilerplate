@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Test
 import java.time.Duration
 
 class BearerAuthorizationStrategyTest : UserTestHelper() {
-    private val tokenRepository = TokenRepository(mongoTemplate, eventPublisher = eventEmitter)
+    private val tokenRepository = TokenRepository(mongoTemplate)
 
-    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage, eventEmitter)
+    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage)
     private val tokenStorage = TokenStorage(tokenRepository, tokenMapper)
 
     private val claimEmbedder = ClaimEmbedder()

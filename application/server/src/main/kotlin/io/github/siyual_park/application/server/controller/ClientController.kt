@@ -71,14 +71,16 @@ class ClientController(
         @Valid @RequestBody request: CreateClientRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientDetailInfo = authorizator.withAuthorize(listOf("clients:create")) {
-        val projectionNode = projectionParser.parse(fields)
-        val payload = CreateClientPayload(
-            name = request.name,
-            type = request.type,
-            origin = request.origin
-        )
-        val client = clientFactory.create(payload)
-        mapperContext.map(Projection(client, projectionNode))
+        operator.executeAndAwait {
+            val projectionNode = projectionParser.parse(fields)
+            val payload = CreateClientPayload(
+                name = request.name,
+                type = request.type,
+                origin = request.origin
+            )
+            val client = clientFactory.create(payload)
+            mapperContext.map(Projection(client, projectionNode))
+        }!!
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
@@ -164,14 +166,16 @@ class ClientController(
     suspend fun delete(
         @PathVariable("client-id") clientId: ULID,
     ) = authorizator.withAuthorize(listOf("clients:delete", "clients[self]:delete"), listOf(null, clientId)) {
-        val client = clientStorage.loadOrFail(clientId)
-        client.clear()
+        operator.executeAndAwait {
+            val client = clientStorage.loadOrFail(clientId)
+            client.clear()
+        }
     }
 
     private suspend fun syncScope(
         client: Client,
         scope: Set<ScopeToken>
-    ) = operator.executeAndAwait {
+    ) {
         val existsScope = client.getScope(deep = false).toSet()
 
         val toGrantScope = scope.filter { !existsScope.contains(it) }

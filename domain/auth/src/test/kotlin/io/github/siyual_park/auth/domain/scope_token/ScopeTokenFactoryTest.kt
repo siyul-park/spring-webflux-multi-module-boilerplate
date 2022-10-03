@@ -5,7 +5,6 @@ import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationRepository
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
-import io.github.siyual_park.event.EventEmitter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -18,19 +17,11 @@ class ScopeTokenFactoryTest : DataTestHelper() {
             .register(CreateScopeRelation(entityOperations))
     }
 
-    private val eventEmitter = EventEmitter()
-
     private val scopeRelationRepository = ScopeRelationRepository(entityOperations)
     private val scopeTokenRepository = ScopeTokenRepository(entityOperations)
 
-    private val scopeTokenMapper = ScopeTokenMapper(
-        scopeTokenRepository,
-        scopeRelationRepository,
-        transactionalOperator,
-        eventEmitter
-    )
-
-    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper, eventEmitter)
+    private val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository)
+    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper)
 
     @Test
     fun upsert() = blocking {

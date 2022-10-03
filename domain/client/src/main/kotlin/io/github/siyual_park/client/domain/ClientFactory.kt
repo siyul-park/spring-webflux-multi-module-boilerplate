@@ -9,11 +9,7 @@ import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
 import io.github.siyual_park.data.cache.SuspendLazy
-import io.github.siyual_park.data.event.AfterCreateEvent
-import io.github.siyual_park.event.EventPublisher
 import org.springframework.stereotype.Component
-import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 import java.security.SecureRandom
 
 @Component
@@ -21,13 +17,11 @@ class ClientFactory(
     private val clientRepository: ClientRepository,
     private val clientCredentialRepository: ClientCredentialRepository,
     clientScopeRepository: ClientScopeRepository,
-    private val scopeTokenStorage: ScopeTokenStorage,
-    private val operator: TransactionalOperator,
-    private val eventPublisher: EventPublisher
+    private val scopeTokenStorage: ScopeTokenStorage
 ) {
     private val random = SecureRandom.getInstance("SHA1PRNG")
 
-    private val clientMapper = ClientMapper(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage, operator, eventPublisher)
+    private val clientMapper = ClientMapper(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage)
 
     private val confidentialClientScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("confidential(client):pack")
@@ -40,26 +34,23 @@ class ClientFactory(
         random.setSeed(random.generateSeed(128))
     }
 
-    suspend fun create(payload: CreateClientPayload): Client =
-        operator.executeAndAwait {
-            val client = createClient(payload)
+    suspend fun create(payload: CreateClientPayload): Client {
+        val client = createClient(payload)
 
-            client.link()
-            createCredential(client)
+        client.link()
+        createCredential(client)
 
-            if (payload.scope == null) {
-                val scope = getDefaultScope(client)
-                client.grant(scope)
-            } else {
-                payload.scope.forEach {
-                    client.grant(it)
-                }
+        if (payload.scope == null) {
+            val scope = getDefaultScope(client)
+            client.grant(scope)
+        } else {
+            payload.scope.forEach {
+                client.grant(it)
             }
+        }
 
-            eventPublisher.publish(AfterCreateEvent(client))
-
-            client
-        }!!
+        return client
+    }
 
     private suspend fun createClient(payload: CreateClientPayload): Client {
         return ClientData(payload.name, payload.type, payload.origin)

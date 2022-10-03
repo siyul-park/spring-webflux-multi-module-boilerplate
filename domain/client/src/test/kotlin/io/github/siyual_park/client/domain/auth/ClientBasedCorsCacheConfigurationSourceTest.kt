@@ -22,9 +22,9 @@ import org.springframework.mock.web.server.MockServerWebExchange
 import java.time.Duration
 
 class ClientBasedCorsCacheConfigurationSourceTest : ClientTestHelper() {
-    private val tokenRepository = TokenRepository(mongoTemplate, eventPublisher = eventEmitter)
+    private val tokenRepository = TokenRepository(mongoTemplate)
 
-    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage, eventEmitter)
+    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage)
     private val claimEmbedder = ClaimEmbedder()
 
     private val tokenStorage = TokenStorage(tokenRepository, tokenMapper)

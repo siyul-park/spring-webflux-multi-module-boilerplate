@@ -1,6 +1,6 @@
 package io.github.siyual_park.user.event.consumer
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeToken
+import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.data.event.BeforeDeleteEvent
 import io.github.siyual_park.event.EventConsumer
 import io.github.siyual_park.event.Subscribe
@@ -13,7 +13,7 @@ class CascadeDeleteScopeToken(
     private val userScopeRepository: UserScopeRepository
 ) : EventConsumer<BeforeDeleteEvent<*>> {
     override suspend fun consume(event: BeforeDeleteEvent<*>) {
-        val entity = event.entity as? ScopeToken ?: return
+        val entity = event.entity as? ScopeTokenData ?: return
         userScopeRepository.deleteAllByScopeTokenId(entity.id)
     }
 }

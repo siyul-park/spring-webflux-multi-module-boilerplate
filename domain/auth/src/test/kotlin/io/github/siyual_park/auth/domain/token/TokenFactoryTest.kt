@@ -14,7 +14,6 @@ import io.github.siyual_park.auth.repository.ScopeTokenRepository
 import io.github.siyual_park.auth.repository.TokenRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
-import io.github.siyual_park.event.EventEmitter
 import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -40,23 +39,15 @@ class TokenFactoryTest : DataTestHelper() {
         }
     }
 
-    private val eventEmitter = EventEmitter()
-
     private val scopeRelationRepository = ScopeRelationRepository(entityOperations)
     private val scopeTokenRepository = ScopeTokenRepository(entityOperations)
 
-    private val scopeTokenMapper = ScopeTokenMapper(
-        scopeTokenRepository,
-        scopeRelationRepository,
-        transactionalOperator,
-        eventEmitter
-    )
-
-    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper, eventEmitter)
+    private val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository)
+    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper)
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
     private val claimEmbedder = ClaimEmbedder()
-    private val tokenRepository = TokenRepository(mongoTemplate, eventPublisher = eventEmitter)
-    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage, eventPublisher = eventEmitter)
+    private val tokenRepository = TokenRepository(mongoTemplate)
+    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage)
 
     private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenRepository, tokenMapper)
 

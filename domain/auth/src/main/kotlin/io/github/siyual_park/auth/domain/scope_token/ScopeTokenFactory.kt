@@ -2,15 +2,12 @@ package io.github.siyual_park.auth.domain.scope_token
 
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.data.event.AfterCreateEvent
-import io.github.siyual_park.event.EventPublisher
 import org.springframework.stereotype.Component
 
 @Component
 class ScopeTokenFactory(
     private val scopeTokenRepository: ScopeTokenRepository,
-    private val scopeTokenMapper: ScopeTokenMapper,
-    private val eventPublisher: EventPublisher,
+    private val scopeTokenMapper: ScopeTokenMapper
 ) {
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
 
@@ -38,6 +35,5 @@ class ScopeTokenFactory(
             )
         )
             .let { scopeTokenMapper.map(it) }
-            .also { eventPublisher.publish(AfterCreateEvent(it)) }
     }
 }
