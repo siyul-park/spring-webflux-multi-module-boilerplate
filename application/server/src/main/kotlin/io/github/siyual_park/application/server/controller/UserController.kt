@@ -73,16 +73,16 @@ class UserController(
         @Valid @RequestBody request: CreateUserRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): UserInfo = authorizator.withAuthorize(listOf("users:create")) {
-        operator.executeAndAwait {
-            val projectionNode = projectionParser.parse(fields)
+        val projectionNode = projectionParser.parse(fields)
+        val user = operator.executeAndAwait {
             val payload = CreateUserPayload(
                 name = request.name,
                 email = request.email,
                 password = request.password
             )
-            val user = userFactory.create(payload)
-            mapperContext.map(Projection(user, projectionNode))
+            userFactory.create(payload)
         }!!
+        mapperContext.map(Projection(user, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
@@ -138,8 +138,8 @@ class UserController(
         @AuthenticationPrincipal principal: UserPrincipal,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): UserInfo = authorizator.withAuthorize(listOf("users:update", "users[self]:update"), listOf(null, userId)) {
-        operator.executeAndAwait {
-            val projectionNode = projectionParser.parse(fields)
+        val projectionNode = projectionParser.parse(fields)
+        val user = operator.executeAndAwait {
             val user = userStorage.loadOrFail(userId)
 
             request.password?.let {
@@ -159,9 +159,8 @@ class UserController(
 
             PropertyOverridePatch.of<User, UpdateUserRequest>(request.copy(password = null, scope = null))
                 .apply(user)
-
-            mapperContext.map(Projection(user, projectionNode))
         }!!
+        mapperContext.map(Projection(user, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])

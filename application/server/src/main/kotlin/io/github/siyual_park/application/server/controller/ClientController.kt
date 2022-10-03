@@ -71,16 +71,16 @@ class ClientController(
         @Valid @RequestBody request: CreateClientRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientDetailInfo = authorizator.withAuthorize(listOf("clients:create")) {
-        operator.executeAndAwait {
-            val projectionNode = projectionParser.parse(fields)
+        val projectionNode = projectionParser.parse(fields)
+        val client = operator.executeAndAwait {
             val payload = CreateClientPayload(
                 name = request.name,
                 type = request.type,
                 origin = request.origin
             )
-            val client = clientFactory.create(payload)
-            mapperContext.map(Projection(client, projectionNode))
+            clientFactory.create(payload)
         }!!
+        mapperContext.map(Projection(client, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
@@ -140,8 +140,8 @@ class ClientController(
         @Valid @RequestBody request: UpdateClientRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ClientInfo = authorizator.withAuthorize(listOf("clients:update", "clients[self]:update"), listOf(null, clientId)) {
-        operator.executeAndAwait {
-            val projectionNode = projectionParser.parse(fields)
+        val projectionNode = projectionParser.parse(fields)
+        val client = operator.executeAndAwait {
             val client = clientStorage.loadOrFail(clientId)
 
             request.scope?.let {
@@ -155,9 +155,8 @@ class ClientController(
 
             PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null))
                 .apply(client)
-
-            mapperContext.map(Projection(client, projectionNode))
         }!!
+        mapperContext.map(Projection(client, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
