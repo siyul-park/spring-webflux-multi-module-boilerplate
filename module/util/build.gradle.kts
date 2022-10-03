@@ -1,4 +1,5 @@
 dependencies {
+    testImplementation(project(":module:coroutine-test"))
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src/main")

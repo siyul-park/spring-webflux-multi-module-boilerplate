@@ -10,11 +10,12 @@ import java.security.SecureRandom
 private val faker = Faker(SecureRandom())
 
 fun Name.username(size: Int? = null): String {
+    var builder = StringBuilder()
+    builder.append(username())
     if (size == null) {
-        return username()
+        return builder.toString()
     }
 
-    var builder = StringBuilder()
     while (builder.length < size) {
         builder = builder.append(faker.random().hex())
     }
@@ -23,11 +24,12 @@ fun Name.username(size: Int? = null): String {
 }
 
 fun Lorem.word(size: Int? = null): String {
+    var builder = StringBuilder()
+    builder.append(word())
     if (size == null) {
-        return word()
+        return builder.toString()
     }
 
-    var builder = StringBuilder()
     while (builder.length < size) {
         builder = builder.append(faker.random().hex())
     }
@@ -35,6 +37,6 @@ fun Lorem.word(size: Int? = null): String {
     return builder.toString().slice(0 until size)
 }
 
-fun Internet.url(host: String? = null, path: String? = null, scheme: String? = null): URL {
-    return URL("${scheme ?: "http"}://${host ?: this.domainName()}/${path ?: this.slug()}")
+fun Internet.url(protocol: String? = null, host: String? = null, path: String? = null): URL {
+    return URL("${protocol ?: "http"}://${host ?: this.domainName()}/${path ?: this.slug()}")
 }

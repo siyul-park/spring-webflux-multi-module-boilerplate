@@ -24,7 +24,7 @@ object MockCreateClientPayloadFactory {
         return CreateClientPayload(
             name = resolveNotNull(template?.name) { faker.name().username(10) },
             type = resolveNotNull(template?.type) { ClientType.CONFIDENTIAL },
-            origin = resolveNotNull(template?.origin) { faker.internet().url(scheme = null) },
+            origin = resolveNotNull(template?.origin) { faker.internet().url(protocol = null) },
             scope = resolve(template?.scope) { null }
         )
     }

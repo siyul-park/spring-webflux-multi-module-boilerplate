@@ -21,7 +21,7 @@ object MockCreateClientRequestFactory {
         return CreateClientRequest(
             name = resolveNotNull(template?.name) { faker.name().username(10) },
             type = resolveNotNull(template?.type) { ClientType.PUBLIC },
-            origin = resolveNotNull(template?.origin) { faker.internet().url(scheme = null) },
+            origin = resolveNotNull(template?.origin) { faker.internet().url(protocol = null) },
         )
     }
 }
