@@ -69,11 +69,12 @@ open class Persistence<T : Any, ID : Any>(
 
     suspend fun sync(): Boolean {
         var result = false
-        if (root.isUpdated()) {
-            synchronizations.forEach {
-                it.beforeSync()
-            }
 
+        synchronizations.forEach {
+            it.beforeSync()
+        }
+
+        if (root.isUpdated()) {
             val updated = repository.update(root.raw()) {
                 val commands = root.checkout()
                 commands.forEach { (property, command) ->
@@ -83,10 +84,10 @@ open class Persistence<T : Any, ID : Any>(
             }
             updated?.let { root.raw(it) }
             result = updated != null
+        }
 
-            synchronizations.forEach {
-                it.afterSync()
-            }
+        synchronizations.forEach {
+            it.afterSync()
         }
 
         return result
