@@ -68,12 +68,14 @@ class ScopeController(
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ScopeTokenInfo = authorizator.withAuthorize(listOf("scope:create")) {
         val projectionNode = projectionParser.parse(fields)
-        val payload = CreateScopeTokenPayload(
-            name = request.name,
-            description = request.description,
-            system = false
-        )
-        val scopeToken = scopeTokenFactory.create(payload)
+        val scopeToken = operator.executeAndAwait {
+            val payload = CreateScopeTokenPayload(
+                name = request.name,
+                description = request.description,
+                system = false
+            )
+            scopeTokenFactory.create(payload)
+        }!!
         mapperContext.map(Projection(scopeToken, projectionNode))
     }
 
@@ -129,8 +131,8 @@ class ScopeController(
         @Valid @RequestBody request: UpdateScopeTokenRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
     ): ScopeTokenInfo = authorizator.withAuthorize(listOf("scope:update")) {
-        operator.executeAndAwait {
-            val projectionNode = projectionParser.parse(fields)
+        val projectionNode = projectionParser.parse(fields)
+        val scopeToken = operator.executeAndAwait {
             val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
 
             request.children?.let {
@@ -144,9 +146,8 @@ class ScopeController(
 
             PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
                 .apply(scopeToken)
-
-            mapperContext.map(Projection(scopeToken, projectionNode))
         }!!
+        mapperContext.map(Projection(scopeToken, projectionNode))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
