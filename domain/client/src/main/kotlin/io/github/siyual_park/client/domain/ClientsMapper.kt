@@ -5,7 +5,7 @@ import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
-import io.github.siyual_park.data.aggregation.FetchContextProvider
+import io.github.siyual_park.data.aggregation.FetchContext
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
 import org.springframework.stereotype.Component
@@ -21,7 +21,7 @@ class ClientsMapper(
     override val targetType = object : TypeReference<Collection<Client>>() {}
 
     override suspend fun map(source: Collection<ClientData>): Collection<Client> {
-        val fetchContextProvider = FetchContextProvider()
+        val fetchContext = FetchContext()
 
         return source.map {
             Client(
@@ -30,7 +30,7 @@ class ClientsMapper(
                 clientCredentialRepository,
                 clientScopeRepository,
                 scopeTokenStorage,
-                fetchContextProvider
+                fetchContext
             )
         }
     }

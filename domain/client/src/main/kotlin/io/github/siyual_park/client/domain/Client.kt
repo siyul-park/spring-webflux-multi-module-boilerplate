@@ -11,7 +11,7 @@ import io.github.siyual_park.client.entity.ClientType
 import io.github.siyual_park.client.repository.ClientCredentialRepository
 import io.github.siyual_park.client.repository.ClientRepository
 import io.github.siyual_park.client.repository.ClientScopeRepository
-import io.github.siyual_park.data.aggregation.FetchContextProvider
+import io.github.siyual_park.data.aggregation.FetchContext
 import io.github.siyual_park.data.aggregation.get
 import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.criteria.and
@@ -36,7 +36,7 @@ class Client(
     private val clientCredentialRepository: ClientCredentialRepository,
     private val clientScopeRepository: ClientScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
-    fetchContextProvider: FetchContextProvider
+    fetchContext: FetchContext
 ) : Persistence<ClientData, ULID>(value, clientRepository), ClientEntity, Authorizable {
     val id by proxy(root, ClientData::id)
     var name by proxy(root, ClientData::name)
@@ -45,7 +45,7 @@ class Client(
 
     override val clientId by proxy(root, ClientData::id)
 
-    private val scopeContext = fetchContextProvider.get(clientScopeRepository)
+    private val scopeContext = fetchContext.get(clientScopeRepository)
     private val scopeFetcher = scopeContext.join(
         where(ClientScopeData::clientId).`is`(clientId)
     )

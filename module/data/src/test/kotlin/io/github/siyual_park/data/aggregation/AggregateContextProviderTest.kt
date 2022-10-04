@@ -11,28 +11,18 @@ import io.mockk.coVerify
 import io.mockk.spyk
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class FetchContextTest : DataTestHelper() {
+class AggregateContextProviderTest : DataTestHelper() {
     private val repository = spyk(R2DBCRepositoryBuilder<Person, ULID>(entityOperations, Person::class).build())
-    private val context = FetchContext(repository, Person::class)
+    private val contextProvider = FetchContext()
 
     init {
         migrationManager.register(CreatePerson(entityOperations))
     }
 
-    @BeforeEach
-    override fun setUp() {
-        super.setUp()
-
-        blocking {
-            context.clear()
-        }
-    }
-
     @Test
-    fun join() = blocking {
+    fun get() = blocking {
         val person1 = DummyPerson.create()
             .let { repository.create(it) }
         val person2 = DummyPerson.create()
@@ -41,8 +31,11 @@ class FetchContextTest : DataTestHelper() {
         val query1 = where(Person::name).`is`(person1.name)
         val query2 = where(Person::name).`is`(person2.name)
 
-        val fetcher1 = context.join(query1)
-        val fetcher2 = context.join(query2)
+        val context1 = contextProvider.get(repository, Person::class)
+        val context2 = contextProvider.get(repository, Person::class)
+
+        val fetcher1 = context1.join(query1)
+        val fetcher2 = context2.join(query2)
 
         val result1 = fetcher1.fetch().toList()
         val result2 = fetcher2.fetch().toList()

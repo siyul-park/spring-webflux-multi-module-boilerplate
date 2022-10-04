@@ -4,7 +4,7 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientEntity
-import io.github.siyual_park.data.aggregation.FetchContextProvider
+import io.github.siyual_park.data.aggregation.FetchContext
 import io.github.siyual_park.data.aggregation.get
 import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.criteria.and
@@ -35,7 +35,7 @@ class User(
     private val userCredentialRepository: UserCredentialRepository,
     private val userScopeRepository: UserScopeRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
-    fetchContextProvider: FetchContextProvider
+    fetchContext: FetchContext
 ) : Persistence<UserData, ULID>(value, userRepository), UserEntity, Authorizable {
     val id by proxy(root, UserData::id)
     var email by proxy(root, UserData::email)
@@ -43,7 +43,7 @@ class User(
 
     override val userId by proxy(root, UserData::id)
 
-    private val scopeContext = fetchContextProvider.get(userScopeRepository)
+    private val scopeContext = fetchContext.get(userScopeRepository)
     private val scopeFetcher = scopeContext.join(
         where(UserScopeData::userId).`is`(userId)
     )

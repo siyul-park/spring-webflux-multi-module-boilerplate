@@ -1,25 +1,19 @@
 package io.github.siyual_park.data.aggregation
 
-import io.github.siyual_park.data.cache.SelectQuery
-import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.repository.QueryRepository
+import org.apache.commons.collections4.keyvalue.MultiKey
+import org.apache.commons.collections4.map.MultiKeyMap
 import kotlin.reflect.KClass
 
-class FetchContext<T : Any>(
-    repository: QueryRepository<T, *>,
-    clazz: KClass<T>,
-) {
-    private val queryAggregator = QueryAggregator(repository, clazz)
+class FetchContext {
+    private val contexts = MultiKeyMap<Any, AggregateContext<*>>()
 
-    suspend fun clear() {
-        queryAggregator.clear()
-    }
-
-    suspend fun clear(entity: T) {
-        queryAggregator.clear(entity)
-    }
-
-    fun join(criteria: Criteria?, limit: Int? = null): QueryFetcher<T> {
-        return QueryFetcher(SelectQuery(criteria, limit), queryAggregator)
+    fun <T : Any> get(repository: QueryRepository<T, *>, clazz: KClass<T>): AggregateContext<T> {
+        @Suppress("UNCHECKED_CAST")
+        return contexts.getOrPut(MultiKey(repository, clazz)) {
+            AggregateContext(repository, clazz)
+        } as AggregateContext<T>
     }
 }
+
+inline fun <reified T : Any> FetchContext.get(repository: QueryRepository<T, *>) = this.get(repository, T::class)

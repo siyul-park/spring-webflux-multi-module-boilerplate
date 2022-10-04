@@ -1,7 +1,7 @@
 package io.github.siyual_park.user.domain
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.data.aggregation.FetchContextProvider
+import io.github.siyual_park.data.aggregation.FetchContext
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
 import io.github.siyual_park.user.entity.UserData
@@ -21,7 +21,7 @@ class UsersMapper(
     override val targetType = object : TypeReference<Collection<User>>() {}
 
     override suspend fun map(source: Collection<UserData>): Collection<User> {
-        val fetchContextProvider = FetchContextProvider()
+        val fetchContext = FetchContext()
 
         return source.map {
             User(
@@ -30,7 +30,7 @@ class UsersMapper(
                 userCredentialRepository,
                 userScopeRepository,
                 scopeTokenStorage,
-                fetchContextProvider
+                fetchContext
             )
         }
     }
