@@ -31,10 +31,6 @@ open class Persistence<T : Any, ID : Any>(
         return root.raw()
     }
 
-    fun synchronize(synchronization: PersistenceSynchronization) {
-        synchronizations.add(synchronization)
-    }
-
     suspend fun link(): Boolean {
         val context = SuspendTransactionContextHolder.getContext() ?: return false
         val synchronizations = context.synchronizations ?: return false
@@ -91,6 +87,10 @@ open class Persistence<T : Any, ID : Any>(
         }
 
         return result
+    }
+
+    protected fun synchronize(synchronization: PersistenceSynchronization) {
+        synchronizations.add(synchronization)
     }
 
     override fun hashCode(): Int {
