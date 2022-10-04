@@ -7,7 +7,7 @@ class Pool<T : Any>(
     private val load: suspend () -> T,
 ) {
     private val free = PoolStore<T>(type)
-    private val used = PoolStore<T>(type)
+    private val used = PoolStore<T>(ReferenceStrength.WEAK)
 
     suspend fun pop(): T {
         val value = free.pop() ?: load()

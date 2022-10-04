@@ -87,7 +87,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
                             RedisStorage(
                                 redisClient,
                                 name = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, clazz.simpleName ?: ""),
-                                size = size ?: 1000,
+                                size = size ?: 1024,
                                 objectMapper = objectMapper ?: jacksonObjectMapper(),
                                 id = idProperty,
                                 expiredAt = expiredAt ?: WeekProperty { Instant.now().plus(Duration.ofMinutes(1)) },
