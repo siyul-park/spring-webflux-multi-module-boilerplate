@@ -54,7 +54,7 @@ open class Persistence<T : Any, ID : Any>(
             repository.delete(root.raw())
             root.clear()
 
-            synchronizations.forEach {
+            synchronizations.reversed().forEach {
                 it.afterClear()
             }
         } catch (exception: Exception) {
@@ -82,7 +82,7 @@ open class Persistence<T : Any, ID : Any>(
             result = updated != null
         }
 
-        synchronizations.forEach {
+        synchronizations.reversed().forEach {
             it.afterSync()
         }
 
