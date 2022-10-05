@@ -149,6 +149,13 @@ class PoolingNestedStorage<ID : Any, T : Any>(
         return delegator.get().entries()
     }
 
+    override suspend fun status(): Status {
+        return pool.used().entries().fold(Status(0, 0)) { acc, storage ->
+            val cur = storage.status()
+            Status(acc.hit + cur.hit, acc.miss + cur.miss)
+        }
+    }
+
     private fun guard(loader: Flow<T?>): Flow<T?> {
         return flow {
             loader.onEach {

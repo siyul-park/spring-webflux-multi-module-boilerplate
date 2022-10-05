@@ -14,6 +14,7 @@ import java.lang.Long.max
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
@@ -27,9 +28,11 @@ class RedisStorage<ID : Any, T : Any>(
     private val keyClass: KClass<ID>,
     private val valueClass: KClass<T>,
 ) : Storage<ID, T> {
-
     private val properties = Maps.newConcurrentMap<String, WeekProperty<T, *>>()
     private val store = redisClient.getMapCache<String, String>(name)
+
+    private val hit = AtomicLong()
+    private val miss = AtomicLong()
 
     init {
         store.setMaxSize(size)
@@ -61,14 +64,14 @@ class RedisStorage<ID : Any, T : Any>(
         return getIfPresent(index, key) ?: loader()?.also { add(it) }
     }
 
+    override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
+        return getIfPresent(id) ?: loader()?.also { add(it) }
+    }
+
     override suspend fun getIfPresent(id: ID): T? {
         return store.getAsync(writeKey("_id", id)).asDeferred().await()?.let {
             objectMapper.readValue(it, valueClass.java)
-        }
-    }
-
-    override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
-        return getIfPresent(id) ?: loader()?.also { add(it) }
+        }.also { updateStatus(it) }
     }
 
     @Suppress("NAME_SHADOWING")
@@ -102,6 +105,8 @@ class RedisStorage<ID : Any, T : Any>(
             store.getAllAsync(ids.toSet()).asDeferred().await().forEach { (key, value) ->
                 result[ids.indexOf(key)] = objectMapper.readValue(value, valueClass.java)
             }
+
+            result.forEach { updateStatus(it) }
 
             emitAll(result.asFlow())
         }
@@ -141,7 +146,13 @@ class RedisStorage<ID : Any, T : Any>(
     }
 
     override suspend fun clear() {
+        hit.set(0)
+        miss.set(0)
         store.deleteAsync().asDeferred().await()
+    }
+
+    override suspend fun status(): Status {
+        return Status(hit.get(), miss.get())
     }
 
     private fun <T> writeKey(type: String, value: T): String {
@@ -158,5 +169,13 @@ class RedisStorage<ID : Any, T : Any>(
 
     private fun readValue(value: String): T {
         return objectMapper.readValue(value, valueClass.java)
+    }
+
+    private fun updateStatus(value: T?) {
+        if (value == null) {
+            miss.incrementAndGet()
+        } else {
+            hit.incrementAndGet()
+        }
     }
 }

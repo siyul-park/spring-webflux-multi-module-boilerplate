@@ -10,6 +10,13 @@ class MultiLevelNestedStorage<ID : Any, T : Any>(
 ) : NestedStorage<ID, T>, Storage<ID, T> by primary {
     override val parent: NestedStorage<ID, T>? = null
 
+    override suspend fun status(): Status {
+        return secondary.used().entries().fold(primary.status()) { acc, storage ->
+            val cur = storage.status()
+            Status(acc.hit + cur.hit, acc.miss + cur.miss)
+        }
+    }
+
     override suspend fun checkout(): Map<ID, T?> {
         return primary.entries().toMap()
     }

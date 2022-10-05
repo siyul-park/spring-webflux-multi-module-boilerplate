@@ -12,6 +12,7 @@ import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.cache.PoolingNestedQueryStorage
 import io.github.siyual_park.data.cache.PoolingNestedStorage
 import io.github.siyual_park.data.cache.RedisStorage
+import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.cache.TransactionalQueryStorage
 import io.github.siyual_park.data.cache.TransactionalStorage
 import io.github.siyual_park.data.repository.QueryRepository
@@ -20,6 +21,7 @@ import io.github.siyual_park.data.repository.cache.QueryCachedRepository
 import io.github.siyual_park.event.EventPublisher
 import org.redisson.api.RedissonClient
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
+import org.springframework.data.relational.core.mapping.Table
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -33,6 +35,8 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     private var eventPublisher: EventPublisher? = null
     private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
     private var queryCacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
+
+    private var cacheStorageManager: StorageManager? = null
 
     private var redisClient: RedissonClient? = null
     private var expiredAt: WeekProperty<T, Instant?>? = null
@@ -64,6 +68,11 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
 
     fun enableQueryCache(cacheBuilder: (() -> CacheBuilder<Any, Any>)?): R2DBCRepositoryBuilder<T, ID> {
         this.queryCacheBuilder = cacheBuilder
+        return this
+    }
+
+    fun enableCacheStorageManager(cacheStorageManager: StorageManager?): R2DBCRepositoryBuilder<T, ID> {
+        this.cacheStorageManager = cacheStorageManager
         return this
     }
 
@@ -101,6 +110,10 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
                         PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, idProperty) }, idProperty)
                     }
                 )
+
+                clazz.annotations.find { it is Table }?.let {
+                    cacheStorageManager?.put((it as Table).value, storage)
+                }
 
                 CachedQueryRepository(it, storage, idProperty, clazz)
             } else {

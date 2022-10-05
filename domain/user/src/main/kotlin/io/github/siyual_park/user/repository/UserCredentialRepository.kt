@@ -2,6 +2,7 @@ package io.github.siyual_park.user.repository
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.cache.CacheBuilder
+import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
@@ -20,7 +21,8 @@ class UserCredentialRepository(
     entityOperations: R2dbcEntityOperations,
     objectMapper: ObjectMapper? = null,
     redisClient: RedissonClient? = null,
-    eventPublisher: EventPublisher? = null
+    eventPublisher: EventPublisher? = null,
+    cacheStorageManager: StorageManager? = null
 ) : QueryRepository<UserCredentialData, Long> by R2DBCRepositoryBuilder<UserCredentialData, Long>(entityOperations, UserCredentialData::class)
     .enableEvent(eventPublisher)
     .enableJsonMapping(objectMapper)
@@ -31,6 +33,7 @@ class UserCredentialRepository(
             .expireAfterWrite(Duration.ofMinutes(1))
             .maximumSize(1_000)
     })
+    .enableCacheStorageManager(cacheStorageManager)
     .build() {
     suspend fun findByUserIdOrFail(userId: ULID): UserCredentialData {
         return findByUserId(userId) ?: throw EmptyResultDataAccessException(1)

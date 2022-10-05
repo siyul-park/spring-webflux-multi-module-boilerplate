@@ -10,6 +10,7 @@ import io.github.siyual_park.data.cache.MultiLevelNestedStorage
 import io.github.siyual_park.data.cache.Pool
 import io.github.siyual_park.data.cache.PoolingNestedStorage
 import io.github.siyual_park.data.cache.RedisStorage
+import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.cache.TransactionalStorage
 import io.github.siyual_park.data.expansion.idProperty
 import io.github.siyual_park.data.repository.QueryRepository
@@ -17,6 +18,7 @@ import io.github.siyual_park.data.repository.cache.CachedQueryRepository
 import io.github.siyual_park.event.EventPublisher
 import org.redisson.api.RedissonClient
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -28,6 +30,8 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
 ) {
     private var eventPublisher: EventPublisher? = null
     private var cacheBuilder: (() -> CacheBuilder<Any, Any>)? = null
+
+    private var cacheStorageManager: StorageManager? = null
 
     private var redisClient: RedissonClient? = null
     private var expiredAt: WeekProperty<T, Instant?>? = null
@@ -54,6 +58,11 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
         this.redisClient = redisClient
         this.expiredAt = expiredAt
         this.size = size
+        return this
+    }
+
+    fun enableCacheStorageManager(cacheStorageManager: StorageManager?): MongoRepositoryBuilder<T, ID> {
+        this.cacheStorageManager = cacheStorageManager
         return this
     }
 
@@ -91,6 +100,11 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
                         PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, idProperty) }, idProperty)
                     }
                 )
+
+                clazz.annotations.find { it is Document }?.let {
+                    cacheStorageManager?.put((it as Document).value, storage)
+                }
+
                 CachedQueryRepository(it, storage, idProperty, clazz)
             } else {
                 it

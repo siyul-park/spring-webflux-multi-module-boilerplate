@@ -65,4 +65,8 @@ class TransactionalStorage<ID : Any, T : Any>(
     override suspend fun entries(): Set<Pair<ID, T>> {
         return provider.get().entries()
     }
+
+    override suspend fun status(): Status {
+        return provider.get().status()
+    }
 }

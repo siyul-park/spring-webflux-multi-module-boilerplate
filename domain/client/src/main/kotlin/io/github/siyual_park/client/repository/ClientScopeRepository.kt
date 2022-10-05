@@ -2,6 +2,7 @@ package io.github.siyual_park.client.repository
 
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.client.entity.ClientScopeData
+import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
@@ -15,7 +16,8 @@ import java.time.Duration
 @Repository
 class ClientScopeRepository(
     entityOperations: R2dbcEntityOperations,
-    eventPublisher: EventPublisher? = null
+    eventPublisher: EventPublisher? = null,
+    cacheStorageManager: StorageManager? = null
 ) : QueryRepository<ClientScopeData, Long> by R2DBCRepositoryBuilder<ClientScopeData, Long>(entityOperations, ClientScopeData::class)
     .enableEvent(eventPublisher)
     .enableCache({
@@ -30,6 +32,7 @@ class ClientScopeRepository(
             .expireAfterWrite(Duration.ofSeconds(1))
             .maximumSize(1_000)
     })
+    .enableCacheStorageManager(cacheStorageManager)
     .build() {
     fun findAllByClientId(clientId: ULID): Flow<ClientScopeData> {
         return findAll(where(ClientScopeData::clientId).`is`(clientId))

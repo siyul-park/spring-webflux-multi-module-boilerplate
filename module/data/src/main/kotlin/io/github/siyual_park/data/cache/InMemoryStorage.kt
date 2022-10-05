@@ -7,6 +7,7 @@ import io.github.siyual_park.data.WeekProperty
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 @Suppress("UNCHECKED_CAST")
 class InMemoryStorage<ID : Any, T : Any>(
@@ -25,6 +26,9 @@ class InMemoryStorage<ID : Any, T : Any>(
                 }
             }
         }.build()
+
+    private val hit = AtomicLong()
+    private val miss = AtomicLong()
 
     override suspend fun <KEY : Any> createIndex(name: String, property: WeekProperty<T, KEY>) {
         indexes[name] = ConcurrentHashMap<KEY, ID>()
@@ -55,12 +59,18 @@ class InMemoryStorage<ID : Any, T : Any>(
         return getIfPresent(index, key) ?: loader()?.also { add(it) }
     }
 
-    override suspend fun getIfPresent(id: ID): T? {
-        return cache.getIfPresent(id)
+    override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
+        return getIfPresent(id) ?: loader()?.also { add(it) }
     }
 
-    override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
-        return cache.getIfPresent(id) ?: loader()?.also { add(it) }
+    override suspend fun getIfPresent(id: ID): T? {
+        return cache.getIfPresent(id).also {
+            if (it == null) {
+                miss.incrementAndGet()
+            } else {
+                hit.incrementAndGet()
+            }
+        }
     }
 
     override fun <KEY : Any> getAll(index: String, keys: Iterable<KEY>): Flow<T?> {
@@ -92,7 +102,13 @@ class InMemoryStorage<ID : Any, T : Any>(
     }
 
     override suspend fun clear() {
+        hit.set(0)
+        miss.set(0)
         cache.invalidateAll()
         indexes.forEach { (_, index) -> index.run { clear() } }
+    }
+
+    override suspend fun status(): Status {
+        return Status(hit.get(), miss.get())
     }
 }

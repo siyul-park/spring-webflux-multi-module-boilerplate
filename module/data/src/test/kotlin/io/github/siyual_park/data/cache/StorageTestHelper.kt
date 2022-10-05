@@ -185,4 +185,31 @@ abstract class StorageTestHelper(
         assertNull(storage.getIfPresent(value.id))
         assertNull(storage.getIfPresent("name", value.name))
     }
+
+    @Test
+    fun status() = blocking {
+        val value = DummyPerson.create()
+
+        storage.createIndex("name", nameIndex)
+
+        storage.add(value)
+
+        storage.getIfPresent(value.id)
+
+        var status = storage.status()
+        assertEquals(1, status.hit)
+        assertEquals(0, status.miss)
+
+        storage.getIfPresent(ULID.randomULID())
+
+        status = storage.status()
+        assertEquals(1, status.hit)
+        assertEquals(1, status.miss)
+
+        storage.clear()
+
+        status = storage.status()
+        assertEquals(0, status.hit)
+        assertEquals(0, status.miss)
+    }
 }

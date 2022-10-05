@@ -32,6 +32,8 @@ interface Storage<ID : Any, T : Any> {
     suspend fun entries(): Set<Pair<ID, T>>
 
     suspend fun clear()
+
+    suspend fun status(): Status
 }
 
 suspend fun <ID : Any, T : Any> Storage<ID, T>.createIndexes(clazz: KClass<T>, indexName: (KProperty1<T, *>) -> String = { it.name }) {
