@@ -24,7 +24,7 @@ class CacheController(
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/status")
     @ResponseStatus(HttpStatus.OK)
-    suspend fun status(): Map<String, CacheStatusInfo> = authorizator.withAuthorize(listOf("status:read")) {
+    suspend fun status(): Map<String, CacheStatusInfo> = authorizator.withAuthorize(listOf("cache.status:read")) {
         return cacheStorageManager.status().mapValues { (_, value) ->
             CacheStatusInfo(value.hit, value.miss)
         }
