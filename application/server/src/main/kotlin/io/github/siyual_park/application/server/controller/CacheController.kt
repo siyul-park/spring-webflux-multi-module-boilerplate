@@ -4,6 +4,8 @@ import io.github.siyual_park.application.server.dto.response.CacheStatusInfo
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.authorization.withAuthorize
 import io.github.siyual_park.data.cache.StorageManager
+import io.github.siyual_park.mapper.MapperContext
+import io.github.siyual_park.mapper.map
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -19,14 +21,13 @@ import org.springframework.web.bind.annotation.RestController
 class CacheController(
     private val cacheStorageManager: StorageManager,
     private val authorizator: Authorizator,
+    private val mapperContext: MapperContext
 ) {
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @GetMapping("/status")
     @ResponseStatus(HttpStatus.OK)
     suspend fun status(): Map<String, CacheStatusInfo> = authorizator.withAuthorize(listOf("cache.status:read")) {
-        return cacheStorageManager.status().mapValues { (_, value) ->
-            CacheStatusInfo(value.hit, value.miss)
-        }
+        mapperContext.map(cacheStorageManager.status())
     }
 }
