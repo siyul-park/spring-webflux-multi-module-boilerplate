@@ -24,7 +24,7 @@ module.exports = {
     ],
   },
   target: 'web',
-  externals: /^(k6|https?\:\/\/)(\/.*)?/,
+  externals: /^(k6|https?:\/\/)(\/.*)?/,
   stats: {
     colors: true,
   },
