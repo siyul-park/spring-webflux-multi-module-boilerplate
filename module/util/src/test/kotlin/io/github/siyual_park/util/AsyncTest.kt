@@ -20,5 +20,6 @@ class AsyncTest : CoroutineTestHelper() {
 
         assertThrows<RuntimeException> { retry(0, counter(1)) }
         retry(1, counter(1))
+        retry(null, counter(2))
     }
 }
