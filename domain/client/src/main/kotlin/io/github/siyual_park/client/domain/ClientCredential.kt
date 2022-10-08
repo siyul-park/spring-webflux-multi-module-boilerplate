@@ -13,11 +13,14 @@ class ClientCredential(
     val id by proxyNotNull(root, ClientCredentialData::id)
     val clientId by proxy(root, ClientCredentialData::clientId)
 
-    fun checkSecret(secret: String): Boolean {
+    val createdAt by proxy(root, ClientCredentialData::createdAt)
+    val updatedAt by proxy(root, ClientCredentialData::updatedAt)
+
+    fun check(secret: String): Boolean {
         return root[ClientCredentialData::secret] == secret
     }
 
-    fun setSecret(secret: String) {
+    fun set(secret: String) {
         root[ClientCredentialData::secret] = secret
     }
 }

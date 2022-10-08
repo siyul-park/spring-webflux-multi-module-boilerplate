@@ -51,7 +51,7 @@ class RootClientConfiguration(
 
             if (property.secret.isNotEmpty()) {
                 val credential = client.getCredential()
-                credential.setSecret(property.secret)
+                credential.set(property.secret)
                 logger.info("Updating root client [secret: ${property.secret}]")
             }
         }

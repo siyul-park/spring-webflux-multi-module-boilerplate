@@ -183,7 +183,7 @@ class UserController(
         listOf(null, user.id)
     ) {
         user.getCredential().apply {
-            setPassword(password)
+            set(password)
         }
     }
 

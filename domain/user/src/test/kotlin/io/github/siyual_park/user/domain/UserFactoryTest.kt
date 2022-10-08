@@ -26,7 +26,7 @@ class UserFactoryTest : UserTestHelper() {
 
         assertEquals(payload.name, user.name)
         assertEquals(payload.email, user.email)
-        assertTrue(user.getCredential().isPassword(payload.password))
+        assertTrue(user.getCredential().check(payload.password))
 
         val scope = user.getScope(deep = false).toList()
         assertEquals(1, scope.size)
@@ -46,7 +46,7 @@ class UserFactoryTest : UserTestHelper() {
 
         assertEquals(payload.name, user.name)
         assertEquals(payload.email, user.email)
-        assertTrue(user.getCredential().isPassword(payload.password))
+        assertTrue(user.getCredential().check(payload.password))
 
         val scope = user.getScope(deep = false).toList()
         assertEquals(1, scope.size)

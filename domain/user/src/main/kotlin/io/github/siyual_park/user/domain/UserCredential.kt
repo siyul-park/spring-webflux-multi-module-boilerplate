@@ -20,11 +20,11 @@ class UserCredential(
 
     private val hashAlgorithm by proxy(root, UserCredentialData::hashAlgorithm)
 
-    fun isPassword(password: String): Boolean {
+    fun check(password: String): Boolean {
         return root[UserCredentialData::password] == encodePassword(password)
     }
 
-    fun setPassword(password: String) {
+    fun set(password: String) {
         root[UserCredentialData::password] = encodePassword(password)
     }
 

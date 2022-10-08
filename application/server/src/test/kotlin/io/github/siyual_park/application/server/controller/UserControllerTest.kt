@@ -477,7 +477,7 @@ class UserControllerTest @Autowired constructor(
         val response = userControllerGateway.update(user.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
-        assertTrue(user.getCredential().isPassword(password))
+        assertTrue(user.getCredential().check(password))
     }
 
     @Test

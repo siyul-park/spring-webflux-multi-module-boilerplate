@@ -18,7 +18,7 @@ class ClientCredentialsGrantAuthenticateStrategy(
         val client = clientStorage.loadOrFail(payload.id)
         if (client.isConfidential()) {
             val credential = client.getCredential()
-            if (payload.secret == null || !credential.checkSecret(payload.secret)) {
+            if (payload.secret == null || !credential.check(payload.secret)) {
                 throw SecretIncorrectException()
             }
         }
