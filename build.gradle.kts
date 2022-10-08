@@ -12,7 +12,7 @@ val json_patch_version: String by project
 val springdoc_version: String by project
 val sentry_logback_version: String by project
 val embed_mongo_version: String by project
-val javafaker_version: String by project
+val datafaker_version: String by project
 val redisson_version: String by project
 val embedded_redis_version: String by project
 
@@ -127,7 +127,7 @@ allprojects {
         implementation("org.springdoc:springdoc-openapi-security:$springdoc_version")
         implementation("org.springdoc:springdoc-openapi-kotlin:$springdoc_version")
 
-        implementation("com.github.javafaker:javafaker:$javafaker_version")
+        implementation("net.datafaker:datafaker:$datafaker_version")
 
         implementation("org.redisson:redisson-spring-boot-starter:$redisson_version")
         implementation("it.ozimov:embedded-redis:$embedded_redis_version") {
