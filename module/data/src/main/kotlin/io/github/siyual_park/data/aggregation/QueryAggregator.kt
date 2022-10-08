@@ -75,13 +75,12 @@ class QueryAggregator<T : Any>(
         return flow {
             mutex.withLock {
                 pop(query)?.onEach { emit(it) } ?: run {
-                    val free = free()
                     val merged = mutableSetOf<SelectQuery>().also {
-                        it.addAll(free)
+                        it.addAll(free())
                         it.add(query)
                     }
 
-                    val limit = free.map { it.limit }.fold(query.limit) { acc, cur ->
+                    val limit = merged.map { it.limit }.fold(0 as Int?) { acc, cur ->
                         if (cur == null || acc == null) {
                             null
                         } else {
@@ -89,10 +88,7 @@ class QueryAggregator<T : Any>(
                         }
                     }
 
-                    val result = repository.findAll(
-                        merge(merged.mapNotNull { it.where }.toSet()),
-                        limit = limit
-                    ).toList()
+                    val result = repository.findAll(merge(merged.mapNotNull { it.where }.toSet()), limit = limit).toList()
                     val distributed = distribute(merged, result)
 
                     distributed.forEach { (key, value) ->
