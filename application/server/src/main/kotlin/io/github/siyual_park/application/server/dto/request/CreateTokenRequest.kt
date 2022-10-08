@@ -1,38 +1,49 @@
 package io.github.siyual_park.application.server.dto.request
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import io.github.siyual_park.application.server.dto.GrantType
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.oas.annotations.media.Schema
-import javax.validation.constraints.AssertTrue
+import javax.validation.constraints.Size
 
-data class CreateTokenRequest(
-    @Schema(name = "grant_type")
-    val grantType: GrantType,
-    @Schema(name = "scope")
-    val scope: String? = null,
+@Schema(
+    type = "object",
+    subTypes = [CreateTokenRequest.Password::class, CreateTokenRequest.RefreshToken::class, CreateTokenRequest.ClientCredentials::class]
+)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "grant_type")
+@JsonSubTypes(
+    JsonSubTypes.Type(name = "password", value = CreateTokenRequest.Password::class),
+    JsonSubTypes.Type(name = "refresh_token", value = CreateTokenRequest.RefreshToken::class),
+    JsonSubTypes.Type(name = "client_credentials", value = CreateTokenRequest.ClientCredentials::class),
+)
+sealed interface CreateTokenRequest {
+    val scope: String?
+    val clientId: ULID
+    val clientSecret: String?
 
-    @Schema(name = "username")
-    val username: String? = null,
-    @Schema(name = "password")
-    val password: String? = null,
+    data class Password(
+        override val scope: String? = null,
+        @field:Size(min = 3, max = 20)
+        val username: String,
+        @field:Size(min = 8, max = 20)
+        val password: String,
+        override val clientId: ULID,
+        @field:Size(min = 32, max = 32)
+        override val clientSecret: String? = null
+    ) : CreateTokenRequest
 
-    @Schema(name = "refresh_token")
-    val refreshToken: String? = null,
+    data class RefreshToken(
+        override val scope: String? = null,
+        val refreshToken: String,
+        override val clientId: ULID,
+        @field:Size(min = 32, max = 32)
+        override val clientSecret: String? = null
+    ) : CreateTokenRequest
 
-    @Schema(name = "client_id")
-    val clientId: ULID,
-    @Schema(name = "client_secret")
-    val clientSecret: String? = null
-) {
-    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
-    @JsonIgnore
-    @AssertTrue
-    fun isValid(): Boolean {
-        return when (grantType) {
-            GrantType.PASSWORD -> username != null && password != null
-            GrantType.REFRESH_TOKEN -> refreshToken != null
-            GrantType.CLIENT_CREDENTIALS -> true
-        }
-    }
+    data class ClientCredentials(
+        override val scope: String? = null,
+        override val clientId: ULID,
+        @field:Size(min = 32, max = 32)
+        override val clientSecret: String? = null
+    ) : CreateTokenRequest
 }

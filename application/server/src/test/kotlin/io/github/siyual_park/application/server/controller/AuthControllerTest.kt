@@ -1,7 +1,6 @@
 package io.github.siyual_park.application.server.controller
 
 import io.github.siyual_park.IntegrationTest
-import io.github.siyual_park.application.server.dto.GrantType
 import io.github.siyual_park.application.server.dto.request.CreateTokenRequest
 import io.github.siyual_park.application.server.gateway.AuthControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
@@ -36,8 +35,7 @@ class AuthControllerTest @Autowired constructor(
             .also { userFactory.create(it) }
 
         val tokenResponse = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.PASSWORD,
+            CreateTokenRequest.Password(
                 username = createUserPayload.name,
                 password = createUserPayload.password,
                 clientId = client.id,
@@ -56,75 +54,12 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `POST token, status = 401, when grant_type = password`() = blocking {
-        val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
-        val createUserPayload = MockCreateUserPayloadFactory.create()
-            .also { userFactory.create(it) }
-
-        val otherUserRequest = MockCreateUserPayloadFactory.create()
-
-        val tokenResponse = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.PASSWORD,
-                username = createUserPayload.name,
-                password = otherUserRequest.password,
-                clientId = client.id
-            )
-        )
-
-        assertEquals(HttpStatus.UNAUTHORIZED, tokenResponse.status)
-    }
-
-    @Test
-    fun `POST token, status = 400, when grant_type = password`() = blocking {
-        val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
-        val createUserPayload = MockCreateUserPayloadFactory.create()
-            .also { userFactory.create(it) }
-
-        val case1 = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.PASSWORD,
-                username = createUserPayload.name,
-                clientId = client.id
-            )
-        )
-        val case2 = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.PASSWORD,
-                password = createUserPayload.password,
-                clientId = client.id
-            )
-        )
-        val case3 = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.PASSWORD,
-                clientId = client.id
-            )
-        )
-        val case4 = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.PASSWORD,
-                refreshToken = "dummy_token",
-                clientId = client.id
-            )
-        )
-
-        assertEquals(HttpStatus.BAD_REQUEST, case1.status)
-        assertEquals(HttpStatus.BAD_REQUEST, case2.status)
-        assertEquals(HttpStatus.BAD_REQUEST, case3.status)
-        assertEquals(HttpStatus.BAD_REQUEST, case4.status)
-    }
-
-    @Test
     fun `POST token, status = 201, when grant_type = client_credentials`() = blocking {
         val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
 
         val tokenResponse = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.CLIENT_CREDENTIALS,
+            CreateTokenRequest.ClientCredentials(
                 clientId = client.id,
                 clientSecret = client.getCredential().raw().secret
             )
@@ -148,8 +83,7 @@ class AuthControllerTest @Autowired constructor(
             .also { userFactory.create(it) }
 
         val tokensByPassword = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.PASSWORD,
+            CreateTokenRequest.Password(
                 username = createUserPayload.name,
                 password = createUserPayload.password,
                 clientId = client.id,
@@ -158,9 +92,8 @@ class AuthControllerTest @Autowired constructor(
         ).responseBody.awaitSingle()
 
         val response = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.REFRESH_TOKEN,
-                refreshToken = tokensByPassword.refreshToken,
+            CreateTokenRequest.RefreshToken(
+                refreshToken = tokensByPassword.refreshToken!!,
                 clientId = client.id,
                 clientSecret = client.getCredential().raw().secret
             )
@@ -182,47 +115,13 @@ class AuthControllerTest @Autowired constructor(
             .let { clientFactory.create(it) }
 
         val response = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.REFRESH_TOKEN,
+            CreateTokenRequest.RefreshToken(
                 refreshToken = "invalid_token",
                 clientId = client.id
             )
         )
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.status)
-    }
-
-    @Test
-    fun `POST token, status = 400, when grant_type = refresh_token`() = blocking {
-        val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
-        val createUserPayload = MockCreateUserPayloadFactory.create()
-            .also { userFactory.create(it) }
-
-        val case1 = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.REFRESH_TOKEN,
-                username = createUserPayload.name,
-                clientId = client.id
-            )
-        )
-        val case2 = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.REFRESH_TOKEN,
-                password = createUserPayload.password,
-                clientId = client.id
-            )
-        )
-        val case3 = authControllerGateway.createToken(
-            CreateTokenRequest(
-                grantType = GrantType.REFRESH_TOKEN,
-                clientId = client.id
-            )
-        )
-
-        assertEquals(HttpStatus.BAD_REQUEST, case1.status)
-        assertEquals(HttpStatus.BAD_REQUEST, case2.status)
-        assertEquals(HttpStatus.BAD_REQUEST, case3.status)
     }
 
     @Test

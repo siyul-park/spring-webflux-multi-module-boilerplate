@@ -1,6 +1,5 @@
 package io.github.siyual_park.application.server.controller
 
-import io.github.siyual_park.application.server.dto.GrantType
 import io.github.siyual_park.application.server.dto.request.CreateTokenRequest
 import io.github.siyual_park.application.server.dto.response.PrincipalInfo
 import io.github.siyual_park.application.server.dto.response.TokenInfo
@@ -108,10 +107,10 @@ class AuthController(
                     throw RequiredPermissionException()
                 }
             }
-        return when (request.grantType) {
-            GrantType.PASSWORD -> authenticator.authenticate(PasswordGrantPayload(request.username!!, request.password!!, request.clientId))
-            GrantType.CLIENT_CREDENTIALS -> clientPrincipal
-            GrantType.REFRESH_TOKEN -> authenticator.authenticate(RefreshTokenPayload(request.refreshToken!!))
+        return when (request) {
+            is CreateTokenRequest.Password -> authenticator.authenticate(PasswordGrantPayload(request.username, request.password, request.clientId))
+            is CreateTokenRequest.ClientCredentials -> clientPrincipal
+            is CreateTokenRequest.RefreshToken -> authenticator.authenticate(RefreshTokenPayload(request.refreshToken))
         }
     }
 
@@ -124,8 +123,8 @@ class AuthController(
             ?.let { scopeTokenStorage.load(it) }
             ?.toSet()
 
-        val refreshToken = if (request.grantType == GrantType.REFRESH_TOKEN) {
-            tokenStorage.load(request.refreshToken!!)
+        val refreshToken = if (request is CreateTokenRequest.RefreshToken) {
+            tokenStorage.load(request.refreshToken)
         } else if (authorizator.authorize(principal, refreshTokenScope.get())) {
             refreshTokenFactory.get().create(
                 principal,
@@ -142,7 +141,7 @@ class AuthController(
             filter = scope,
         )
 
-        return if (request.grantType != GrantType.REFRESH_TOKEN) {
+        return if (request !is CreateTokenRequest.RefreshToken) {
             accessToken to refreshToken
         } else {
             accessToken to null
