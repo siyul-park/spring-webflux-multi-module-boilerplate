@@ -4,7 +4,7 @@ import io.github.siyual_park.application.server.dto.request.CreateScopeTokenRequ
 import io.github.siyual_park.application.server.dto.request.UpdateScopeTokenRequest
 import io.github.siyual_park.application.server.dto.response.ScopeTokenInfo
 import io.github.siyual_park.auth.domain.authorization.Authorizator
-import io.github.siyual_park.auth.domain.authorization.withAuthorize
+import io.github.siyual_park.auth.domain.authorization.authorize
 import io.github.siyual_park.auth.domain.scope_token.CreateScopeTokenPayload
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
@@ -66,7 +66,7 @@ class ScopeController(
     suspend fun create(
         @Valid @RequestBody request: CreateScopeTokenRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ScopeTokenInfo = authorizator.withAuthorize(listOf("scope:create")) {
+    ): ScopeTokenInfo = authorizator.authorize(listOf("scope:create")) {
         val projectionNode = projectionParser.parse(fields)
         val scopeToken = operator.executeAndAwait {
             val payload = CreateScopeTokenPayload(
@@ -91,7 +91,7 @@ class ScopeController(
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): OffsetPage<ScopeTokenInfo> = authorizator.withAuthorize(listOf("scope:read")) {
+    ): OffsetPage<ScopeTokenInfo> = authorizator.authorize(listOf("scope:read")) {
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
@@ -117,7 +117,7 @@ class ScopeController(
     suspend fun read(
         @PathVariable("scope-id") scopeId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ScopeTokenInfo = authorizator.withAuthorize(listOf("scope:read")) {
+    ): ScopeTokenInfo = authorizator.authorize(listOf("scope:read")) {
         val projectionNode = projectionParser.parse(fields)
         val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
         mapperContext.map(Projection(scopeToken, projectionNode))
@@ -130,7 +130,7 @@ class ScopeController(
         @PathVariable("scope-id") scopeId: ULID,
         @Valid @RequestBody request: UpdateScopeTokenRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ScopeTokenInfo = authorizator.withAuthorize(listOf("scope:update")) {
+    ): ScopeTokenInfo = authorizator.authorize(listOf("scope:update")) {
         val projectionNode = projectionParser.parse(fields)
         val scopeToken = operator.executeAndAwait {
             val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
@@ -144,8 +144,7 @@ class ScopeController(
                 }
             }
 
-            PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null))
-                .apply(scopeToken)
+            PropertyOverridePatch.of<ScopeToken, UpdateScopeTokenRequest>(request.copy(children = null)).apply(scopeToken)
         }!!
         mapperContext.map(Projection(scopeToken, projectionNode))
     }
@@ -155,7 +154,7 @@ class ScopeController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     suspend fun delete(
         @PathVariable("scope-id") scopeId: ULID
-    ) = authorizator.withAuthorize(listOf("scope:delete")) {
+    ) = authorizator.authorize(listOf("scope:delete")) {
         operator.executeAndAwait {
             val scopeToken = scopeTokenStorage.loadOrFail(scopeId)
             scopeToken.clear()
@@ -172,12 +171,12 @@ class ScopeController(
         val toRevokeScope = existsScope.filter { !scope.contains(it) }
 
         if (toGrantScope.isNotEmpty()) {
-            authorizator.withAuthorize(listOf("scope.children:create"), null) {
+            authorizator.authorize(listOf("scope.children:create")) {
                 toGrantScope.forEach { parent.grant(it) }
             }
         }
         if (toRevokeScope.isNotEmpty()) {
-            authorizator.withAuthorize(listOf("scope.children:delete"), null) {
+            authorizator.authorize(listOf("scope.children:delete")) {
                 toRevokeScope.forEach { parent.revoke(it) }
             }
         }

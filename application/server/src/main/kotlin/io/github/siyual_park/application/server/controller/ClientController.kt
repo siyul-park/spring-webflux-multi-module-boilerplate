@@ -5,7 +5,7 @@ import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
 import io.github.siyual_park.application.server.dto.response.ClientDetailInfo
 import io.github.siyual_park.application.server.dto.response.ClientInfo
 import io.github.siyual_park.auth.domain.authorization.Authorizator
-import io.github.siyual_park.auth.domain.authorization.withAuthorize
+import io.github.siyual_park.auth.domain.authorization.authorize
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.Client
@@ -70,7 +70,7 @@ class ClientController(
     suspend fun create(
         @Valid @RequestBody request: CreateClientRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ClientDetailInfo = authorizator.withAuthorize(listOf("clients:create")) {
+    ): ClientDetailInfo = authorizator.authorize(listOf("clients:create")) {
         val projectionNode = projectionParser.parse(fields)
         val client = operator.executeAndAwait {
             val payload = CreateClientPayload(
@@ -97,7 +97,7 @@ class ClientController(
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): OffsetPage<ClientInfo> = authorizator.withAuthorize(listOf("clients:read")) {
+    ): OffsetPage<ClientInfo> = authorizator.authorize(listOf("clients:read")) {
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
@@ -126,7 +126,7 @@ class ClientController(
     suspend fun read(
         @PathVariable("client-id") clientId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ClientInfo = authorizator.withAuthorize(listOf("clients:read", "clients[self]:read"), listOf(null, clientId)) {
+    ): ClientInfo = authorizator.authorize(listOf("clients:read", "clients[self]:read"), listOf(null, clientId)) {
         val projectionNode = projectionParser.parse(fields)
         val client = clientStorage.loadOrFail(clientId)
         mapperContext.map(Projection(client, projectionNode))
@@ -139,7 +139,7 @@ class ClientController(
         @PathVariable("client-id") clientId: ULID,
         @Valid @RequestBody request: UpdateClientRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): ClientInfo = authorizator.withAuthorize(listOf("clients:update", "clients[self]:update"), listOf(null, clientId)) {
+    ): ClientInfo = authorizator.authorize(listOf("clients:update", "clients[self]:update"), listOf(null, clientId)) {
         val projectionNode = projectionParser.parse(fields)
         val client = operator.executeAndAwait {
             val client = clientStorage.loadOrFail(clientId)
@@ -153,8 +153,7 @@ class ClientController(
                 }
             }
 
-            PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null))
-                .apply(client)
+            PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null)).apply(client)
         }!!
         mapperContext.map(Projection(client, projectionNode))
     }
@@ -164,7 +163,7 @@ class ClientController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     suspend fun delete(
         @PathVariable("client-id") clientId: ULID,
-    ) = authorizator.withAuthorize(listOf("clients:delete", "clients[self]:delete"), listOf(null, clientId)) {
+    ) = authorizator.authorize(listOf("clients:delete", "clients[self]:delete"), listOf(null, clientId)) {
         operator.executeAndAwait {
             val client = clientStorage.loadOrFail(clientId)
             client.clear()
@@ -181,12 +180,12 @@ class ClientController(
         val toRevokeScope = existsScope.filter { !scope.contains(it) }
 
         if (toGrantScope.isNotEmpty()) {
-            authorizator.withAuthorize(listOf("clients.scope:create"), null) {
+            authorizator.authorize(listOf("clients.scope:create")) {
                 toGrantScope.forEach { client.grant(it) }
             }
         }
         if (toRevokeScope.isNotEmpty()) {
-            authorizator.withAuthorize(listOf("clients.scope:delete"), null) {
+            authorizator.authorize(listOf("clients.scope:delete")) {
                 toRevokeScope.forEach { client.revoke(it) }
             }
         }

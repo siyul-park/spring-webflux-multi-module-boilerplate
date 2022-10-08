@@ -8,7 +8,7 @@ import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.RefreshTokenPayload
 import io.github.siyual_park.auth.domain.authorization.Authorizator
-import io.github.siyual_park.auth.domain.authorization.withAuthorize
+import io.github.siyual_park.auth.domain.authorization.authorize
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.domain.token.Token
@@ -154,14 +154,14 @@ class AuthController(
     suspend fun readSelf(
         @AuthenticationPrincipal principal: Principal,
         @RequestParam("fields", required = false) fields: Collection<String>? = null
-    ): PrincipalInfo = authorizator.withAuthorize(listOf("principal[self]:read")) {
+    ): PrincipalInfo = authorizator.authorize(listOf("principal[self]:read")) {
         mapperContext.map(Projection(principal, projectionParser.parse(fields)))
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])
     @DeleteMapping("/self")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    suspend fun deleteSelf(authentication: Authentication) = authorizator.withAuthorize(listOf("principal[self]:delete")) {
+    suspend fun deleteSelf(authentication: Authentication) = authorizator.authorize(listOf("principal[self]:delete")) {
         val credential = authentication.credentials.toString()
         val token = tokenStorage.loadOrFail(credential)
         token.clear()

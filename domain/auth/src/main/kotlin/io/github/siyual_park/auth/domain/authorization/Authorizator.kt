@@ -5,7 +5,7 @@ import io.github.siyual_park.auth.domain.SuspendSecurityContextHolder
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.auth.exception.PrincipalIdNotExistsException
+import io.github.siyual_park.auth.exception.PrincipalNotExistsException
 import io.github.siyual_park.auth.exception.RequiredPermissionException
 import org.springframework.stereotype.Component
 
@@ -110,12 +110,12 @@ class Authorizator(
     }
 }
 
-suspend inline fun <T> Authorizator.withAuthorize(
+suspend inline fun <T> Authorizator.authorize(
     scope: List<*>,
     targetDomainObjects: List<*>? = null,
     func: () -> T
 ): T {
-    val principal = SuspendSecurityContextHolder.getPrincipal() ?: throw PrincipalIdNotExistsException()
+    val principal = SuspendSecurityContextHolder.getPrincipal() ?: throw PrincipalNotExistsException()
     if (!authorize(principal, scope, targetDomainObjects)) {
         throw RequiredPermissionException()
     }

@@ -4,7 +4,7 @@ import io.github.siyual_park.application.server.dto.request.CreateUserRequest
 import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.dto.response.UserInfo
 import io.github.siyual_park.auth.domain.authorization.Authorizator
-import io.github.siyual_park.auth.domain.authorization.withAuthorize
+import io.github.siyual_park.auth.domain.authorization.authorize
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.data.patch.PropertyOverridePatch
@@ -72,7 +72,7 @@ class UserController(
     suspend fun create(
         @Valid @RequestBody request: CreateUserRequest,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): UserInfo = authorizator.withAuthorize(listOf("users:create")) {
+    ): UserInfo = authorizator.authorize(listOf("users:create")) {
         val projectionNode = projectionParser.parse(fields)
         val user = operator.executeAndAwait {
             val payload = CreateUserPayload(
@@ -97,7 +97,7 @@ class UserController(
         @RequestParam("page", required = false) page: Int? = null,
         @RequestParam("per_page", required = false) perPage: Int? = null,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): OffsetPage<UserInfo> = authorizator.withAuthorize(listOf("users:read")) {
+    ): OffsetPage<UserInfo> = authorizator.authorize(listOf("users:read")) {
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
@@ -123,7 +123,7 @@ class UserController(
     suspend fun read(
         @PathVariable("user-id") userId: ULID,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): UserInfo = authorizator.withAuthorize(listOf("users:read", "users[self]:read"), listOf(null, userId)) {
+    ): UserInfo = authorizator.authorize(listOf("users:read", "users[self]:read"), listOf(null, userId)) {
         val projectionNode = projectionParser.parse(fields)
         val user = userStorage.loadOrFail(userId)
         mapperContext.map(Projection(user, projectionNode))
@@ -137,7 +137,7 @@ class UserController(
         @Valid @RequestBody request: UpdateUserRequest,
         @AuthenticationPrincipal principal: UserPrincipal,
         @RequestParam("fields", required = false) fields: Collection<String>? = null,
-    ): UserInfo = authorizator.withAuthorize(listOf("users:update", "users[self]:update"), listOf(null, userId)) {
+    ): UserInfo = authorizator.authorize(listOf("users:update", "users[self]:update"), listOf(null, userId)) {
         val projectionNode = projectionParser.parse(fields)
         val user = operator.executeAndAwait {
             val user = userStorage.loadOrFail(userId)
@@ -157,8 +157,7 @@ class UserController(
                 }
             }
 
-            PropertyOverridePatch.of<User, UpdateUserRequest>(request.copy(password = null, scope = null))
-                .apply(user)
+            PropertyOverridePatch.of<User, UpdateUserRequest>(request.copy(password = null, scope = null)).apply(user)
         }!!
         mapperContext.map(Projection(user, projectionNode))
     }
@@ -168,7 +167,7 @@ class UserController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     suspend fun delete(
         @PathVariable("user-id") userId: ULID
-    ) = authorizator.withAuthorize(listOf("users:delete", "users[self]:delete"), listOf(null, userId)) {
+    ) = authorizator.authorize(listOf("users:delete", "users[self]:delete"), listOf(null, userId)) {
         operator.executeAndAwait {
             val user = userStorage.loadOrFail(userId)
             user.clear()
@@ -178,7 +177,7 @@ class UserController(
     private suspend fun updateCredentials(
         user: User,
         password: String
-    ) = authorizator.withAuthorize(
+    ) = authorizator.authorize(
         listOf("users.credential:update", "users[self].credential:update"),
         listOf(null, user.id)
     ) {
@@ -197,12 +196,12 @@ class UserController(
         val toRevokeScope = existsScope.filter { !scope.contains(it) }
 
         if (toGrantScope.isNotEmpty()) {
-            authorizator.withAuthorize(listOf("users.scope:create"), null) {
+            authorizator.authorize(listOf("users.scope:create")) {
                 toGrantScope.forEach { user.grant(it) }
             }
         }
         if (toRevokeScope.isNotEmpty()) {
-            authorizator.withAuthorize(listOf("users.scope:delete"), null) {
+            authorizator.authorize(listOf("users.scope:delete")) {
                 toRevokeScope.forEach { user.revoke(it) }
             }
         }
