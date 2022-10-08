@@ -150,9 +150,8 @@ class MultiLevelStorage<ID : Any, T : Any>(
     }
 
     override suspend fun status(): Status {
-        return storages.fold(Status(0, 0)) { acc, storage ->
-            val cur = storage.status()
-            Status(acc.hit + cur.hit, acc.miss + cur.miss)
+        return storages.fold(Status()) { acc, storage ->
+            Status.add(acc, storage.status())
         }
     }
 

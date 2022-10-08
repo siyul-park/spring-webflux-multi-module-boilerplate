@@ -12,8 +12,7 @@ class MultiLevelNestedStorage<ID : Any, T : Any>(
 
     override suspend fun status(): Status {
         return secondary.used().entries().fold(primary.status()) { acc, storage ->
-            val cur = storage.status()
-            Status(acc.hit + cur.hit, acc.miss + cur.miss)
+            Status.add(acc, storage.status())
         }
     }
 

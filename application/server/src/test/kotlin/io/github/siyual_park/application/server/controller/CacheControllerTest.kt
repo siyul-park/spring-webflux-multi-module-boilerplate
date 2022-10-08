@@ -25,7 +25,7 @@ class CacheControllerTest @Autowired constructor(
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("status:read")
+            push = listOf("cache.status:read")
         )
 
         val response = cacheControllerGateway.status()

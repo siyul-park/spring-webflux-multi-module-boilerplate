@@ -109,6 +109,12 @@ class InMemoryStorage<ID : Any, T : Any>(
     }
 
     override suspend fun status(): Status {
-        return Status(hit.get(), miss.get())
+        val used = cache.size()
+        return Status(
+            hit = hit.get(),
+            miss = miss.get(),
+            used = used,
+            free = null
+        )
     }
 }

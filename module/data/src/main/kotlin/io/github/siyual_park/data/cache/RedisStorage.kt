@@ -21,7 +21,7 @@ import kotlin.reflect.KClass
 class RedisStorage<ID : Any, T : Any>(
     redisClient: RedissonClient,
     name: String,
-    size: Int,
+    private val size: Int,
     private val objectMapper: ObjectMapper,
     private val id: WeekProperty<T, ID?>,
     private val expiredAt: WeekProperty<T, Instant?>,
@@ -152,7 +152,13 @@ class RedisStorage<ID : Any, T : Any>(
     }
 
     override suspend fun status(): Status {
-        return Status(hit.get(), miss.get())
+        val used = store.sizeAsync().asDeferred().await()
+        return Status(
+            hit = hit.get(),
+            miss = miss.get(),
+            free = (size - used).toLong(),
+            used = used.toLong()
+        )
     }
 
     private fun <T> writeKey(type: String, value: T): String {

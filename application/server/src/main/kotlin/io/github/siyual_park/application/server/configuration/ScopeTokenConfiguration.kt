@@ -65,7 +65,7 @@ class ScopeTokenConfiguration(
         scopeTokenFactory.upsert(name = "scope.children:create")
         scopeTokenFactory.upsert(name = "scope.children:delete")
 
-        scopeTokenFactory.upsert(name = "status:read")
+        scopeTokenFactory.upsert(name = "cache.status:read")
     }
 
     private suspend fun granted(child: ScopeToken, parents: List<ScopeToken>) {

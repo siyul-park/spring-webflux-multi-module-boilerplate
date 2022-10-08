@@ -3,6 +3,7 @@ package io.github.siyual_park.util
 import com.github.javafaker.Faker
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class FakerTest {
@@ -10,6 +11,7 @@ class FakerTest {
 
     @Test
     fun username() {
+        assertTrue(faker.name().username(null).isNotEmpty())
         assertEquals(1, faker.name().username(1).length)
         assertEquals(10, faker.name().username(10).length)
         assertEquals(100, faker.name().username(100).length)
@@ -17,6 +19,7 @@ class FakerTest {
 
     @Test
     fun word() {
+        assertTrue(faker.lorem().word(null).isNotEmpty())
         assertEquals(1, faker.lorem().word(1).length)
         assertEquals(10, faker.lorem().word(10).length)
         assertEquals(100, faker.lorem().word(100).length)

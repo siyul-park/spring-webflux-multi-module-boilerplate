@@ -56,7 +56,7 @@ class MigrationManager(
                     .let { migrationCheckpointRepository.create(it) }
             } catch (e: DataIntegrityViolationException) {
                 waitingComplete(i)
-                break
+                continue
             }
 
             try {
