@@ -1,9 +1,9 @@
 package io.github.siyual_park.application.server.dto.request
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
 import io.github.siyual_park.util.resolve
 import io.github.siyual_park.util.resolveNotNull
+import net.datafaker.Faker
 import java.util.Optional
 
 object MockCreateScopeTokenRequestFactory {

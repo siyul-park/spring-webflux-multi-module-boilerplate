@@ -1,6 +1,5 @@
 package io.github.siyual_park.auth.domain.token
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.MockCreateScopeTokenPayloadFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
@@ -18,6 +17,7 @@ import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.util.username
 import kotlinx.coroutines.flow.toList
+import net.datafaker.Faker
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

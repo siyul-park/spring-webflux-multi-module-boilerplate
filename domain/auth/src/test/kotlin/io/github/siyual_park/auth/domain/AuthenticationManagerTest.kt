@@ -1,6 +1,5 @@
 package io.github.siyual_park.auth.domain
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.authentication.AllowAllAuthenticateFilter
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationStrategy
@@ -9,6 +8,7 @@ import io.github.siyual_park.auth.exception.AuthorizeException
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import net.datafaker.Faker
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

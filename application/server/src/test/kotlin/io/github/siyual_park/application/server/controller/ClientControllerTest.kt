@@ -1,6 +1,5 @@
 package io.github.siyual_park.application.server.controller
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.IntegrationTest
 import io.github.siyual_park.application.server.dto.request.MockCreateClientRequestFactory
 import io.github.siyual_park.application.server.dto.request.UpdateClientRequest
@@ -21,6 +20,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
+import net.datafaker.Faker
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull

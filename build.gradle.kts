@@ -12,7 +12,7 @@ val json_patch_version: String by project
 val springdoc_version: String by project
 val sentry_logback_version: String by project
 val embed_mongo_version: String by project
-val javafaker_version: String by project
+val datafaker_version: String by project
 val redisson_version: String by project
 val embedded_redis_version: String by project
 
@@ -106,7 +106,7 @@ allprojects {
 
         implementation("io.r2dbc:r2dbc-h2")
         implementation("io.r2dbc:r2dbc-pool")
-        implementation("io.r2dbc:r2dbc-postgresql")
+        implementation("org.postgresql:r2dbc-postgresql")
 
         runtimeOnly("com.h2database:h2")
         implementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:$embed_mongo_version")
@@ -127,7 +127,7 @@ allprojects {
         implementation("org.springdoc:springdoc-openapi-security:$springdoc_version")
         implementation("org.springdoc:springdoc-openapi-kotlin:$springdoc_version")
 
-        implementation("com.github.javafaker:javafaker:$javafaker_version")
+        implementation("net.datafaker:datafaker:$datafaker_version")
 
         implementation("org.redisson:redisson-spring-boot-starter:$redisson_version")
         implementation("it.ozimov:embedded-redis:$embedded_redis_version") {

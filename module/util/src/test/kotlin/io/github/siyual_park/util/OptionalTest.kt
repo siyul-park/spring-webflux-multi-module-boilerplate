@@ -1,6 +1,6 @@
 package io.github.siyual_park.util
 
-import com.github.javafaker.Faker
+import net.datafaker.Faker
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

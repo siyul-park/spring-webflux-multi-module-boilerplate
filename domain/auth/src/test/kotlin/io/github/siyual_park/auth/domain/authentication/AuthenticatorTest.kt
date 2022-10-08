@@ -1,12 +1,12 @@
 package io.github.siyual_park.auth.domain.authentication
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.exception.AuthorizeException
 import io.github.siyual_park.auth.exception.UnauthorizatedException
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.ulid.ULID
+import net.datafaker.Faker
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
