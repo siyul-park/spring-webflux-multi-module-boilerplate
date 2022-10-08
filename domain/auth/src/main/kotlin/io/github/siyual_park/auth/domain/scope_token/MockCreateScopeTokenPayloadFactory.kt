@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.scope_token
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.util.resolveNotNull
+import net.datafaker.Faker
 import java.util.Optional
 
 object MockCreateScopeTokenPayloadFactory {

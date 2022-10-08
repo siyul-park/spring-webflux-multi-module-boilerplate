@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.scope_token
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.util.word
+import net.datafaker.Faker
 
 object MockScopeNameFactory {
     private val faker = Faker()

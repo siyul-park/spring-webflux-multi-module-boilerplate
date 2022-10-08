@@ -1,8 +1,8 @@
 package io.github.siyual_park.application.server.dto.request
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.util.resolveNotNull
 import io.github.siyual_park.util.username
+import net.datafaker.Faker
 import java.util.Optional
 
 object MockCreateUserRequestFactory {

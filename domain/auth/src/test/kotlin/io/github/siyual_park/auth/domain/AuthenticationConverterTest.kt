@@ -1,9 +1,9 @@
 package io.github.siyual_park.auth.domain
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import net.datafaker.Faker
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test

@@ -1,10 +1,10 @@
 package io.github.siyual_park.user.domain
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.util.resolve
 import io.github.siyual_park.util.resolveNotNull
 import io.github.siyual_park.util.username
+import net.datafaker.Faker
 import java.util.Optional
 
 object MockCreateUserPayloadFactory {

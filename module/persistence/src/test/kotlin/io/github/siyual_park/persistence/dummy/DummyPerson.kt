@@ -1,9 +1,9 @@
 package io.github.siyual_park.persistence.dummy
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.persistence.entity.PersonData
 import io.github.siyual_park.util.resolveNotNull
 import io.github.siyual_park.util.username
+import net.datafaker.Faker
 import java.util.Optional
 import kotlin.random.Random
 

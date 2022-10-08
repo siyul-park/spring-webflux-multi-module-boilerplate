@@ -1,7 +1,7 @@
 package io.github.siyual_park.mapper
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import net.datafaker.Faker
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

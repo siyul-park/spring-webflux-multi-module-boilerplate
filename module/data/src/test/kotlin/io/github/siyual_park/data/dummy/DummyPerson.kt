@@ -1,9 +1,9 @@
 package io.github.siyual_park.data.dummy
 
-import com.github.javafaker.Faker
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.util.resolveNotNull
 import io.github.siyual_park.util.username
+import net.datafaker.Faker
 import java.util.Optional
 import kotlin.random.Random
 

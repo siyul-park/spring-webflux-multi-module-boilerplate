@@ -1,9 +1,9 @@
 package io.github.siyual_park.util
 
-import com.github.javafaker.Faker
-import com.github.javafaker.Internet
-import com.github.javafaker.Lorem
-import com.github.javafaker.Name
+import net.datafaker.Faker
+import net.datafaker.Internet
+import net.datafaker.Lorem
+import net.datafaker.Name
 import java.net.URL
 import java.security.SecureRandom
 
