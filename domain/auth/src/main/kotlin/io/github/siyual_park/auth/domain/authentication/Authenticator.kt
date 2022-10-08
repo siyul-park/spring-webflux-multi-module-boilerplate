@@ -1,6 +1,7 @@
 package io.github.siyual_park.auth.domain.authentication
 
 import io.github.siyual_park.auth.domain.Principal
+import io.github.siyual_park.auth.exception.AuthorizeException
 import io.github.siyual_park.auth.exception.UnauthorizatedException
 import org.springframework.stereotype.Component
 
@@ -20,7 +21,7 @@ class Authenticator {
             .filter { (filter, _) -> filter.isSubscribe(payload) }
             .map { (_, strategy) -> strategy }
 
-        var exception: RuntimeException? = null
+        var exception: AuthorizeException? = null
         for (strategy in strategies) {
             strategy as AuthenticateStrategy<PAYLOAD, *>
             try {
@@ -28,7 +29,7 @@ class Authenticator {
                 if (principal != null) {
                     return principal
                 }
-            } catch (e: RuntimeException) {
+            } catch (e: AuthorizeException) {
                 exception = e
             }
         }
