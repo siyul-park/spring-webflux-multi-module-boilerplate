@@ -57,8 +57,8 @@ class AuthController(
 ) {
     private val projectionParser = projectionParserFactory.create(PrincipalInfo::class)
 
-    private val tokenScope = SuspendLazy {
-        scopeTokenStorage.loadOrFail("token:create")
+    private val tokenGrantScope = SuspendLazy {
+        scopeTokenStorage.loadOrFail("token:grant")
     }
     private val accessTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("access-token:create")
@@ -102,19 +102,17 @@ class AuthController(
     }
 
     private suspend fun auth(request: CreateTokenRequest): Principal {
-        authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
+        val clientPrincipal = authenticator.authenticate(ClientCredentialsGrantPayload(request.clientId, request.clientSecret))
             .also {
-                if (!authorizator.authorize(it, tokenScope.get())) {
+                if (!authorizator.authorize(it, tokenGrantScope.get())) {
                     throw RequiredPermissionException()
                 }
             }
-        return authenticator.authenticate(
-            when (request.grantType) {
-                GrantType.PASSWORD -> PasswordGrantPayload(request.username!!, request.password!!, request.clientId)
-                GrantType.CLIENT_CREDENTIALS -> ClientCredentialsGrantPayload(request.clientId, request.clientSecret)
-                GrantType.REFRESH_TOKEN -> RefreshTokenPayload(request.refreshToken!!)
-            }
-        )
+        return when (request.grantType) {
+            GrantType.PASSWORD -> authenticator.authenticate(PasswordGrantPayload(request.username!!, request.password!!, request.clientId))
+            GrantType.CLIENT_CREDENTIALS -> clientPrincipal
+            GrantType.REFRESH_TOKEN -> authenticator.authenticate(RefreshTokenPayload(request.refreshToken!!))
+        }
     }
 
     private suspend fun issue(principal: Principal, request: CreateTokenRequest): Pair<Token, Token?> {
