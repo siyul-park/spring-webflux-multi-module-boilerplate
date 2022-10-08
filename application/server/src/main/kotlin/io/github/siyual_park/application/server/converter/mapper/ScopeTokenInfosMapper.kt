@@ -7,7 +7,6 @@ import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.TypeReference
 import io.github.siyual_park.mapper.map
 import io.github.siyual_park.presentation.project.Projection
-import kotlinx.coroutines.flow.map
 import org.springframework.stereotype.Component
 
 @Component
