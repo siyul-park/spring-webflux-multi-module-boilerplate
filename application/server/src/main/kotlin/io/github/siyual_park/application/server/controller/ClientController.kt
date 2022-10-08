@@ -144,14 +144,7 @@ class ClientController(
         val client = operator.executeAndAwait {
             val client = clientStorage.loadOrFail(clientId)
 
-            request.scope?.let {
-                if (it.isPresent) {
-                    syncScope(client, it.get().let { scopeTokenStorage.load(it) }.toSet())
-                } else {
-                    val existsScope = client.getScope(deep = false).toSet()
-                    existsScope.forEach { client.revoke(it) }
-                }
-            }
+            request.scope?.let { syncScope(client, it.orElseGet { emptyList() }.let { scopeTokenStorage.load(it) }.toSet()) }
 
             PropertyOverridePatch.of<Client, UpdateClientRequest>(request.copy(scope = null)).apply(client)
         }!!

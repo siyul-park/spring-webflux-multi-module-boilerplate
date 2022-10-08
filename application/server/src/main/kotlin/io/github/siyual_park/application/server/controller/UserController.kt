@@ -142,20 +142,8 @@ class UserController(
         val user = operator.executeAndAwait {
             val user = userStorage.loadOrFail(userId)
 
-            request.password?.let {
-                updateCredentials(
-                    user,
-                    it.orElseThrow { throw ValidationException("password is cannot be null") }
-                )
-            }
-            request.scope?.let {
-                if (it.isPresent) {
-                    syncScope(user, it.get().let { scopeTokenStorage.load(it) }.toSet())
-                } else {
-                    val existsScope = user.getScope(deep = false).toSet()
-                    existsScope.forEach { user.revoke(it) }
-                }
-            }
+            request.password?.let { updateCredentials(user, it.orElseThrow { throw ValidationException("password is cannot be null") }) }
+            request.scope?.let { syncScope(user, it.orElseGet { emptyList() }.let { scopeTokenStorage.load(it) }.toSet()) }
 
             PropertyOverridePatch.of<User, UpdateUserRequest>(request.copy(password = null, scope = null)).apply(user)
         }!!
