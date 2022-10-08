@@ -1,24 +1,24 @@
-package io.github.siyual_park.user.repository
+package io.github.siyual_park.client.repository
 
 import com.google.common.cache.CacheBuilder
+import io.github.siyual_park.client.entity.ClientScopeData
 import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.QueryRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
-import io.github.siyual_park.user.entity.UserScopeData
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 import java.time.Duration
 
 @Repository
-class UserScopeRepository(
+class ClientScopeDataRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null
-) : QueryRepository<UserScopeData, Long> by R2DBCRepositoryBuilder<UserScopeData, Long>(entityOperations, UserScopeData::class)
+) : QueryRepository<ClientScopeData, Long> by R2DBCRepositoryBuilder<ClientScopeData, Long>(entityOperations, ClientScopeData::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()
@@ -34,19 +34,19 @@ class UserScopeRepository(
     })
     .enableCacheStorageManager(cacheStorageManager)
     .build() {
-    fun findAllByUserId(userId: ULID): Flow<UserScopeData> {
-        return findAll(where(UserScopeData::userId).`is`(userId))
+    fun findAllByClientId(clientId: ULID): Flow<ClientScopeData> {
+        return findAll(where(ClientScopeData::clientId).`is`(clientId))
     }
 
-    fun findAllByScopeTokenId(scopeTokenId: ULID): Flow<UserScopeData> {
-        return findAll(where(UserScopeData::scopeTokenId).`is`(scopeTokenId))
+    fun findAllByScopeTokenId(scopeTokenId: ULID): Flow<ClientScopeData> {
+        return findAll(where(ClientScopeData::scopeTokenId).`is`(scopeTokenId))
     }
 
-    suspend fun deleteAllByUserId(userId: ULID) {
-        deleteAll(where(UserScopeData::userId).`is`(userId))
+    suspend fun deleteAllByClientId(clientId: ULID) {
+        deleteAll(where(ClientScopeData::clientId).`is`(clientId))
     }
 
     suspend fun deleteAllByScopeTokenId(scopeTokenId: ULID) {
-        deleteAll(where(UserScopeData::scopeTokenId).`is`(scopeTokenId))
+        deleteAll(where(ClientScopeData::scopeTokenId).`is`(scopeTokenId))
     }
 }

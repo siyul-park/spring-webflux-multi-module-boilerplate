@@ -3,7 +3,7 @@ package io.github.siyual_park.auth.domain.token
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.entity.TokenData
-import io.github.siyual_park.auth.repository.TokenRepository
+import io.github.siyual_park.auth.repository.TokenDataRepository
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.patch.SuspendPatch
@@ -20,7 +20,7 @@ private val random = SecureRandom.getInstance("SHA1PRNG").apply {
 class TokenFactory(
     private val template: TokenTemplate,
     private val claimEmbedder: ClaimEmbedder,
-    private val tokenRepository: TokenRepository,
+    private val tokenDataRepository: TokenDataRepository,
     private val tokenMapper: TokenMapper,
 ) {
     suspend fun create(
@@ -66,7 +66,7 @@ class TokenFactory(
                 signature = generateSignature(template.type, 40),
                 claims = finalClaims,
                 expiredAt = expiredAt
-            ).let { tokenRepository.create(it) }
+            ).let { tokenDataRepository.create(it) }
         }
 
         return tokenMapper.map(data)
@@ -94,9 +94,9 @@ class TokenFactory(
                 .and(where(TokenData::type).`is`(template.type))
                 .and(where(TokenData::expiredAt).greaterThan(expiredAt))
 
-            val count = tokenRepository.count(query, limit = limit)
+            val count = tokenDataRepository.count(query, limit = limit)
 
-            tokenRepository.updateAll(
+            tokenDataRepository.updateAll(
                 query,
                 SuspendPatch.with {
                     it.expiredAt = expiredAt

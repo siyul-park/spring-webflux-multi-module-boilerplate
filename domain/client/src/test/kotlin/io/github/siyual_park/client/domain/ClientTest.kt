@@ -61,7 +61,7 @@ class ClientTest : ClientTestHelper() {
             assertTrue(it.contains(customScope))
         }
 
-        coVerify(exactly = 1) { clientScopeRepository.findAll(any()) }
+        coVerify(exactly = 1) { clientScopeDataRepository.findAll(any()) }
 
         loaded2?.grant(customScope)
         assertTrue(loaded2?.has(customScope) == true)
@@ -69,7 +69,7 @@ class ClientTest : ClientTestHelper() {
             assertTrue(it.contains(customScope))
         }
 
-        coVerify(exactly = 2) { clientScopeRepository.findAll(any()) }
+        coVerify(exactly = 2) { clientScopeDataRepository.findAll(any()) }
     }
 
     @Test
@@ -98,7 +98,7 @@ class ClientTest : ClientTestHelper() {
             assertFalse(it.contains(customScope))
         }
 
-        coVerify(exactly = 1) { clientScopeRepository.findAll(any()) }
+        coVerify(exactly = 1) { clientScopeDataRepository.findAll(any()) }
 
         loaded2?.revoke(customScope)
         assertTrue(loaded2?.has(customScope) == false)
@@ -106,7 +106,7 @@ class ClientTest : ClientTestHelper() {
             assertFalse(it.contains(customScope))
         }
 
-        coVerify(exactly = 2) { clientScopeRepository.findAll(any()) }
+        coVerify(exactly = 2) { clientScopeDataRepository.findAll(any()) }
     }
 
     @Test
@@ -132,22 +132,22 @@ class ClientTest : ClientTestHelper() {
         assertEquals(loaded1?.getScope(deep = false)?.toSet(), client1.getScope(deep = false).toSet())
         assertEquals(loaded2?.getScope(deep = false)?.toSet(), client2.getScope(deep = false).toSet())
 
-        coVerify(exactly = 3) { clientScopeRepository.findAll(any()) }
+        coVerify(exactly = 3) { clientScopeDataRepository.findAll(any()) }
 
         assertEquals(loaded1?.getScope(deep = true)?.toSet(), client1.getScope(deep = true).toSet())
         assertEquals(loaded2?.getScope(deep = true)?.toSet(), client2.getScope(deep = true).toSet())
 
-        coVerify(exactly = 6) { clientScopeRepository.findAll(any()) }
+        coVerify(exactly = 6) { clientScopeDataRepository.findAll(any()) }
 
         loaded1?.getScope(deep = false)?.toSet()
         loaded1?.getScope(deep = false)?.toSet()
 
-        coVerify(exactly = 8) { clientScopeRepository.findAll(any()) }
+        coVerify(exactly = 8) { clientScopeDataRepository.findAll(any()) }
 
         loaded2?.getScope(deep = false)?.toSet()
         loaded2?.getScope(deep = false)?.toSet()
 
-        coVerify(exactly = 9) { clientScopeRepository.findAll(any()) }
+        coVerify(exactly = 9) { clientScopeDataRepository.findAll(any()) }
     }
 
     @Test

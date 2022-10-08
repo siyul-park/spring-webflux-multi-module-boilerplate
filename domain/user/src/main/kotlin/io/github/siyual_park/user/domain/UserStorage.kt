@@ -6,22 +6,22 @@ import io.github.siyual_park.persistence.QueryStorage
 import io.github.siyual_park.persistence.SimpleQueryStorage
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.entity.UserData
-import io.github.siyual_park.user.repository.UserCredentialRepository
-import io.github.siyual_park.user.repository.UserRepository
-import io.github.siyual_park.user.repository.UserScopeRepository
+import io.github.siyual_park.user.repository.UserCredentialDataRepository
+import io.github.siyual_park.user.repository.UserDataRepository
+import io.github.siyual_park.user.repository.UserScopeDataRepository
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.stereotype.Component
 
 @Component
 class UserStorage(
-    private val userRepository: UserRepository,
-    private val userCredentialRepository: UserCredentialRepository,
-    private val userScopeRepository: UserScopeRepository,
+    private val userDataRepository: UserDataRepository,
+    private val userCredentialDataRepository: UserCredentialDataRepository,
+    private val userScopeDataRepository: UserScopeDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage
 ) : QueryStorage<User, ULID> by SimpleQueryStorage(
-    userRepository,
-    UserMapper(userRepository, userCredentialRepository, userScopeRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
-    UsersMapper(userRepository, userCredentialRepository, userScopeRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
+    userDataRepository,
+    UserMapper(userDataRepository, userCredentialDataRepository, userScopeDataRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
+    UsersMapper(userDataRepository, userCredentialDataRepository, userScopeDataRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
 ) {
     suspend fun load(name: String): User? {
         return load(where(UserData::name).`is`(name))

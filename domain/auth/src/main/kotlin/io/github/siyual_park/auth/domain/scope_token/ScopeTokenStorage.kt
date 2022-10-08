@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.scope_token
 
 import io.github.siyual_park.auth.entity.ScopeTokenData
-import io.github.siyual_park.auth.repository.ScopeTokenRepository
+import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.persistence.QueryStorage
 import io.github.siyual_park.persistence.SimpleQueryStorage
@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class ScopeTokenStorage(
-    private val scopeTokenRepository: ScopeTokenRepository,
+    private val scopeTokenDataRepository: ScopeTokenDataRepository,
     private val scopeTokenMapper: ScopeTokenMapper
 ) : QueryStorage<ScopeToken, ULID> by SimpleQueryStorage(
-    scopeTokenRepository,
+    scopeTokenDataRepository,
     { scopeTokenMapper.map(it) }
 ) {
     suspend fun load(name: String): ScopeToken? {

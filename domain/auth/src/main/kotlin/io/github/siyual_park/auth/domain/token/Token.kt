@@ -4,14 +4,13 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.entity.TokenData
-import io.github.siyual_park.auth.repository.TokenRepository
+import io.github.siyual_park.auth.repository.TokenDataRepository
 import io.github.siyual_park.data.repository.updateById
 import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toSet
@@ -20,9 +19,9 @@ import java.time.Instant
 @Suppress("UNCHECKED_CAST")
 class Token(
     value: TokenData,
-    private val tokenRepository: TokenRepository,
+    private val tokenDataRepository: TokenDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
-) : Persistence<TokenData, ULID>(value, tokenRepository),
+) : Persistence<TokenData, ULID>(value, tokenDataRepository),
     Authorizable {
     val id by proxyNotNull(root, TokenData::id)
     val type by proxy(root, TokenData::type)
@@ -56,7 +55,7 @@ class Token(
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {
-        tokenRepository.updateById(id) {
+        tokenDataRepository.updateById(id) {
             val claims = it.claims.toMutableMap()
             val scopeTokenIds = getScopeTokenIds(claims).toMutableList()
             scopeTokenIds.add(scopeToken.id)
@@ -66,7 +65,7 @@ class Token(
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
-        tokenRepository.updateById(id) {
+        tokenDataRepository.updateById(id) {
             val claims = it.claims.toMutableMap()
             val scopeTokenIds = getScopeTokenIds(claims).toMutableSet()
             scopeTokenIds.remove(scopeToken.id)
@@ -98,6 +97,6 @@ class Token(
     }
 
     suspend fun reload() {
-        tokenRepository.findById(id)?.let { root.raw(it) }
+        tokenDataRepository.findById(id)?.let { root.raw(it) }
     }
 }

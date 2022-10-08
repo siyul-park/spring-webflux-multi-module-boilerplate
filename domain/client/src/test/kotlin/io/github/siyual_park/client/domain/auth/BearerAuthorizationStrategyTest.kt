@@ -7,7 +7,7 @@ import io.github.siyual_park.auth.domain.token.TokenMapper
 import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
 import io.github.siyual_park.auth.domain.token.TypeMatchClaimFilter
-import io.github.siyual_park.auth.repository.TokenRepository
+import io.github.siyual_park.auth.repository.TokenDataRepository
 import io.github.siyual_park.client.domain.ClientTestHelper
 import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.client.entity.ClientEntity
@@ -17,13 +17,13 @@ import org.junit.jupiter.api.Test
 import java.time.Duration
 
 class BearerAuthorizationStrategyTest : ClientTestHelper() {
-    private val tokenRepository = TokenRepository(mongoTemplate)
+    private val tokenDataRepository = TokenDataRepository(mongoTemplate)
 
-    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage)
-    private val tokenStorage = TokenStorage(tokenRepository, tokenMapper)
+    private val tokenMapper = TokenMapper(tokenDataRepository, scopeTokenStorage)
+    private val tokenStorage = TokenStorage(tokenDataRepository, tokenMapper)
 
     private val claimEmbedder = ClaimEmbedder()
-    private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenRepository, tokenMapper)
+    private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenDataRepository, tokenMapper)
 
     private val bearerAuthorizationStrategy = BearerAuthorizationStrategy(tokenStorage)
 

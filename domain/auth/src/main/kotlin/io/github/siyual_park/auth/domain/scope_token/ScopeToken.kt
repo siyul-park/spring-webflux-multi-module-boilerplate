@@ -3,8 +3,8 @@ package io.github.siyual_park.auth.domain.scope_token
 import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.entity.ScopeRelationData
 import io.github.siyual_park.auth.entity.ScopeTokenData
-import io.github.siyual_park.auth.repository.ScopeRelationRepository
-import io.github.siyual_park.auth.repository.ScopeTokenRepository
+import io.github.siyual_park.auth.repository.ScopeRelationDataRepository
+import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.findOneOrFail
@@ -14,7 +14,6 @@ import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -24,9 +23,9 @@ import java.util.Collections.synchronizedList
 
 class ScopeToken(
     value: ScopeTokenData,
-    private val scopeTokenRepository: ScopeTokenRepository,
-    private val scopeRelationRepository: ScopeRelationRepository
-) : Persistence<ScopeTokenData, ULID>(value, scopeTokenRepository),
+    private val scopeTokenDataRepository: ScopeTokenDataRepository,
+    private val scopeRelationDataRepository: ScopeRelationDataRepository
+) : Persistence<ScopeTokenData, ULID>(value, scopeTokenDataRepository),
     Authorizable {
 
     val id by proxy(root, ScopeTokenData::id)
@@ -36,8 +35,8 @@ class ScopeToken(
     init {
         synchronize(object : PersistenceSynchronization {
             override suspend fun beforeClear() {
-                scopeRelationRepository.deleteAllByChildId(id)
-                scopeRelationRepository.deleteAllByParentId(id)
+                scopeRelationDataRepository.deleteAllByChildId(id)
+                scopeRelationDataRepository.deleteAllByParentId(id)
             }
         })
     }
@@ -50,7 +49,7 @@ class ScopeToken(
             return false
         }
 
-        return scopeRelationRepository.exists(
+        return scopeRelationDataRepository.exists(
             where(ScopeRelationData::parentId).`is`(id)
                 .and(where(ScopeRelationData::childId).`is`(scopeToken.id))
         )
@@ -61,7 +60,7 @@ class ScopeToken(
             throw UnsupportedOperationException("Scope[$id] is not support pack operator")
         }
 
-        scopeRelationRepository.create(
+        scopeRelationDataRepository.create(
             ScopeRelationData(
                 parentId = id,
                 childId = scopeToken.id
@@ -74,11 +73,11 @@ class ScopeToken(
             throw UnsupportedOperationException("Scope[$id] is not support pack operator")
         }
 
-        val scopeTokenRelation = scopeRelationRepository.findOneOrFail(
+        val scopeTokenRelation = scopeRelationDataRepository.findOneOrFail(
             where(ScopeRelationData::parentId).`is`(id)
                 .and(where(ScopeRelationData::childId).`is`(scopeToken.id))
         )
-        scopeRelationRepository.delete(scopeTokenRelation)
+        scopeRelationDataRepository.delete(scopeTokenRelation)
     }
 
     fun relations(): Flow<Pair<ScopeToken, ScopeToken>> {
@@ -101,11 +100,11 @@ class ScopeToken(
                 task.clear()
 
                 if (packed.isNotEmpty()) {
-                    val currentRelations = scopeRelationRepository.findAllByParentId(packed.map { it.id }).toList()
+                    val currentRelations = scopeRelationDataRepository.findAllByParentId(packed.map { it.id }).toList()
                     relations.addAll(currentRelations)
 
-                    scopeTokenRepository.findAllById(currentRelations.map { it.childId }.toList())
-                        .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository) }
+                    scopeTokenDataRepository.findAllById(currentRelations.map { it.childId }.toList())
+                        .map { ScopeToken(it, scopeTokenDataRepository, scopeRelationDataRepository) }
                         .collect { task.add(it) }
                 }
             }
@@ -145,9 +144,9 @@ class ScopeToken(
 
                     notPacked.onEach { if (context != null) it.link() }.forEach { emit(it) }
                     if (packed.isNotEmpty()) {
-                        val relations = scopeRelationRepository.findAllByParentId(packed.map { it.id })
-                        scopeTokenRepository.findAllById(relations.map { it.childId }.toList())
-                            .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository) }
+                        val relations = scopeRelationDataRepository.findAllByParentId(packed.map { it.id })
+                        scopeTokenDataRepository.findAllById(relations.map { it.childId }.toList())
+                            .map { ScopeToken(it, scopeTokenDataRepository, scopeRelationDataRepository) }
                             .collect { task.add(it) }
                     }
                 }
@@ -161,9 +160,9 @@ class ScopeToken(
                 throw UnsupportedOperationException("Scope[$id] is not support pack operator")
             }
             val context = SuspendTransactionContextHolder.getContext()
-            val relations = scopeRelationRepository.findAllByParentId(id)
-            scopeTokenRepository.findAllById(relations.map { it.childId }.toList())
-                .map { ScopeToken(it, scopeTokenRepository, scopeRelationRepository) }
+            val relations = scopeRelationDataRepository.findAllByParentId(id)
+            scopeTokenDataRepository.findAllById(relations.map { it.childId }.toList())
+                .map { ScopeToken(it, scopeTokenDataRepository, scopeRelationDataRepository) }
                 .onEach { if (context != null) it.link() }
                 .collect { emit(it) }
         }

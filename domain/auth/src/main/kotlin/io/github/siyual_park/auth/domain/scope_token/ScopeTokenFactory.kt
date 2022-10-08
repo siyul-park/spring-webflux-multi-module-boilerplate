@@ -1,15 +1,15 @@
 package io.github.siyual_park.auth.domain.scope_token
 
 import io.github.siyual_park.auth.entity.ScopeTokenData
-import io.github.siyual_park.auth.repository.ScopeTokenRepository
+import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
 import org.springframework.stereotype.Component
 
 @Component
 class ScopeTokenFactory(
-    private val scopeTokenRepository: ScopeTokenRepository,
+    private val scopeTokenDataRepository: ScopeTokenDataRepository,
     private val scopeTokenMapper: ScopeTokenMapper
 ) {
-    private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
+    private val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
 
     suspend fun upsert(name: String): ScopeToken {
         return upsert(CreateScopeTokenPayload(name = name))
@@ -27,7 +27,7 @@ class ScopeTokenFactory(
     }
 
     suspend fun create(payload: CreateScopeTokenPayload): ScopeToken {
-        return scopeTokenRepository.create(
+        return scopeTokenDataRepository.create(
             ScopeTokenData(
                 name = payload.name,
                 description = payload.description,

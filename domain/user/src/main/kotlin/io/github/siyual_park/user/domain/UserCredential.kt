@@ -5,13 +5,13 @@ import io.github.siyual_park.persistence.Persistence
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.persistence.proxyNotNull
 import io.github.siyual_park.user.entity.UserCredentialData
-import io.github.siyual_park.user.repository.UserCredentialRepository
+import io.github.siyual_park.user.repository.UserCredentialDataRepository
 import java.security.MessageDigest
 
 class UserCredential(
     value: UserCredentialData,
-    userCredentialRepository: UserCredentialRepository
-) : Persistence<UserCredentialData, Long>(value, userCredentialRepository) {
+    userCredentialDataRepository: UserCredentialDataRepository
+) : Persistence<UserCredentialData, Long>(value, userCredentialDataRepository) {
     val id by proxyNotNull(root, UserCredentialData::id)
     val userId by proxy(root, UserCredentialData::userId)
 

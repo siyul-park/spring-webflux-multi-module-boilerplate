@@ -5,23 +5,23 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.client.entity.ClientCredentialData
 import io.github.siyual_park.client.entity.ClientData
-import io.github.siyual_park.client.repository.ClientCredentialRepository
-import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.client.repository.ClientScopeRepository
+import io.github.siyual_park.client.repository.ClientCredentialDataRepository
+import io.github.siyual_park.client.repository.ClientDataRepository
+import io.github.siyual_park.client.repository.ClientScopeDataRepository
 import io.github.siyual_park.data.cache.SuspendLazy
 import org.springframework.stereotype.Component
 import java.security.SecureRandom
 
 @Component
 class ClientFactory(
-    private val clientRepository: ClientRepository,
-    private val clientCredentialRepository: ClientCredentialRepository,
-    clientScopeRepository: ClientScopeRepository,
+    private val clientDataRepository: ClientDataRepository,
+    private val clientCredentialDataRepository: ClientCredentialDataRepository,
+    clientScopeDataRepository: ClientScopeDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage
 ) {
     private val random = SecureRandom.getInstance("SHA1PRNG")
 
-    private val clientMapper = ClientMapper(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage)
+    private val clientMapper = ClientMapper(clientDataRepository, clientCredentialDataRepository, clientScopeDataRepository, scopeTokenStorage)
 
     private val confidentialClientScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("confidential(client):pack")
@@ -55,7 +55,7 @@ class ClientFactory(
     private suspend fun createClient(payload: CreateClientPayload): Client {
         return ClientData(payload.name, payload.type, payload.origin)
             .apply { if (payload.id != null) id = payload.id }
-            .let { clientRepository.create(it) }
+            .let { clientDataRepository.create(it) }
             .let { clientMapper.map(it) }
     }
 
@@ -64,7 +64,7 @@ class ClientFactory(
             return null
         }
 
-        return clientCredentialRepository.create(
+        return clientCredentialDataRepository.create(
             ClientCredentialData(
                 clientId = client.id,
                 secret = generateRandomSecret(32)

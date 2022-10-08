@@ -9,9 +9,9 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.migration.CreateToken
-import io.github.siyual_park.auth.repository.ScopeRelationRepository
-import io.github.siyual_park.auth.repository.ScopeTokenRepository
-import io.github.siyual_park.auth.repository.TokenRepository
+import io.github.siyual_park.auth.repository.ScopeRelationDataRepository
+import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
+import io.github.siyual_park.auth.repository.TokenDataRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.ulid.ULID
@@ -45,17 +45,17 @@ class TokenTest : DataTestHelper() {
 
     private val faker = Faker()
 
-    private val scopeRelationRepository = ScopeRelationRepository(entityOperations)
-    private val scopeTokenRepository = ScopeTokenRepository(entityOperations)
+    private val scopeRelationDataRepository = ScopeRelationDataRepository(entityOperations)
+    private val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
 
-    private val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository)
-    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper)
-    private val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
+    private val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
+    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenDataRepository, scopeTokenMapper)
+    private val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
     private val claimEmbedder = ClaimEmbedder()
-    private val tokenRepository = TokenRepository(mongoTemplate)
-    private val tokenMapper = TokenMapper(tokenRepository, scopeTokenStorage)
+    private val tokenDataRepository = TokenDataRepository(mongoTemplate)
+    private val tokenMapper = TokenMapper(tokenDataRepository, scopeTokenStorage)
 
-    private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenRepository, tokenMapper)
+    private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenDataRepository, tokenMapper)
 
     init {
         migrationManager

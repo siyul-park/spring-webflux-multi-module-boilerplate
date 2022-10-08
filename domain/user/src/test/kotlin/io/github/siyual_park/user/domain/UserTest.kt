@@ -71,7 +71,7 @@ class UserTest : UserTestHelper() {
             assertTrue(it.contains(customScope))
         }
 
-        coVerify(exactly = 1) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 1) { userScopeDataRepository.findAll(any()) }
 
         loaded2?.grant(customScope)
         assertTrue(loaded2?.has(customScope) == true)
@@ -79,7 +79,7 @@ class UserTest : UserTestHelper() {
             assertTrue(it.contains(customScope))
         }
 
-        coVerify(exactly = 2) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 2) { userScopeDataRepository.findAll(any()) }
     }
 
     @Test
@@ -108,7 +108,7 @@ class UserTest : UserTestHelper() {
             assertFalse(it.contains(customScope))
         }
 
-        coVerify(exactly = 1) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 1) { userScopeDataRepository.findAll(any()) }
 
         loaded2?.revoke(customScope)
         assertTrue(loaded2?.has(customScope) == false)
@@ -116,7 +116,7 @@ class UserTest : UserTestHelper() {
             assertFalse(it.contains(customScope))
         }
 
-        coVerify(exactly = 2) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 2) { userScopeDataRepository.findAll(any()) }
     }
 
     @Test
@@ -142,22 +142,22 @@ class UserTest : UserTestHelper() {
         assertEquals(loaded1?.getScope(deep = false)?.toSet(), user1.getScope(deep = false).toSet())
         assertEquals(loaded2?.getScope(deep = false)?.toSet(), user2.getScope(deep = false).toSet())
 
-        coVerify(exactly = 3) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 3) { userScopeDataRepository.findAll(any()) }
 
         assertEquals(loaded1?.getScope(deep = true)?.toSet(), user1.getScope(deep = true).toSet())
         assertEquals(loaded2?.getScope(deep = true)?.toSet(), user2.getScope(deep = true).toSet())
 
-        coVerify(exactly = 6) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 6) { userScopeDataRepository.findAll(any()) }
 
         loaded1?.getScope(deep = false)?.toSet()
         loaded1?.getScope(deep = false)?.toSet()
 
-        coVerify(exactly = 8) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 8) { userScopeDataRepository.findAll(any()) }
 
         loaded2?.getScope(deep = false)?.toSet()
         loaded2?.getScope(deep = false)?.toSet()
 
-        coVerify(exactly = 9) { userScopeRepository.findAll(any()) }
+        coVerify(exactly = 9) { userScopeDataRepository.findAll(any()) }
     }
 
     @Test

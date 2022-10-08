@@ -8,9 +8,9 @@ import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.client.entity.ClientScopeData
 import io.github.siyual_park.client.entity.ClientType
-import io.github.siyual_park.client.repository.ClientCredentialRepository
-import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.client.repository.ClientScopeRepository
+import io.github.siyual_park.client.repository.ClientCredentialDataRepository
+import io.github.siyual_park.client.repository.ClientDataRepository
+import io.github.siyual_park.client.repository.ClientScopeDataRepository
 import io.github.siyual_park.data.aggregation.FetchContext
 import io.github.siyual_park.data.aggregation.get
 import io.github.siyual_park.data.cache.SuspendLazy
@@ -23,7 +23,6 @@ import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
@@ -32,12 +31,12 @@ import kotlinx.coroutines.flow.toList
 
 class Client(
     value: ClientData,
-    clientRepository: ClientRepository,
-    private val clientCredentialRepository: ClientCredentialRepository,
-    private val clientScopeRepository: ClientScopeRepository,
+    clientDataRepository: ClientDataRepository,
+    private val clientCredentialDataRepository: ClientCredentialDataRepository,
+    private val clientScopeDataRepository: ClientScopeDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     fetchContext: FetchContext
-) : Persistence<ClientData, ULID>(value, clientRepository), ClientEntity, Authorizable {
+) : Persistence<ClientData, ULID>(value, clientDataRepository), ClientEntity, Authorizable {
     val id by proxy(root, ClientData::id)
     var name by proxy(root, ClientData::name)
     val type by proxy(root, ClientData::type)
@@ -45,15 +44,15 @@ class Client(
 
     override val clientId by proxy(root, ClientData::id)
 
-    private val scopeContext = fetchContext.get(clientScopeRepository)
+    private val scopeContext = fetchContext.get(clientScopeDataRepository)
     private val scopeFetcher = scopeContext.join(
         where(ClientScopeData::clientId).`is`(clientId)
     )
 
     private val credential = SuspendLazy {
         ClientCredential(
-            clientCredentialRepository.findByClientIdOrFail(clientId),
-            clientCredentialRepository
+            clientCredentialDataRepository.findByClientIdOrFail(clientId),
+            clientCredentialDataRepository
         ).also {
             synchronize(PersistencePropagateSynchronization(it))
         }
@@ -65,7 +64,7 @@ class Client(
                 override suspend fun beforeClear() {
                     scopeFetcher.clear()
 
-                    clientScopeRepository.deleteAllByClientId(id)
+                    clientScopeDataRepository.deleteAllByClientId(id)
                     if (isConfidential()) {
                         credential.get().clear()
                     }
@@ -87,14 +86,14 @@ class Client(
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
-        return clientScopeRepository.exists(
+        return clientScopeDataRepository.exists(
             where(ClientScopeData::clientId).`is`(id)
                 .and(where(ClientScopeData::scopeTokenId).`is`(scopeToken.id))
         )
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {
-        clientScopeRepository.create(
+        clientScopeDataRepository.create(
             ClientScopeData(
                 clientId = id,
                 scopeTokenId = scopeToken.id
@@ -103,12 +102,12 @@ class Client(
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
-        val clientScope = clientScopeRepository.findOneOrFail(
+        val clientScope = clientScopeDataRepository.findOneOrFail(
             where(ClientScopeData::clientId).`is`(id)
                 .and(where(ClientScopeData::scopeTokenId).`is`(scopeToken.id))
         )
         scopeContext.clear(clientScope)
-        clientScopeRepository.delete(clientScope)
+        clientScopeDataRepository.delete(clientScope)
     }
 
     suspend fun getCredential(): ClientCredential {

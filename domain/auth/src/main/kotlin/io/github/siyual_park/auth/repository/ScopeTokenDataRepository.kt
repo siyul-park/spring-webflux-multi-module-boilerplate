@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository
 import java.time.Duration
 
 @Repository
-class ScopeTokenRepository(
+class ScopeTokenDataRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null

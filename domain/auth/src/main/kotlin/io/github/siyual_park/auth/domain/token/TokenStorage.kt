@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.entity.TokenData
-import io.github.siyual_park.auth.repository.TokenRepository
+import io.github.siyual_park.auth.repository.TokenDataRepository
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
@@ -16,10 +16,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class TokenStorage(
-    tokenRepository: TokenRepository,
+    tokenDataRepository: TokenDataRepository,
     tokenMapper: TokenMapper
 ) : QueryStorage<Token, ULID> {
-    private val delegator = SimpleQueryStorage(tokenRepository, { tokenMapper.map(it) })
+    private val delegator = SimpleQueryStorage(tokenDataRepository, { tokenMapper.map(it) })
 
     fun load(type: String, claims: Map<String, Any>, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<Token> {
         var query: Criteria = where(TokenData::type).`is`(type)

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository
 import java.time.Duration
 
 @Repository
-class TokenRepository(
+class TokenDataRepository(
     template: ReactiveMongoTemplate,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null

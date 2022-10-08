@@ -5,16 +5,16 @@ import io.github.siyual_park.data.aggregation.FetchContext
 import io.github.siyual_park.mapper.Mapper
 import io.github.siyual_park.mapper.TypeReference
 import io.github.siyual_park.user.entity.UserData
-import io.github.siyual_park.user.repository.UserCredentialRepository
-import io.github.siyual_park.user.repository.UserRepository
-import io.github.siyual_park.user.repository.UserScopeRepository
+import io.github.siyual_park.user.repository.UserCredentialDataRepository
+import io.github.siyual_park.user.repository.UserDataRepository
+import io.github.siyual_park.user.repository.UserScopeDataRepository
 import org.springframework.stereotype.Component
 
 @Component
 class UsersMapper(
-    private val userRepository: UserRepository,
-    private val userCredentialRepository: UserCredentialRepository,
-    private val userScopeRepository: UserScopeRepository,
+    private val userDataRepository: UserDataRepository,
+    private val userCredentialDataRepository: UserCredentialDataRepository,
+    private val userScopeDataRepository: UserScopeDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage
 ) : Mapper<Collection<UserData>, Collection<User>> {
     override val sourceType = object : TypeReference<Collection<UserData>>() {}
@@ -26,9 +26,9 @@ class UsersMapper(
         return source.map {
             User(
                 it,
-                userRepository,
-                userCredentialRepository,
-                userScopeRepository,
+                userDataRepository,
+                userCredentialDataRepository,
+                userScopeDataRepository,
                 scopeTokenStorage,
                 fetchContext
             )

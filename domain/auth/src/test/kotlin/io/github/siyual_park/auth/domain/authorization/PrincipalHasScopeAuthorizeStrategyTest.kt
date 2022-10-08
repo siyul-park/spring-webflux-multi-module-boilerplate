@@ -7,8 +7,8 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
-import io.github.siyual_park.auth.repository.ScopeRelationRepository
-import io.github.siyual_park.auth.repository.ScopeTokenRepository
+import io.github.siyual_park.auth.repository.ScopeRelationDataRepository
+import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.ulid.ULID
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -22,11 +22,11 @@ class PrincipalHasScopeAuthorizeStrategyTest : DataTestHelper() {
             .register(CreateScopeRelation(entityOperations))
     }
 
-    private val scopeRelationRepository = ScopeRelationRepository(entityOperations)
-    private val scopeTokenRepository = ScopeTokenRepository(entityOperations)
+    private val scopeRelationDataRepository = ScopeRelationDataRepository(entityOperations)
+    private val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
 
-    private val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository)
-    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper)
+    private val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
+    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenDataRepository, scopeTokenMapper)
 
     private val principalHasScopeAuthorizeStrategy = PrincipalHasScopeAuthorizeStrategy()
 

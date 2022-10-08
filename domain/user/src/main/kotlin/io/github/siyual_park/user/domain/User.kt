@@ -19,11 +19,10 @@ import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
 import io.github.siyual_park.user.entity.UserEntity
 import io.github.siyual_park.user.entity.UserScopeData
-import io.github.siyual_park.user.repository.UserCredentialRepository
-import io.github.siyual_park.user.repository.UserRepository
-import io.github.siyual_park.user.repository.UserScopeRepository
+import io.github.siyual_park.user.repository.UserCredentialDataRepository
+import io.github.siyual_park.user.repository.UserDataRepository
+import io.github.siyual_park.user.repository.UserScopeDataRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -31,27 +30,27 @@ import kotlinx.coroutines.flow.toList
 
 class User(
     value: UserData,
-    userRepository: UserRepository,
-    private val userCredentialRepository: UserCredentialRepository,
-    private val userScopeRepository: UserScopeRepository,
+    userDataRepository: UserDataRepository,
+    private val userCredentialDataRepository: UserCredentialDataRepository,
+    private val userScopeDataRepository: UserScopeDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     fetchContext: FetchContext
-) : Persistence<UserData, ULID>(value, userRepository), UserEntity, Authorizable {
+) : Persistence<UserData, ULID>(value, userDataRepository), UserEntity, Authorizable {
     val id by proxy(root, UserData::id)
     var email by proxy(root, UserData::email)
     var name by proxy(root, UserData::name)
 
     override val userId by proxy(root, UserData::id)
 
-    private val scopeContext = fetchContext.get(userScopeRepository)
+    private val scopeContext = fetchContext.get(userScopeDataRepository)
     private val scopeFetcher = scopeContext.join(
         where(UserScopeData::userId).`is`(userId)
     )
 
     private val credential = SuspendLazy {
         UserCredential(
-            userCredentialRepository.findByUserIdOrFail(userId),
-            userCredentialRepository
+            userCredentialDataRepository.findByUserIdOrFail(userId),
+            userCredentialDataRepository
         ).also {
             synchronize(PersistencePropagateSynchronization(it))
         }
@@ -63,7 +62,7 @@ class User(
                 override suspend fun beforeClear() {
                     scopeFetcher.clear()
 
-                    userScopeRepository.deleteAllByUserId(id)
+                    userScopeDataRepository.deleteAllByUserId(id)
                     credential.get().clear()
                 }
 
@@ -75,14 +74,14 @@ class User(
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
-        return userScopeRepository.exists(
+        return userScopeDataRepository.exists(
             where(UserScopeData::userId).`is`(id)
                 .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
         )
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {
-        userScopeRepository.create(
+        userScopeDataRepository.create(
             UserScopeData(
                 userId = id,
                 scopeTokenId = scopeToken.id
@@ -91,12 +90,12 @@ class User(
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
-        val userScope = userScopeRepository.findOneOrFail(
+        val userScope = userScopeDataRepository.findOneOrFail(
             where(UserScopeData::userId).`is`(id)
                 .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
         )
         scopeContext.clear(userScope)
-        userScopeRepository.delete(userScope)
+        userScopeDataRepository.delete(userScope)
     }
 
     suspend fun getCredential(): UserCredential {

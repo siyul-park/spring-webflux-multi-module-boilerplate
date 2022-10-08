@@ -4,9 +4,9 @@ import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.migration.CreateClient
 import io.github.siyual_park.client.migration.CreateClientCredential
 import io.github.siyual_park.client.migration.CreateClientScope
-import io.github.siyual_park.client.repository.ClientCredentialRepository
-import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.client.repository.ClientScopeRepository
+import io.github.siyual_park.client.repository.ClientCredentialDataRepository
+import io.github.siyual_park.client.repository.ClientDataRepository
+import io.github.siyual_park.client.repository.ClientScopeDataRepository
 import io.github.siyual_park.data.converter.StringToURLConverter
 import io.github.siyual_park.data.converter.URLToStringConverter
 import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
@@ -20,11 +20,11 @@ class PasswordGrantAuthenticateStrategyTest : UserTestHelper(
         StringToURLConverter()
     )
 ) {
-    protected val clientRepository = ClientRepository(entityOperations)
-    protected val clientCredentialRepository = ClientCredentialRepository(entityOperations)
-    protected val clientScopeRepository = ClientScopeRepository(entityOperations,)
+    protected val clientDataRepository = ClientDataRepository(entityOperations)
+    protected val clientCredentialDataRepository = ClientCredentialDataRepository(entityOperations)
+    protected val clientScopeDataRepository = ClientScopeDataRepository(entityOperations,)
 
-    protected val clientStorage = ClientStorage(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage)
+    protected val clientStorage = ClientStorage(clientDataRepository, clientCredentialDataRepository, clientScopeDataRepository, scopeTokenStorage)
 
     private val authorizationStrategy = PasswordGrantAuthenticateStrategy(userStorage, clientStorage)
 

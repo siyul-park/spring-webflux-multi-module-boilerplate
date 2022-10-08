@@ -15,7 +15,7 @@ import java.time.Duration
 import java.time.Instant
 
 @Repository
-class UserRepository(
+class UserDataRepository(
     entityOperations: R2dbcEntityOperations,
     objectMapper: ObjectMapper? = null,
     redisClient: RedissonClient? = null,

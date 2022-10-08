@@ -2,9 +2,9 @@ package io.github.siyual_park.client.domain
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientData
-import io.github.siyual_park.client.repository.ClientCredentialRepository
-import io.github.siyual_park.client.repository.ClientRepository
-import io.github.siyual_park.client.repository.ClientScopeRepository
+import io.github.siyual_park.client.repository.ClientCredentialDataRepository
+import io.github.siyual_park.client.repository.ClientDataRepository
+import io.github.siyual_park.client.repository.ClientScopeDataRepository
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.persistence.QueryStorage
 import io.github.siyual_park.persistence.SimpleQueryStorage
@@ -14,14 +14,14 @@ import org.springframework.stereotype.Component
 
 @Component
 class ClientStorage(
-    private val clientRepository: ClientRepository,
-    private val clientCredentialRepository: ClientCredentialRepository,
-    private val clientScopeRepository: ClientScopeRepository,
+    private val clientDataRepository: ClientDataRepository,
+    private val clientCredentialDataRepository: ClientCredentialDataRepository,
+    private val clientScopeDataRepository: ClientScopeDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage
 ) : QueryStorage<Client, ULID> by SimpleQueryStorage(
-    clientRepository,
-    ClientMapper(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
-    ClientsMapper(clientRepository, clientCredentialRepository, clientScopeRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
+    clientDataRepository,
+    ClientMapper(clientDataRepository, clientCredentialDataRepository, clientScopeDataRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
+    ClientsMapper(clientDataRepository, clientCredentialDataRepository, clientScopeDataRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
 ) {
     suspend fun load(name: String): Client? {
         return load(where(ClientData::name).`is`(name))

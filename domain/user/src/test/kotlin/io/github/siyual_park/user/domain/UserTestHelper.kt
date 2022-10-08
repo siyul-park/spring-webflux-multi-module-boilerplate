@@ -6,16 +6,16 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.migration.CreateToken
-import io.github.siyual_park.auth.repository.ScopeRelationRepository
-import io.github.siyual_park.auth.repository.ScopeTokenRepository
+import io.github.siyual_park.auth.repository.ScopeRelationDataRepository
+import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.user.migration.CreateUser
 import io.github.siyual_park.user.migration.CreateUserCredential
 import io.github.siyual_park.user.migration.CreateUserScope
-import io.github.siyual_park.user.repository.UserCredentialRepository
-import io.github.siyual_park.user.repository.UserRepository
-import io.github.siyual_park.user.repository.UserScopeRepository
+import io.github.siyual_park.user.repository.UserCredentialDataRepository
+import io.github.siyual_park.user.repository.UserDataRepository
+import io.github.siyual_park.user.repository.UserScopeDataRepository
 import io.mockk.spyk
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -36,18 +36,18 @@ abstract class UserTestHelper(
             .register(CreateUserScope(entityOperations))
     }
 
-    protected val scopeRelationRepository = ScopeRelationRepository(entityOperations)
-    protected val scopeTokenRepository = ScopeTokenRepository(entityOperations)
-    protected val userRepository = UserRepository(entityOperations)
-    protected val userCredentialRepository = UserCredentialRepository(entityOperations)
-    protected val userScopeRepository = spyk(UserScopeRepository(entityOperations))
+    protected val scopeRelationDataRepository = ScopeRelationDataRepository(entityOperations)
+    protected val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
+    protected val userDataRepository = UserDataRepository(entityOperations)
+    protected val userCredentialDataRepository = UserCredentialDataRepository(entityOperations)
+    protected val userScopeDataRepository = spyk(UserScopeDataRepository(entityOperations))
 
-    protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenRepository, scopeRelationRepository)
-    protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenRepository, scopeTokenMapper)
-    protected val scopeTokenFactory = ScopeTokenFactory(scopeTokenRepository, scopeTokenMapper)
+    protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
+    protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
+    protected val scopeTokenFactory = ScopeTokenFactory(scopeTokenDataRepository, scopeTokenMapper)
 
-    protected val userFactory = UserFactory(userRepository, userCredentialRepository, userScopeRepository, scopeTokenStorage)
-    protected val userStorage = UserStorage(userRepository, userCredentialRepository, userScopeRepository, scopeTokenStorage)
+    protected val userFactory = UserFactory(userDataRepository, userCredentialDataRepository, userScopeDataRepository, scopeTokenStorage)
+    protected val userStorage = UserStorage(userDataRepository, userCredentialDataRepository, userScopeDataRepository, scopeTokenStorage)
 
     @BeforeEach
     override fun setUp() {
