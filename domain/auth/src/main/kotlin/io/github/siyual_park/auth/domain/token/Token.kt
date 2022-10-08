@@ -21,13 +21,15 @@ class Token(
     value: TokenData,
     private val tokenDataRepository: TokenDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
-) : Persistence<TokenData, ULID>(value, tokenDataRepository),
-    Authorizable {
+) : Persistence<TokenData, ULID>(value, tokenDataRepository), Authorizable {
     val id by proxyNotNull(root, TokenData::id)
     val type by proxy(root, TokenData::type)
     val signature by proxy(root, TokenData::signature)
     val claims by proxy(root, TokenData::claims)
-    var expiredAt by proxy(root, TokenData::expiredAt)
+
+    val createdAt by proxy(root, TokenData::createdAt)
+    val updatedAt by proxy(root, TokenData::updatedAt)
+    val expiredAt by proxy(root, TokenData::expiredAt)
 
     fun isActivated(): Boolean {
         val expiredAt = expiredAt ?: return true

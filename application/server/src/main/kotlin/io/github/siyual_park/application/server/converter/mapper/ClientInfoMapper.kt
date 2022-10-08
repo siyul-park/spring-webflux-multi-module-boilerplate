@@ -27,15 +27,14 @@ class ClientInfoMapper(
     override suspend fun map(source: Projection<Client>): ClientInfo {
         val node = source.node
         val value = source.value
-        val raw = value.raw()
         return ClientInfo(
             id = node.project(ClientInfo::id) { value.id },
             name = node.project(ClientInfo::name) { value.name },
             type = node.project(ClientInfo::type) { value.type },
-            origin = node.project(ClientInfo::origin) { raw.origin },
+            origin = node.project(ClientInfo::origin) { value.origin },
             scope = node.project(ClientInfo::scope) { getScope(value, it) },
-            createdAt = node.project(ClientInfo::createdAt) { raw.createdAt },
-            updatedAt = node.project(ClientInfo::updatedAt) { raw.updatedAt },
+            createdAt = node.project(ClientInfo::createdAt) { value.createdAt },
+            updatedAt = node.project(ClientInfo::updatedAt) { value.updatedAt },
         )
     }
 

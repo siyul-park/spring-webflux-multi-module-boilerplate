@@ -27,14 +27,13 @@ class UserInfoMapper(
     override suspend fun map(source: Projection<User>): UserInfo {
         val node = source.node
         val value = source.value
-        val raw = value.raw()
         return UserInfo(
             id = node.project(UserInfo::id) { value.id },
             name = node.project(UserInfo::name) { value.name },
             email = node.project(UserInfo::email) { value.email },
             scope = node.project(UserInfo::scope) { getScope(source.value, it) },
-            createdAt = node.project(UserInfo::createdAt) { raw.createdAt },
-            updatedAt = node.project(UserInfo::createdAt) { raw.updatedAt }
+            createdAt = node.project(UserInfo::createdAt) { value.createdAt },
+            updatedAt = node.project(UserInfo::createdAt) { value.updatedAt }
         )
     }
 

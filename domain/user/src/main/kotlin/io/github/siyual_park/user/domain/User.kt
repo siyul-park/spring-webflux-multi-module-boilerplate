@@ -40,6 +40,9 @@ class User(
     var email by proxy(root, UserData::email)
     var name by proxy(root, UserData::name)
 
+    val createdAt by proxy(root, UserData::createdAt)
+    val updatedAt by proxy(root, UserData::updatedAt)
+
     override val userId by proxy(root, UserData::id)
 
     private val scopeContext = fetchContext.get(userScopeDataRepository)

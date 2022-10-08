@@ -22,7 +22,6 @@ class ClientDetailInfoMapper(
     override suspend fun map(source: Projection<Client>): ClientDetailInfo {
         val node = source.node
         val value = source.value
-        val raw = value.raw()
         return ClientDetailInfo(
             id = node.project(ClientDetailInfo::id) { value.id },
             name = node.project(ClientDetailInfo::name) { value.name },
@@ -32,8 +31,8 @@ class ClientDetailInfoMapper(
             scope = node.project(ClientDetailInfo::scope) {
                 mapperContext.map(Projection(value.getScope(deep = false).toList() as Collection<ScopeToken>, it))
             },
-            createdAt = node.project(ClientDetailInfo::createdAt) { raw.createdAt },
-            updatedAt = node.project(ClientDetailInfo::updatedAt) { raw.updatedAt },
+            createdAt = node.project(ClientDetailInfo::createdAt) { value.createdAt },
+            updatedAt = node.project(ClientDetailInfo::updatedAt) { value.updatedAt },
         )
     }
 

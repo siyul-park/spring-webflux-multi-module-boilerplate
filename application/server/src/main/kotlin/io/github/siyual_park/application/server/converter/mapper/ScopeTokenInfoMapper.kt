@@ -21,7 +21,6 @@ class ScopeTokenInfoMapper : Mapper<Projection<ScopeToken>, ScopeTokenInfo> {
     suspend fun map(source: Projection<ScopeToken>, relations: Set<Pair<ScopeToken, ScopeToken>>?): ScopeTokenInfo {
         val node = source.node
         val value = source.value
-        val raw = value.raw()
         return ScopeTokenInfo(
             id = node.project(ScopeTokenInfo::id) { value.id },
             name = node.project(ScopeTokenInfo::name) { value.name },
@@ -37,8 +36,8 @@ class ScopeTokenInfoMapper : Mapper<Projection<ScopeToken>, ScopeTokenInfo> {
                     null
                 }
             },
-            createdAt = node.project(ScopeTokenInfo::createdAt) { raw.createdAt },
-            updatedAt = node.project(ScopeTokenInfo::updatedAt) { raw.updatedAt },
+            createdAt = node.project(ScopeTokenInfo::createdAt) { value.createdAt },
+            updatedAt = node.project(ScopeTokenInfo::updatedAt) { value.updatedAt },
         )
     }
 }

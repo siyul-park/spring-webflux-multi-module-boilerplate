@@ -42,6 +42,9 @@ class Client(
     val type by proxy(root, ClientData::type)
     var origin by proxy(root, ClientData::origin)
 
+    val createdAt by proxy(root, ClientData::createdAt)
+    val updatedAt by proxy(root, ClientData::updatedAt)
+
     override val clientId by proxy(root, ClientData::id)
 
     private val scopeContext = fetchContext.get(clientScopeDataRepository)

@@ -15,6 +15,9 @@ class UserCredential(
     val id by proxyNotNull(root, UserCredentialData::id)
     val userId by proxy(root, UserCredentialData::userId)
 
+    val createdAt by proxy(root, UserCredentialData::createdAt)
+    val updatedAt by proxy(root, UserCredentialData::updatedAt)
+
     private val hashAlgorithm by proxy(root, UserCredentialData::hashAlgorithm)
 
     fun isPassword(password: String): Boolean {

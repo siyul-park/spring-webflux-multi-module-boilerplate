@@ -25,12 +25,13 @@ class ScopeToken(
     value: ScopeTokenData,
     private val scopeTokenDataRepository: ScopeTokenDataRepository,
     private val scopeRelationDataRepository: ScopeRelationDataRepository
-) : Persistence<ScopeTokenData, ULID>(value, scopeTokenDataRepository),
-    Authorizable {
-
+) : Persistence<ScopeTokenData, ULID>(value, scopeTokenDataRepository), Authorizable {
     val id by proxy(root, ScopeTokenData::id)
     var name by proxy(root, ScopeTokenData::name)
     var description by proxy(root, ScopeTokenData::description)
+
+    val createdAt by proxy(root, ScopeTokenData::createdAt)
+    val updatedAt by proxy(root, ScopeTokenData::updatedAt)
 
     init {
         synchronize(object : PersistenceSynchronization {
