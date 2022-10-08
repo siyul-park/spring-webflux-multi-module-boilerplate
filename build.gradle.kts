@@ -106,7 +106,7 @@ allprojects {
 
         implementation("io.r2dbc:r2dbc-h2")
         implementation("io.r2dbc:r2dbc-pool")
-        implementation("io.r2dbc:r2dbc-postgresql")
+        implementation("org.postgresql:r2dbc-postgresql")
 
         runtimeOnly("com.h2database:h2")
         implementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:$embed_mongo_version")
