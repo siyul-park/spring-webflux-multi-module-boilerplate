@@ -33,14 +33,14 @@ class BearerAuthorizationStrategyTest : ClientTestHelper() {
 
     @Test
     fun authenticate() = blocking {
-        val template = TokenTemplate(type = "test")
+        val template = TokenTemplate(type = "test", age = Duration.ofMinutes(30))
         val tokenFactory = tokenFactoryProvider.get(template)
 
         val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
         val principal = client.toPrincipal()
 
-        val token = tokenFactory.create(principal, Duration.ofMinutes(30))
+        val token = tokenFactory.create(principal)
 
         assertNull(bearerAuthorizationStrategy.authenticate(AuthorizationPayload("invalid", token.signature)))
         assertEquals(principal.copy(id = token.id), bearerAuthorizationStrategy.authenticate(AuthorizationPayload("bearer", token.signature)))

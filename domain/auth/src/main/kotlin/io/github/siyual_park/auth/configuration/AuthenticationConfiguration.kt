@@ -2,7 +2,6 @@ package io.github.siyual_park.auth.configuration
 
 import io.github.siyual_park.auth.domain.authentication.AuthenticateFilter
 import io.github.siyual_park.auth.domain.authentication.AuthenticateMapping
-import io.github.siyual_park.auth.domain.authentication.AuthenticatePipeline
 import io.github.siyual_park.auth.domain.authentication.AuthenticateStrategy
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.TypeMatchAuthenticateFilter
@@ -19,16 +18,6 @@ class AuthenticationConfiguration(
     @Autowired(required = true)
     fun configAuthenticator(authenticator: Authenticator) {
         applicationContext.getBeansOfType(AuthenticateStrategy::class.java).values
-            .sortedWith(AnnotationAwareOrderComparator.INSTANCE)
-            .forEach {
-                it.javaClass.annotations.filterIsInstance<AuthenticateMapping>()
-                    .forEach { annotation ->
-                        val filter = getFilter(annotation)
-                        authenticator.register(filter, it)
-                    }
-            }
-
-        applicationContext.getBeansOfType(AuthenticatePipeline::class.java).values
             .sortedWith(AnnotationAwareOrderComparator.INSTANCE)
             .forEach {
                 it.javaClass.annotations.filterIsInstance<AuthenticateMapping>()

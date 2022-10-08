@@ -46,6 +46,7 @@ class ClientBasedCorsCacheConfigurationSourceTest : ClientTestHelper() {
     fun getCorsConfiguration() = blocking {
         val tokenTemplate = TokenTemplate(
             type = "test",
+            age = Duration.ofMinutes(10),
             limit = listOf(
                 "tid" to 1
             )
@@ -54,7 +55,7 @@ class ClientBasedCorsCacheConfigurationSourceTest : ClientTestHelper() {
 
         val client = MockCreateClientPayloadFactory.create()
             .let { clientFactory.create(it) }
-        val token = tokenFactory.create(client.toPrincipal(), Duration.ofMinutes(10))
+        val token = tokenFactory.create(client.toPrincipal())
 
         val request = MockServerHttpRequest.options("/")
         val headers = HttpHeaders().also {

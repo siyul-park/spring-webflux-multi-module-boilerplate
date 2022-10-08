@@ -74,13 +74,14 @@ class TokenTest : DataTestHelper() {
 
         val template = TokenTemplate(
             type = "test",
+            age = Duration.ofMinutes(10),
             limit = listOf(
                 "tid" to 1
             )
         )
         val factory = tokenFactoryProvider.get(template)
 
-        val token = factory.create(principal, Duration.ofMinutes(10))
+        val token = factory.create(principal)
 
         assertEquals("test", token.type)
         assertEquals(principal.id, token["tid"]?.let { ULID.fromString(it.toString()) })
@@ -94,13 +95,14 @@ class TokenTest : DataTestHelper() {
 
         val template = TokenTemplate(
             type = "test",
+            age = Duration.ofMinutes(10),
             limit = listOf(
                 "tid" to 1
             )
         )
         val factory = tokenFactoryProvider.get(template)
 
-        val token = factory.create(principal, Duration.ofMinutes(10))
+        val token = factory.create(principal)
 
         val key = faker.name().username(10)
         val value = faker.name().username(10)
@@ -120,13 +122,14 @@ class TokenTest : DataTestHelper() {
 
         val template = TokenTemplate(
             type = "test",
+            age = Duration.ofMinutes(10),
             limit = listOf(
                 "tid" to 1
             )
         )
         val factory = tokenFactoryProvider.get(template)
 
-        val token = factory.create(principal, Duration.ofMinutes(10))
+        val token = factory.create(principal)
 
         val scope1 = token.getScope().toList()
         assertEquals(1, scope1.size)
@@ -145,13 +148,14 @@ class TokenTest : DataTestHelper() {
 
         val template = TokenTemplate(
             type = "test",
+            age = Duration.ofMinutes(10),
             limit = listOf(
                 "tid" to 1
             )
         )
         val factory = tokenFactoryProvider.get(template)
 
-        val token = factory.create(principal, Duration.ofMinutes(10))
+        val token = factory.create(principal)
 
         assertFalse(token.has(scopeToken))
 
@@ -168,13 +172,14 @@ class TokenTest : DataTestHelper() {
 
         val template = TokenTemplate(
             type = "test",
+            age = Duration.ofMinutes(10),
             limit = listOf(
                 "tid" to 1
             )
         )
         val factory = tokenFactoryProvider.get(template)
 
-        val token = factory.create(principal, Duration.ofMinutes(10))
+        val token = factory.create(principal)
 
         assertTrue(token.has(scopeToken))
 

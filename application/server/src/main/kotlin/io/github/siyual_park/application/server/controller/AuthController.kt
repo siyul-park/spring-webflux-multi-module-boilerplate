@@ -9,6 +9,7 @@ import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.RefreshTokenPayload
 import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.authorization.authorize
+import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.domain.token.Token
@@ -47,6 +48,7 @@ import javax.validation.Valid
 class AuthController(
     private val authenticator: Authenticator,
     private val authorizator: Authorizator,
+    private val principalRefresher: PrincipalRefresher,
     tokenFactoryProvider: TokenFactoryProvider,
     projectionParserFactory: ProjectionParserFactory,
     private val scopeTokenStorage: ScopeTokenStorage,
@@ -70,6 +72,7 @@ class AuthController(
         tokenFactoryProvider.get(
             TokenTemplate(
                 type = "acs",
+                age = tokensProperty.accessToken.age,
                 limit = listOf(
                     "pid" to 1
                 ),
@@ -81,6 +84,7 @@ class AuthController(
         tokenFactoryProvider.get(
             TokenTemplate(
                 type = "rfr",
+                age = tokensProperty.accessToken.age,
                 pop = setOf(refreshTokenScope.get()),
             )
         )
@@ -118,34 +122,33 @@ class AuthController(
         if (!authorizator.authorize(principal, accessTokenScope.get())) {
             throw RequiredPermissionException()
         }
-
         val scope = request.scope?.split(" ")
             ?.let { scopeTokenStorage.load(it) }
             ?.toSet()
 
-        val refreshToken = if (request is CreateTokenRequest.RefreshToken) {
-            tokenStorage.load(request.refreshToken)
-        } else if (authorizator.authorize(principal, refreshTokenScope.get())) {
-            refreshTokenFactory.get().create(
-                principal,
-                tokensProperty.refreshToken.age,
-                filter = setOf(accessTokenScope.get()),
+        if (request is CreateTokenRequest.RefreshToken) {
+            val refreshToken = tokenStorage.loadOrFail(request.refreshToken)
+            val accessToken = accessTokenFactory.get().create(
+                principalRefresher.refresh(principal),
+                claims = refreshToken.id.toString().let { mapOf("pid" to it) },
+                filter = scope,
             )
+
+            return accessToken to null
+        }
+
+        val refreshToken = if (authorizator.authorize(principal, refreshTokenScope.get())) {
+            refreshTokenFactory.get().create(principal, filter = setOf(accessTokenScope.get()),)
         } else {
             null
         }
         val accessToken = accessTokenFactory.get().create(
             principal,
-            tokensProperty.accessToken.age,
             claims = refreshToken?.id?.toString()?.let { mapOf("pid" to it) },
             filter = scope,
         )
 
-        return if (request !is CreateTokenRequest.RefreshToken) {
-            accessToken to refreshToken
-        } else {
-            accessToken to null
-        }
+        return accessToken to refreshToken
     }
 
     @Operation(security = [SecurityRequirement(name = "Bearer")])

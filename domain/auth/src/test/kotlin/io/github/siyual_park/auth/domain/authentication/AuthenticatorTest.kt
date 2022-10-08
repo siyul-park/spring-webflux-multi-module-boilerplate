@@ -27,14 +27,6 @@ class AuthenticatorTest : CoroutineTestHelper() {
         }
     }
 
-    internal class TestAuthenticatePipeline : AuthenticatePipeline<Principal> {
-        override val clazz = Principal::class
-
-        override suspend fun pipe(principal: Principal): Principal {
-            return principal
-        }
-    }
-
     private val faker = Faker()
     private val filter = AllowAllAuthenticateFilter()
 
@@ -42,12 +34,6 @@ class AuthenticatorTest : CoroutineTestHelper() {
     fun registerStrategy() {
         val authenticator = Authenticator()
         authenticator.register(filter, TestAuthorizationStrategy("", ""))
-    }
-
-    @Test
-    fun registerPipeline() {
-        val authenticator = Authenticator()
-        authenticator.register(filter, TestAuthenticatePipeline())
     }
 
     @Test

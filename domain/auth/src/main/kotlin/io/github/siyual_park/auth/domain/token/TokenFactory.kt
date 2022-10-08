@@ -25,7 +25,6 @@ class TokenFactory(
 ) {
     suspend fun create(
         principal: Principal,
-        age: Duration,
         claims: Map<String, Any>? = null,
         pop: Set<ScopeToken>? = null,
         push: Set<ScopeToken>? = null,
@@ -59,7 +58,7 @@ class TokenFactory(
         deprecated(finalClaims)
 
         val now = Instant.now()
-        val expiredAt = now.plus(age)
+        val expiredAt = now.plus(template.age)
         val data = retry(3) {
             TokenData(
                 type = template.type,

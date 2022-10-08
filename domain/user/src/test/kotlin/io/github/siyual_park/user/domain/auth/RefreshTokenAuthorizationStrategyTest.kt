@@ -32,14 +32,14 @@ class RefreshTokenAuthorizationStrategyTest : UserTestHelper() {
 
     @Test
     fun authenticate() = blocking {
-        val template = TokenTemplate(type = "test")
+        val template = TokenTemplate(type = "test", age = Duration.ofMinutes(30))
         val tokenFactory = tokenFactoryProvider.get(template)
 
         val user = MockCreateUserPayloadFactory.create()
             .let { userFactory.create(it) }
         val principal = user.toPrincipal()
 
-        val token = tokenFactory.create(principal, Duration.ofMinutes(30))
+        val token = tokenFactory.create(principal)
 
         assertEquals(
             principal.copy(id = token.id),

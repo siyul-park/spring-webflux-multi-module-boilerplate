@@ -23,6 +23,7 @@ class AuthorizationHeaderGenerator(
     private val accessTokenFactory = tokenFactoryProvider.get(
         TokenTemplate(
             type = "acs",
+            age = Duration.ofDays(1),
             limit = listOf(
                 "pid" to 1
             )
@@ -32,7 +33,6 @@ class AuthorizationHeaderGenerator(
     suspend fun generate(principal: Principal): String {
         val token = accessTokenFactory.create(
             principal,
-            Duration.ofDays(1),
             pop = setOf(accessTokenScope.get(), refreshTokenScope.get())
         )
         return "Bearer ${token.signature}"
