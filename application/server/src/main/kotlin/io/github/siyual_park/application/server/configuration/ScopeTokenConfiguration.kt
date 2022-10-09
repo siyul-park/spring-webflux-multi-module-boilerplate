@@ -21,7 +21,6 @@ class ScopeTokenConfiguration(
         val publicClientScope = scopeTokenFactory.upsert(name = "public(client):pack")
         val confidentialClientScope = scopeTokenFactory.upsert(name = "confidential(client):pack")
 
-        scopeTokenFactory.upsert(name = "token:grant").also { granted(it, listOf(confidentialClientScope, publicClientScope)) }
         scopeTokenFactory.upsert(name = "access-token:create").also { granted(it, listOf(userScope, confidentialClientScope, publicClientScope)) }
         scopeTokenFactory.upsert(name = "refresh-token:create").also { granted(it, listOf(userScope)) }
 
