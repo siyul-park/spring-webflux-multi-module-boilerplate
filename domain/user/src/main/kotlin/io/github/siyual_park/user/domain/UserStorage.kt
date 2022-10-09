@@ -16,6 +16,7 @@ import io.github.siyual_park.user.repository.UserScopeDataRepository
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.stereotype.Component
 import java.security.MessageDigest
+import javax.validation.Valid
 
 @Component
 class UserStorage(
@@ -35,7 +36,7 @@ class UserStorage(
         scopeTokenStorage.loadOrFail("user:pack")
     }
 
-    suspend fun save(payload: CreateUserPayload): User {
+    suspend fun save(@Valid payload: CreateUserPayload): User {
         val user = createUser(payload)
 
         user.link()

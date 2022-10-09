@@ -16,6 +16,7 @@ import io.github.siyual_park.ulid.ULID
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.stereotype.Component
 import java.security.SecureRandom
+import javax.validation.Valid
 
 @Component
 class ClientStorage(
@@ -43,7 +44,7 @@ class ClientStorage(
         random.setSeed(random.generateSeed(128))
     }
 
-    suspend fun save(payload: CreateClientPayload): Client {
+    suspend fun save(@Valid payload: CreateClientPayload): Client {
         val client = createClient(payload)
 
         client.link()

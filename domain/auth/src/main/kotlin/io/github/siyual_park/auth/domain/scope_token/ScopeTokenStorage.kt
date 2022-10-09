@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Component
+import javax.validation.Valid
 
 @Component
 class ScopeTokenStorage(
@@ -19,11 +20,11 @@ class ScopeTokenStorage(
     scopeTokenDataRepository,
     { scopeTokenMapper.map(it) }
 ) {
-    suspend fun upsert(name: String): ScopeToken {
+    suspend fun upsert(@Valid name: String): ScopeToken {
         return upsert(CreateScopeTokenPayload(name = name))
     }
 
-    suspend fun upsert(payload: CreateScopeTokenPayload): ScopeToken {
+    suspend fun upsert(@Valid payload: CreateScopeTokenPayload): ScopeToken {
         val exited = load(payload.name)
         return if (exited != null) {
             exited.description = payload.description
@@ -34,7 +35,7 @@ class ScopeTokenStorage(
         }
     }
 
-    suspend fun save(payload: CreateScopeTokenPayload): ScopeToken {
+    suspend fun save(@Valid payload: CreateScopeTokenPayload): ScopeToken {
         return scopeTokenDataRepository.create(
             ScopeTokenData(
                 name = payload.name,
