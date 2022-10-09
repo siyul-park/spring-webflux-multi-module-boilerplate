@@ -139,14 +139,10 @@ class Client(
         push: List<ScopeToken> = emptyList(),
         pop: List<ScopeToken> = emptyList()
     ): ClientPrincipal {
-        val myScope = getScope()
+        val myScope = getScope().toList()
         val scope = mutableSetOf<ScopeToken>()
 
-        scope.addAll(
-            myScope
-                .filter { token -> pop.firstOrNull { it.id == token.id } == null }
-                .toList()
-        )
+        scope.addAll(myScope.filter { token -> pop.firstOrNull { it.id == token.id } == null })
         scope.addAll(push.toList())
 
         return ClientPrincipal(

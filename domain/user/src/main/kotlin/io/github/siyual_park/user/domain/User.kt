@@ -131,9 +131,7 @@ class User(
         val myScope = getScope().toList()
         val scope = mutableSetOf<ScopeToken>()
 
-        scope.addAll(
-            myScope.filter { token -> pop.firstOrNull { it.id == token.id } == null }
-        )
+        scope.addAll(myScope.filter { token -> pop.firstOrNull { it.id == token.id } == null })
         scope.addAll(push.toList())
 
         return UserPrincipal(
