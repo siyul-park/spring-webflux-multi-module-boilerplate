@@ -1,6 +1,5 @@
 package io.github.siyual_park.user.domain
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.migration.CreateScopeRelation
@@ -44,9 +43,7 @@ abstract class UserTestHelper(
 
     protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
     protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
-    protected val scopeTokenFactory = ScopeTokenFactory(scopeTokenDataRepository, scopeTokenMapper)
 
-    protected val userFactory = UserFactory(userDataRepository, userCredentialDataRepository, userScopeDataRepository, scopeTokenStorage)
     protected val userStorage = UserStorage(userDataRepository, userCredentialDataRepository, userScopeDataRepository, scopeTokenStorage)
 
     @BeforeEach
@@ -54,7 +51,7 @@ abstract class UserTestHelper(
         super.setUp()
 
         blocking {
-            scopeTokenFactory.upsert("user:pack")
+            scopeTokenStorage.upsert("user:pack")
         }
     }
 

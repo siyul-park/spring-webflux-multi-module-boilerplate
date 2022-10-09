@@ -8,16 +8,16 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class ClientPrincipalRefreshStrategyTest : ClientTestHelper() {
-    private val clientPrincipalRefreshStrategy = ClientPrincipalRefreshStrategy(clientStorage)
+    private val clientPrincipalRefreshStrategy = ClientPrincipalRefreshStrategy(this.clientStorage)
 
     @Test
     fun refresh() = blocking {
-        val clientScope = scopeTokenFactory.upsert("confidential(client):pack")
-        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val clientScope = scopeTokenStorage.upsert("confidential(client):pack")
+        val customScope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
         clientScope.grant(customScope)
 
         val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
         val principal = ClientPrincipal(clientId = client.id, scope = setOf())
 
         val refreshed = clientPrincipalRefreshStrategy.refresh(principal)

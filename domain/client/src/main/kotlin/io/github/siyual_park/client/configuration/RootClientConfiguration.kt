@@ -1,7 +1,6 @@
 package io.github.siyual_park.client.configuration
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientType
@@ -20,7 +19,6 @@ import org.springframework.transaction.reactive.executeAndAwait
 @Configuration
 class RootClientConfiguration(
     private val property: RootClientProperty,
-    private val clientFactory: ClientFactory,
     private val clientStorage: ClientStorage,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val operator: TransactionalOperator,
@@ -40,7 +38,7 @@ class RootClientConfiguration(
                     scope = scopeTokenStorage.load().toList(),
                     id = if (property.id.isNotEmpty()) ULID.fromString(property.id) else null
                 )
-                    .let { clientFactory.create(it) }
+                    .let { clientStorage.save(it) }
                     .also {
                         val credential = it.getCredential()
                         logger.info("Creating root client [id: ${it.id}, name: ${it.name}, secret: ${credential.raw().secret}]")

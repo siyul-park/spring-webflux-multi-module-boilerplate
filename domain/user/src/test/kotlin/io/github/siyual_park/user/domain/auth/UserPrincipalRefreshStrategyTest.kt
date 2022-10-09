@@ -12,12 +12,12 @@ class UserPrincipalRefreshStrategyTest : UserTestHelper() {
 
     @Test
     fun refresh() = blocking {
-        val userScope = scopeTokenFactory.upsert("user:pack")
-        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val userScope = scopeTokenStorage.upsert("user:pack")
+        val customScope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
         userScope.grant(customScope)
 
         val user = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
         val principal = UserPrincipal(userId = user.id, scope = setOf())
 
         val refreshed = userPrincipalRefreshStrategy.refresh(principal)

@@ -26,13 +26,14 @@ class ScopeTokenTest : DataTestHelper() {
     private val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
 
     private val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
-    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenDataRepository, scopeTokenMapper)
+    private val scopeTokenStorage =
+        ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
 
     @Test
     fun create() = blocking {
         val payload = MockCreateScopeTokenPayloadFactory.create()
 
-        val scopeToken = scopeTokenFactory.create(payload)
+        val scopeToken = scopeTokenStorage.save(payload)
 
         assertEquals(payload.name, scopeToken.name)
         assertEquals(payload.description, scopeToken.description)
@@ -49,8 +50,8 @@ class ScopeTokenTest : DataTestHelper() {
         )
         val payload = MockCreateScopeTokenPayloadFactory.create()
 
-        val scopeToken1 = scopeTokenFactory.create(packPayload)
-        val scopeToken2 = scopeTokenFactory.create(payload)
+        val scopeToken1 = scopeTokenStorage.save(packPayload)
+        val scopeToken2 = scopeTokenStorage.save(payload)
 
         assertTrue(scopeToken1.isPacked())
         assertFalse(scopeToken2.isPacked())
@@ -70,8 +71,8 @@ class ScopeTokenTest : DataTestHelper() {
         )
         val payload = MockCreateScopeTokenPayloadFactory.create()
 
-        val scopeToken1 = scopeTokenFactory.create(packPayload)
-        val scopeToken2 = scopeTokenFactory.create(payload)
+        val scopeToken1 = scopeTokenStorage.save(packPayload)
+        val scopeToken2 = scopeTokenStorage.save(payload)
 
         scopeToken1.grant(scopeToken2)
         assertTrue(scopeToken1.has(scopeToken2))
@@ -89,8 +90,8 @@ class ScopeTokenTest : DataTestHelper() {
         )
         val payload = MockCreateScopeTokenPayloadFactory.create()
 
-        val scopeToken1 = scopeTokenFactory.create(packPayload)
-        val scopeToken2 = scopeTokenFactory.create(payload)
+        val scopeToken1 = scopeTokenStorage.save(packPayload)
+        val scopeToken2 = scopeTokenStorage.save(payload)
 
         scopeToken1.grant(scopeToken2)
         assertTrue(scopeToken1.has(scopeToken2))
@@ -111,8 +112,8 @@ class ScopeTokenTest : DataTestHelper() {
         )
         val payload = MockCreateScopeTokenPayloadFactory.create()
 
-        val scopeToken1 = scopeTokenFactory.create(packPayload)
-        val scopeToken2 = scopeTokenFactory.create(payload)
+        val scopeToken1 = scopeTokenStorage.save(packPayload)
+        val scopeToken2 = scopeTokenStorage.save(payload)
 
         scopeToken1.grant(scopeToken2)
 
@@ -138,10 +139,10 @@ class ScopeTokenTest : DataTestHelper() {
         val payload1 = MockCreateScopeTokenPayloadFactory.create()
         val payload2 = MockCreateScopeTokenPayloadFactory.create()
 
-        val scopeToken1 = scopeTokenFactory.create(packPayload1)
-        val scopeToken2 = scopeTokenFactory.create(packPayload2)
-        val scopeToken3 = scopeTokenFactory.create(payload1)
-        val scopeToken4 = scopeTokenFactory.create(payload2)
+        val scopeToken1 = scopeTokenStorage.save(packPayload1)
+        val scopeToken2 = scopeTokenStorage.save(packPayload2)
+        val scopeToken3 = scopeTokenStorage.save(payload1)
+        val scopeToken4 = scopeTokenStorage.save(payload2)
 
         scopeToken1.grant(scopeToken2)
         scopeToken1.grant(scopeToken3)

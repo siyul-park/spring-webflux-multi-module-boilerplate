@@ -5,8 +5,8 @@ import io.github.siyual_park.auth.repository.TokenDataRepository
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
-import io.github.siyual_park.persistence.QueryStorage
-import io.github.siyual_park.persistence.SimpleQueryStorage
+import io.github.siyual_park.persistence.QueryableLoader
+import io.github.siyual_park.persistence.SimpleQueryableLoader
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -16,10 +16,15 @@ import org.springframework.stereotype.Component
 
 @Component
 class TokenStorage(
-    tokenDataRepository: TokenDataRepository,
-    tokenMapper: TokenMapper
-) : QueryStorage<Token, ULID> {
-    private val delegator = SimpleQueryStorage(tokenDataRepository, { tokenMapper.map(it) })
+    private val claimEmbedder: ClaimEmbedder,
+    private val tokenDataRepository: TokenDataRepository,
+    private val tokenMapper: TokenMapper
+) : QueryableLoader<Token, ULID> {
+    private val delegator = SimpleQueryableLoader(tokenDataRepository, { tokenMapper.map(it) })
+
+    fun createFactory(template: TokenTemplate): TokenFactory {
+        return TokenFactory(template, claimEmbedder, tokenDataRepository, tokenMapper)
+    }
 
     fun load(type: String, claims: Map<String, Any>, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<Token> {
         var query: Criteria = where(TokenData::type).`is`(type)

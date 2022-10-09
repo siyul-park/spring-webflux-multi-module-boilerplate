@@ -20,14 +20,14 @@ class UserTest : UserTestHelper() {
         super.setUp()
 
         blocking {
-            scopeTokenFactory.upsert("user:pack")
+            scopeTokenStorage.upsert("user:pack")
         }
     }
 
     @Test
     fun sync() = blocking {
         val user = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         val other = MockCreateUserPayloadFactory.create()
 
@@ -50,12 +50,12 @@ class UserTest : UserTestHelper() {
 
     @Test
     fun grant() = blocking {
-        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val customScope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
 
         val user1 = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
         val user2 = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
 
@@ -84,15 +84,15 @@ class UserTest : UserTestHelper() {
 
     @Test
     fun revoke() = blocking {
-        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val customScope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
         val template = MockCreateUserPayloadFactory.Template(
             scope = Optional.of(listOf(customScope))
         )
 
         val user1 = MockCreateUserPayloadFactory.create(template)
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
         val user2 = MockCreateUserPayloadFactory.create(template)
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
 
@@ -121,15 +121,15 @@ class UserTest : UserTestHelper() {
 
     @Test
     fun getScope() = blocking {
-        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val customScope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
         val template = MockCreateUserPayloadFactory.Template(
             scope = Optional.of(listOf(customScope))
         )
 
         val user1 = MockCreateUserPayloadFactory.create(template)
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
         val user2 = MockCreateUserPayloadFactory.create(template)
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         val users = userStorage.load(listOf(user1.id, user2.id)).toList()
 
@@ -163,7 +163,7 @@ class UserTest : UserTestHelper() {
     @Test
     fun clear() = blocking {
         val user = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         user.clear()
         assertNull(userStorage.load(user.id))
@@ -172,7 +172,7 @@ class UserTest : UserTestHelper() {
     @Test
     fun toPrincipal() = blocking {
         val user = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
         val principal = user.toPrincipal()
 
         assertEquals(user.id, principal.id)

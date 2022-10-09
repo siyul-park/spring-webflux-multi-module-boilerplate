@@ -1,6 +1,5 @@
 package io.github.siyual_park.client.domain
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.migration.CreateScopeRelation
@@ -48,9 +47,6 @@ abstract class ClientTestHelper : DataTestHelper(
 
     protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
     protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
-    protected val scopeTokenFactory = ScopeTokenFactory(scopeTokenDataRepository, scopeTokenMapper)
-
-    protected val clientFactory = ClientFactory(clientDataRepository, clientCredentialDataRepository, clientScopeDataRepository, scopeTokenStorage)
     protected val clientStorage = ClientStorage(clientDataRepository, clientCredentialDataRepository, clientScopeDataRepository, scopeTokenStorage)
 
     @BeforeEach
@@ -58,8 +54,8 @@ abstract class ClientTestHelper : DataTestHelper(
         super.setUp()
 
         blocking {
-            scopeTokenFactory.upsert("confidential(client):pack")
-            scopeTokenFactory.upsert("public(client):pack")
+            scopeTokenStorage.upsert("confidential(client):pack")
+            scopeTokenStorage.upsert("public(client):pack")
         }
     }
 

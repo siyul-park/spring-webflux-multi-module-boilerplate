@@ -3,7 +3,7 @@ package io.github.siyual_park.application.server.helper
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.auth.domain.token.TokenFactoryProvider
+import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
 import io.github.siyual_park.data.cache.SuspendLazy
 import org.springframework.stereotype.Component
@@ -12,7 +12,7 @@ import java.time.Duration
 @Component
 class AuthorizationHeaderGenerator(
     private val scopeTokenStorage: ScopeTokenStorage,
-    tokenFactoryProvider: TokenFactoryProvider
+    tokenStorage: TokenStorage
 ) {
     private val accessTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("access-token:create")
@@ -20,7 +20,7 @@ class AuthorizationHeaderGenerator(
     private val refreshTokenScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("refresh-token:create")
     }
-    private val accessTokenFactory = tokenFactoryProvider.get(
+    private val accessTokenFactory = tokenStorage.createFactory(
         TokenTemplate(
             type = "acs",
             age = Duration.ofDays(1),

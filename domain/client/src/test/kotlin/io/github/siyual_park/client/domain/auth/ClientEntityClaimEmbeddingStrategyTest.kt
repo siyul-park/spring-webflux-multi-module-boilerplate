@@ -11,7 +11,7 @@ class ClientEntityClaimEmbeddingStrategyTest : ClientTestHelper() {
     @Test
     fun embedding() = blocking {
         val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
         val principal = client.toPrincipal()
 
         val claim = clientEntityClaimEmbeddingStrategy.embedding(principal)

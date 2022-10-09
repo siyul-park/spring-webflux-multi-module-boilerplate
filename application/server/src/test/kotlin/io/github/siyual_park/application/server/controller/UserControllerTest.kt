@@ -6,13 +6,13 @@ import io.github.siyual_park.application.server.dto.request.UpdateUserRequest
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.UserControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
-import io.github.siyual_park.client.domain.ClientFactory
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
+import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
-import io.github.siyual_park.user.domain.UserFactory
+import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.util.username
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -32,9 +32,9 @@ import java.util.Optional
 class UserControllerTest @Autowired constructor(
     private val gatewayAuthorization: GatewayAuthorization,
     private val userControllerGateway: UserControllerGateway,
-    private val userFactory: UserFactory,
-    private val clientFactory: ClientFactory,
-    private val scopeTokenFactory: ScopeTokenFactory
+    private val userStorage: UserStorage,
+    private val clientStorage: ClientStorage,
+    private val scopeTokenStorage: ScopeTokenStorage
 ) : CoroutineTestHelper() {
 
     private val faker = Faker()
@@ -42,7 +42,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `POST users, status = 201`() = blocking {
         val principal = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it).toPrincipal() }
+            .let { clientStorage.save(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -66,7 +66,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `POST users, status = 409`() = blocking {
         val principal = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it).toPrincipal() }
+            .let { clientStorage.save(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -83,7 +83,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `POST users, status = 403`() = blocking {
         val principal = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it).toPrincipal() }
+            .let { clientStorage.save(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -100,7 +100,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `POST users, status = 400`() = blocking {
         val principal = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it).toPrincipal() }
+            .let { clientStorage.save(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -121,7 +121,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `GET users, status = 200`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -151,7 +151,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `GET users, status = 403`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -171,7 +171,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `GET users_{self-id}, status = 200`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -195,7 +195,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `GET users_{self-id}, status = 200, with scope`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -218,7 +218,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `GET users_{self-id}, status = 403`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -233,7 +233,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{self-id}, status = 200`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -260,7 +260,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{self-id}, status = 400, when name is null`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -279,7 +279,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{self-id}, status = 400, when name is excess size`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -298,7 +298,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{self-id}, status = 403`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -317,7 +317,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `DELEATE users_{self-id}, status = 204`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -336,7 +336,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `DELEATE users_{self-id}, status = 403`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -352,10 +352,10 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `GET users_{user-id}, status = 200`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -377,10 +377,10 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `GET users_{user-id}, status = 200, with scope`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -401,10 +401,10 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `GET users_{user-id}, status = 403`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -418,7 +418,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `GET users_{user-id}, status = 404`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -433,10 +433,10 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{user-id}, status = 200`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -462,7 +462,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{user-id}, status = 200, with password`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -483,12 +483,12 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{user-id}, status = 200, with grant scope`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
-        val scope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val scope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -509,12 +509,12 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{user-id}, status = 403, with grant scope`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
-        val scope = scopeTokenFactory.upsert(faker.name().username())
+        val scope = scopeTokenStorage.upsert(faker.name().username())
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -532,12 +532,12 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{user-id}, status = 200, with revoke scope`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
-        val scope = scopeTokenFactory.upsert(faker.name().username())
+        val scope = scopeTokenStorage.upsert(faker.name().username())
 
         otherUser.grant(scope)
 
@@ -560,12 +560,12 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{user-id}, status = 403, with revoke scope`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
-        val scope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val scope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
 
         otherUser.grant(scope)
 
@@ -585,10 +585,10 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{user-id}, status = 403`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -606,7 +606,7 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{user-id}, status = 403, with password`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
@@ -625,10 +625,10 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `DELEATE users_{user-id}, status = 204`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -643,10 +643,10 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `DELEATE users_{user-id}, status = 403`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val otherUser = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
 
         gatewayAuthorization.setPrincipal(
             principal,

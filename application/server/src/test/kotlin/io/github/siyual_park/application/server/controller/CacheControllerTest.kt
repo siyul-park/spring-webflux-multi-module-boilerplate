@@ -3,7 +3,7 @@ package io.github.siyual_park.application.server.controller
 import io.github.siyual_park.IntegrationTest
 import io.github.siyual_park.application.server.gateway.CacheControllerGateway
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
-import io.github.siyual_park.client.domain.ClientFactory
+import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -15,13 +15,13 @@ import org.springframework.http.HttpStatus
 class CacheControllerTest @Autowired constructor(
     private val gatewayAuthorization: GatewayAuthorization,
     private val cacheControllerGateway: CacheControllerGateway,
-    private val clientFactory: ClientFactory,
+    private val clientStorage: ClientStorage,
 ) : CoroutineTestHelper() {
 
     @Test
     fun `GET cache_status, status = 200`() = blocking {
         val principal = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it).toPrincipal() }
+            .let { clientStorage.save(it).toPrincipal() }
 
         gatewayAuthorization.setPrincipal(
             principal,

@@ -38,7 +38,7 @@ class PasswordGrantAuthenticateStrategyTest : UserTestHelper(
     @Test
     fun authenticate() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userFactory.create(payload)
+        val user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         assertEquals(

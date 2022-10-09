@@ -7,16 +7,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 
-class SimpleQueryStorage<T : Any, ID : Any, P : Persistence<T, ID>>(
+class SimpleQueryableLoader<T : Any, ID : Any, P : Persistence<T, ID>>(
     private val repository: QueryRepository<T, ID>,
     private val singleMapper: suspend (T) -> P,
     multiMapper: (suspend (Collection<T>) -> Collection<P>)? = null
-) : QueryStorage<P, ID> {
+) : QueryableLoader<P, ID> {
     private val multiMapper = multiMapper ?: { it.map { singleMapper(it) } }
 
     override suspend fun load(id: ID): P? {

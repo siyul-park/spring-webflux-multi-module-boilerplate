@@ -13,16 +13,16 @@ import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
 
-private val random = SecureRandom.getInstance("SHA1PRNG").apply {
-    setSeed(generateSeed(128))
-}
-
 class TokenFactory(
     private val template: TokenTemplate,
     private val claimEmbedder: ClaimEmbedder,
     private val tokenDataRepository: TokenDataRepository,
     private val tokenMapper: TokenMapper,
 ) {
+    private val random = SecureRandom.getInstance("SHA1PRNG").apply {
+        setSeed(generateSeed(128))
+    }
+
     suspend fun create(
         principal: Principal,
         claims: Map<String, Any>? = null,
@@ -62,7 +62,7 @@ class TokenFactory(
         val data = retry(3) {
             TokenData(
                 type = template.type,
-                signature = generateSignature(template.type, 40),
+                signature = generateSignature(template.type),
                 claims = finalClaims,
                 expiredAt = expiredAt
             ).let { tokenDataRepository.create(it) }
@@ -105,8 +105,8 @@ class TokenFactory(
         }
     }
 
-    @Suppress("SameParameterValue")
-    private fun generateSignature(type: String?, length: Int): String {
+    private fun generateSignature(type: String?): String {
+        val length = 40
         val chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         val stringBuilder = StringBuilder(length)
         for (i in 0 until length) {

@@ -3,8 +3,8 @@ package io.github.siyual_park.auth.domain.authorization
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.MockCreateScopeTokenPayloadFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
+import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.repository.ScopeRelationDataRepository
@@ -26,14 +26,14 @@ class PrincipalHasScopeAuthorizeStrategyTest : DataTestHelper() {
     private val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
 
     private val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
-    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenDataRepository, scopeTokenMapper)
+    private val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
 
     private val principalHasScopeAuthorizeStrategy = PrincipalHasScopeAuthorizeStrategy()
 
     @Test
     fun authorize() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
-            .let { scopeTokenFactory.create(it) }
+            .let { scopeTokenStorage.save(it) }
 
         val principal1 = object : Principal {
             override val id = ULID.randomULID()

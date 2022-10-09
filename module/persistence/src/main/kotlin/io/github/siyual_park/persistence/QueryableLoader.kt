@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 
-interface QueryStorage<T : Any, ID : Any> : Storage<T, ID> {
+interface QueryableLoader<T : Any, ID : Any> : Loader<T, ID> {
     suspend fun load(criteria: Criteria): T?
     fun load(
         criteria: Criteria? = null,
@@ -17,6 +17,6 @@ interface QueryStorage<T : Any, ID : Any> : Storage<T, ID> {
     suspend fun count(criteria: Criteria? = null): Long
 }
 
-suspend fun <T : Any, ID : Any> QueryStorage<T, ID>.loadOrFail(criteria: Criteria): T {
+suspend fun <T : Any, ID : Any> QueryableLoader<T, ID>.loadOrFail(criteria: Criteria): T {
     return load(criteria) ?: throw EmptyResultDataAccessException(1)
 }

@@ -13,7 +13,6 @@ import io.github.siyual_park.auth.domain.principal_refresher.PrincipalRefresher
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.auth.domain.token.Token
-import io.github.siyual_park.auth.domain.token.TokenFactoryProvider
 import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
 import io.github.siyual_park.auth.exception.RequiredPermissionException
@@ -49,7 +48,6 @@ class AuthController(
     private val authenticator: Authenticator,
     private val authorizator: Authorizator,
     private val principalRefresher: PrincipalRefresher,
-    tokenFactoryProvider: TokenFactoryProvider,
     projectionParserFactory: ProjectionParserFactory,
     private val scopeTokenStorage: ScopeTokenStorage,
     private val tokensProperty: TokensProperty,
@@ -66,7 +64,7 @@ class AuthController(
     }
 
     private val accessTokenFactory = SuspendLazy {
-        tokenFactoryProvider.get(
+        tokenStorage.createFactory(
             TokenTemplate(
                 type = "acs",
                 age = tokensProperty.accessToken.age,
@@ -78,7 +76,7 @@ class AuthController(
         )
     }
     private val refreshTokenFactory = SuspendLazy {
-        tokenFactoryProvider.get(
+        tokenStorage.createFactory(
             TokenTemplate(
                 type = "rfr",
                 age = tokensProperty.accessToken.age,

@@ -21,7 +21,6 @@ import io.github.siyual_park.presentation.sort.SortParserFactory
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.User
-import io.github.siyual_park.user.domain.UserFactory
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.auth.UserPrincipal
 import io.github.siyual_park.user.entity.UserData
@@ -50,7 +49,6 @@ import javax.validation.ValidationException
 @RestController
 @RequestMapping("/users")
 class UserController(
-    private val userFactory: UserFactory,
     private val userStorage: UserStorage,
     private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
@@ -80,7 +78,7 @@ class UserController(
                 email = request.email,
                 password = request.password
             )
-            userFactory.create(payload)
+            userStorage.save(payload)
         }!!
         mapperContext.map(Projection(user, projectionNode))
     }

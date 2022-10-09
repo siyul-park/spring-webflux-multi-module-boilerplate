@@ -2,7 +2,6 @@ package io.github.siyual_park.client.domain.auth
 
 import io.github.siyual_park.auth.domain.authentication.RefreshTokenPayload
 import io.github.siyual_park.auth.domain.token.ClaimEmbedder
-import io.github.siyual_park.auth.domain.token.TokenFactoryProvider
 import io.github.siyual_park.auth.domain.token.TokenMapper
 import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
@@ -21,8 +20,7 @@ class RefreshTokenAuthorizationStrategyTest : ClientTestHelper() {
     private val tokenMapper = TokenMapper(tokenDataRepository, scopeTokenStorage)
     private val claimEmbedder = ClaimEmbedder()
 
-    private val tokenStorage = TokenStorage(tokenDataRepository, tokenMapper)
-    private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenDataRepository, tokenMapper)
+    private val tokenStorage = TokenStorage(claimEmbedder, tokenDataRepository, tokenMapper)
 
     private val refreshTokenAuthorizationStrategy = RefreshTokenAuthorizationStrategy(tokenStorage)
 
@@ -33,10 +31,10 @@ class RefreshTokenAuthorizationStrategyTest : ClientTestHelper() {
     @Test
     fun authenticate() = blocking {
         val template = TokenTemplate(type = "test", age = Duration.ofMinutes(30))
-        val tokenFactory = tokenFactoryProvider.get(template)
+        val tokenFactory = tokenStorage.createFactory(template)
 
         val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
         val principal = client.toPrincipal()
 
         val token = tokenFactory.create(principal)

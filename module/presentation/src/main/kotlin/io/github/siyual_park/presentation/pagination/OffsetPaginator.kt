@@ -1,12 +1,12 @@
 package io.github.siyual_park.presentation.pagination
 
 import io.github.siyual_park.data.criteria.Criteria
-import io.github.siyual_park.persistence.QueryStorage
+import io.github.siyual_park.persistence.QueryableLoader
 import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 
 class OffsetPaginator<T : Any, ID : Any>(
-    private val storage: QueryStorage<T, ID>,
+    private val storage: QueryableLoader<T, ID>,
 ) {
     suspend fun paginate(
         criteria: Criteria? = null,

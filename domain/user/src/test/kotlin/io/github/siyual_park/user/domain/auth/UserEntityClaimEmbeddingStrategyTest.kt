@@ -11,7 +11,7 @@ class UserEntityClaimEmbeddingStrategyTest : UserTestHelper() {
     @Test
     fun embedding() = blocking {
         val user = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it) }
+            .let { userStorage.save(it) }
         val principal = user.toPrincipal()
 
         val claim = userEntityClaimEmbeddingStrategy.embedding(principal)

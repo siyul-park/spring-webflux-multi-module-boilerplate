@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 class ClientCredentialsGrantAuthenticateStrategyTest : ClientTestHelper() {
-    private val authorizationStrategy = ClientCredentialsGrantAuthenticateStrategy(clientStorage)
+    private val authorizationStrategy = ClientCredentialsGrantAuthenticateStrategy(this.clientStorage)
 
     @Test
     fun authenticate() = blocking {
         val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
 
         val principal = authorizationStrategy.authenticate(
             ClientCredentialsGrantPayload(

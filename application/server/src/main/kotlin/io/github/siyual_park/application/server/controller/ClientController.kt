@@ -9,7 +9,6 @@ import io.github.siyual_park.auth.domain.authorization.authorize
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.Client
-import io.github.siyual_park.client.domain.ClientFactory
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
 import io.github.siyual_park.client.entity.ClientData
@@ -48,7 +47,6 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/clients")
 class ClientController(
-    private val clientFactory: ClientFactory,
     private val clientStorage: ClientStorage,
     private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
@@ -78,7 +76,7 @@ class ClientController(
                 type = request.type,
                 origin = request.origin
             )
-            clientFactory.create(payload)
+            clientStorage.save(payload)
         }!!
         mapperContext.map(Projection(client, projectionNode))
     }

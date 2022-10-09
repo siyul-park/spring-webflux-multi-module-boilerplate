@@ -17,7 +17,7 @@ class ClientTest : ClientTestHelper() {
     @Test
     fun sync() = blocking {
         val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
 
         val other = MockCreateClientPayloadFactory.create()
 
@@ -32,7 +32,7 @@ class ClientTest : ClientTestHelper() {
         assertEquals(other.name, client.name)
         assertEquals(other.origin, client.origin)
 
-        val exist = clientStorage.loadOrFail(client.id)
+        val exist = this@ClientTest.clientStorage.loadOrFail(client.id)
 
         assertEquals(other.name, exist.name)
         assertEquals(other.origin, exist.origin)
@@ -40,14 +40,14 @@ class ClientTest : ClientTestHelper() {
 
     @Test
     fun grant() = blocking {
-        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val customScope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
 
         val client1 = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
         val client2 = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
 
-        val clients = clientStorage.load(listOf(client1.id, client2.id)).toList()
+        val clients = this@ClientTest.clientStorage.load(listOf(client1.id, client2.id)).toList()
 
         val loaded1 = clients.find { it.id == client1.id }
         val loaded2 = clients.find { it.id == client2.id }
@@ -74,17 +74,17 @@ class ClientTest : ClientTestHelper() {
 
     @Test
     fun revoke() = blocking {
-        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val customScope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
         val template = MockCreateClientPayloadFactory.Template(
             scope = Optional.of(listOf(customScope))
         )
 
         val client1 = MockCreateClientPayloadFactory.create(template)
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
         val client2 = MockCreateClientPayloadFactory.create(template)
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
 
-        val clients = clientStorage.load(listOf(client1.id, client2.id)).toList()
+        val clients = this@ClientTest.clientStorage.load(listOf(client1.id, client2.id)).toList()
 
         val loaded1 = clients.find { it.id == client1.id }
         val loaded2 = clients.find { it.id == client2.id }
@@ -111,17 +111,17 @@ class ClientTest : ClientTestHelper() {
 
     @Test
     fun getScope() = blocking {
-        val customScope = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val customScope = scopeTokenStorage.upsert(MockScopeNameFactory.create())
         val template = MockCreateClientPayloadFactory.Template(
             scope = Optional.of(listOf(customScope))
         )
 
         val client1 = MockCreateClientPayloadFactory.create(template)
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
         val client2 = MockCreateClientPayloadFactory.create(template)
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
 
-        val clients = clientStorage.load(listOf(client1.id, client2.id)).toList()
+        val clients = this@ClientTest.clientStorage.load(listOf(client1.id, client2.id)).toList()
 
         val loaded1 = clients.find { it.id == client1.id }
         val loaded2 = clients.find { it.id == client2.id }
@@ -153,16 +153,16 @@ class ClientTest : ClientTestHelper() {
     @Test
     fun clear() = blocking {
         val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
 
         client.clear()
-        assertNull(clientStorage.load(client.id))
+        assertNull(this@ClientTest.clientStorage.load(client.id))
     }
 
     @Test
     fun toPrincipal() = blocking {
         val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
         val principal = client.toPrincipal()
 
         assertEquals(client.id, principal.id)

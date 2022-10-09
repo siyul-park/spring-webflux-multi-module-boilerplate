@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.EmptyResultDataAccessException
 
 class ScopeTokenStorageTest : DataTestHelper() {
@@ -23,13 +24,42 @@ class ScopeTokenStorageTest : DataTestHelper() {
     private val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
 
     private val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
-    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenDataRepository, scopeTokenMapper)
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
+
+    @Test
+    fun upsert() = blocking {
+        val payload = MockCreateScopeTokenPayloadFactory.create()
+        val name = payload.name
+        val description = payload.description
+
+        val scopeToken1 = scopeTokenStorage.upsert(name)
+        assertEquals(name, scopeToken1.name)
+
+        val scopeToken2 = scopeTokenStorage.upsert(name)
+        assertEquals(name, scopeToken2.name)
+        assertEquals(scopeToken1.id, scopeToken2.id)
+
+        val scopeToken3 = scopeTokenStorage.upsert(CreateScopeTokenPayload(name, description))
+        assertEquals(name, scopeToken3.name)
+        assertEquals(description, scopeToken3.description)
+        assertEquals(scopeToken1.id, scopeToken3.id)
+    }
+
+    @Test
+    fun save() = blocking {
+        val payload = MockCreateScopeTokenPayloadFactory.create()
+
+        val scopeToken = scopeTokenStorage.save(payload)
+        assertEquals(payload.name, scopeToken.name)
+        assertEquals(payload.description, scopeToken.description)
+
+        assertThrows<DataIntegrityViolationException> { scopeTokenStorage.save(payload) }
+    }
 
     @Test
     fun load() = blocking {
         val origin = MockCreateScopeTokenPayloadFactory.create()
-            .let { scopeTokenFactory.create(it) }
+            .let { scopeTokenStorage.save(it) }
 
         val found = scopeTokenStorage.load(origin.name)
 
@@ -39,7 +69,7 @@ class ScopeTokenStorageTest : DataTestHelper() {
     @Test
     fun loadOrFail() = blocking {
         val origin = MockCreateScopeTokenPayloadFactory.create()
-            .let { scopeTokenFactory.create(it) }
+            .let { scopeTokenStorage.save(it) }
         val otherName = MockScopeNameFactory.create()
 
         val found = scopeTokenStorage.loadOrFail(origin.name)
@@ -50,9 +80,9 @@ class ScopeTokenStorageTest : DataTestHelper() {
     @Test
     fun loadMany() = blocking {
         val origin1 = MockCreateScopeTokenPayloadFactory.create()
-            .let { scopeTokenFactory.create(it) }
+            .let { scopeTokenStorage.save(it) }
         val origin2 = MockCreateScopeTokenPayloadFactory.create()
-            .let { scopeTokenFactory.create(it) }
+            .let { scopeTokenStorage.save(it) }
 
         val found = scopeTokenStorage.load(listOf(origin1.name, origin2.name)).toList()
 

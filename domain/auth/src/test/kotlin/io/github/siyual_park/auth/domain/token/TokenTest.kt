@@ -3,7 +3,6 @@ package io.github.siyual_park.auth.domain.token
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.MockCreateScopeTokenPayloadFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenMapper
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.migration.CreateScopeRelation
@@ -49,13 +48,12 @@ class TokenTest : DataTestHelper() {
     private val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
 
     private val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
-    private val scopeTokenFactory = ScopeTokenFactory(scopeTokenDataRepository, scopeTokenMapper)
     private val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
     private val claimEmbedder = ClaimEmbedder()
     private val tokenDataRepository = TokenDataRepository(mongoTemplate)
     private val tokenMapper = TokenMapper(tokenDataRepository, scopeTokenStorage)
 
-    private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenDataRepository, tokenMapper)
+    private val tokenStorage = TokenStorage(claimEmbedder, tokenDataRepository, tokenMapper)
 
     init {
         migrationManager
@@ -69,7 +67,7 @@ class TokenTest : DataTestHelper() {
     @Test
     fun create() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
-            .let { scopeTokenFactory.create(it) }
+            .let { scopeTokenStorage.save(it) }
         val principal = TestPrincipal(ULID.randomULID(), setOf(scopeToken))
 
         val template = TokenTemplate(
@@ -79,7 +77,7 @@ class TokenTest : DataTestHelper() {
                 "tid" to 1
             )
         )
-        val factory = tokenFactoryProvider.get(template)
+        val factory = tokenStorage.createFactory(template)
 
         val token = factory.create(principal)
 
@@ -100,7 +98,7 @@ class TokenTest : DataTestHelper() {
                 "tid" to 1
             )
         )
-        val factory = tokenFactoryProvider.get(template)
+        val factory = tokenStorage.createFactory(template)
 
         val token = factory.create(principal)
 
@@ -117,7 +115,7 @@ class TokenTest : DataTestHelper() {
     @Test
     fun getScope() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
-            .let { scopeTokenFactory.create(it) }
+            .let { scopeTokenStorage.save(it) }
         val principal = TestPrincipal(ULID.randomULID(), setOf(scopeToken))
 
         val template = TokenTemplate(
@@ -127,7 +125,7 @@ class TokenTest : DataTestHelper() {
                 "tid" to 1
             )
         )
-        val factory = tokenFactoryProvider.get(template)
+        val factory = tokenStorage.createFactory(template)
 
         val token = factory.create(principal)
 
@@ -143,7 +141,7 @@ class TokenTest : DataTestHelper() {
     @Test
     fun grant() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
-            .let { scopeTokenFactory.create(it) }
+            .let { scopeTokenStorage.save(it) }
         val principal = TestPrincipal(ULID.randomULID(), setOf())
 
         val template = TokenTemplate(
@@ -153,7 +151,7 @@ class TokenTest : DataTestHelper() {
                 "tid" to 1
             )
         )
-        val factory = tokenFactoryProvider.get(template)
+        val factory = tokenStorage.createFactory(template)
 
         val token = factory.create(principal)
 
@@ -167,7 +165,7 @@ class TokenTest : DataTestHelper() {
     @Test
     fun revoke() = blocking {
         val scopeToken = MockCreateScopeTokenPayloadFactory.create()
-            .let { scopeTokenFactory.create(it) }
+            .let { scopeTokenStorage.save(it) }
         val principal = TestPrincipal(ULID.randomULID(), setOf(scopeToken))
 
         val template = TokenTemplate(
@@ -177,7 +175,7 @@ class TokenTest : DataTestHelper() {
                 "tid" to 1
             )
         )
-        val factory = tokenFactoryProvider.get(template)
+        val factory = tokenStorage.createFactory(template)
 
         val token = factory.create(principal)
 

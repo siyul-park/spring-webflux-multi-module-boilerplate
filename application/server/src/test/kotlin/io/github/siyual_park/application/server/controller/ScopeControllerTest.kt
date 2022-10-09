@@ -6,11 +6,10 @@ import io.github.siyual_park.application.server.dto.request.UpdateScopeTokenRequ
 import io.github.siyual_park.application.server.gateway.GatewayAuthorization
 import io.github.siyual_park.application.server.gateway.ScopeControllerGateway
 import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
-import io.github.siyual_park.user.domain.UserFactory
+import io.github.siyual_park.user.domain.UserStorage
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactive.asFlow
@@ -28,15 +27,14 @@ import java.util.Optional
 class ScopeControllerTest @Autowired constructor(
     private val gatewayAuthorization: GatewayAuthorization,
     private val scopeControllerGateway: ScopeControllerGateway,
-    private val userFactory: UserFactory,
-    private val scopeTokenFactory: ScopeTokenFactory,
+    private val userStorage: UserStorage,
     private val scopeTokenStorage: ScopeTokenStorage
 ) : CoroutineTestHelper() {
 
     @Test
     fun `POST scope, status = 201`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val request = MockCreateScopeTokenRequestFactory.create()
 
@@ -61,7 +59,7 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `POST scope, status = 403`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val request = MockCreateScopeTokenRequestFactory.create()
 
@@ -78,10 +76,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `GET scope, status = 200`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val name = MockScopeNameFactory.create()
-        val scopeToken = scopeTokenFactory.upsert(name)
+        val scopeToken = scopeTokenStorage.upsert(name)
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -110,10 +108,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `GET scope, status = 403`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val name = MockScopeNameFactory.create()
-        val scopeToken = scopeTokenFactory.upsert(name)
+        val scopeToken = scopeTokenStorage.upsert(name)
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -133,10 +131,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `GET scope_{scope-id}, status = 200`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val name = MockScopeNameFactory.create()
-        val scopeToken = scopeTokenFactory.upsert(name)
+        val scopeToken = scopeTokenStorage.upsert(name)
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -158,10 +156,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `GET scope_{scope-id}, status = 403`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val name = MockScopeNameFactory.create()
-        val scopeToken = scopeTokenFactory.upsert(name)
+        val scopeToken = scopeTokenStorage.upsert(name)
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -176,10 +174,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `PATCH scope_{scope-id}, status = 200`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val name = MockScopeNameFactory.create()
-        val scopeToken = scopeTokenFactory.upsert(name)
+        val scopeToken = scopeTokenStorage.upsert(name)
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -205,10 +203,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `PATCH scope_{scope-id}, status = 403`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val name = MockScopeNameFactory.create()
-        val scopeToken = scopeTokenFactory.upsert(name)
+        val scopeToken = scopeTokenStorage.upsert(name)
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -227,10 +225,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `DELETE scope_{scope-id}, status = 204`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val name = MockScopeNameFactory.create()
-        val scopeToken = scopeTokenFactory.upsert(name)
+        val scopeToken = scopeTokenStorage.upsert(name)
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -247,10 +245,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `DELETE scope_{scope-id}, status = 403`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
         val name = MockScopeNameFactory.create()
-        val scopeToken = scopeTokenFactory.upsert(name)
+        val scopeToken = scopeTokenStorage.upsert(name)
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -265,10 +263,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `PATCH scope_{scope-id}, status = 200, when add child`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert(MockScopeNameFactory.create(10, "pack"))
-        val child = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val parent = scopeTokenStorage.upsert(MockScopeNameFactory.create(10, "pack"))
+        val child = scopeTokenStorage.upsert(MockScopeNameFactory.create())
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -286,10 +284,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `PATCH scope_{scope-id}, status = 403, when add child`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert(MockScopeNameFactory.create(10, "pack"))
-        val child = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val parent = scopeTokenStorage.upsert(MockScopeNameFactory.create(10, "pack"))
+        val child = scopeTokenStorage.upsert(MockScopeNameFactory.create())
 
         gatewayAuthorization.setPrincipal(
             principal,
@@ -307,10 +305,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `PATCH scope_{scope-id}, status = 200, when delete child`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert(MockScopeNameFactory.create(10, "pack"))
-        val child = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val parent = scopeTokenStorage.upsert(MockScopeNameFactory.create(10, "pack"))
+        val child = scopeTokenStorage.upsert(MockScopeNameFactory.create())
 
         parent.grant(child)
 
@@ -330,10 +328,10 @@ class ScopeControllerTest @Autowired constructor(
     @Test
     fun `PATCH scope_{scope-id}, status = 403, when remove child`() = blocking {
         val principal = MockCreateUserPayloadFactory.create()
-            .let { userFactory.create(it).toPrincipal() }
+            .let { userStorage.save(it).toPrincipal() }
 
-        val parent = scopeTokenFactory.upsert(MockScopeNameFactory.create(10, "pack"))
-        val child = scopeTokenFactory.upsert(MockScopeNameFactory.create())
+        val parent = scopeTokenStorage.upsert(MockScopeNameFactory.create(10, "pack"))
+        val child = scopeTokenStorage.upsert(MockScopeNameFactory.create())
 
         parent.grant(child)
 

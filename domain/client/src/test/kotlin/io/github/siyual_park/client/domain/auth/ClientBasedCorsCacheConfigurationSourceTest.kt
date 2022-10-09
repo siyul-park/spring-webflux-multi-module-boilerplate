@@ -3,7 +3,6 @@ package io.github.siyual_park.client.domain.auth
 import io.github.siyual_park.auth.domain.authentication.AllowAllAuthenticateFilter
 import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.token.ClaimEmbedder
-import io.github.siyual_park.auth.domain.token.TokenFactoryProvider
 import io.github.siyual_park.auth.domain.token.TokenMapper
 import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
@@ -27,14 +26,13 @@ class ClientBasedCorsCacheConfigurationSourceTest : ClientTestHelper() {
     private val tokenMapper = TokenMapper(tokenDataRepository, scopeTokenStorage)
     private val claimEmbedder = ClaimEmbedder()
 
-    private val tokenStorage = TokenStorage(tokenDataRepository, tokenMapper)
-    private val tokenFactoryProvider = TokenFactoryProvider(claimEmbedder, tokenDataRepository, tokenMapper)
+    private val tokenStorage = TokenStorage(claimEmbedder, tokenDataRepository, tokenMapper)
 
     private val authenticator = Authenticator()
 
     private val clientBasedCorsConfigurationSource = ClientBasedCorsConfigurationSource(
         authenticator,
-        clientStorage
+        this.clientStorage
     )
 
     init {
@@ -51,10 +49,10 @@ class ClientBasedCorsCacheConfigurationSourceTest : ClientTestHelper() {
                 "tid" to 1
             )
         )
-        val tokenFactory = tokenFactoryProvider.get(tokenTemplate)
+        val tokenFactory = tokenStorage.createFactory(tokenTemplate)
 
         val client = MockCreateClientPayloadFactory.create()
-            .let { clientFactory.create(it) }
+            .let { clientStorage.save(it) }
         val token = tokenFactory.create(client.toPrincipal())
 
         val request = MockServerHttpRequest.options("/")

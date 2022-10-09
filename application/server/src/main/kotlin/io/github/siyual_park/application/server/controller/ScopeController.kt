@@ -7,7 +7,6 @@ import io.github.siyual_park.auth.domain.authorization.Authorizator
 import io.github.siyual_park.auth.domain.authorization.authorize
 import io.github.siyual_park.auth.domain.scope_token.CreateScopeTokenPayload
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.domain.scope_token.ScopeTokenFactory
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.data.patch.PropertyOverridePatch
@@ -45,7 +44,6 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/scope")
 class ScopeController(
-    private val scopeTokenFactory: ScopeTokenFactory,
     private val scopeTokenStorage: ScopeTokenStorage,
     rhsFilterParserFactory: RHSFilterParserFactory,
     sortParserFactory: SortParserFactory,
@@ -74,7 +72,7 @@ class ScopeController(
                 description = request.description,
                 system = false
             )
-            scopeTokenFactory.create(payload)
+            scopeTokenStorage.save(payload)
         }!!
         mapperContext.map(Projection(scopeToken, projectionNode))
     }
