@@ -7,6 +7,7 @@ val projectreactor_version: String by project
 val reactor_kotlin_extensions_version: String by project
 val guava_version: String by project
 val apache_commons_collections_version: String by project
+val apache_commons_validator_version: String by project
 val jackson_version: String by project
 val json_patch_version: String by project
 val springdoc_version: String by project
@@ -116,6 +117,7 @@ allprojects {
 
         implementation("com.google.guava:guava:$guava_version")
         implementation("org.apache.commons:commons-collections4:$apache_commons_collections_version")
+        implementation("commons-validator:commons-validator:$apache_commons_validator_version")
 
         implementation("com.fasterxml.jackson.core:jackson-core:$jackson_version")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version")
