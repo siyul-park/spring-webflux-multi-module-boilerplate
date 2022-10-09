@@ -12,6 +12,7 @@ import io.github.siyual_park.data.expansion.fieldName
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.data.repository.EntityChapter
 import io.github.siyual_park.event.EventBroadcaster
 import io.github.siyual_park.event.EventEmitter
 import io.github.siyual_park.event.EventPublisher
@@ -57,6 +58,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         ) as KProperty1<T, ID?>
 
     private val eventPublisher = EventBroadcaster()
+    private val entityChapter = EntityChapter(clazz)
 
     init {
         val localEventEmitter = EventEmitter()
@@ -173,10 +175,7 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T, update: Update): T? {
-        val sourceDump = mutableMapOf<KProperty1<T, *>, Any?>()
-        clazz.memberProperties.forEach {
-            sourceDump[it] = it.get(entity)
-        }
+        val sourceDump = entityChapter.snapshot(entity)
 
         return template.findAndModify(
             query(where(idProperty).`is`(idProperty.get(entity))).limit(1),
@@ -187,7 +186,8 @@ class SimpleMongoRepository<T : Any, ID : Any>(
             .subscribeOn(Schedulers.parallel())
             .awaitSingleOrNull()
             ?.also { target ->
-                val propertyDiff = diff(sourceDump, target)
+                val targetDump = entityChapter.snapshot(target)
+                val propertyDiff = entityChapter.diff(sourceDump, targetDump)
                 eventPublisher.publish(AfterUpdateEvent(target, propertyDiff))
             }
     }
@@ -209,13 +209,10 @@ class SimpleMongoRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T, patch: SuspendPatch<T>): T? {
-        val sourceDump = mutableMapOf<KProperty1<T, Any?>, Any?>()
-        clazz.memberProperties.forEach {
-            sourceDump[it] = it.get(entity)
-        }
-
+        val sourceDump = entityChapter.snapshot(entity)
         val target = patch.apply(entity)
-        val propertyDiff = diff(sourceDump, target)
+        val targetDump = entityChapter.snapshot(target)
+        val propertyDiff = entityChapter.diff(sourceDump, targetDump)
 
         eventPublisher.publish(BeforeUpdateEvent(target, propertyDiff))
 
@@ -368,19 +365,5 @@ class SimpleMongoRepository<T : Any, ID : Any>(
         )
             .subscribeOn(Schedulers.parallel())
             .collect { eventPublisher.publish(AfterDeleteEvent(it)) }
-    }
-
-    private fun diff(source: Map<KProperty1<T, *>, Any?>, target: T): Map<KProperty1<T, *>, Any?> {
-        val propertyDiff = mutableMapOf<KProperty1<T, *>, Any?>()
-        clazz.memberProperties.forEach {
-            val sourceValue = source[it]
-            val targetValue = it.get(target)
-
-            if (sourceValue != targetValue) {
-                propertyDiff[it] = targetValue
-            }
-        }
-
-        return propertyDiff
     }
 }

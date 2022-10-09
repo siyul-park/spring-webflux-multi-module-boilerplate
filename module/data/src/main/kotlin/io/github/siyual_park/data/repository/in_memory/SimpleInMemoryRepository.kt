@@ -11,6 +11,7 @@ import io.github.siyual_park.data.event.UpdateTimestamp
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.patch.async
+import io.github.siyual_park.data.repository.EntityChapter
 import io.github.siyual_park.event.EventBroadcaster
 import io.github.siyual_park.event.EventEmitter
 import io.github.siyual_park.event.EventPublisher
@@ -30,7 +31,7 @@ import kotlin.reflect.jvm.javaField
 
 @Suppress("UNCHECKED_CAST")
 class SimpleInMemoryRepository<T : Any, ID : Any>(
-    private val clazz: KClass<T>,
+    clazz: KClass<T>,
     eventPublisher: EventPublisher? = null,
 ) : InMemoryRepository<T, ID> {
     private val store = Collections.synchronizedMap(mutableMapOf<ID, T>())
@@ -40,6 +41,7 @@ class SimpleInMemoryRepository<T : Any, ID : Any>(
         clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
             ?: throw RuntimeException()
         ) as KProperty1<T, ID?>
+    private val entityChapter = EntityChapter(clazz)
 
     init {
         val localEventEmitter = EventEmitter()
@@ -108,13 +110,10 @@ class SimpleInMemoryRepository<T : Any, ID : Any>(
     }
 
     override suspend fun update(entity: T, patch: SuspendPatch<T>): T? {
-        val sourceDump = mutableMapOf<KProperty1<T, *>, Any?>()
-        clazz.memberProperties.forEach {
-            sourceDump[it] = it.get(entity)
-        }
-
+        val sourceDump = entityChapter.snapshot(entity)
         val target = patch.apply(entity)
-        val propertyDiff = diff(sourceDump, target)
+        val targetDump = entityChapter.snapshot(target)
+        val propertyDiff = entityChapter.diff(sourceDump, targetDump)
 
         val id = idProperty.get(entity)
         if (id?.let { !existsById(it) } == true) {
@@ -130,7 +129,7 @@ class SimpleInMemoryRepository<T : Any, ID : Any>(
             }
         }
 
-        store[idProperty.get(entity)] = entity
+        store[idProperty.get(target)] = target
 
         eventPublisher.publish(AfterUpdateEvent(target, propertyDiff))
 
@@ -184,19 +183,5 @@ class SimpleInMemoryRepository<T : Any, ID : Any>(
 
     override suspend fun deleteAll() {
         deleteAll(store.values)
-    }
-
-    private fun diff(source: Map<KProperty1<T, *>, Any?>, target: T): Map<KProperty1<T, *>, Any?> {
-        val propertyDiff = mutableMapOf<KProperty1<T, *>, Any?>()
-        clazz.memberProperties.forEach {
-            val sourceValue = source[it]
-            val targetValue = it.get(target)
-
-            if (sourceValue != targetValue) {
-                propertyDiff[it] = targetValue
-            }
-        }
-
-        return propertyDiff
     }
 }
