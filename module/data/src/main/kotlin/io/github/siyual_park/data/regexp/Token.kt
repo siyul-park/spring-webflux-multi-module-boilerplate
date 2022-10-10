@@ -3,7 +3,6 @@ package io.github.siyual_park.data.regexp
 import java.util.regex.Pattern
 
 abstract class Token(val value: String) {
-
     abstract fun convert(): String?
 }
 
