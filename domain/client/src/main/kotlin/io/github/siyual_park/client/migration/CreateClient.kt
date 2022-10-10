@@ -28,7 +28,7 @@ class CreateClient(
 
                     "name VARCHAR(64) NOT NULL, " +
                     "type VARCHAR(64) NOT NULL, " +
-                    "origin VARCHAR(2048) NOT NULL, " +
+                    "origins VARCHAR(2048)[] NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
@@ -44,7 +44,7 @@ class CreateClient(
 
                     "name VARCHAR(64) NOT NULL, " +
                     "type VARCHAR(64) NOT NULL, " +
-                    "origin VARCHAR(2048) NOT NULL, " +
+                    "origins VARCHAR(2048) ARRAY NOT NULL, " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +

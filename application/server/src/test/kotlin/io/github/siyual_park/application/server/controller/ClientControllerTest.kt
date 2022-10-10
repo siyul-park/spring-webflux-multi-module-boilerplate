@@ -14,6 +14,7 @@ import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserStorage
+import io.github.siyual_park.util.url
 import io.github.siyual_park.util.username
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
@@ -68,7 +69,7 @@ class ClientControllerTest @Autowired constructor(
             assertNotNull(clientInfo.id)
             assertEquals(request.name, clientInfo.name?.orElse(null))
             assertEquals(request.type, clientInfo.type?.orElse(null))
-            assertEquals(request.origin, clientInfo.origin?.orElse(null))
+            assertEquals(request.origins, clientInfo.origins?.orElse(null))
             assertEquals(client?.getScope(deep = false)?.toList()?.size, clientInfo.scope?.orElse(null)?.size)
             if (request.type == ClientType.CONFIDENTIAL) {
                 assertNotNull(clientInfo.secret?.orElse(null))
@@ -162,7 +163,7 @@ class ClientControllerTest @Autowired constructor(
         assertEquals(client.id, clientInfo.id?.orElse(null))
         assertEquals(client.name, clientInfo.name?.orElse(null))
         assertEquals(client.type, clientInfo.type?.orElse(null))
-        assertEquals(client.origin, clientInfo.origin?.orElse(null))
+        assertEquals(client.origins, clientInfo.origins?.orElse(null))
         assertNotNull(clientInfo.createdAt?.orElse(null))
         assertNotNull(clientInfo.updatedAt?.orElse(null))
     }
@@ -211,7 +212,7 @@ class ClientControllerTest @Autowired constructor(
         assertEquals(otherClient.id, clientInfo.id?.orElse(null))
         assertEquals(otherClient.name, clientInfo.name?.orElse(null))
         assertEquals(otherClient.type, clientInfo.type?.orElse(null))
-        assertEquals(otherClient.origin, clientInfo.origin?.orElse(null))
+        assertEquals(otherClient.origins, clientInfo.origins?.orElse(null))
         assertNotNull(clientInfo.createdAt?.orElse(null))
         assertNotNull(clientInfo.updatedAt?.orElse(null))
     }
@@ -263,8 +264,10 @@ class ClientControllerTest @Autowired constructor(
         )
 
         val name = faker.name().username()
+        val origins = listOf(faker.internet().url(protocol = null))
         val request = UpdateClientRequest(
             name = Optional.of(name),
+            origins = Optional.of(origins)
         )
         val response = clientControllerGateway.update(otherClient.id, request)
 
@@ -275,7 +278,7 @@ class ClientControllerTest @Autowired constructor(
         assertEquals(otherClient.id, clientInfo.id?.orElse(null))
         assertEquals(name, clientInfo.name?.orElse(null))
         assertEquals(otherClient.type, clientInfo.type?.orElse(null))
-        assertEquals(otherClient.origin, clientInfo.origin?.orElse(null))
+        assertEquals(origins, clientInfo.origins?.orElse(null))
         assertNotNull(clientInfo.createdAt?.orElse(null))
         assertNotNull(clientInfo.updatedAt?.orElse(null))
     }
@@ -440,7 +443,7 @@ class ClientControllerTest @Autowired constructor(
 
         val request = UpdateClientRequest(
             name = Optional.of(faker.name().username()),
-            origin = Optional.of(otherClient.origin)
+            origins = Optional.of(otherClient.origins)
         )
         val response = clientControllerGateway.update(otherClient.id, request)
 

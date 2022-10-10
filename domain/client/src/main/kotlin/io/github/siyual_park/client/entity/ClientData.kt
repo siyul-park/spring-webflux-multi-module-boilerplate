@@ -10,5 +10,5 @@ data class ClientData(
     @Key
     var name: String,
     val type: ClientType,
-    var origin: URL,
+    var origins: Collection<URL>,
 ) : ModifiableULIDEntity()

@@ -15,7 +15,7 @@ object MockCreateClientPayloadFactory {
     data class Template(
         val name: Optional<String>? = null,
         val type: Optional<ClientType>? = null,
-        val origin: Optional<URL>? = null,
+        val origins: Optional<Collection<URL>>? = null,
         val scope: Optional<Collection<ScopeToken>>? = null
     )
 
@@ -25,7 +25,7 @@ object MockCreateClientPayloadFactory {
         return CreateClientPayload(
             name = resolveNotNull(template?.name) { faker.name().username(10) },
             type = resolveNotNull(template?.type) { ClientType.CONFIDENTIAL },
-            origin = resolveNotNull(template?.origin) { faker.internet().url(protocol = null) },
+            origins = resolveNotNull(template?.origins) { listOf(faker.internet().url(protocol = null)) },
             scope = resolve(template?.scope) { null }
         )
     }

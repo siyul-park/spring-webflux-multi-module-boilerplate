@@ -1,7 +1,7 @@
 type CreateClientRequest = {
   name: string;
   type: 'public' | 'confidential';
-  origin: string;
+  origins: string[];
 };
 
 export default CreateClientRequest;

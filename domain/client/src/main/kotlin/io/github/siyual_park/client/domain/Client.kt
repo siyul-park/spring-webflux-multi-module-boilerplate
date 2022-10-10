@@ -40,7 +40,7 @@ class Client(
     val id by proxy(root, ClientData::id)
     var name by proxy(root, ClientData::name)
     val type by proxy(root, ClientData::type)
-    var origin by proxy(root, ClientData::origin)
+    var origins by proxy(root, ClientData::origins)
 
     val createdAt by proxy(root, ClientData::createdAt)
     val updatedAt by proxy(root, ClientData::updatedAt)

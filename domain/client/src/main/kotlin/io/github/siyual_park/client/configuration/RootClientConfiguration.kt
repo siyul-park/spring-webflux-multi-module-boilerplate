@@ -34,7 +34,7 @@ class RootClientConfiguration(
                 client = CreateClientPayload(
                     property.name,
                     ClientType.CONFIDENTIAL,
-                    origin = property.origin,
+                    origins = listOf(property.origin),
                     scope = scopeTokenStorage.load().toList(),
                     id = if (property.id.isNotEmpty()) ULID.fromString(property.id) else null
                 )
@@ -45,7 +45,7 @@ class RootClientConfiguration(
                     }
             }
 
-            client.origin = property.origin
+            client.origins = listOf(property.origin)
 
             if (property.secret.isNotEmpty()) {
                 val credential = client.getCredential()

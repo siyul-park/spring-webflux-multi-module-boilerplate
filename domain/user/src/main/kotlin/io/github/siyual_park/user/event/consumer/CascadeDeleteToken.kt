@@ -17,7 +17,7 @@ class CascadeDeleteToken(
     override suspend fun consume(event: AfterDeleteEvent<*>) {
         val entity = event.entity as? UserData ?: return
 
-        SuspendTransactionSynchronization.doAfterCommit {
+        SuspendTransactionSynchronization.beforeCommit {
             tokenDataRepository.deleteAll(where("claims.uid").`is`(entity.id.toString()))
         }
     }

@@ -38,7 +38,7 @@ class ClientBasedCorsConfigurationSource(
 
                 CorsConfiguration()
                     .apply {
-                        allowedOrigins = listOf(client.origin.toString())
+                        allowedOrigins = client.origins.map { it.toString() }
                         addAllowedHeader("*")
                         addAllowedMethod("*")
                         allowCredentials = true

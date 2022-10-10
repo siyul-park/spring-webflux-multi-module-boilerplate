@@ -7,7 +7,7 @@ function dummyCreateClientRequest(): CreateClientRequest {
   return {
     name: randomString(10),
     type: 'confidential',
-    origin: 'http://localhost:8080',
+    origins: ['http://localhost:8080'],
   };
 }
 

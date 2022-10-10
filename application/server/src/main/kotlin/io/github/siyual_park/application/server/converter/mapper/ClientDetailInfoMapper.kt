@@ -26,7 +26,7 @@ class ClientDetailInfoMapper(
             id = node.project(ClientDetailInfo::id) { value.id },
             name = node.project(ClientDetailInfo::name) { value.name },
             type = node.project(ClientDetailInfo::type) { value.type },
-            origin = node.project(ClientDetailInfo::origin) { value.origin },
+            origins = node.project(ClientDetailInfo::origins) { value.origins },
             secret = node.project(ClientDetailInfo::secret) { getSecret(value) },
             scope = node.project(ClientDetailInfo::scope) {
                 mapperContext.map(Projection(value.getScope(deep = false).toList() as Collection<ScopeToken>, it))

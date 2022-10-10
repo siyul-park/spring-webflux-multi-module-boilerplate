@@ -31,7 +31,7 @@ class ClientInfoMapper(
             id = node.project(ClientInfo::id) { value.id },
             name = node.project(ClientInfo::name) { value.name },
             type = node.project(ClientInfo::type) { value.type },
-            origin = node.project(ClientInfo::origin) { value.origin },
+            origins = node.project(ClientInfo::origins) { value.origins },
             scope = node.project(ClientInfo::scope) { getScope(value, it) },
             createdAt = node.project(ClientInfo::createdAt) { value.createdAt },
             updatedAt = node.project(ClientInfo::updatedAt) { value.updatedAt },

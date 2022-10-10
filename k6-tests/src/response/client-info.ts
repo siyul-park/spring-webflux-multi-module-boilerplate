@@ -4,7 +4,7 @@ type ClientInfo = {
   id: string;
   name: string;
   type: 'public' | 'confidential';
-  origin: string;
+  origins: string[];
   scope?: ScopeTokenInfo[],
   createdAt: number;
   updatedAt?: number;

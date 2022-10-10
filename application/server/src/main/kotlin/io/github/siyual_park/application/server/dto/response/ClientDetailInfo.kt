@@ -12,7 +12,7 @@ data class ClientDetailInfo(
     val id: Optional<ULID>?,
     val name: Optional<String>?,
     val type: Optional<ClientType>?,
-    var origin: Optional<URL>?,
+    var origins: Optional<Collection<URL>>?,
     val secret: Optional<String>?,
     val scope: Optional<Collection<ScopeTokenInfo>>?,
     val createdAt: Optional<Instant>?,

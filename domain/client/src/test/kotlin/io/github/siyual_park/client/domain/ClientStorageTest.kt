@@ -31,7 +31,7 @@ class ClientStorageTest : ClientTestHelper() {
         val client = clientStorage.save(payload)
 
         assertEquals(payload.name, client.name)
-        assertEquals(payload.origin, client.origin)
+        assertEquals(payload.origins, client.origins)
         assertEquals(payload.type, client.type)
         assertEquals(client.id, client.getCredential().clientId)
 
@@ -50,7 +50,7 @@ class ClientStorageTest : ClientTestHelper() {
         val client = clientStorage.save(payload)
 
         assertEquals(payload.name, client.name)
-        assertEquals(payload.origin, client.origin)
+        assertEquals(payload.origins, client.origins)
         assertEquals(payload.type, client.type)
 
         val scope = client.getScope(deep = false).toList()
@@ -70,7 +70,7 @@ class ClientStorageTest : ClientTestHelper() {
         val client = clientStorage.save(payload)
 
         assertEquals(payload.name, client.name)
-        assertEquals(payload.origin, client.origin)
+        assertEquals(payload.origins, client.origins)
         assertEquals(payload.type, client.type)
 
         val scope = client.getScope(deep = false).toList()

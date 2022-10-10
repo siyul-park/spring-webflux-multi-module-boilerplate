@@ -30,7 +30,6 @@ class ClientControllerGateway(
         id: String? = null,
         name: String? = null,
         type: String? = null,
-        origin: String? = null,
         createdAt: String? = null,
         updatedAt: String? = null,
         sort: String? = null,
@@ -43,7 +42,6 @@ class ClientControllerGateway(
                     .queryParamIfPresent("id", Optional.ofNullable(id))
                     .queryParamIfPresent("name", Optional.ofNullable(name))
                     .queryParamIfPresent("type", Optional.ofNullable(type))
-                    .queryParamIfPresent("origin", Optional.ofNullable(origin))
                     .queryParamIfPresent("created_at", Optional.ofNullable(createdAt))
                     .queryParamIfPresent("updated_at", Optional.ofNullable(updatedAt))
                     .queryParamIfPresent("sort", Optional.ofNullable(sort))

@@ -1,6 +1,6 @@
 type UpdateClientRequest = {
   name?: string;
-  origin?: string;
+  origins?: string[];
 };
 
 export default UpdateClientRequest;

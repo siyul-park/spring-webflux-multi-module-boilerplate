@@ -10,8 +10,7 @@ data class CreateClientPayload(
     @field:Size(min = 3, max = 20)
     val name: String,
     val type: ClientType,
-    @field:Size(max = 2048)
-    val origin: URL,
+    val origins: Collection<@Size(max = 2048) URL>,
     val scope: Collection<ScopeToken>? = null,
     val id: ULID? = null
 )

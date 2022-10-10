@@ -44,7 +44,7 @@ class ClientStorage(
     }
 
     suspend fun save(@Valid payload: CreateClientPayload): Client {
-        val client = ClientData(payload.name, payload.type, payload.origin)
+        val client = ClientData(payload.name, payload.type, payload.origins)
             .apply { if (payload.id != null) id = payload.id }
             .let { clientDataRepository.create(it) }
             .let { clientMapper.map(it) }
