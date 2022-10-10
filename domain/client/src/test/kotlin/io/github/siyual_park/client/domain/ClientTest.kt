@@ -22,20 +22,20 @@ class ClientTest : ClientTestHelper() {
         val other = MockCreateClientPayloadFactory.create()
 
         client.name = other.name
-        client.origin = other.origin
+        client.origins = other.origins
 
         assertEquals(other.name, client.name)
-        assertEquals(other.origin, client.origin)
+        assertEquals(other.origins, client.origins)
 
         client.sync()
 
         assertEquals(other.name, client.name)
-        assertEquals(other.origin, client.origin)
+        assertEquals(other.origins, client.origins)
 
         val exist = this@ClientTest.clientStorage.loadOrFail(client.id)
 
         assertEquals(other.name, exist.name)
-        assertEquals(other.origin, exist.origin)
+        assertEquals(other.origins, exist.origins)
     }
 
     @Test

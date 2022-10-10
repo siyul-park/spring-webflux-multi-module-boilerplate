@@ -65,7 +65,7 @@ class ClientBasedCorsCacheConfigurationSourceTest : ClientTestHelper() {
         val corsConfiguration = clientBasedCorsConfigurationSource.getCorsConfiguration(exchange).awaitSingleOrNull()
 
         assertNotNull(corsConfiguration)
-        assertEquals(listOf(client.origin.toString()), corsConfiguration?.allowedOrigins)
+        assertEquals(client.origins.toString(), corsConfiguration?.allowedOrigins?.toString())
         assertEquals(true, corsConfiguration?.allowCredentials)
     }
 }
