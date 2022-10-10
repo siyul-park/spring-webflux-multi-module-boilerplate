@@ -1,3 +1,5 @@
+import kotlin.math.max
+
 val kotlin_version: String by project
 val junit_version: String by project
 val mockk_version: String by project
@@ -157,6 +159,13 @@ allprojects {
     }
     tasks.withType<Test> {
         useJUnitPlatform()
+
+        maxParallelForks = max(Runtime.getRuntime().availableProcessors() / 2, 1)
+        setForkEvery(1)
+
+        systemProperties["junit.jupiter.execution.parallel.enabled"] = true
+        systemProperties["junit.jupiter.execution.parallel.mode.default"] = "same_thread"
+        systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
     }
 }
 
