@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-abstract class QueryRepositoryTestHelper(
-    repositories: (RepositoryTestHelper<QueryRepository<Person, ULID>>) -> List<QueryRepository<Person, ULID>>,
-) : RepositoryTestHelper<QueryRepository<Person, ULID>>(repositories) {
+abstract class QueryableRepositoryTestHelper(
+    repositories: (RepositoryTestHelper<QueryableRepository<Person, ULID>>) -> List<QueryableRepository<Person, ULID>>,
+) : RepositoryTestHelper<QueryableRepository<Person, ULID>>(repositories) {
 
     @Test
     fun existsByName() = parameterized { personRepository ->

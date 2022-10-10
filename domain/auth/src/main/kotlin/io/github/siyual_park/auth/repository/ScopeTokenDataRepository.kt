@@ -3,7 +3,7 @@ package io.github.siyual_park.auth.repository
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.entity.ScopeTokenData
 import io.github.siyual_park.data.cache.StorageManager
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
@@ -16,7 +16,7 @@ class ScopeTokenDataRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null
-) : QueryRepository<ScopeTokenData, ULID> by R2DBCRepositoryBuilder<ScopeTokenData, ULID>(entityOperations, ScopeTokenData::class)
+) : QueryableRepository<ScopeTokenData, ULID> by R2DBCRepositoryBuilder<ScopeTokenData, ULID>(entityOperations, ScopeTokenData::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()

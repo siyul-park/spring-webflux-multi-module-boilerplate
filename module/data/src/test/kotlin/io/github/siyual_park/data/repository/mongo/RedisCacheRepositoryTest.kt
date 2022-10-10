@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.jackson.instant.InstantEpochTimeModule
-import io.github.siyual_park.data.repository.QueryRepositoryTestHelper
+import io.github.siyual_park.data.repository.QueryableRepositoryTestHelper
 import io.github.siyual_park.data.repository.mongo.migration.CreatePerson
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.data.test.RedisTestHelper
@@ -17,7 +17,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import java.time.Duration
 import java.time.Instant
 
-class RedisCacheRepositoryTest : QueryRepositoryTestHelper(
+class RedisCacheRepositoryTest : QueryableRepositoryTestHelper(
     repositories = {
         listOf(
             MongoRepositoryBuilder<Person, ULID>(mongoTemplate, Person::class)

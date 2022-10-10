@@ -3,7 +3,7 @@ package io.github.siyual_park.user.repository
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.criteria.where
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
@@ -18,7 +18,7 @@ class UserScopeDataRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null
-) : QueryRepository<UserScopeData, Long> by R2DBCRepositoryBuilder<UserScopeData, Long>(entityOperations, UserScopeData::class)
+) : QueryableRepository<UserScopeData, Long> by R2DBCRepositoryBuilder<UserScopeData, Long>(entityOperations, UserScopeData::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()

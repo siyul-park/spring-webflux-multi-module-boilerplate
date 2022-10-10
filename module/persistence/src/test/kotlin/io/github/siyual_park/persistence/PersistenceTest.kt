@@ -1,7 +1,7 @@
 package io.github.siyual_park.persistence
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.findByIdOrFail
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.data.test.DataTestHelper
@@ -90,7 +90,7 @@ class PersistenceTest : DataTestHelper() {
         assertFalse(personRepository.existsById(person.id))
     }
 
-    private fun parameterized(func: suspend (QueryRepository<PersonData, ULID>) -> Unit) {
+    private fun parameterized(func: suspend (QueryableRepository<PersonData, ULID>) -> Unit) {
         transactional {
             repositories().forEach {
                 func(it)
@@ -107,7 +107,7 @@ class PersistenceTest : DataTestHelper() {
         }
     }
 
-    private fun repositories(): List<QueryRepository<PersonData, ULID>> {
+    private fun repositories(): List<QueryableRepository<PersonData, ULID>> {
         return listOf(
             R2DBCRepositoryBuilder<PersonData, ULID>(entityOperations, PersonData::class).build(),
             R2DBCRepositoryBuilder<PersonData, ULID>(entityOperations, PersonData::class)

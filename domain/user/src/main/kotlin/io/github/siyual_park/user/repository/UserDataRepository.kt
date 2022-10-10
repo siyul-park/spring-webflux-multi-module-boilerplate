@@ -3,7 +3,7 @@ package io.github.siyual_park.user.repository
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.cache.StorageManager
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
@@ -21,7 +21,7 @@ class UserDataRepository(
     redisClient: RedissonClient? = null,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null
-) : QueryRepository<UserData, ULID> by R2DBCRepositoryBuilder<UserData, ULID>(entityOperations, UserData::class)
+) : QueryableRepository<UserData, ULID> by R2DBCRepositoryBuilder<UserData, ULID>(entityOperations, UserData::class)
     .enableEvent(eventPublisher)
     .enableJsonMapping(objectMapper)
     .enableCache(redisClient, expiredAt = { Instant.now().plus(Duration.ofHours(1)) }, size = 100_000)

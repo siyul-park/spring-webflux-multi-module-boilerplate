@@ -10,7 +10,7 @@ import io.github.siyual_park.data.cache.TransactionalQueryStorage
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.criteria.RuntimeCriteriaParser
 import io.github.siyual_park.data.criteria.or
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
@@ -21,7 +21,7 @@ import java.util.WeakHashMap
 import kotlin.reflect.KClass
 
 class QueryAggregator<T : Any>(
-    private val repository: QueryRepository<T, *>,
+    private val repository: QueryableRepository<T, *>,
     private val clazz: KClass<T>,
 ) {
     private val store = TransactionalQueryStorage(

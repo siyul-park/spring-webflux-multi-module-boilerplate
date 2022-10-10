@@ -37,10 +37,21 @@ class UserStorage(
     }
 
     suspend fun save(@Valid payload: CreateUserPayload): User {
-        val user = createUser(payload)
+        val user = UserData(payload.name, payload.email)
+            .let { userDataRepository.create(it) }
+            .let { userMapper.map(it) }
+            .also { it.link() }
 
-        user.link()
-        createCredential(user, payload)
+        val messageDigest = MessageDigest.getInstance(hashAlgorithm)
+        val password = messageDigest.hash(payload.password)
+
+        userCredentialDataRepository.create(
+            UserCredentialData(
+                userId = user.id,
+                password = password,
+                hashAlgorithm = hashAlgorithm
+            )
+        )
 
         if (payload.scope == null) {
             val scope = defaultScope.get()
@@ -52,25 +63,6 @@ class UserStorage(
         }
 
         return user
-    }
-
-    private suspend fun createUser(payload: CreateUserPayload): User {
-        return UserData(payload.name, payload.email)
-            .let { userDataRepository.create(it) }
-            .let { userMapper.map(it) }
-    }
-
-    private suspend fun createCredential(user: User, payload: CreateUserPayload): UserCredentialData {
-        val messageDigest = MessageDigest.getInstance(hashAlgorithm)
-        val password = messageDigest.hash(payload.password)
-
-        return userCredentialDataRepository.create(
-            UserCredentialData(
-                userId = user.id,
-                password = password,
-                hashAlgorithm = hashAlgorithm
-            )
-        )
     }
 
     suspend fun load(name: String): User? {

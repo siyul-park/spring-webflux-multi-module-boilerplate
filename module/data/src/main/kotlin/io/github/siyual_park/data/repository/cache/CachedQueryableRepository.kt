@@ -9,11 +9,10 @@ import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.SuspendPatch
 import io.github.siyual_park.data.patch.async
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
@@ -25,12 +24,12 @@ import org.springframework.data.domain.Sort
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
-class CachedQueryRepository<T : Any, ID : Any>(
-    private val delegator: QueryRepository<T, ID>,
+class CachedQueryableRepository<T : Any, ID : Any>(
+    private val delegator: QueryableRepository<T, ID>,
     private val storage: Storage<ID, T>,
     private val id: WeekProperty<T, ID?>,
     private val clazz: KClass<T>
-) : QueryRepository<T, ID>,
+) : QueryableRepository<T, ID>,
     Repository<T, ID> by SimpleCachedRepository(
         delegator,
         storage,

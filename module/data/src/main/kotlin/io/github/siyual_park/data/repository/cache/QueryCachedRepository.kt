@@ -9,7 +9,7 @@ import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.expansion.idProperty
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.SuspendPatch
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
@@ -20,10 +20,10 @@ import org.springframework.data.domain.Sort
 import kotlin.reflect.KClass
 
 class QueryCachedRepository<T : Any, ID : Any>(
-    private val delegator: QueryRepository<T, ID>,
+    private val delegator: QueryableRepository<T, ID>,
     private val storage: QueryStorage<T>,
     clazz: KClass<T>
-) : QueryRepository<T, ID> {
+) : QueryableRepository<T, ID> {
     @Suppress("UNCHECKED_CAST")
     private val idProperty = idProperty<T, ID>(clazz)
 

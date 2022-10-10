@@ -1,6 +1,5 @@
 package io.github.siyual_park.client.domain
 
-import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
 import io.github.siyual_park.client.entity.ClientCredentialData
@@ -45,13 +44,27 @@ class ClientStorage(
     }
 
     suspend fun save(@Valid payload: CreateClientPayload): Client {
-        val client = createClient(payload)
+        val client = ClientData(payload.name, payload.type, payload.origin)
+            .apply { if (payload.id != null) id = payload.id }
+            .let { clientDataRepository.create(it) }
+            .let { clientMapper.map(it) }
+            .also { it.link() }
 
-        client.link()
-        createCredential(client)
+        if (client.isConfidential()) {
+            clientCredentialDataRepository.create(
+                ClientCredentialData(
+                    clientId = client.id,
+                    secret = generateRandomSecret()
+                )
+            )
+        }
 
         if (payload.scope == null) {
-            val scope = getDefaultScope(client)
+            val scope = if (client.isConfidential()) {
+                confidentialClientScope.get()
+            } else {
+                publicClientScope.get()
+            }
             client.grant(scope)
         } else {
             payload.scope.forEach {
@@ -64,34 +77,6 @@ class ClientStorage(
 
     suspend fun load(name: String): Client? {
         return load(where(ClientData::name).`is`(name))
-    }
-
-    private suspend fun createClient(payload: CreateClientPayload): Client {
-        return ClientData(payload.name, payload.type, payload.origin)
-            .apply { if (payload.id != null) id = payload.id }
-            .let { clientDataRepository.create(it) }
-            .let { clientMapper.map(it) }
-    }
-
-    private suspend fun createCredential(client: Client): ClientCredentialData? {
-        if (client.isPublic()) {
-            return null
-        }
-
-        return clientCredentialDataRepository.create(
-            ClientCredentialData(
-                clientId = client.id,
-                secret = generateRandomSecret()
-            )
-        )
-    }
-
-    private suspend fun getDefaultScope(client: Client): ScopeToken {
-        return if (client.isConfidential()) {
-            confidentialClientScope.get()
-        } else {
-            publicClientScope.get()
-        }
     }
 
     private fun generateRandomSecret(): String {

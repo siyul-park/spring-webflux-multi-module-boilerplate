@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.data.domain.Sort
 
-interface QueryRepository<T : Any, ID : Any> : Repository<T, ID> {
+interface QueryableRepository<T : Any, ID : Any> : Repository<T, ID> {
     suspend fun exists(criteria: Criteria): Boolean
 
     suspend fun findOne(criteria: Criteria): T?
@@ -34,32 +34,32 @@ interface QueryRepository<T : Any, ID : Any> : Repository<T, ID> {
     companion object
 }
 
-suspend fun <T : Any, ID : Any> QueryRepository<T, ID>.findOneOrFail(criteria: Criteria): T {
+suspend fun <T : Any, ID : Any> QueryableRepository<T, ID>.findOneOrFail(criteria: Criteria): T {
     return findOne(criteria) ?: throw EmptyResultDataAccessException(1)
 }
 
-suspend fun <T : Any, ID : Any> QueryRepository<T, ID>.updateOrFail(
+suspend fun <T : Any, ID : Any> QueryableRepository<T, ID>.updateOrFail(
     criteria: Criteria,
     patch: SuspendPatch<T>
 ): T {
     return update(criteria, patch) ?: throw EmptyResultDataAccessException(1)
 }
 
-suspend fun <T : Any, ID : Any> QueryRepository<T, ID>.updateOrFail(
+suspend fun <T : Any, ID : Any> QueryableRepository<T, ID>.updateOrFail(
     criteria: Criteria,
     patch: Patch<T>
 ): T {
     return update(criteria, patch) ?: throw EmptyResultDataAccessException(1)
 }
 
-suspend fun <T : Any, ID : Any> QueryRepository<T, ID>.updateOrFail(
+suspend fun <T : Any, ID : Any> QueryableRepository<T, ID>.updateOrFail(
     criteria: Criteria,
     patch: (entity: T) -> Unit
 ): T {
     return updateOrFail(criteria, Patch.with(patch))
 }
 
-suspend fun <T : Any, ID : Any> QueryRepository<T, ID>.update(
+suspend fun <T : Any, ID : Any> QueryableRepository<T, ID>.update(
     criteria: Criteria,
     patch: (entity: T) -> Unit
 ): T? {

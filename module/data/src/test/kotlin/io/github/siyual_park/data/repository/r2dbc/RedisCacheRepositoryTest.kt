@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.data.jackson.instant.InstantEpochTimeModule
-import io.github.siyual_park.data.repository.TransactionalQueryRepositoryTestHelper
+import io.github.siyual_park.data.repository.TransactionalQueryableRepositoryTestHelper
 import io.github.siyual_park.data.repository.r2dbc.migration.CreatePerson
 import io.github.siyual_park.data.test.RedisTestHelper
 import io.github.siyual_park.ulid.ULID
@@ -15,7 +15,7 @@ import org.redisson.api.RedissonClient
 import java.time.Duration
 import java.time.Instant
 
-class RedisCacheRepositoryTest : TransactionalQueryRepositoryTestHelper(
+class RedisCacheRepositoryTest : TransactionalQueryableRepositoryTestHelper(
     repositories = {
         listOf(
             R2DBCRepositoryBuilder<Person, ULID>(it.entityOperations, Person::class)

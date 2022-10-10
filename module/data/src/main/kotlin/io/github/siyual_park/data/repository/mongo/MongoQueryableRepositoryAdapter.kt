@@ -1,26 +1,27 @@
-package io.github.siyual_park.data.repository.r2dbc
+package io.github.siyual_park.data.repository.mongo
 
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.patch.Patch
 import io.github.siyual_park.data.patch.SuspendPatch
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.Repository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import org.springframework.data.domain.Sort
 import kotlin.reflect.KClass
 
-class R2DBCQueryRepositoryAdapter<T : Any, ID : Any>(
-    private val delegator: R2DBCRepository<T, ID>,
+class MongoQueryableRepositoryAdapter<T : Any, ID : Any>(
+    private val delegator: MongoRepository<T, ID>,
     clazz: KClass<T>
-) : QueryRepository<T, ID>, Repository<T, ID> by delegator {
-    private val parser = R2DBCCriteriaParser(clazz)
+) : QueryableRepository<T, ID>, Repository<T, ID> by delegator {
+    private val parser = MongoCriteriaParser(clazz)
 
     override suspend fun exists(criteria: Criteria): Boolean {
-        return delegator.exists(parser.parse(criteria))
+        return parser.parse(criteria)?.let { delegator.exists(it) } ?: false
     }
 
     override suspend fun findOne(criteria: Criteria): T? {
-        return delegator.findOne(parser.parse(criteria))
+        return parser.parse(criteria)?.let { delegator.findOne(it) }
     }
 
     override fun findAll(criteria: Criteria?, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
@@ -28,15 +29,15 @@ class R2DBCQueryRepositoryAdapter<T : Any, ID : Any>(
     }
 
     override suspend fun update(criteria: Criteria, patch: Patch<T>): T? {
-        return delegator.update(parser.parse(criteria), patch)
+        return parser.parse(criteria)?.let { delegator.update(it, patch) }
     }
 
     override suspend fun update(criteria: Criteria, patch: SuspendPatch<T>): T? {
-        return delegator.update(parser.parse(criteria), patch)
+        return parser.parse(criteria)?.let { delegator.update(it, patch) }
     }
 
     override fun updateAll(criteria: Criteria, patch: Patch<T>, limit: Int?, offset: Long?, sort: Sort?): Flow<T> {
-        return delegator.updateAll(parser.parse(criteria), patch, limit, offset, sort)
+        return parser.parse(criteria)?.let { delegator.updateAll(it, patch, limit, offset, sort) } ?: emptyFlow()
     }
 
     override fun updateAll(
@@ -46,7 +47,7 @@ class R2DBCQueryRepositoryAdapter<T : Any, ID : Any>(
         offset: Long?,
         sort: Sort?
     ): Flow<T> {
-        return delegator.updateAll(parser.parse(criteria), patch, limit, offset, sort)
+        return parser.parse(criteria)?.let { delegator.updateAll(it, patch, limit, offset, sort) } ?: emptyFlow()
     }
 
     override suspend fun count(criteria: Criteria?, limit: Int?): Long {

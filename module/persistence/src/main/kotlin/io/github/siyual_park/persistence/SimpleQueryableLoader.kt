@@ -1,7 +1,7 @@
 package io.github.siyual_park.persistence
 
 import io.github.siyual_park.data.criteria.Criteria
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.transaction.SuspendTransactionContextHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.data.domain.Sort
 
 class SimpleQueryableLoader<T : Any, ID : Any, P : Persistence<T, ID>>(
-    private val repository: QueryRepository<T, ID>,
+    private val repository: QueryableRepository<T, ID>,
     private val singleMapper: suspend (T) -> P,
     multiMapper: (suspend (Collection<T>) -> Collection<P>)? = null
 ) : QueryableLoader<P, ID> {

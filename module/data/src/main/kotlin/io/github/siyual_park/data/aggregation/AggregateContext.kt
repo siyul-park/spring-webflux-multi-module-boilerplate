@@ -2,11 +2,11 @@ package io.github.siyual_park.data.aggregation
 
 import io.github.siyual_park.data.cache.SelectQuery
 import io.github.siyual_park.data.criteria.Criteria
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import kotlin.reflect.KClass
 
 class AggregateContext<T : Any>(
-    repository: QueryRepository<T, *>,
+    repository: QueryableRepository<T, *>,
     clazz: KClass<T>,
 ) {
     private val queryAggregator = QueryAggregator(repository, clazz)

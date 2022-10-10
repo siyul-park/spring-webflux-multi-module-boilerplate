@@ -3,7 +3,7 @@ package io.github.siyual_park.auth.repository
 import com.google.common.cache.CacheBuilder
 import io.github.siyual_park.auth.entity.TokenData
 import io.github.siyual_park.data.cache.StorageManager
-import io.github.siyual_park.data.repository.QueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.mongo.MongoRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
@@ -16,7 +16,7 @@ class TokenDataRepository(
     template: ReactiveMongoTemplate,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null
-) : QueryRepository<TokenData, ULID> by MongoRepositoryBuilder<TokenData, ULID>(template, TokenData::class)
+) : QueryableRepository<TokenData, ULID> by MongoRepositoryBuilder<TokenData, ULID>(template, TokenData::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()

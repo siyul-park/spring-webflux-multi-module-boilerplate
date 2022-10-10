@@ -15,8 +15,8 @@ import io.github.siyual_park.data.cache.RedisStorage
 import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.cache.TransactionalQueryStorage
 import io.github.siyual_park.data.cache.TransactionalStorage
-import io.github.siyual_park.data.repository.QueryRepository
-import io.github.siyual_park.data.repository.cache.CachedQueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
+import io.github.siyual_park.data.repository.cache.CachedQueryableRepository
 import io.github.siyual_park.data.repository.cache.QueryCachedRepository
 import io.github.siyual_park.event.EventPublisher
 import org.redisson.api.RedissonClient
@@ -77,10 +77,10 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun build(): QueryRepository<T, ID> {
+    fun build(): QueryableRepository<T, ID> {
         val idProperty = createIdProperty()
 
-        return R2DBCQueryRepositoryAdapter(
+        return R2DBCQueryableRepositoryAdapter(
             SimpleR2DBCRepository(
                 entityManager,
                 eventPublisher
@@ -115,7 +115,7 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
                     cacheStorageManager?.put((it as Table).value, storage)
                 }
 
-                CachedQueryRepository(it, storage, idProperty, clazz)
+                CachedQueryableRepository(it, storage, idProperty, clazz)
             } else {
                 it
             }

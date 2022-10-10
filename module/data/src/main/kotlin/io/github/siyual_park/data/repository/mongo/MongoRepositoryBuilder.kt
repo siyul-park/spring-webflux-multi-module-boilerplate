@@ -13,8 +13,8 @@ import io.github.siyual_park.data.cache.RedisStorage
 import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.cache.TransactionalStorage
 import io.github.siyual_park.data.expansion.idProperty
-import io.github.siyual_park.data.repository.QueryRepository
-import io.github.siyual_park.data.repository.cache.CachedQueryRepository
+import io.github.siyual_park.data.repository.QueryableRepository
+import io.github.siyual_park.data.repository.cache.CachedQueryableRepository
 import io.github.siyual_park.event.EventPublisher
 import org.redisson.api.RedissonClient
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -66,10 +66,10 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    fun build(): QueryRepository<T, ID> {
+    fun build(): QueryableRepository<T, ID> {
         val idProperty = createIdProperty()
 
-        val current = MongoQueryRepositoryAdapter(
+        val current = MongoQueryableRepositoryAdapter(
             SimpleMongoRepository<T, ID>(
                 template,
                 clazz,
@@ -105,7 +105,7 @@ class MongoRepositoryBuilder<T : Any, ID : Any>(
                     cacheStorageManager?.put((it as Document).value, storage)
                 }
 
-                CachedQueryRepository(it, storage, idProperty, clazz)
+                CachedQueryableRepository(it, storage, idProperty, clazz)
             } else {
                 it
             }

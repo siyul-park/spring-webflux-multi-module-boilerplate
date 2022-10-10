@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.transaction.reactive.executeAndAwait
 
-abstract class TransactionalQueryRepositoryTestHelper(
-    repositories: (RepositoryTestHelper<QueryRepository<Person, ULID>>) -> List<QueryRepository<Person, ULID>>,
-) : QueryRepositoryTestHelper(repositories) {
+abstract class TransactionalQueryableRepositoryTestHelper(
+    repositories: (RepositoryTestHelper<QueryableRepository<Person, ULID>>) -> List<QueryableRepository<Person, ULID>>,
+) : QueryableRepositoryTestHelper(repositories) {
 
     @Test
     fun transactionCommit() = parameterized { personRepository ->
@@ -28,7 +28,7 @@ abstract class TransactionalQueryRepositoryTestHelper(
 
     @Test
     fun transactionRollback() = blocking {
-        repositories(this@TransactionalQueryRepositoryTestHelper).forEach { personRepository ->
+        repositories(this@TransactionalQueryableRepositoryTestHelper).forEach { personRepository ->
             var person: Person? = null
 
             assertThrows<RuntimeException> {
