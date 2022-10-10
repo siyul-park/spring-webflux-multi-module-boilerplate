@@ -8,6 +8,7 @@ import io.github.siyual_park.util.url
 import io.github.siyual_park.util.username
 import net.datafaker.Faker
 import java.net.URL
+import java.security.SecureRandom
 import java.util.Optional
 
 object MockCreateClientPayloadFactory {
@@ -18,7 +19,7 @@ object MockCreateClientPayloadFactory {
         val scope: Optional<Collection<ScopeToken>>? = null
     )
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     fun create(template: Template? = null): CreateClientPayload {
         return CreateClientPayload(

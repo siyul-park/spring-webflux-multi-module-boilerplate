@@ -21,7 +21,7 @@ fun createReactiveMongoTemplate(mongoClient: MongoClient, databaseName: String, 
         context.setSimpleTypeHolder(conversions.simpleTypeHolder)
         context.afterPropertiesSet()
         val converter = MappingMongoConverter(ReactiveMongoTemplate.NO_OP_REF_RESOLVER, context)
-        converter.setCustomConversions(conversions)
+        converter.customConversions = conversions
         converter.setCodecRegistryProvider(mongoDatabaseFactory)
         converter.afterPropertiesSet()
         converter

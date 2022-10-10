@@ -7,10 +7,11 @@ import net.datafaker.Faker
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import java.security.SecureRandom
 import java.time.Duration
 
 class CacheProviderTest : CoroutineTestHelper() {
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     private val cacheBuilder = {
         CacheBuilder.newBuilder()

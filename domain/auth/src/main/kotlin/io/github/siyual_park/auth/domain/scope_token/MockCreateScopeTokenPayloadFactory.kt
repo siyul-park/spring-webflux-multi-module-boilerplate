@@ -2,10 +2,11 @@ package io.github.siyual_park.auth.domain.scope_token
 
 import io.github.siyual_park.util.resolveNotNull
 import net.datafaker.Faker
+import java.security.SecureRandom
 import java.util.Optional
 
 object MockCreateScopeTokenPayloadFactory {
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     data class Template(
         val name: Optional<String>? = null,

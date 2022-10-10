@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.security.authentication.InternalAuthenticationServiceException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import java.security.SecureRandom
 
 class AuthenticationManagerTest : DataTestHelper() {
     internal class TestAuthorizationStrategy(
@@ -31,7 +32,7 @@ class AuthenticationManagerTest : DataTestHelper() {
             }
         }
     }
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     private val filter = AllowAllAuthenticateFilter()
     private val authenticator = Authenticator()

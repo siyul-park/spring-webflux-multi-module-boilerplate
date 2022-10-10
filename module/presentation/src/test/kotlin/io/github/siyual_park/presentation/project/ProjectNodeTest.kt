@@ -5,6 +5,7 @@ import net.datafaker.Faker
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
+import java.security.SecureRandom
 import java.util.Optional
 
 class ProjectNodeTest {
@@ -18,7 +19,7 @@ class ProjectNodeTest {
         val c: Optional<String>?
     )
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     @Test
     fun from() {

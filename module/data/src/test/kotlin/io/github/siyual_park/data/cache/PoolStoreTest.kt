@@ -9,9 +9,10 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.security.SecureRandom
 
 class PoolStoreTest : CoroutineTestHelper() {
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     @Test
     fun push() = blocking {

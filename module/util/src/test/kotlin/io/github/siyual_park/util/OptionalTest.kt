@@ -4,10 +4,11 @@ import net.datafaker.Faker
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.security.SecureRandom
 import java.util.Optional
 
 class OptionalTest {
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     @Test
     fun resolveNotNull() {

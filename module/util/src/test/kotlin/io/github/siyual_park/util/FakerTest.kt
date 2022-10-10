@@ -5,9 +5,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.security.SecureRandom
 
 class FakerTest {
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     @Test
     fun username() {

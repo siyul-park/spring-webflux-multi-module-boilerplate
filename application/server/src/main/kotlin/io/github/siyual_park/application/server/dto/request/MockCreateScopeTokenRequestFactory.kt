@@ -4,6 +4,7 @@ import io.github.siyual_park.auth.domain.scope_token.MockScopeNameFactory
 import io.github.siyual_park.util.resolve
 import io.github.siyual_park.util.resolveNotNull
 import net.datafaker.Faker
+import java.security.SecureRandom
 import java.util.Optional
 
 object MockCreateScopeTokenRequestFactory {
@@ -12,7 +13,7 @@ object MockCreateScopeTokenRequestFactory {
         val description: Optional<String>? = null,
     )
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     fun create(template: Template? = null): CreateScopeTokenRequest {
         return CreateScopeTokenRequest(

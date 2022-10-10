@@ -4,6 +4,7 @@ import io.github.siyual_park.data.entity.Person
 import io.github.siyual_park.util.resolveNotNull
 import io.github.siyual_park.util.username
 import net.datafaker.Faker
+import java.security.SecureRandom
 import java.util.Optional
 import kotlin.random.Random
 
@@ -13,7 +14,7 @@ object DummyPerson {
         val age: Optional<Int>? = null,
     )
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     fun create(template: PersonTemplate? = null): Person {
         return Person(

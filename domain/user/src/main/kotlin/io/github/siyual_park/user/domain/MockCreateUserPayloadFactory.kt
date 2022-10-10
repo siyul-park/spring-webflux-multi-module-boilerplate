@@ -5,6 +5,7 @@ import io.github.siyual_park.util.resolve
 import io.github.siyual_park.util.resolveNotNull
 import io.github.siyual_park.util.username
 import net.datafaker.Faker
+import java.security.SecureRandom
 import java.util.Optional
 
 object MockCreateUserPayloadFactory {
@@ -15,7 +16,7 @@ object MockCreateUserPayloadFactory {
         val scope: Optional<Collection<ScopeToken>>? = null
     )
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     fun create(template: Template? = null): CreateUserPayload {
         return CreateUserPayload(

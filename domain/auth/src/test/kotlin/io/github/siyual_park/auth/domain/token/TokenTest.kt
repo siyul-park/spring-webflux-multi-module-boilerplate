@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import java.security.SecureRandom
 import java.time.Duration
 
 class TokenTest : DataTestHelper() {
@@ -42,7 +43,7 @@ class TokenTest : DataTestHelper() {
         }
     }
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     private val scopeRelationDataRepository = ScopeRelationDataRepository(entityOperations)
     private val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)

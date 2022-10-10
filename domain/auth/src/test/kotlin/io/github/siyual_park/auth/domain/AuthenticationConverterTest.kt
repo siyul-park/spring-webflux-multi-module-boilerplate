@@ -12,9 +12,10 @@ import org.springframework.http.HttpHeaders
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
+import java.security.SecureRandom
 
 class AuthenticationConverterTest : CoroutineTestHelper() {
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     private val authenticationConverter = AuthenticationConverter()
 

@@ -13,7 +13,7 @@ object DummyPerson {
         val age: Optional<Int>? = null,
     )
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     fun create(template: PersonTemplate? = null): PersonData {
         return PersonData(

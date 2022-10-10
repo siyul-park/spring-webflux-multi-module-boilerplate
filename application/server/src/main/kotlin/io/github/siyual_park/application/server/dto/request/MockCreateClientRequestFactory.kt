@@ -6,6 +6,7 @@ import io.github.siyual_park.util.url
 import io.github.siyual_park.util.username
 import net.datafaker.Faker
 import java.net.URL
+import java.security.SecureRandom
 import java.util.Optional
 
 object MockCreateClientRequestFactory {
@@ -15,7 +16,7 @@ object MockCreateClientRequestFactory {
         val origin: Optional<URL>? = null
     )
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     fun create(template: Template? = null): CreateClientRequest {
         return CreateClientRequest(

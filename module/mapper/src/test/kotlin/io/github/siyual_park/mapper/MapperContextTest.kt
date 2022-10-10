@@ -4,6 +4,7 @@ import io.github.siyual_park.coroutine.test.CoroutineTestHelper
 import net.datafaker.Faker
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.security.SecureRandom
 
 class MapperContextTest : CoroutineTestHelper() {
     private val mapper = object : Mapper<Int, String> {
@@ -14,7 +15,7 @@ class MapperContextTest : CoroutineTestHelper() {
             return source.toString()
         }
     }
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     @Test
     fun register() {

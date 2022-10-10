@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import java.security.SecureRandom
 import java.util.Optional
 
 @IntegrationTest
@@ -38,7 +39,7 @@ class ClientControllerTest @Autowired constructor(
     private val clientStorage: ClientStorage
 ) : CoroutineTestHelper() {
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
 
     @Test
     fun `POST clients, status = 201`() = blocking {

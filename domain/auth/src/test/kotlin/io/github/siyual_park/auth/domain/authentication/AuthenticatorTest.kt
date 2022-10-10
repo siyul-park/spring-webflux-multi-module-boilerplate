@@ -9,6 +9,7 @@ import io.github.siyual_park.ulid.ULID
 import net.datafaker.Faker
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.security.SecureRandom
 
 class AuthenticatorTest : CoroutineTestHelper() {
     internal class TestAuthorizationStrategy(
@@ -27,7 +28,7 @@ class AuthenticatorTest : CoroutineTestHelper() {
         }
     }
 
-    private val faker = Faker()
+    private val faker = Faker(SecureRandom())
     private val filter = AllowAllAuthenticateFilter()
 
     @Test

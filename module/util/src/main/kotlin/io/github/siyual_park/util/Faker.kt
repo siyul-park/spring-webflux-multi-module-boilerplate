@@ -1,13 +1,9 @@
 package io.github.siyual_park.util
 
-import net.datafaker.Faker
 import net.datafaker.Internet
 import net.datafaker.Lorem
 import net.datafaker.Name
 import java.net.URL
-import java.security.SecureRandom
-
-private val faker = Faker(SecureRandom())
 
 fun Name.username(size: Int? = null): String {
     var builder = StringBuilder()
