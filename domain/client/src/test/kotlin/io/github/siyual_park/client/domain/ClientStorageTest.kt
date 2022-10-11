@@ -85,11 +85,11 @@ class ClientStorageTest : ClientTestHelper() {
         val client2 = MockCreateClientPayloadFactory.create()
             .let { clientStorage.save(it) }
 
-        assertEquals(client1, this@ClientStorageTest.clientStorage.load(client1.id))
-        assertEquals(client2, this@ClientStorageTest.clientStorage.load(client2.id))
-        assertEquals(client1, this@ClientStorageTest.clientStorage.load(client1.name))
-        assertEquals(client2, this@ClientStorageTest.clientStorage.load(client2.name))
+        assertEquals(client1, clientStorage.load(client1.id))
+        assertEquals(client2, clientStorage.load(client2.id))
+        assertEquals(client1, clientStorage.load(client1.name))
+        assertEquals(client2, clientStorage.load(client2.name))
 
-        assertEquals(setOf(client1, client2), this@ClientStorageTest.clientStorage.load(listOf(client1.id, client2.id)).toSet())
+        assertEquals(setOf(client1, client2), clientStorage.load(listOf(client1.id, client2.id)).toSet())
     }
 }

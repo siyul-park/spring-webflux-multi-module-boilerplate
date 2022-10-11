@@ -32,7 +32,7 @@ class ClientTest : ClientTestHelper() {
         assertEquals(other.name, client.name)
         assertEquals(other.origins, client.origins)
 
-        val exist = this@ClientTest.clientStorage.loadOrFail(client.id)
+        val exist = clientStorage.loadOrFail(client.id)
 
         assertEquals(other.name, exist.name)
         assertEquals(other.origins, exist.origins)
@@ -47,7 +47,7 @@ class ClientTest : ClientTestHelper() {
         val client2 = MockCreateClientPayloadFactory.create()
             .let { clientStorage.save(it) }
 
-        val clients = this@ClientTest.clientStorage.load(listOf(client1.id, client2.id)).toList()
+        val clients = clientStorage.load(listOf(client1.id, client2.id)).toList()
 
         val loaded1 = clients.find { it.id == client1.id }
         val loaded2 = clients.find { it.id == client2.id }
@@ -84,7 +84,7 @@ class ClientTest : ClientTestHelper() {
         val client2 = MockCreateClientPayloadFactory.create(template)
             .let { clientStorage.save(it) }
 
-        val clients = this@ClientTest.clientStorage.load(listOf(client1.id, client2.id)).toList()
+        val clients = clientStorage.load(listOf(client1.id, client2.id)).toList()
 
         val loaded1 = clients.find { it.id == client1.id }
         val loaded2 = clients.find { it.id == client2.id }
@@ -121,7 +121,7 @@ class ClientTest : ClientTestHelper() {
         val client2 = MockCreateClientPayloadFactory.create(template)
             .let { clientStorage.save(it) }
 
-        val clients = this@ClientTest.clientStorage.load(listOf(client1.id, client2.id)).toList()
+        val clients = clientStorage.load(listOf(client1.id, client2.id)).toList()
 
         val loaded1 = clients.find { it.id == client1.id }
         val loaded2 = clients.find { it.id == client2.id }
@@ -156,7 +156,7 @@ class ClientTest : ClientTestHelper() {
             .let { clientStorage.save(it) }
 
         client.clear()
-        assertNull(this@ClientTest.clientStorage.load(client.id))
+        assertNull(clientStorage.load(client.id))
     }
 
     @Test
