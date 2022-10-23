@@ -16,33 +16,18 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     override val parent: NestedStorage<ID, T>? = null
 ) : NestedStorage<ID, T> {
     private val delegator = SuspendLazy { pool.pop().also { it.clear() } }
-
-    private val removed = if (parent == null) {
-        null
-    } else {
-        Sets.newConcurrentHashSet<ID>()
-    }
+    private val removed = parent?.let { Sets.newConcurrentHashSet<ID>() }
 
     override suspend fun checkout(): Map<ID, T?> {
         val map = mutableMapOf<ID, T?>()
-        delegator.get().entries().forEach {
-            map[it.first] = it.second
-        }
-        removed?.forEach {
-            map[it] = null
-        }
-
+        delegator.get().entries().forEach { map[it.first] = it.second }
+        removed?.forEach { map[it] = null }
         clear()
-
         return map
     }
 
     override suspend fun fork(): NestedStorage<ID, T> {
-        return PoolingNestedStorage(
-            pool,
-            id,
-            this
-        ).also {
+        return PoolingNestedStorage(pool, id, this).also {
             getIndexes().forEach { (name, extractor) ->
                 it.createIndex(name, extractor as WeekProperty<T, Any>)
             }
@@ -51,7 +36,6 @@ class PoolingNestedStorage<ID : Any, T : Any>(
 
     override suspend fun merge(storage: NestedStorage<ID, T>) {
         val diff = storage.checkout()
-
         diff.forEach { (key, value) ->
             if (value != null) {
                 add(value)
@@ -82,7 +66,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     }
 
     override suspend fun <KEY : Any> getIfPresent(index: String, key: KEY): T? {
-        return delegator.get().getIfPresent(index, key) ?: guard { parent?.getIfPresent(index, key) }
+        return delegator.get().getIfPresent(index, key) ?: load { parent?.getIfPresent(index, key) }
     }
 
     override suspend fun getIfPresent(id: ID, loader: suspend () -> T?): T? {
@@ -90,7 +74,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     }
 
     override suspend fun getIfPresent(id: ID): T? {
-        return delegator.get().getIfPresent(id) ?: guard { parent?.getIfPresent(id) }
+        return delegator.get().getIfPresent(id) ?: load { parent?.getIfPresent(id) }
     }
 
     override fun <KEY : Any> getAll(index: String, keys: Iterable<KEY>): Flow<T?> {
@@ -98,7 +82,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
             val result = delegator.get().getAll(index, keys).toList().toMutableList()
             if (result.filterNotNull().size != keys.count()) {
                 parent?.let {
-                    guard(it.getAll(index, keys)).toList().forEachIndexed { i, it ->
+                    load(it.getAll(index, keys)).toList().forEachIndexed { i, it ->
                         if (it != null) {
                             result[i] = it
                         }
@@ -115,7 +99,7 @@ class PoolingNestedStorage<ID : Any, T : Any>(
             val result = delegator.get().getAll(ids).toList().toMutableList()
             if (result.filterNotNull().size != ids.count()) {
                 parent?.let {
-                    guard(it.getAll(ids)).toList().forEachIndexed { i, it ->
+                    load(it.getAll(ids)).toList().forEachIndexed { i, it ->
                         if (it != null) {
                             result[i] = it
                         }
@@ -133,8 +117,9 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     }
 
     override suspend fun add(entity: T) {
+        val id = id.get(entity)
         delegator.get().add(entity)
-        removed?.remove(id.get(entity))
+        removed?.remove(id)
     }
 
     override suspend fun clear() {
@@ -146,7 +131,10 @@ class PoolingNestedStorage<ID : Any, T : Any>(
     }
 
     override suspend fun entries(): Set<Pair<ID, T>> {
-        return delegator.get().entries()
+        val map = mutableMapOf<ID, T>()
+        delegator.get().entries().forEach { map[it.first] = it.second }
+        removed?.forEach { map.remove(it) }
+        return map.entries.map { (first, second) -> first to second }.toSet()
     }
 
     override suspend fun status(): Status {
@@ -155,21 +143,16 @@ class PoolingNestedStorage<ID : Any, T : Any>(
         }
     }
 
-    private fun guard(loader: Flow<T?>): Flow<T?> {
-        return flow {
-            loader.onEach {
-                emit(guard { it })
-            }
-        }
+    private fun load(loader: Flow<T?>): Flow<T?> {
+        return flow { loader.onEach { emit(load { it }) } }
     }
 
-    private suspend fun guard(loader: suspend () -> T?): T? {
-        return loader()?.let {
-            if (removed == null || !removed.contains(id.get(it))) {
-                it
-            } else {
-                null
-            }
+    private suspend fun load(loader: suspend () -> T?): T? {
+        val entity = loader() ?: return null
+        val id = id.get(entity)
+        if (removed?.contains(id) == true) {
+            return null
         }
+        return entity
     }
 }

@@ -26,6 +26,7 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 class R2DBCRepositoryBuilder<T : Any, ID : Any>(
     entityOperations: R2dbcEntityOperations,
     private val clazz: KClass<T>,
@@ -76,61 +77,54 @@ class R2DBCRepositoryBuilder<T : Any, ID : Any>(
         return this
     }
 
-    @Suppress("UNCHECKED_CAST")
     fun build(): QueryableRepository<T, ID> {
+        return applyQueryCache(
+            applyCache(
+                R2DBCQueryableRepositoryAdapter(SimpleR2DBCRepository(entityManager, eventPublisher), clazz)
+            )
+        )
+    }
+
+    private fun applyCache(repository: QueryableRepository<T, ID>): QueryableRepository<T, ID> {
+        val cacheBuilder = cacheBuilder ?: return repository
         val idProperty = createIdProperty()
+        val redisClient = redisClient
 
-        return R2DBCQueryableRepositoryAdapter(
-            SimpleR2DBCRepository(
-                entityManager,
-                eventPublisher
-            ),
-            clazz
-        ).let {
-            val cacheBuilder = cacheBuilder
-            if (cacheBuilder != null) {
-                val redisClient = redisClient
-                val storage = TransactionalStorage(
-                    if (redisClient != null) {
-                        MultiLevelNestedStorage(
-                            RedisStorage(
-                                redisClient,
-                                name = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, clazz.simpleName ?: ""),
-                                size = size ?: 1024,
-                                objectMapper = objectMapper ?: jacksonObjectMapper(),
-                                id = idProperty,
-                                expiredAt = expiredAt ?: WeekProperty { Instant.now().plus(Duration.ofMinutes(1)) },
-                                keyClass = entityManager.getIdProperty().returnType.classifier as KClass<ID>,
-                                valueClass = clazz,
-                            ),
-                            Pool { InMemoryStorage(cacheBuilder, idProperty) },
-                            idProperty
-                        )
-                    } else {
-                        PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, idProperty) }, idProperty)
-                    }
+        val storage = TransactionalStorage(
+            if (redisClient != null) {
+                MultiLevelNestedStorage(
+                    RedisStorage(
+                        redisClient,
+                        name = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, clazz.simpleName ?: ""),
+                        size = size ?: 1024,
+                        objectMapper = objectMapper ?: jacksonObjectMapper(),
+                        id = idProperty,
+                        expiredAt = expiredAt ?: WeekProperty { Instant.now().plus(Duration.ofMinutes(1)) },
+                        keyClass = entityManager.getIdProperty().returnType.classifier as KClass<ID>,
+                        valueClass = clazz,
+                    ),
+                    Pool { InMemoryStorage(cacheBuilder, idProperty) },
+                    idProperty
                 )
-
-                clazz.annotations.find { it is Table }?.let {
-                    cacheStorageManager?.put((it as Table).value, storage)
-                }
-
-                CachedQueryableRepository(it, storage, idProperty, clazz)
             } else {
-                it
+                PoolingNestedStorage(Pool { InMemoryStorage(cacheBuilder, idProperty) }, idProperty)
             }
-        }.let {
-            val cacheBuilder = queryCacheBuilder
-            if (cacheBuilder != null) {
-                val storage = TransactionalQueryStorage(
-                    PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(clazz, cacheBuilder) })
-                )
+        )
 
-                QueryCachedRepository(it, storage, clazz)
-            } else {
-                it
-            }
+        clazz.annotations.find { it is Table }?.let {
+            cacheStorageManager?.put((it as Table).value, storage)
         }
+
+        return CachedQueryableRepository(repository, storage, idProperty, clazz)
+    }
+
+    private fun applyQueryCache(repository: QueryableRepository<T, ID>): QueryableRepository<T, ID> {
+        val cacheBuilder = queryCacheBuilder ?: return repository
+        val storage = TransactionalQueryStorage(
+            PoolingNestedQueryStorage(Pool { InMemoryQueryStorage(clazz, cacheBuilder) })
+        )
+
+        return QueryCachedRepository(repository, storage, clazz)
     }
 
     private fun createIdProperty() = WeekProperty<T, ID?> { entity -> entityManager.getId(entity) }
