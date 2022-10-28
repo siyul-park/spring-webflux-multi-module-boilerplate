@@ -42,15 +42,15 @@ jobs:
         run: java -jar application.jar &
         env:
           PORT: 8080
-          SPRING_R2DBC_URL: r2dbc:h2:mem://:/tmp/testdb
-          SPRING_R2DBC_USERNAME: test
-          SPRING_R2DBC_PASSWORD: test
-          SPRING_MONGODB_URI: mongodb://localhost/test
-          SPRING_MONGODB_EMBEDDED_ENABLE: true
-          SPRING_REDIS_URI: redis://localhost
-          SPRING_REDIS_EMBEDDED_ENABLE: true
-          APPLICATION_CLIENT_ROOT_ID: 01G1G1DN4JVHEKN7BHQH0F62TG
-          APPLICATION_CLIENT_ROOT_SECRET: d9keQxhgVDDF8JJLDIPZ8uq159ffOAFV
+          R2DBC_URL: r2dbc:h2:mem://:/tmp/testdb
+          R2DBC_USERNAME: test
+          R2DBC_PASSWORD: test
+          MONGODB_URI: mongodb://localhost/test
+          MONGODB_EMBEDDED_ENABLE: true
+          REDIS_URI: redis://localhost
+          REDIS_EMBEDDED_ENABLE: true
+          CLIENT_ROOT_ID: 01G1G1DN4JVHEKN7BHQH0F62TG
+          CLIENT_ROOT_SECRET: d9keQxhgVDDF8JJLDIPZ8uq159ffOAFV
       - uses: actions/setup-node@v3
         with:
           node-version: '16'

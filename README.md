@@ -36,30 +36,30 @@ Boilerplate of general service implemented using spring webflux and r2dbc
 ### Environments
 You can set environment variables using system environment variables.
 
-| Name                               | Description                     | Example                          |
-|------------------------------------|---------------------------------|----------------------------------|
-| PORT                               | Server port                     | 8080                             |
-| SPRING_R2DBC_URL                   | Set r2dbc url                   | r2dbc:h2:mem://./tmp/            |
-| SPRING_R2DBC_USERNAME              | Set r2dbc usernmae              | username                         |
-| SPRING_R2DBC_PASSWORD              | Set r2dbc password              | password                         |
-| SPRING_MONGODB_URI                 | Set mongodb url                 | mongodb://localhost:27017/test   |
-| SPRING_MONGODB_EMBEDDED_ENABLE     | Use embedded mongodb            | true                             |
-| SPRING_REDIS_URI                   | Set redis url                   | redis://localhost:6379           |
-| SPRING_REDIS_EMBEDDED_ENABLE       | Use embedded redis              | true                             |
-| SPRING_DATA_LOGGING                | Set data log level              | INFO                             |
-| APPLICATION_AUTH_ACCESS_TOKEN_AGE  | Set access token age            | 3600s                            |
-| APPLICATION_AUTH_REFRESH_TOKEN_AGE | Set refresh token age           | 259200s                          |
-| APPLICATION_MIGRATION_CLEAR        | Undo all migration before start | true                             |
-| APPLICATION_CLIENT_ROOT_NAME       | Set root client name            | root                             |
-| APPLICATION_CLIENT_ROOT_ID         | Set root client id(ulid)        | 01G1G1DN4JVHEKN7BHQH0F62TJ       |
-| APPLICATION_CLIENT_ROOT_SECRET     | Set root client password        | d9keQxhgVDDF8JJLDIPZ8uq159ffOFYy |
-| APPLICATION_CLIENT_ROOT_ORIGIN     | Set root client origin          | https://localhost:8080           |
+| Name                    | Description                     | Example                          |
+|-------------------------|---------------------------------|----------------------------------|
+| PORT                    | Server port                     | 8080                             |
+| R2DBC_URL               | Set r2dbc url                   | r2dbc:h2:mem://./tmp/            |
+| R2DBC_USERNAME          | Set r2dbc usernmae              | username                         |
+| R2DBC_PASSWORD          | Set r2dbc password              | password                         |
+| MONGODB_URI             | Set mongodb url                 | mongodb://localhost:27017/test   |
+| MONGODB_EMBEDDED_ENABLE | Use embedded mongodb            | true                             |
+| REDIS_URI               | Set redis url                   | redis://localhost:6379           |
+| REDIS_EMBEDDED_ENABLE   | Use embedded redis              | true                             |
+| DATA_LOGGING            | Set data log level              | INFO                             |
+| ACCESS_TOKEN_AGE        | Set access token age            | 3600s                            |
+| REFRESH_TOKEN_AGE       | Set refresh token age           | 259200s                          |
+| MIGRATION_CLEAR         | Undo all migration before start | true                             |
+| CLIENT_ROOT_NAME        | Set root client name            | root                             |
+| CLIENT_ROOT_ID          | Set root client id(ulid)        | 01G1G1DN4JVHEKN7BHQH0F62TJ       |
+| CLIENT_ROOT_SECRET      | Set root client password        | d9keQxhgVDDF8JJLDIPZ8uq159ffOFYy |
+| CLIENT_ROOT_ORIGIN      | Set root client origin          | https://localhost:8080           |
 
 ### Stand-alone
 If you want to run alone, set it as follows
 
-| Name                           | Value                 |
-|--------------------------------|-----------------------|
-| SPRING_R2DBC_URL               | r2dbc:h2:mem://./tmp/ |
-| SPRING_MONGODB_EMBEDDED_ENABLE | true                  |
-| SPRING_REDIS_EMBEDDED_ENABLE   | true                  |
+| Name                    | Value                 |
+|-------------------------|-----------------------|
+| R2DBC_URL               | r2dbc:h2:mem://./tmp/ |
+| MONGODB_EMBEDDED_ENABLE | true                  |
+| REDIS_EMBEDDED_ENABLE   | true                  |
