@@ -19,7 +19,7 @@
     "@types/webpack": "5.28.0",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
     "@typescript-eslint/parser": "^5.41.0",
-    "babel-loader": "9.0.0",
+    "babel-loader": "9.0.1",
     "clean-webpack-plugin": "4.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.26.0",
