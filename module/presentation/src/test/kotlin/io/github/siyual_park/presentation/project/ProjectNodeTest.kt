@@ -46,8 +46,8 @@ class ProjectNodeTest {
             a = null,
             b = Optional.of(
                 B(
-                    b = Optional.of(faker.name().username(10)),
-                    c = Optional.of(faker.name().username(10))
+                    b = Optional.of(faker.name().username(16)),
+                    c = Optional.of(faker.name().username(16))
                 )
             )
         )

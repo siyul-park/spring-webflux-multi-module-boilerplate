@@ -7,7 +7,7 @@ import java.net.URL
 import javax.validation.constraints.Size
 
 data class CreateClientPayload(
-    @field:Size(min = 3, max = 20)
+    @field:Size(min = 3, max = 64)
     val name: String,
     val type: ClientType,
     val origins: Collection<@Size(max = 2048) URL>,

@@ -110,7 +110,7 @@ class ClientControllerTest @Autowired constructor(
 
         val request = MockCreateClientRequestFactory.create(
             MockCreateClientRequestFactory.Template(
-                name = Optional.of(faker.name().username(25))
+                name = Optional.of(faker.name().username(128))
             )
         )
 
@@ -419,7 +419,7 @@ class ClientControllerTest @Autowired constructor(
             push = listOf("clients:update")
         )
 
-        val name = faker.name().username(25)
+        val name = faker.name().username(128)
         val request = UpdateClientRequest(
             name = Optional.of(name),
         )

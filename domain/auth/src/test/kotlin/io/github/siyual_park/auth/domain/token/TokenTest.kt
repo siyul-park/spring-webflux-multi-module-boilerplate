@@ -103,8 +103,8 @@ class TokenTest : DataTestHelper() {
 
         val token = factory.create(principal)
 
-        val key = faker.name().username(10)
-        val value = faker.name().username(10)
+        val key = faker.name().username(16)
+        val value = faker.name().username(16)
 
         token[key] = value
         assertEquals(value, token[key])

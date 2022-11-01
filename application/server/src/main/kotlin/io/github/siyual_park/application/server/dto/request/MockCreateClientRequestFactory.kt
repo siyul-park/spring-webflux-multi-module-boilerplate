@@ -20,7 +20,7 @@ object MockCreateClientRequestFactory {
 
     fun create(template: Template? = null): CreateClientRequest {
         return CreateClientRequest(
-            name = resolveNotNull(template?.name) { faker.name().username(10) },
+            name = resolveNotNull(template?.name) { faker.name().username(16) },
             type = resolveNotNull(template?.type) { ClientType.PUBLIC },
             origins = resolveNotNull(template?.origins) { listOf(faker.internet().url(protocol = null)) },
         )

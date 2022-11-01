@@ -16,9 +16,9 @@ class PoolTest : CoroutineTestHelper() {
 
     @Test
     fun pop() = blocking {
-        val pool = Pool(AbstractReferenceMap.ReferenceStrength.HARD) { faker.name().username(10) }
-        val value1 = faker.name().username(10)
-        val value2 = faker.name().username(10)
+        val pool = Pool(AbstractReferenceMap.ReferenceStrength.HARD) { faker.name().username(16) }
+        val value1 = faker.name().username(16)
+        val value2 = faker.name().username(16)
 
         pool.push(value1)
         assertEquals(value1, pool.pop())
@@ -33,8 +33,8 @@ class PoolTest : CoroutineTestHelper() {
 
     @Test
     fun push() = blocking {
-        val pool = Pool(AbstractReferenceMap.ReferenceStrength.HARD) { faker.name().username(10) }
-        val value = faker.name().username(10)
+        val pool = Pool(AbstractReferenceMap.ReferenceStrength.HARD) { faker.name().username(16) }
+        val value = faker.name().username(16)
 
         assertTrue(pool.push(value))
         assertFalse(pool.push(value))

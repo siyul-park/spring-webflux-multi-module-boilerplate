@@ -20,7 +20,7 @@ object MockCreateUserPayloadFactory {
 
     fun create(template: Template? = null): CreateUserPayload {
         return CreateUserPayload(
-            name = resolveNotNull(template?.name) { faker.name().username(10) },
+            name = resolveNotNull(template?.name) { faker.name().username(16) },
             email = resolveNotNull(template?.email) { faker.internet().emailAddress() },
             password = resolveNotNull(template?.password) { faker.internet().password() },
             scope = resolve(template?.scope) { null }

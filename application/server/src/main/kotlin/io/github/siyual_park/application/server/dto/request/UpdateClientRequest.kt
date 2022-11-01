@@ -8,7 +8,7 @@ import javax.validation.constraints.Size
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class UpdateClientRequest(
-    val name: Optional<@Size(min = 3, max = 20) String>? = null,
+    val name: Optional<@Size(min = 3, max = 64) String>? = null,
     val origins: Optional<Collection<@Size(max = 2048) URL>>? = null,
     val scope: Optional<Collection<ULID>>? = null
 )

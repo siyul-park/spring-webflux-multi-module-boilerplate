@@ -23,9 +23,9 @@ sealed interface CreateTokenRequest {
 
     data class Password(
         override val scope: String? = null,
-        @field:Size(min = 3, max = 20)
+        @field:Size(min = 3, max = 64)
         val username: String,
-        @field:Size(min = 8, max = 20)
+        @field:Size(min = 8, max = 64)
         val password: String,
         override val clientId: ULID,
         @field:Size(min = 32, max = 32)

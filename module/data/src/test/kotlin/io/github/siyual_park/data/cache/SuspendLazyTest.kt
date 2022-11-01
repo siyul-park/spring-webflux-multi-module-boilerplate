@@ -13,14 +13,14 @@ class SuspendLazyTest : CoroutineTestHelper() {
 
     @Test
     fun get() = blocking {
-        val suspendLazy = SuspendLazy { faker.name().username(10) }
+        val suspendLazy = SuspendLazy { faker.name().username(16) }
         val value = suspendLazy.get()
         assertEquals(value, suspendLazy.get())
     }
 
     @Test
     fun pop() = blocking {
-        val suspendLazy = SuspendLazy { faker.name().username(10) }
+        val suspendLazy = SuspendLazy { faker.name().username(16) }
         assertNull(suspendLazy.pop())
         val value = suspendLazy.get()
         assertEquals(value, suspendLazy.pop())
@@ -29,7 +29,7 @@ class SuspendLazyTest : CoroutineTestHelper() {
 
     @Test
     fun clear() = blocking {
-        val suspendLazy = SuspendLazy { faker.name().username(10) }
+        val suspendLazy = SuspendLazy { faker.name().username(16) }
         suspendLazy.get()
         suspendLazy.clear()
         assertNull(suspendLazy.pop())

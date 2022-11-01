@@ -110,7 +110,7 @@ class UserControllerTest @Autowired constructor(
 
         val request = MockCreateUserRequestFactory.create(
             MockCreateUserRequestFactory.Template(
-                name = Optional.of(faker.name().username(25))
+                name = Optional.of(faker.name().username(128))
             )
         )
         userControllerGateway.create(request)
@@ -289,7 +289,7 @@ class UserControllerTest @Autowired constructor(
         )
 
         val request = UpdateUserRequest(
-            name = Optional.of(faker.name().username(25))
+            name = Optional.of(faker.name().username(128))
         )
         val response = userControllerGateway.update(user.id, request)
 
