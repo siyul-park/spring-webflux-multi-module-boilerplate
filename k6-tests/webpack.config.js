@@ -35,7 +35,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [{ 
         from: path.resolve(__dirname, 'assets'), 
-        noErrorOnMissing: true 
+        noErrorOnMissing: true,
       }],
     }),
   ],
