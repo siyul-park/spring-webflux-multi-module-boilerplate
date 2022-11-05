@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toSet
 import java.time.Instant
 
-@Suppress("UNCHECKED_CAST")
 class Token(
     entity: TokenEntity,
     private val tokenEntityRepository: TokenEntityRepository,
@@ -29,7 +28,7 @@ class Token(
 
     val createdAt by proxy(root, TokenEntity::createdAt)
     val updatedAt by proxy(root, TokenEntity::updatedAt)
-    val expiredAt by proxy(root, TokenEntity::expiredAt)
+    private val expiredAt by proxy(root, TokenEntity::expiredAt)
 
     fun isActivated(): Boolean {
         val expiredAt = expiredAt ?: return true
@@ -92,7 +91,7 @@ class Token(
     }
 
     private fun Map<String, Any>.getScopeTokenIds(): List<ULID> {
-        val scope = (get("scope") as? Collection<*>) ?: emptyList<Any>()
+        val scope = get("scope") as? Collection<*> ?: emptyList<Any>()
         return scope
             .filterIsInstance<String>()
             .map { ULID.fromString(it) }
