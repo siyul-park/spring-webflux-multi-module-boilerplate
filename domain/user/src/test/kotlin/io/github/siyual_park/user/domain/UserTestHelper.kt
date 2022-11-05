@@ -52,7 +52,7 @@ abstract class UserTestHelper(
     }
 
     companion object {
-        val helper = MongoTestHelper()
+        private val helper = MongoTestHelper()
 
         val mongoTemplate: ReactiveMongoTemplate
             get() = helper.mongoTemplate

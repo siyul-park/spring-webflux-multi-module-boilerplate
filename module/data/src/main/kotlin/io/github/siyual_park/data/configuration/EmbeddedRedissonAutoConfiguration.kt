@@ -26,7 +26,7 @@ class EmbeddedRedissonAutoConfiguration(
     private val redisProperties: RedisProperties,
 ) : RedissonAutoConfiguration() {
     init {
-        redisProperties.port = Network.getFreeServerPort()
+        redisProperties.port = Network.freeServerPort(Network.getLocalHost())
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")

@@ -17,7 +17,7 @@
         <minimumBreadcrumbLevel>DEBUG</minimumBreadcrumbLevel>
     </appender>
 
-    <root level="${APPLICATION_LOGGING_LEVEL:-INFO}">
+    <root level="${LOGGING:-INFO}">
         <appender-ref ref="Console"/>
         <appender-ref ref="Sentry"/>
     </root>

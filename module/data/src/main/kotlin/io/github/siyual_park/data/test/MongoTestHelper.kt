@@ -84,7 +84,7 @@ class MongoTestHelper : ResourceTestHelper {
                     .useNoPrealloc(false)
                     .build()
             )
-            .net(Net(Network.getFreeServerPort(), Network.localhostIsIPv6()))
+            .net(Net(Network.freeServerPort(Network.getLocalHost()), Network.localhostIsIPv6()))
             .build()
     }
 }
