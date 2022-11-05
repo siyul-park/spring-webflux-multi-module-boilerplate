@@ -2,10 +2,10 @@ package io.github.siyual_park.client.domain
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.domain.scope_token.loadOrFail
-import io.github.siyual_park.client.entity.ClientData
+import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.client.entity.ClientType
-import io.github.siyual_park.client.repository.ClientDataRepository
-import io.github.siyual_park.client.repository.ClientScopeDataRepository
+import io.github.siyual_park.client.repository.ClientEntityRepository
+import io.github.siyual_park.client.repository.ClientScopeEntityRepository
 import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.persistence.QueryableLoader
@@ -17,17 +17,17 @@ import java.security.SecureRandom
 
 @Component
 class ClientStorage(
-    private val clientDataRepository: ClientDataRepository,
-    private val clientScopeDataRepository: ClientScopeDataRepository,
+    private val clientEntityRepository: ClientEntityRepository,
+    private val clientScopeEntityRepository: ClientScopeEntityRepository,
     private val scopeTokenStorage: ScopeTokenStorage
 ) : QueryableLoader<Client, ULID> by SimpleQueryableLoader(
-    clientDataRepository,
-    ClientMapper(clientDataRepository, clientScopeDataRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
-    ClientsMapper(clientDataRepository, clientScopeDataRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
+    clientEntityRepository,
+    ClientMapper(clientEntityRepository, clientScopeEntityRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
+    ClientsMapper(clientEntityRepository, clientScopeEntityRepository, scopeTokenStorage).let { mapper -> { mapper.map(it) } },
 ) {
     private val random = SecureRandom.getInstance("SHA1PRNG")
 
-    private val clientMapper = ClientMapper(clientDataRepository, clientScopeDataRepository, scopeTokenStorage)
+    private val clientMapper = ClientMapper(clientEntityRepository, clientScopeEntityRepository, scopeTokenStorage)
 
     private val confidentialClientScope = SuspendLazy {
         scopeTokenStorage.loadOrFail("confidential(client):pack")
@@ -41,7 +41,7 @@ class ClientStorage(
     }
 
     suspend fun save(payload: CreateClientPayload): Client {
-        val client = ClientData(
+        val client = ClientEntity(
             name = payload.name,
             origins = payload.origins,
             secret = if (payload.type == ClientType.CONFIDENTIAL) {
@@ -51,7 +51,7 @@ class ClientStorage(
             }
         )
             .apply { if (payload.id != null) id = payload.id }
-            .let { clientDataRepository.create(it) }
+            .let { clientEntityRepository.create(it) }
             .let { clientMapper.map(it) }
             .also { it.link() }
 
@@ -72,7 +72,7 @@ class ClientStorage(
     }
 
     suspend fun load(name: String): Client? {
-        return load(where(ClientData::name).`is`(name))
+        return load(where(ClientEntity::name).`is`(name))
     }
 
     private fun generateRandomSecret(): String {

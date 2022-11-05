@@ -33,12 +33,8 @@ class EntityManager<T : Any, ID : Any?>(
 
     private val idColumnName = requiredEntity.requiredIdProperty.columnName
     private val simpleIdColumnName = updateManager.toSql(idColumnName)
-    private val idProperty = run {
-        (
-            clazz.memberProperties.find { columnName(it) == simpleIdColumnName }
-                ?: throw RuntimeException("")
-            ) as KProperty1<T, ID>
-    }
+    private val idProperty = clazz.memberProperties.find { columnName(it) == simpleIdColumnName } as? KProperty1<T, ID>
+        ?: throw RuntimeException("Can't find id column in ${clazz.simpleName}")
 
     fun getId(entity: T): ID {
         return idProperty.get(entity)

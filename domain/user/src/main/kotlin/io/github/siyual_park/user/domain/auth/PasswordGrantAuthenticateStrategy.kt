@@ -25,6 +25,6 @@ class PasswordGrantAuthenticateStrategy(
             throw IncorrectPasswordException()
         }
 
-        return user.toPrincipal(clientEntity = client)
+        return user.toPrincipal(client = client)
     }
 }

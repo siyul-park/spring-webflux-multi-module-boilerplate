@@ -1,24 +1,24 @@
-package io.github.siyual_park.user.repository
+package io.github.siyual_park.auth.repository
 
 import com.google.common.cache.CacheBuilder
+import io.github.siyual_park.auth.entity.ScopeRelationEntity
 import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
 import io.github.siyual_park.event.EventPublisher
 import io.github.siyual_park.ulid.ULID
-import io.github.siyual_park.user.entity.UserScopeData
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.stereotype.Repository
 import java.time.Duration
 
 @Repository
-class UserScopeDataRepository(
+class ScopeRelationEntityRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null
-) : QueryableRepository<UserScopeData, Long> by R2DBCRepositoryBuilder<UserScopeData, Long>(entityOperations, UserScopeData::class)
+) : QueryableRepository<ScopeRelationEntity, Long> by R2DBCRepositoryBuilder<ScopeRelationEntity, Long>(entityOperations, ScopeRelationEntity::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()
@@ -34,19 +34,24 @@ class UserScopeDataRepository(
     })
     .enableCacheStorageManager(cacheStorageManager)
     .build() {
-    fun findAllByUserId(userId: ULID): Flow<UserScopeData> {
-        return findAll(where(UserScopeData::userId).`is`(userId))
+
+    fun findAllByChildId(childId: ULID): Flow<ScopeRelationEntity> {
+        return findAll(where(ScopeRelationEntity::childId).`is`(childId))
     }
 
-    fun findAllByScopeTokenId(scopeTokenId: ULID): Flow<UserScopeData> {
-        return findAll(where(UserScopeData::scopeTokenId).`is`(scopeTokenId))
+    fun findAllByParentId(parentIds: Iterable<ULID>): Flow<ScopeRelationEntity> {
+        return findAll(where(ScopeRelationEntity::parentId).`in`(parentIds.toList()))
     }
 
-    suspend fun deleteAllByUserId(userId: ULID) {
-        deleteAll(where(UserScopeData::userId).`is`(userId))
+    fun findAllByParentId(parentId: ULID): Flow<ScopeRelationEntity> {
+        return findAll(where(ScopeRelationEntity::parentId).`is`(parentId))
     }
 
-    suspend fun deleteAllByScopeTokenId(scopeTokenId: ULID) {
-        deleteAll(where(UserScopeData::scopeTokenId).`is`(scopeTokenId))
+    suspend fun deleteAllByChildId(childId: ULID) {
+        return deleteAll(where(ScopeRelationEntity::childId).`is`(childId))
+    }
+
+    suspend fun deleteAllByParentId(parentId: ULID) {
+        return deleteAll(where(ScopeRelationEntity::parentId).`is`(parentId))
     }
 }

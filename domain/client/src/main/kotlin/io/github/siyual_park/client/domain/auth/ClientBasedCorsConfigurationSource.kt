@@ -4,7 +4,7 @@ import io.github.siyual_park.auth.domain.authentication.Authenticator
 import io.github.siyual_park.auth.domain.authentication.AuthorizationPayload
 import io.github.siyual_park.auth.domain.cors.CorsConfigurationSource
 import io.github.siyual_park.client.domain.ClientStorage
-import io.github.siyual_park.client.entity.ClientEntity
+import io.github.siyual_park.client.entity.ClientAssociable
 import kotlinx.coroutines.reactor.mono
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
@@ -30,7 +30,7 @@ class ClientBasedCorsConfigurationSource(
 
                 val payload = AuthorizationPayload(token[0], token[1])
                 val principal = authenticator.authenticate(payload)
-                if (principal !is ClientEntity) {
+                if (principal !is ClientAssociable) {
                     return@mono null
                 }
 

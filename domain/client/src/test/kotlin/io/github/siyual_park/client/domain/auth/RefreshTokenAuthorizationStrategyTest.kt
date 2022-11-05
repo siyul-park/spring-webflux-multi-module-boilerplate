@@ -6,26 +6,26 @@ import io.github.siyual_park.auth.domain.token.TokenMapper
 import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
 import io.github.siyual_park.auth.domain.token.TypeMatchClaimFilter
-import io.github.siyual_park.auth.repository.TokenDataRepository
+import io.github.siyual_park.auth.repository.TokenEntityRepository
 import io.github.siyual_park.client.domain.ClientTestHelper
 import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
-import io.github.siyual_park.client.entity.ClientEntity
+import io.github.siyual_park.client.entity.ClientAssociable
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.Duration
 
 class RefreshTokenAuthorizationStrategyTest : ClientTestHelper() {
-    private val tokenDataRepository = TokenDataRepository(mongoTemplate)
+    private val tokenEntityRepository = TokenEntityRepository(mongoTemplate)
 
-    private val tokenMapper = TokenMapper(tokenDataRepository, scopeTokenStorage)
+    private val tokenMapper = TokenMapper(tokenEntityRepository, scopeTokenStorage)
     private val claimEmbedder = ClaimEmbedder()
 
-    private val tokenStorage = TokenStorage(claimEmbedder, tokenDataRepository, tokenMapper)
+    private val tokenStorage = TokenStorage(claimEmbedder, tokenEntityRepository, tokenMapper)
 
     private val refreshTokenAuthorizationStrategy = RefreshTokenAuthorizationStrategy(tokenStorage)
 
     init {
-        claimEmbedder.register(TypeMatchClaimFilter(ClientEntity::class), ClientEntityClaimEmbeddingStrategy())
+        claimEmbedder.register(TypeMatchClaimFilter(ClientAssociable::class), ClientAssociableClaimEmbeddingStrategy())
     }
 
     @Test

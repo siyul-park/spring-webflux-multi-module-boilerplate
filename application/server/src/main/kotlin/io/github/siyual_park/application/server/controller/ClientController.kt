@@ -11,7 +11,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.Client
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.CreateClientPayload
-import io.github.siyual_park.client.entity.ClientData
+import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.data.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
@@ -56,8 +56,8 @@ class ClientController(
     private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
-    private val rhsFilterParser = rhsFilterParserFactory.create(ClientData::class)
-    private val sortParser = sortParserFactory.create(ClientData::class)
+    private val rhsFilterParser = rhsFilterParserFactory.create(ClientEntity::class)
+    private val sortParser = sortParserFactory.create(ClientEntity::class)
     private val projectionParser = projectionParserFactory.create(ClientInfo::class)
 
     private val offsetPaginator = OffsetPaginator(clientStorage)
@@ -97,10 +97,10 @@ class ClientController(
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
-                ClientData::id to id,
-                ClientData::name to name,
-                ClientData::createdAt to createdAt,
-                ClientData::updatedAt to updatedAt
+                ClientEntity::id to id,
+                ClientEntity::name to name,
+                ClientEntity::createdAt to createdAt,
+                ClientEntity::updatedAt to updatedAt
             )
         )
 

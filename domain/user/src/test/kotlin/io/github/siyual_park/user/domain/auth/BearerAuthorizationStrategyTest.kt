@@ -6,26 +6,26 @@ import io.github.siyual_park.auth.domain.token.TokenMapper
 import io.github.siyual_park.auth.domain.token.TokenStorage
 import io.github.siyual_park.auth.domain.token.TokenTemplate
 import io.github.siyual_park.auth.domain.token.TypeMatchClaimFilter
-import io.github.siyual_park.auth.repository.TokenDataRepository
+import io.github.siyual_park.auth.repository.TokenEntityRepository
 import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserTestHelper
-import io.github.siyual_park.user.entity.UserEntity
+import io.github.siyual_park.user.entity.UserAssociable
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.time.Duration
 
 class BearerAuthorizationStrategyTest : UserTestHelper() {
-    private val tokenDataRepository = TokenDataRepository(mongoTemplate)
+    private val tokenEntityRepository = TokenEntityRepository(mongoTemplate)
 
     private val claimEmbedder = ClaimEmbedder()
-    private val tokenMapper = TokenMapper(tokenDataRepository, scopeTokenStorage)
-    private val tokenStorage = TokenStorage(claimEmbedder, tokenDataRepository, tokenMapper)
+    private val tokenMapper = TokenMapper(tokenEntityRepository, scopeTokenStorage)
+    private val tokenStorage = TokenStorage(claimEmbedder, tokenEntityRepository, tokenMapper)
 
     private val authorizationStrategy = BearerAuthorizationStrategy(tokenStorage)
 
     init {
-        claimEmbedder.register(TypeMatchClaimFilter(UserEntity::class), UserEntityClaimEmbeddingStrategy())
+        claimEmbedder.register(TypeMatchClaimFilter(UserAssociable::class), UserAssociableClaimEmbeddingStrategy())
     }
 
     @Test

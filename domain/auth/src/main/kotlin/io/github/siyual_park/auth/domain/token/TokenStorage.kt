@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.token
 
-import io.github.siyual_park.auth.entity.TokenData
-import io.github.siyual_park.auth.repository.TokenDataRepository
+import io.github.siyual_park.auth.entity.TokenEntity
+import io.github.siyual_park.auth.repository.TokenEntityRepository
 import io.github.siyual_park.data.criteria.Criteria
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
@@ -17,17 +17,17 @@ import org.springframework.stereotype.Component
 @Component
 class TokenStorage(
     private val claimEmbedder: ClaimEmbedder,
-    private val tokenDataRepository: TokenDataRepository,
+    private val tokenEntityRepository: TokenEntityRepository,
     private val tokenMapper: TokenMapper
 ) : QueryableLoader<Token, ULID> {
-    private val delegator = SimpleQueryableLoader(tokenDataRepository, { tokenMapper.map(it) })
+    private val delegator = SimpleQueryableLoader(tokenEntityRepository, { tokenMapper.map(it) })
 
     fun createFactory(template: TokenTemplate): TokenFactory {
-        return TokenFactory(template, claimEmbedder, tokenDataRepository, tokenMapper)
+        return TokenFactory(template, claimEmbedder, tokenEntityRepository, tokenMapper)
     }
 
     fun load(type: String, claims: Map<String, Any>, limit: Int? = null, offset: Long? = null, sort: Sort? = null): Flow<Token> {
-        var query: Criteria = where(TokenData::type).`is`(type)
+        var query: Criteria = where(TokenEntity::type).`is`(type)
         claims.forEach { (key, value) ->
             query = query.and(where("claims.$key").`is`(value))
         }
@@ -40,7 +40,7 @@ class TokenStorage(
     }
 
     suspend fun load(signature: String): Token? {
-        return load(where(TokenData::signature).`is`(signature))
+        return load(where(TokenEntity::signature).`is`(signature))
     }
 
     override suspend fun load(criteria: Criteria): Token? {

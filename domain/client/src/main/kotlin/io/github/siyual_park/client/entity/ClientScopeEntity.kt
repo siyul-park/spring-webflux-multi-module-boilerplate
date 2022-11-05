@@ -1,14 +1,14 @@
-package io.github.siyual_park.user.entity
+package io.github.siyual_park.client.entity
 
 import io.github.siyual_park.data.ModifiableLongIDEntity
 import io.github.siyual_park.data.annotation.Key
 import io.github.siyual_park.ulid.ULID
 import org.springframework.data.relational.core.mapping.Table
 
-@Table("user_scopes")
-data class UserScopeData(
+@Table("client_scopes")
+data class ClientScopeEntity(
     @Key("business_keys")
-    val userId: ULID,
+    val clientId: ULID,
     @Key("business_keys")
     val scopeTokenId: ULID,
 ) : ModifiableLongIDEntity()

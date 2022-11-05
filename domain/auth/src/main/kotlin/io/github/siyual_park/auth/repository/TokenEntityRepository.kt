@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.repository
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.auth.entity.TokenData
+import io.github.siyual_park.auth.entity.TokenEntity
 import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.mongo.MongoRepositoryBuilder
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Repository
 import java.time.Duration
 
 @Repository
-class TokenDataRepository(
+class TokenEntityRepository(
     template: ReactiveMongoTemplate,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null
-) : QueryableRepository<TokenData, ULID> by MongoRepositoryBuilder<TokenData, ULID>(template, TokenData::class)
+) : QueryableRepository<TokenEntity, ULID> by MongoRepositoryBuilder<TokenEntity, ULID>(template, TokenEntity::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()

@@ -5,14 +5,14 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
 import io.github.siyual_park.auth.migration.CreateToken
-import io.github.siyual_park.auth.repository.ScopeRelationDataRepository
-import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
+import io.github.siyual_park.auth.repository.ScopeRelationEntityRepository
+import io.github.siyual_park.auth.repository.ScopeTokenEntityRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.user.migration.CreateUser
 import io.github.siyual_park.user.migration.CreateUserScope
-import io.github.siyual_park.user.repository.UserDataRepository
-import io.github.siyual_park.user.repository.UserScopeDataRepository
+import io.github.siyual_park.user.repository.UserEntityRepository
+import io.github.siyual_park.user.repository.UserScopeEntityRepository
 import io.mockk.spyk
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -32,15 +32,15 @@ abstract class UserTestHelper(
             .register(CreateUserScope(entityOperations))
     }
 
-    protected val scopeRelationDataRepository = ScopeRelationDataRepository(entityOperations)
-    protected val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
-    protected val userDataRepository = UserDataRepository(entityOperations)
-    protected val userScopeDataRepository = spyk(UserScopeDataRepository(entityOperations))
+    protected val scopeRelationEntityRepository = ScopeRelationEntityRepository(entityOperations)
+    protected val scopeTokenEntityRepository = ScopeTokenEntityRepository(entityOperations)
+    protected val userEntityRepository = UserEntityRepository(entityOperations)
+    protected val userScopeEntityRepository = spyk(UserScopeEntityRepository(entityOperations))
 
-    protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
-    protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
+    protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenEntityRepository, scopeRelationEntityRepository)
+    protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenEntityRepository, scopeTokenMapper)
 
-    protected val userStorage = UserStorage(userDataRepository, userScopeDataRepository, scopeTokenStorage)
+    protected val userStorage = UserStorage(userEntityRepository, userScopeEntityRepository, scopeTokenStorage)
 
     @BeforeEach
     override fun setUp() {

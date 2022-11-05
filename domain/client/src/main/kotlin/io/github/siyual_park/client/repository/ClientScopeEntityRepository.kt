@@ -1,7 +1,7 @@
-package io.github.siyual_park.auth.repository
+package io.github.siyual_park.client.repository
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.auth.entity.ScopeRelationData
+import io.github.siyual_park.client.entity.ClientScopeEntity
 import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.QueryableRepository
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Repository
 import java.time.Duration
 
 @Repository
-class ScopeRelationDataRepository(
+class ClientScopeEntityRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null
-) : QueryableRepository<ScopeRelationData, Long> by R2DBCRepositoryBuilder<ScopeRelationData, Long>(entityOperations, ScopeRelationData::class)
+) : QueryableRepository<ClientScopeEntity, Long> by R2DBCRepositoryBuilder<ClientScopeEntity, Long>(entityOperations, ClientScopeEntity::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()
@@ -34,24 +34,19 @@ class ScopeRelationDataRepository(
     })
     .enableCacheStorageManager(cacheStorageManager)
     .build() {
-
-    fun findAllByChildId(childId: ULID): Flow<ScopeRelationData> {
-        return findAll(where(ScopeRelationData::childId).`is`(childId))
+    fun findAllByClientId(clientId: ULID): Flow<ClientScopeEntity> {
+        return findAll(where(ClientScopeEntity::clientId).`is`(clientId))
     }
 
-    fun findAllByParentId(parentIds: Iterable<ULID>): Flow<ScopeRelationData> {
-        return findAll(where(ScopeRelationData::parentId).`in`(parentIds.toList()))
+    fun findAllByScopeTokenId(scopeTokenId: ULID): Flow<ClientScopeEntity> {
+        return findAll(where(ClientScopeEntity::scopeTokenId).`is`(scopeTokenId))
     }
 
-    fun findAllByParentId(parentId: ULID): Flow<ScopeRelationData> {
-        return findAll(where(ScopeRelationData::parentId).`is`(parentId))
+    suspend fun deleteAllByClientId(clientId: ULID) {
+        deleteAll(where(ClientScopeEntity::clientId).`is`(clientId))
     }
 
-    suspend fun deleteAllByChildId(childId: ULID) {
-        return deleteAll(where(ScopeRelationData::childId).`is`(childId))
-    }
-
-    suspend fun deleteAllByParentId(parentId: ULID) {
-        return deleteAll(where(ScopeRelationData::parentId).`is`(parentId))
+    suspend fun deleteAllByScopeTokenId(scopeTokenId: ULID) {
+        deleteAll(where(ClientScopeEntity::scopeTokenId).`is`(scopeTokenId))
     }
 }

@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.domain.scope_token
 
-import io.github.siyual_park.auth.entity.ScopeTokenData
-import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
+import io.github.siyual_park.auth.entity.ScopeTokenEntity
+import io.github.siyual_park.auth.repository.ScopeTokenEntityRepository
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.persistence.QueryableLoader
 import io.github.siyual_park.persistence.SimpleQueryableLoader
@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class ScopeTokenStorage(
-    private val scopeTokenDataRepository: ScopeTokenDataRepository,
+    private val scopeTokenEntityRepository: ScopeTokenEntityRepository,
     private val scopeTokenMapper: ScopeTokenMapper
 ) : QueryableLoader<ScopeToken, ULID> by SimpleQueryableLoader(
-    scopeTokenDataRepository,
+    scopeTokenEntityRepository,
     { scopeTokenMapper.map(it) }
 ) {
     suspend fun upsert(name: String): ScopeToken {
@@ -35,8 +35,8 @@ class ScopeTokenStorage(
     }
 
     suspend fun save(payload: CreateScopeTokenPayload): ScopeToken {
-        return scopeTokenDataRepository.create(
-            ScopeTokenData(
+        return scopeTokenEntityRepository.create(
+            ScopeTokenEntity(
                 name = payload.name,
                 description = payload.description,
                 system = payload.system
@@ -46,7 +46,7 @@ class ScopeTokenStorage(
     }
 
     suspend fun load(name: String): ScopeToken? {
-        return load(where(ScopeTokenData::name).`is`(name))
+        return load(where(ScopeTokenEntity::name).`is`(name))
     }
 
     fun load(
@@ -56,7 +56,7 @@ class ScopeTokenStorage(
         sort: Sort? = null
     ): Flow<ScopeToken> {
         return load(
-            where(ScopeTokenData::name).`in`(name),
+            where(ScopeTokenEntity::name).`in`(name),
             limit,
             offset,
             sort

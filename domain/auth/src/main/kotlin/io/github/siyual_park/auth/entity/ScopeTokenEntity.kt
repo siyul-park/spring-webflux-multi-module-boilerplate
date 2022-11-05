@@ -5,7 +5,7 @@ import io.github.siyual_park.data.annotation.Key
 import org.springframework.data.relational.core.mapping.Table
 
 @Table("scope_tokens")
-data class ScopeTokenData(
+data class ScopeTokenEntity(
     @Key
     var name: String,
     var description: String? = null,

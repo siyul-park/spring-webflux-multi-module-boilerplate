@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 
 @Document("tokens")
-data class TokenData(
+data class TokenEntity(
     var type: String,
     @Key("signature")
     var signature: String,

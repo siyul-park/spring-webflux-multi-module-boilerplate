@@ -10,6 +10,7 @@ import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.ClientStorage
 import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import io.github.siyual_park.coroutine.test.CoroutineTestHelper
+import io.github.siyual_park.persistence.loadOrFail
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.MockCreateUserPayloadFactory
 import io.github.siyual_park.user.domain.UserStorage
@@ -463,12 +464,12 @@ class UserControllerTest @Autowired constructor(
     @Test
     fun `PATCH users_{user-id}, status = 200, with password`() = blocking {
         val payload = MockCreateUserPayloadFactory.create()
-        val user = userStorage.save(payload)
+        var user = userStorage.save(payload)
         val principal = user.toPrincipal()
 
         gatewayAuthorization.setPrincipal(
             principal,
-            push = listOf("users:update", "users[self].credential:update")
+            push = listOf("users:update")
         )
 
         val password = faker.internet().password()
@@ -476,6 +477,8 @@ class UserControllerTest @Autowired constructor(
             password = Optional.of(password)
         )
         val response = userControllerGateway.update(user.id, request)
+
+        user = userStorage.loadOrFail(user.id)
 
         assertEquals(HttpStatus.OK, response.status)
         assertTrue(user.isPassword(password))

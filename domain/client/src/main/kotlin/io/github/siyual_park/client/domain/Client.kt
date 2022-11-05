@@ -4,12 +4,12 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.domain.auth.ClientPrincipal
-import io.github.siyual_park.client.entity.ClientData
+import io.github.siyual_park.client.entity.ClientAssociable
 import io.github.siyual_park.client.entity.ClientEntity
-import io.github.siyual_park.client.entity.ClientScopeData
+import io.github.siyual_park.client.entity.ClientScopeEntity
 import io.github.siyual_park.client.entity.ClientType
-import io.github.siyual_park.client.repository.ClientDataRepository
-import io.github.siyual_park.client.repository.ClientScopeDataRepository
+import io.github.siyual_park.client.repository.ClientEntityRepository
+import io.github.siyual_park.client.repository.ClientScopeEntityRepository
 import io.github.siyual_park.data.aggregation.FetchContext
 import io.github.siyual_park.data.aggregation.get
 import io.github.siyual_park.data.criteria.and
@@ -21,22 +21,21 @@ import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 
 class Client(
-    value: ClientData,
-    clientDataRepository: ClientDataRepository,
-    private val clientScopeDataRepository: ClientScopeDataRepository,
+    entity: ClientEntity,
+    clientEntityRepository: ClientEntityRepository,
+    private val clientScopeEntityRepository: ClientScopeEntityRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     fetchContext: FetchContext
-) : Persistence<ClientData, ULID>(value, clientDataRepository), ClientEntity, Authorizable {
-    val id by proxy(root, ClientData::id)
-    var name by proxy(root, ClientData::name)
-    var origins by proxy(root, ClientData::origins)
-    var secret by proxy(root, ClientData::secret)
+) : Persistence<ClientEntity, ULID>(entity, clientEntityRepository), ClientAssociable, Authorizable {
+    val id by proxy(root, ClientEntity::id)
+    var name by proxy(root, ClientEntity::name)
+    var origins by proxy(root, ClientEntity::origins)
+    var secret by proxy(root, ClientEntity::secret)
 
     val type: ClientType
         get() = if (secret != null) {
@@ -45,14 +44,14 @@ class Client(
             ClientType.PUBLIC
         }
 
-    val createdAt by proxy(root, ClientData::createdAt)
-    val updatedAt by proxy(root, ClientData::updatedAt)
+    val createdAt by proxy(root, ClientEntity::createdAt)
+    val updatedAt by proxy(root, ClientEntity::updatedAt)
 
-    override val clientId by proxy(root, ClientData::id)
+    override val clientId by proxy(root, ClientEntity::id)
 
-    private val scopeContext = fetchContext.get(clientScopeDataRepository)
+    private val scopeContext = fetchContext.get(clientScopeEntityRepository)
     private val scopeFetcher = scopeContext.join(
-        where(ClientScopeData::clientId).`is`(clientId)
+        where(ClientScopeEntity::clientId).`is`(clientId)
     )
 
     init {
@@ -60,22 +59,22 @@ class Client(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
                     scopeFetcher.clear()
-                    clientScopeDataRepository.deleteAllByClientId(id)
+                    clientScopeEntityRepository.deleteAllByClientId(id)
                 }
             }
         )
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
-        return clientScopeDataRepository.exists(
-            where(ClientScopeData::clientId).`is`(id)
-                .and(where(ClientScopeData::scopeTokenId).`is`(scopeToken.id))
+        return clientScopeEntityRepository.exists(
+            where(ClientScopeEntity::clientId).`is`(id)
+                .and(where(ClientScopeEntity::scopeTokenId).`is`(scopeToken.id))
         )
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {
-        clientScopeDataRepository.create(
-            ClientScopeData(
+        clientScopeEntityRepository.create(
+            ClientScopeEntity(
                 clientId = id,
                 scopeTokenId = scopeToken.id
             )
@@ -83,12 +82,12 @@ class Client(
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
-        val clientScope = clientScopeDataRepository.findOneOrFail(
-            where(ClientScopeData::clientId).`is`(id)
-                .and(where(ClientScopeData::scopeTokenId).`is`(scopeToken.id))
+        val clientScope = clientScopeEntityRepository.findOneOrFail(
+            where(ClientScopeEntity::clientId).`is`(id)
+                .and(where(ClientScopeEntity::scopeTokenId).`is`(scopeToken.id))
         )
         scopeContext.clear(clientScope)
-        clientScopeDataRepository.delete(clientScope)
+        clientScopeEntityRepository.delete(clientScope)
     }
 
     fun getScope(deep: Boolean = true): Flow<ScopeToken> {

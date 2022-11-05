@@ -7,7 +7,7 @@ import io.github.siyual_park.auth.domain.authorization.ScopeMapping
 import io.github.siyual_park.auth.domain.authorization.ScopeMatchAuthorizeFilter
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.ulid.ULID
-import io.github.siyual_park.user.entity.UserEntity
+import io.github.siyual_park.user.entity.UserAssociable
 import org.springframework.stereotype.Component
 
 @Component
@@ -29,9 +29,9 @@ class UserIdMatchAuthorizeStrategy : AuthorizeStrategy {
         scopeToken: ScopeToken,
         targetDomainObject: Any?
     ): Boolean {
-        val userEntity = principal as? UserEntity ?: return false
+        val userAssociable = principal as? UserAssociable ?: return false
         val id = targetDomainObject as? ULID ?: return true
 
-        return userEntity.userId == id
+        return userAssociable.userId == id
     }
 }

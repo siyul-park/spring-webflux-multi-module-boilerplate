@@ -5,8 +5,8 @@ import io.github.siyual_park.client.domain.MockCreateClientPayloadFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class ClientEntityClaimEmbeddingStrategyTest : ClientTestHelper() {
-    private val clientEntityClaimEmbeddingStrategy = ClientEntityClaimEmbeddingStrategy()
+class ClientAssociableClaimEmbeddingStrategyTest : ClientTestHelper() {
+    private val clientAssociableClaimEmbeddingStrategy = ClientAssociableClaimEmbeddingStrategy()
 
     @Test
     fun embedding() = blocking {
@@ -14,7 +14,7 @@ class ClientEntityClaimEmbeddingStrategyTest : ClientTestHelper() {
             .let { clientStorage.save(it) }
         val principal = client.toPrincipal()
 
-        val claim = clientEntityClaimEmbeddingStrategy.embedding(principal)
+        val claim = clientAssociableClaimEmbeddingStrategy.embedding(principal)
 
         assertEquals(client.id, claim["cid"])
     }

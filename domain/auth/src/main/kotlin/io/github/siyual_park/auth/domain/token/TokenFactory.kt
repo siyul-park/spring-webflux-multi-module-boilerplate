@@ -2,8 +2,8 @@ package io.github.siyual_park.auth.domain.token
 
 import io.github.siyual_park.auth.domain.Principal
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.auth.entity.TokenData
-import io.github.siyual_park.auth.repository.TokenDataRepository
+import io.github.siyual_park.auth.entity.TokenEntity
+import io.github.siyual_park.auth.repository.TokenEntityRepository
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.patch.SuspendPatch
@@ -16,7 +16,7 @@ import java.time.Instant
 class TokenFactory(
     private val template: TokenTemplate,
     private val claimEmbedder: ClaimEmbedder,
-    private val tokenDataRepository: TokenDataRepository,
+    private val tokenEntityRepository: TokenEntityRepository,
     private val tokenMapper: TokenMapper,
 ) {
     private val random = SecureRandom.getInstance("SHA1PRNG").apply {
@@ -60,12 +60,12 @@ class TokenFactory(
         val now = Instant.now()
         val expiredAt = now.plus(template.age)
         val data = retry(3) {
-            TokenData(
+            TokenEntity(
                 type = template.type,
                 signature = generateSignature(template.type),
                 claims = finalClaims,
                 expiredAt = expiredAt
-            ).let { tokenDataRepository.create(it) }
+            ).let { tokenEntityRepository.create(it) }
         }
 
         return tokenMapper.map(data)
@@ -90,12 +90,12 @@ class TokenFactory(
         template.limit?.forEach { (key, limit) ->
             val value = claims[key] ?: return@forEach
             val query = where("claims.$key").`is`(value)
-                .and(where(TokenData::type).`is`(template.type))
-                .and(where(TokenData::expiredAt).greaterThan(expiredAt))
+                .and(where(TokenEntity::type).`is`(template.type))
+                .and(where(TokenEntity::expiredAt).greaterThan(expiredAt))
 
-            val count = tokenDataRepository.count(query, limit = limit)
+            val count = tokenEntityRepository.count(query, limit = limit)
 
-            tokenDataRepository.updateAll(
+            tokenEntityRepository.updateAll(
                 query,
                 SuspendPatch.with {
                     it.expiredAt = expiredAt

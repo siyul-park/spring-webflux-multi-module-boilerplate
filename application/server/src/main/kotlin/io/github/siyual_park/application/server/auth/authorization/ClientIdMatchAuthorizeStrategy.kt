@@ -6,7 +6,7 @@ import io.github.siyual_park.auth.domain.authorization.AuthorizeStrategy
 import io.github.siyual_park.auth.domain.authorization.ScopeMapping
 import io.github.siyual_park.auth.domain.authorization.ScopeMatchAuthorizeFilter
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
-import io.github.siyual_park.client.entity.ClientEntity
+import io.github.siyual_park.client.entity.ClientAssociable
 import io.github.siyual_park.ulid.ULID
 import org.springframework.stereotype.Component
 
@@ -26,9 +26,9 @@ class ClientIdMatchAuthorizeStrategy : AuthorizeStrategy {
         scopeToken: ScopeToken,
         targetDomainObject: Any?
     ): Boolean {
-        val clientEntity = principal as? ClientEntity ?: return false
+        val client = principal as? ClientAssociable ?: return false
         val id = targetDomainObject as? ULID ?: return true
 
-        return clientEntity.clientId == id
+        return client.clientId == id
     }
 }

@@ -1,7 +1,14 @@
 package io.github.siyual_park.client.entity
 
-import io.github.siyual_park.ulid.ULID
+import io.github.siyual_park.data.ModifiableULIDEntity
+import io.github.siyual_park.data.annotation.Key
+import org.springframework.data.relational.core.mapping.Table
+import java.net.URL
 
-interface ClientEntity {
-    val clientId: ULID?
-}
+@Table("clients")
+data class ClientEntity(
+    @Key
+    var name: String,
+    var origins: Collection<URL>,
+    var secret: String?,
+) : ModifiableULIDEntity()

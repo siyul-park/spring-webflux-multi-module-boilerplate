@@ -2,8 +2,8 @@ package io.github.siyual_park.auth.domain.scope_token
 
 import io.github.siyual_park.auth.migration.CreateScopeRelation
 import io.github.siyual_park.auth.migration.CreateScopeToken
-import io.github.siyual_park.auth.repository.ScopeRelationDataRepository
-import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
+import io.github.siyual_park.auth.repository.ScopeRelationEntityRepository
+import io.github.siyual_park.auth.repository.ScopeTokenEntityRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -22,12 +22,12 @@ class ScopeTokenTest : DataTestHelper() {
             .register(CreateScopeRelation(entityOperations))
     }
 
-    private val scopeRelationDataRepository = ScopeRelationDataRepository(entityOperations)
-    private val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
+    private val scopeRelationEntityRepository = ScopeRelationEntityRepository(entityOperations)
+    private val scopeTokenEntityRepository = ScopeTokenEntityRepository(entityOperations)
 
-    private val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
+    private val scopeTokenMapper = ScopeTokenMapper(scopeTokenEntityRepository, scopeRelationEntityRepository)
     private val scopeTokenStorage =
-        ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
+        ScopeTokenStorage(scopeTokenEntityRepository, scopeTokenMapper)
 
     @Test
     fun create() = blocking {

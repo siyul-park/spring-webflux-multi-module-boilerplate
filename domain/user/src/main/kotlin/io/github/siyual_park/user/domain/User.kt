@@ -4,7 +4,7 @@ import io.github.siyual_park.auth.domain.authorization.Authorizable
 import io.github.siyual_park.auth.domain.hash
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.client.entity.ClientEntity
+import io.github.siyual_park.client.entity.ClientAssociable
 import io.github.siyual_park.data.aggregation.FetchContext
 import io.github.siyual_park.data.aggregation.get
 import io.github.siyual_park.data.criteria.and
@@ -15,11 +15,11 @@ import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
 import io.github.siyual_park.user.domain.auth.UserPrincipal
-import io.github.siyual_park.user.entity.UserData
+import io.github.siyual_park.user.entity.UserAssociable
 import io.github.siyual_park.user.entity.UserEntity
-import io.github.siyual_park.user.entity.UserScopeData
-import io.github.siyual_park.user.repository.UserDataRepository
-import io.github.siyual_park.user.repository.UserScopeDataRepository
+import io.github.siyual_park.user.entity.UserScopeEntity
+import io.github.siyual_park.user.repository.UserEntityRepository
+import io.github.siyual_park.user.repository.UserScopeEntityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -28,26 +28,26 @@ import kotlinx.coroutines.flow.toList
 import java.security.MessageDigest
 
 class User(
-    value: UserData,
-    userDataRepository: UserDataRepository,
-    private val userScopeDataRepository: UserScopeDataRepository,
+    entity: UserEntity,
+    userEntityRepository: UserEntityRepository,
+    private val userScopeEntityRepository: UserScopeEntityRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     fetchContext: FetchContext
-) : Persistence<UserData, ULID>(value, userDataRepository), UserEntity, Authorizable {
-    val id by proxy(root, UserData::id)
-    var email by proxy(root, UserData::email)
-    var name by proxy(root, UserData::name)
+) : Persistence<UserEntity, ULID>(entity, userEntityRepository), UserAssociable, Authorizable {
+    val id by proxy(root, UserEntity::id)
+    var email by proxy(root, UserEntity::email)
+    var name by proxy(root, UserEntity::name)
 
-    val createdAt by proxy(root, UserData::createdAt)
-    val updatedAt by proxy(root, UserData::updatedAt)
+    val createdAt by proxy(root, UserEntity::createdAt)
+    val updatedAt by proxy(root, UserEntity::updatedAt)
 
-    override val userId by proxy(root, UserData::id)
+    override val userId by proxy(root, UserEntity::id)
 
-    private val hashAlgorithm by proxy(root, UserData::hashAlgorithm)
+    private val hashAlgorithm by proxy(root, UserEntity::hashAlgorithm)
 
-    private val scopeContext = fetchContext.get(userScopeDataRepository)
+    private val scopeContext = fetchContext.get(userScopeEntityRepository)
     private val scopeFetcher = scopeContext.join(
-        where(UserScopeData::userId).`is`(userId)
+        where(UserScopeEntity::userId).`is`(userId)
     )
 
     init {
@@ -55,30 +55,30 @@ class User(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
                     scopeFetcher.clear()
-                    userScopeDataRepository.deleteAllByUserId(id)
+                    userScopeEntityRepository.deleteAllByUserId(id)
                 }
             }
         )
     }
 
     fun isPassword(password: String): Boolean {
-        return root[UserData::password] == encode(password)
+        return root[UserEntity::password] == encode(password)
     }
 
     fun setPassword(password: String) {
-        root[UserData::password] = encode(password)
+        root[UserEntity::password] = encode(password)
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
-        return userScopeDataRepository.exists(
-            where(UserScopeData::userId).`is`(id)
-                .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
+        return userScopeEntityRepository.exists(
+            where(UserScopeEntity::userId).`is`(id)
+                .and(where(UserScopeEntity::scopeTokenId).`is`(scopeToken.id))
         )
     }
 
     override suspend fun grant(scopeToken: ScopeToken) {
-        userScopeDataRepository.create(
-            UserScopeData(
+        userScopeEntityRepository.create(
+            UserScopeEntity(
                 userId = id,
                 scopeTokenId = scopeToken.id
             )
@@ -86,12 +86,12 @@ class User(
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
-        val userScope = userScopeDataRepository.findOneOrFail(
-            where(UserScopeData::userId).`is`(id)
-                .and(where(UserScopeData::scopeTokenId).`is`(scopeToken.id))
+        val userScope = userScopeEntityRepository.findOneOrFail(
+            where(UserScopeEntity::userId).`is`(id)
+                .and(where(UserScopeEntity::scopeTokenId).`is`(scopeToken.id))
         )
         scopeContext.clear(userScope)
-        userScopeDataRepository.delete(userScope)
+        userScopeEntityRepository.delete(userScope)
     }
 
     fun getScope(deep: Boolean = true): Flow<ScopeToken> {
@@ -112,7 +112,7 @@ class User(
     }
 
     suspend fun toPrincipal(
-        clientEntity: ClientEntity? = null,
+        client: ClientAssociable? = null,
         push: List<ScopeToken> = emptyList(),
         pop: List<ScopeToken> = emptyList()
     ): UserPrincipal {
@@ -125,7 +125,7 @@ class User(
         return UserPrincipal(
             id = id,
             userId = userId,
-            clientId = clientEntity?.clientId,
+            clientId = client?.clientId,
             scope = scope.toSet()
         )
     }

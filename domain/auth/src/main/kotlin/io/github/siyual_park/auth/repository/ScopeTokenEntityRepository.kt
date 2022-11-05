@@ -1,7 +1,7 @@
 package io.github.siyual_park.auth.repository
 
 import com.google.common.cache.CacheBuilder
-import io.github.siyual_park.auth.entity.ScopeTokenData
+import io.github.siyual_park.auth.entity.ScopeTokenEntity
 import io.github.siyual_park.data.cache.StorageManager
 import io.github.siyual_park.data.repository.QueryableRepository
 import io.github.siyual_park.data.repository.r2dbc.R2DBCRepositoryBuilder
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Repository
 import java.time.Duration
 
 @Repository
-class ScopeTokenDataRepository(
+class ScopeTokenEntityRepository(
     entityOperations: R2dbcEntityOperations,
     eventPublisher: EventPublisher? = null,
     cacheStorageManager: StorageManager? = null
-) : QueryableRepository<ScopeTokenData, ULID> by R2DBCRepositoryBuilder<ScopeTokenData, ULID>(entityOperations, ScopeTokenData::class)
+) : QueryableRepository<ScopeTokenEntity, ULID> by R2DBCRepositoryBuilder<ScopeTokenEntity, ULID>(entityOperations, ScopeTokenEntity::class)
     .enableEvent(eventPublisher)
     .enableCache({
         CacheBuilder.newBuilder()

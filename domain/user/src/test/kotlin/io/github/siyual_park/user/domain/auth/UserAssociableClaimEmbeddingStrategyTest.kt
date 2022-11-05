@@ -5,8 +5,8 @@ import io.github.siyual_park.user.domain.UserTestHelper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class UserEntityClaimEmbeddingStrategyTest : UserTestHelper() {
-    private val userEntityClaimEmbeddingStrategy = UserEntityClaimEmbeddingStrategy()
+class UserAssociableClaimEmbeddingStrategyTest : UserTestHelper() {
+    private val userAssociableClaimEmbeddingStrategy = UserAssociableClaimEmbeddingStrategy()
 
     @Test
     fun embedding() = blocking {
@@ -14,7 +14,7 @@ class UserEntityClaimEmbeddingStrategyTest : UserTestHelper() {
             .let { userStorage.save(it) }
         val principal = user.toPrincipal()
 
-        val claim = userEntityClaimEmbeddingStrategy.embedding(principal)
+        val claim = userAssociableClaimEmbeddingStrategy.embedding(principal)
 
         assertEquals(user.id, claim["uid"])
     }

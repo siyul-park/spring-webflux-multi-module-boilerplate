@@ -8,7 +8,7 @@ import io.github.siyual_park.auth.domain.authorization.authorize
 import io.github.siyual_park.auth.domain.scope_token.CreateScopeTokenPayload
 import io.github.siyual_park.auth.domain.scope_token.ScopeToken
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
-import io.github.siyual_park.auth.entity.ScopeTokenData
+import io.github.siyual_park.auth.entity.ScopeTokenEntity
 import io.github.siyual_park.data.patch.PropertyOverridePatch
 import io.github.siyual_park.mapper.MapperContext
 import io.github.siyual_park.mapper.map
@@ -52,8 +52,8 @@ class ScopeController(
     private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
-    private val rhsFilterParser = rhsFilterParserFactory.create(ScopeTokenData::class)
-    private val sortParser = sortParserFactory.create(ScopeTokenData::class)
+    private val rhsFilterParser = rhsFilterParserFactory.create(ScopeTokenEntity::class)
+    private val sortParser = sortParserFactory.create(ScopeTokenEntity::class)
     private val projectionParser = projectionParserFactory.create(ScopeTokenInfo::class)
 
     private val offsetPaginator = OffsetPaginator(scopeTokenStorage)
@@ -93,10 +93,10 @@ class ScopeController(
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
-                ScopeTokenData::id to id,
-                ScopeTokenData::name to name,
-                ScopeTokenData::createdAt to createdAt,
-                ScopeTokenData::updatedAt to updatedAt
+                ScopeTokenEntity::id to id,
+                ScopeTokenEntity::name to name,
+                ScopeTokenEntity::createdAt to createdAt,
+                ScopeTokenEntity::updatedAt to updatedAt
             )
         )
         val offsetPage = offsetPaginator.paginate(

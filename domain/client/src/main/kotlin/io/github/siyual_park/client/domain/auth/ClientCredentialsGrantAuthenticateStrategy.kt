@@ -16,7 +16,7 @@ class ClientCredentialsGrantAuthenticateStrategy(
 
     override suspend fun authenticate(payload: ClientCredentialsGrantPayload): ClientPrincipal? {
         val client = clientStorage.loadOrFail(payload.id)
-        if (client.secret == payload.secret) {
+        if (client.secret != payload.secret) {
             throw SecretIncorrectException()
         }
 

@@ -23,7 +23,7 @@ import io.github.siyual_park.user.domain.CreateUserPayload
 import io.github.siyual_park.user.domain.User
 import io.github.siyual_park.user.domain.UserStorage
 import io.github.siyual_park.user.domain.auth.UserPrincipal
-import io.github.siyual_park.user.entity.UserData
+import io.github.siyual_park.user.entity.UserEntity
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -58,8 +58,8 @@ class UserController(
     private val operator: TransactionalOperator,
     private val mapperContext: MapperContext
 ) {
-    private val rhsFilterParser = rhsFilterParserFactory.create(UserData::class)
-    private val sortParser = sortParserFactory.create(UserData::class)
+    private val rhsFilterParser = rhsFilterParserFactory.create(UserEntity::class)
+    private val sortParser = sortParserFactory.create(UserEntity::class)
     private val projectionParser = projectionParserFactory.create(UserInfo::class)
 
     private val offsetPaginator = OffsetPaginator(userStorage)
@@ -99,10 +99,10 @@ class UserController(
         val projectionNode = projectionParser.parse(fields)
         val criteria = rhsFilterParser.parse(
             mapOf(
-                UserData::id to id,
-                UserData::name to name,
-                UserData::createdAt to createdAt,
-                UserData::updatedAt to updatedAt
+                UserEntity::id to id,
+                UserEntity::name to name,
+                UserEntity::createdAt to createdAt,
+                UserEntity::updatedAt to updatedAt
             )
         )
         val offsetPage = offsetPaginator.paginate(
