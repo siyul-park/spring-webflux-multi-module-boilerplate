@@ -6,6 +6,7 @@ import de.flapdoodle.embed.mongo.MongodExecutable
 import de.flapdoodle.embed.mongo.MongodStarter
 import de.flapdoodle.embed.mongo.config.Defaults
 import de.flapdoodle.embed.mongo.config.ImmutableMongoCmdOptions
+import de.flapdoodle.embed.mongo.config.ImmutableMongodConfig
 import de.flapdoodle.embed.mongo.config.MongodConfig
 import de.flapdoodle.embed.mongo.config.Net
 import de.flapdoodle.embed.mongo.distribution.Version
@@ -44,11 +45,12 @@ class MongoTestHelper : ResourceTestHelper {
     private val database = UUID.randomUUID().toString()
 
     override fun setUp() {
-        val mongodExecutableAndClient = createEmbeddedMongoDBClients()
-        mongodExecutable = mongodExecutableAndClient.first
+        val mongodConfig = createMongodConfig()
+
+        mongodExecutable = starter.prepare(mongodConfig)
         mongodExecutable.start()
 
-        mongoClient = mongodExecutableAndClient.second
+        mongoClient = MongoClients.create("mongodb://localhost:${mongodConfig.net().port}")
         mongoTemplate = createReactiveMongoTemplate(
             mongoClient,
             database,
@@ -60,6 +62,7 @@ class MongoTestHelper : ResourceTestHelper {
     }
 
     override fun tearDown() {
+        mongoClient.close()
         mongodExecutable.stop()
     }
 
@@ -70,9 +73,8 @@ class MongoTestHelper : ResourceTestHelper {
         return Defaults.extractedArtifactStoreFor(Command.MongoD).withDownloadConfig(downloadConfig)
     }
 
-    private fun createEmbeddedMongoDBClients(): Pair<MongodExecutable, MongoClient> {
-        val port = Network.getFreeServerPort()
-        val mongodConfig = MongodConfig.builder()
+    private fun createMongodConfig(): ImmutableMongodConfig {
+        return MongodConfig.builder()
             .version(Version.Main.V4_4)
             .cmdOptions(
                 ImmutableMongoCmdOptions.builder()
@@ -82,10 +84,7 @@ class MongoTestHelper : ResourceTestHelper {
                     .useNoPrealloc(false)
                     .build()
             )
-            .net(Net(port, Network.localhostIsIPv6()))
+            .net(Net(Network.getFreeServerPort(), Network.localhostIsIPv6()))
             .build()
-
-        val mongodExecutable = starter.prepare(mongodConfig)
-        return mongodExecutable to MongoClients.create("mongodb://localhost:$port")!!
     }
 }
