@@ -27,6 +27,7 @@ class RedisTestHelper : ResourceTestHelper {
     }
 
     override fun tearDown() {
+        redisClient.shutdown()
         redisServer.stop()
     }
 }
