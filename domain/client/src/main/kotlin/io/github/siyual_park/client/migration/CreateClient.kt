@@ -27,12 +27,12 @@ class CreateClient(
                     "id BYTEA PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
-                    "type VARCHAR(64) NOT NULL, " +
                     "origins VARCHAR(2048)[] NOT NULL, " +
+
+                    "secret VARCHAR(32), " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
                     ")"
             )
             entityOperations.createUpdatedAtTrigger(tableName)
@@ -43,12 +43,12 @@ class CreateClient(
                     "id BINARY(16) NOT NULL PRIMARY KEY, " +
 
                     "name VARCHAR(64) NOT NULL, " +
-                    "type VARCHAR(64) NOT NULL, " +
                     "origins VARCHAR(2048) ARRAY NOT NULL, " +
+
+                    "secret VARCHAR(32), " +
 
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
                     ")"
             )
         }

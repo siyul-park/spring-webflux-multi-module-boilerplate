@@ -9,6 +9,6 @@ import java.net.URL
 data class ClientData(
     @Key
     var name: String,
-    val type: ClientType,
     var origins: Collection<URL>,
+    var secret: String?,
 ) : ModifiableULIDEntity()

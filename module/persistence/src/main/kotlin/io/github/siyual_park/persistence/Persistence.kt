@@ -27,10 +27,6 @@ open class Persistence<T : Any, ID : Any>(
         }
     }
 
-    fun raw(): T {
-        return root.raw()
-    }
-
     suspend fun link(): Boolean {
         val context = SuspendTransactionContextHolder.getContext() ?: return false
         val synchronizations = context.synchronizations ?: return false
@@ -107,5 +103,9 @@ open class Persistence<T : Any, ID : Any>(
 
     override fun toString(): String {
         return root.raw().toString()
+    }
+
+    private fun raw(): T {
+        return root.raw()
     }
 }

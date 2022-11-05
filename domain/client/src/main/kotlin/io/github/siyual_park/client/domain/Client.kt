@@ -8,17 +8,14 @@ import io.github.siyual_park.client.entity.ClientData
 import io.github.siyual_park.client.entity.ClientEntity
 import io.github.siyual_park.client.entity.ClientScopeData
 import io.github.siyual_park.client.entity.ClientType
-import io.github.siyual_park.client.repository.ClientCredentialDataRepository
 import io.github.siyual_park.client.repository.ClientDataRepository
 import io.github.siyual_park.client.repository.ClientScopeDataRepository
 import io.github.siyual_park.data.aggregation.FetchContext
 import io.github.siyual_park.data.aggregation.get
-import io.github.siyual_park.data.cache.SuspendLazy
 import io.github.siyual_park.data.criteria.and
 import io.github.siyual_park.data.criteria.where
 import io.github.siyual_park.data.repository.findOneOrFail
 import io.github.siyual_park.persistence.Persistence
-import io.github.siyual_park.persistence.PersistencePropagateSynchronization
 import io.github.siyual_park.persistence.PersistenceSynchronization
 import io.github.siyual_park.persistence.proxy
 import io.github.siyual_park.ulid.ULID
@@ -32,15 +29,21 @@ import kotlinx.coroutines.flow.toList
 class Client(
     value: ClientData,
     clientDataRepository: ClientDataRepository,
-    private val clientCredentialDataRepository: ClientCredentialDataRepository,
     private val clientScopeDataRepository: ClientScopeDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage,
     fetchContext: FetchContext
 ) : Persistence<ClientData, ULID>(value, clientDataRepository), ClientEntity, Authorizable {
     val id by proxy(root, ClientData::id)
     var name by proxy(root, ClientData::name)
-    val type by proxy(root, ClientData::type)
     var origins by proxy(root, ClientData::origins)
+    var secret by proxy(root, ClientData::secret)
+
+    val type: ClientType
+        get() = if (secret != null) {
+            ClientType.CONFIDENTIAL
+        } else {
+            ClientType.PUBLIC
+        }
 
     val createdAt by proxy(root, ClientData::createdAt)
     val updatedAt by proxy(root, ClientData::updatedAt)
@@ -52,40 +55,15 @@ class Client(
         where(ClientScopeData::clientId).`is`(clientId)
     )
 
-    private val credential = SuspendLazy {
-        ClientCredential(
-            clientCredentialDataRepository.findByClientIdOrFail(clientId),
-            clientCredentialDataRepository
-        ).also {
-            synchronize(PersistencePropagateSynchronization(it))
-        }
-    }
-
     init {
         synchronize(
             object : PersistenceSynchronization {
                 override suspend fun beforeClear() {
                     scopeFetcher.clear()
-
                     clientScopeDataRepository.deleteAllByClientId(id)
-                    if (isConfidential()) {
-                        credential.get().clear()
-                    }
-                }
-
-                override suspend fun afterClear() {
-                    credential.clear()
                 }
             }
         )
-    }
-
-    fun isConfidential(): Boolean {
-        return type == ClientType.CONFIDENTIAL
-    }
-
-    fun isPublic(): Boolean {
-        return type == ClientType.PUBLIC
     }
 
     override suspend fun has(scopeToken: ScopeToken): Boolean {
@@ -111,11 +89,6 @@ class Client(
         )
         scopeContext.clear(clientScope)
         clientScopeDataRepository.delete(clientScope)
-    }
-
-    suspend fun getCredential(): ClientCredential {
-        return credential.get()
-            .also { it.link() }
     }
 
     fun getScope(deep: Boolean = true): Flow<ScopeToken> {

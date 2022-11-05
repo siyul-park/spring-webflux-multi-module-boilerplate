@@ -33,7 +33,6 @@ class ClientStorageTest : ClientTestHelper() {
         assertEquals(payload.name, client.name)
         assertEquals(payload.origins, client.origins)
         assertEquals(payload.type, client.type)
-        assertEquals(client.id, client.getCredential().clientId)
 
         val scope = client.getScope(deep = false).toList()
         assertEquals(1, scope.size)

@@ -19,10 +19,9 @@ class PasswordGrantAuthenticateStrategy(
 
     override suspend fun authenticate(payload: PasswordGrantPayload): UserPrincipal? {
         val user = userStorage.loadOrFail(payload.username)
-        val credential = user.getCredential()
         val client = payload.clientId?.let { clientStorage.loadOrFail(it) }
 
-        if (!credential.check(payload.password)) {
+        if (!user.isPassword(payload.password)) {
             throw IncorrectPasswordException()
         }
 

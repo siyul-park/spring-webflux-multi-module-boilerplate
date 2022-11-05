@@ -35,9 +35,6 @@ class ScopeTokenConfiguration(
         scopeTokenStorage.upsert(name = "users[self]:update").also { granted(it, listOf(userScope)) }
         scopeTokenStorage.upsert(name = "users[self]:delete").also { granted(it, listOf(userScope)) }
 
-        scopeTokenStorage.upsert(name = "users.credential:update")
-        scopeTokenStorage.upsert(name = "users[self].credential:update").also { granted(it, listOf(userScope)) }
-
         scopeTokenStorage.upsert(name = "users.scope:create")
         scopeTokenStorage.upsert(name = "users.scope:read")
         scopeTokenStorage.upsert(name = "users.scope:delete")

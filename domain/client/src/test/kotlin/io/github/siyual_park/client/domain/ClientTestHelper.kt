@@ -8,9 +8,7 @@ import io.github.siyual_park.auth.migration.CreateToken
 import io.github.siyual_park.auth.repository.ScopeRelationDataRepository
 import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
 import io.github.siyual_park.client.migration.CreateClient
-import io.github.siyual_park.client.migration.CreateClientCredential
 import io.github.siyual_park.client.migration.CreateClientScope
-import io.github.siyual_park.client.repository.ClientCredentialDataRepository
 import io.github.siyual_park.client.repository.ClientDataRepository
 import io.github.siyual_park.client.repository.ClientScopeDataRepository
 import io.github.siyual_park.data.converter.StringToURLConverter
@@ -35,19 +33,17 @@ abstract class ClientTestHelper : DataTestHelper(
             .register(CreateScopeRelation(entityOperations))
             .register(CreateToken(mongoTemplate))
             .register(CreateClient(entityOperations, mongoTemplate))
-            .register(CreateClientCredential(entityOperations))
             .register(CreateClientScope(entityOperations))
     }
 
     protected val scopeRelationDataRepository = ScopeRelationDataRepository(entityOperations)
     protected val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
     protected val clientDataRepository = ClientDataRepository(entityOperations)
-    protected val clientCredentialDataRepository = ClientCredentialDataRepository(entityOperations)
     protected val clientScopeDataRepository = spyk(ClientScopeDataRepository(entityOperations))
 
     protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
     protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
-    protected val clientStorage = ClientStorage(clientDataRepository, clientCredentialDataRepository, clientScopeDataRepository, scopeTokenStorage)
+    protected val clientStorage = ClientStorage(clientDataRepository, clientScopeDataRepository, scopeTokenStorage)
 
     @BeforeEach
     override fun setUp() {

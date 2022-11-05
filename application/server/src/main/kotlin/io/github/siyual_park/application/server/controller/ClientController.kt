@@ -87,7 +87,6 @@ class ClientController(
     suspend fun readAll(
         @RequestParam("id", required = false) id: List<String>? = null,
         @RequestParam("name", required = false) name: List<String>? = null,
-        @RequestParam("type", required = false) type: List<String>? = null,
         @RequestParam("created_at", required = false) createdAt: List<String>? = null,
         @RequestParam("updated_at", required = false) updatedAt: List<String>? = null,
         @RequestParam("sort", required = false) sort: List<String>? = null,
@@ -100,7 +99,6 @@ class ClientController(
             mapOf(
                 ClientData::id to id,
                 ClientData::name to name,
-                ClientData::type to type,
                 ClientData::createdAt to createdAt,
                 ClientData::updatedAt to updatedAt
             )

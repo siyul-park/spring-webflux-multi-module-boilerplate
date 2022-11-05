@@ -15,7 +15,7 @@ class ClientCredentialsGrantAuthenticateStrategyTest : ClientTestHelper() {
 
         val principal = authorizationStrategy.authenticate(
             ClientCredentialsGrantPayload(
-                client.id, client.getCredential().raw().secret
+                client.id, client.secret
             )
         )
         assertNotNull(principal)

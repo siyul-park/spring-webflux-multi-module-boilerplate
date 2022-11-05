@@ -2,7 +2,6 @@ package io.github.siyual_park.client.domain
 
 import io.github.siyual_park.auth.domain.scope_token.ScopeTokenStorage
 import io.github.siyual_park.client.entity.ClientData
-import io.github.siyual_park.client.repository.ClientCredentialDataRepository
 import io.github.siyual_park.client.repository.ClientDataRepository
 import io.github.siyual_park.client.repository.ClientScopeDataRepository
 import io.github.siyual_park.data.aggregation.FetchContext
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component
 @Component
 class ClientMapper(
     private val clientDataRepository: ClientDataRepository,
-    private val clientCredentialDataRepository: ClientCredentialDataRepository,
     private val clientScopeDataRepository: ClientScopeDataRepository,
     private val scopeTokenStorage: ScopeTokenStorage
 ) : Mapper<ClientData, Client> {
@@ -26,7 +24,6 @@ class ClientMapper(
         return Client(
             source,
             clientDataRepository,
-            clientCredentialDataRepository,
             clientScopeDataRepository,
             scopeTokenStorage,
             fetchContext

@@ -10,4 +10,7 @@ data class UserData(
     var name: String,
     @Key
     var email: String,
+
+    var hashAlgorithm: String,
+    var password: String,
 ) : ModifiableULIDEntity()

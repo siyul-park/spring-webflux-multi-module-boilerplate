@@ -27,20 +27,12 @@ class ClientDetailInfoMapper(
             name = node.project(ClientDetailInfo::name) { value.name },
             type = node.project(ClientDetailInfo::type) { value.type },
             origins = node.project(ClientDetailInfo::origins) { value.origins },
-            secret = node.project(ClientDetailInfo::secret) { getSecret(value) },
+            secret = node.project(ClientDetailInfo::secret) { value.secret },
             scope = node.project(ClientDetailInfo::scope) {
                 mapperContext.map(Projection(value.getScope(deep = false).toList() as Collection<ScopeToken>, it))
             },
             createdAt = node.project(ClientDetailInfo::createdAt) { value.createdAt },
             updatedAt = node.project(ClientDetailInfo::updatedAt) { value.updatedAt },
         )
-    }
-
-    private suspend fun getSecret(client: Client): String? {
-        return if (client.isConfidential()) {
-            client.getCredential().raw().secret
-        } else {
-            null
-        }
     }
 }

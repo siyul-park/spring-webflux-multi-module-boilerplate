@@ -27,7 +27,7 @@ class UserStorageTest : UserTestHelper() {
 
         assertEquals(payload.name, user.name)
         assertEquals(payload.email, user.email)
-        Assertions.assertTrue(user.getCredential().check(payload.password))
+        Assertions.assertTrue(user.isPassword(payload.password))
 
         val scope = user.getScope(deep = false).toList()
         assertEquals(1, scope.size)
@@ -47,7 +47,7 @@ class UserStorageTest : UserTestHelper() {
 
         assertEquals(payload.name, user.name)
         assertEquals(payload.email, user.email)
-        Assertions.assertTrue(user.getCredential().check(payload.password))
+        Assertions.assertTrue(user.isPassword(payload.password))
 
         val scope = user.getScope(deep = false).toList()
         assertEquals(1, scope.size)

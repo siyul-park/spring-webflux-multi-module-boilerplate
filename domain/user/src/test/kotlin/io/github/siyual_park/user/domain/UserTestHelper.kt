@@ -10,9 +10,7 @@ import io.github.siyual_park.auth.repository.ScopeTokenDataRepository
 import io.github.siyual_park.data.test.DataTestHelper
 import io.github.siyual_park.data.test.MongoTestHelper
 import io.github.siyual_park.user.migration.CreateUser
-import io.github.siyual_park.user.migration.CreateUserCredential
 import io.github.siyual_park.user.migration.CreateUserScope
-import io.github.siyual_park.user.repository.UserCredentialDataRepository
 import io.github.siyual_park.user.repository.UserDataRepository
 import io.github.siyual_park.user.repository.UserScopeDataRepository
 import io.mockk.spyk
@@ -31,20 +29,18 @@ abstract class UserTestHelper(
             .register(CreateScopeRelation(entityOperations))
             .register(CreateToken(mongoTemplate))
             .register(CreateUser(entityOperations, mongoTemplate))
-            .register(CreateUserCredential(entityOperations))
             .register(CreateUserScope(entityOperations))
     }
 
     protected val scopeRelationDataRepository = ScopeRelationDataRepository(entityOperations)
     protected val scopeTokenDataRepository = ScopeTokenDataRepository(entityOperations)
     protected val userDataRepository = UserDataRepository(entityOperations)
-    protected val userCredentialDataRepository = UserCredentialDataRepository(entityOperations)
     protected val userScopeDataRepository = spyk(UserScopeDataRepository(entityOperations))
 
     protected val scopeTokenMapper = ScopeTokenMapper(scopeTokenDataRepository, scopeRelationDataRepository)
     protected val scopeTokenStorage = ScopeTokenStorage(scopeTokenDataRepository, scopeTokenMapper)
 
-    protected val userStorage = UserStorage(userDataRepository, userCredentialDataRepository, userScopeDataRepository, scopeTokenStorage)
+    protected val userStorage = UserStorage(userDataRepository, userScopeDataRepository, scopeTokenStorage)
 
     @BeforeEach
     override fun setUp() {

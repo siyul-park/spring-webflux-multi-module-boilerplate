@@ -40,16 +40,13 @@ class RootClientConfiguration(
                 )
                     .let { clientStorage.save(it) }
                     .also {
-                        val credential = it.getCredential()
-                        logger.info("Creating root client [id: ${it.id}, name: ${it.name}, secret: ${credential.raw().secret}]")
+                        logger.info("Creating root client [id: ${it.id}, name: ${it.name}, secret: ${it.secret}]")
                     }
             }
 
             client.origins = listOf(property.origin)
-
             if (property.secret.isNotEmpty()) {
-                val credential = client.getCredential()
-                credential.set(property.secret)
+                client.secret = property.secret
                 logger.info("Updating root client [secret: ${property.secret}]")
             }
         }

@@ -478,7 +478,7 @@ class UserControllerTest @Autowired constructor(
         val response = userControllerGateway.update(user.id, request)
 
         assertEquals(HttpStatus.OK, response.status)
-        assertTrue(user.getCredential().check(password))
+        assertTrue(user.isPassword(password))
     }
 
     @Test
@@ -600,25 +600,6 @@ class UserControllerTest @Autowired constructor(
             name = Optional.of(faker.name().username())
         )
         val response = userControllerGateway.update(otherUser.id, request)
-
-        assertEquals(HttpStatus.FORBIDDEN, response.status)
-    }
-
-    @Test
-    fun `PATCH users_{user-id}, status = 403, with password`() = blocking {
-        val payload = MockCreateUserPayloadFactory.create()
-        val user = userStorage.save(payload)
-        val principal = user.toPrincipal()
-
-        gatewayAuthorization.setPrincipal(
-            principal,
-            pop = listOf("users[self].credential:update", "users.credential:update")
-        )
-        val password = faker.internet().password()
-        val request = UpdateUserRequest(
-            password = Optional.of(password)
-        )
-        val response = userControllerGateway.update(user.id, request)
 
         assertEquals(HttpStatus.FORBIDDEN, response.status)
     }

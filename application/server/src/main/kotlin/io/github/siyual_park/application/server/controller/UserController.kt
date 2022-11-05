@@ -140,7 +140,7 @@ class UserController(
         val user = operator.executeAndAwait {
             val user = userStorage.loadOrFail(userId)
 
-            request.password?.let { updateCredentials(user, it.orElseThrow { throw ValidationException("password is cannot be null") }) }
+            request.password?.let { user.setPassword(it.orElseThrow { throw ValidationException("password is cannot be null") }) }
             request.scope?.let { syncScope(user, it.orElseGet { emptyList() }.let { scopeTokenStorage.load(it) }.toSet()) }
 
             PropertyOverridePatch.of<User, UpdateUserRequest>(request.copy(password = null, scope = null)).apply(user)
@@ -157,18 +157,6 @@ class UserController(
         operator.executeAndAwait {
             val user = userStorage.loadOrFail(userId)
             user.clear()
-        }
-    }
-
-    private suspend fun updateCredentials(
-        user: User,
-        password: String
-    ) = authorizator.authorize(
-        listOf("users.credential:update", "users[self].credential:update"),
-        listOf(null, user.id)
-    ) {
-        user.getCredential().apply {
-            set(password)
         }
     }
 

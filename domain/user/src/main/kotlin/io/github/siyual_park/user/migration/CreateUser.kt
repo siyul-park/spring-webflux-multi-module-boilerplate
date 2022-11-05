@@ -29,9 +29,11 @@ class CreateUser(
                     "name VARCHAR(64) NOT NULL, " +
                     "email VARCHAR(128) NOT NULL, " +
 
+                    "hash_algorithm VARCHAR(64) NOT NULL, " +
+                    "password VARCHAR(128) NOT NULL, " +
+
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
                     ")"
             )
             entityOperations.createUpdatedAtTrigger(tableName)
@@ -44,9 +46,11 @@ class CreateUser(
                     "name VARCHAR(64) NOT NULL, " +
                     "email VARCHAR(128) NOT NULL, " +
 
+                    "hash_algorithm VARCHAR(64) NOT NULL, " +
+                    "password VARCHAR(128) NOT NULL, " +
+
                     "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, " +
-                    "deleted_at TIMESTAMP" +
                     ")"
             )
         }
