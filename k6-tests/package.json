@@ -22,7 +22,7 @@
     "babel-loader": "9.1.0",
     "clean-webpack-plugin": "4.0.0",
     "copy-webpack-plugin": "^11.0.0",
-    "eslint": "^8.26.0",
+    "eslint": "^8.27.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",
     "sort-package-json": "^2.0.0",
