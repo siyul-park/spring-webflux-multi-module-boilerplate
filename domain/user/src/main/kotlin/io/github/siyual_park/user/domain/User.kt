@@ -86,12 +86,13 @@ class User(
     }
 
     override suspend fun revoke(scopeToken: ScopeToken) {
-        val userScope = userScopeEntityRepository.findOneOrFail(
+        userScopeEntityRepository.findOneOrFail(
             where(UserScopeEntity::userId).`is`(id)
                 .and(where(UserScopeEntity::scopeTokenId).`is`(scopeToken.id))
-        )
-        scopeContext.clear(userScope)
-        userScopeEntityRepository.delete(userScope)
+        ).also {
+            scopeContext.clear(it)
+            userScopeEntityRepository.delete(it)
+        }
     }
 
     fun getScope(deep: Boolean = true): Flow<ScopeToken> {
