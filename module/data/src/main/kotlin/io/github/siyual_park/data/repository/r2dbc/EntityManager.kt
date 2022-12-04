@@ -1,11 +1,10 @@
 package io.github.siyual_park.data.repository.r2dbc
 
-import io.github.siyual_park.data.expansion.columnName
+import io.github.siyual_park.data.expansion.idProperty
 import org.springframework.dao.InvalidDataAccessResourceUsageException
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations
 import org.springframework.data.r2dbc.dialect.DialectResolver
 import org.springframework.data.r2dbc.mapping.OutboundRow
-import org.springframework.data.r2dbc.query.UpdateMapper
 import org.springframework.data.r2dbc.support.ArrayUtils
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty
@@ -25,16 +24,10 @@ class EntityManager<T : Any, ID : Any?>(
     private val client = entityOperations.databaseClient
     private val converter = entityOperations.converter
     private val dialect = DialectResolver.getDialect(client.connectionFactory)
-    private val updateManager = UpdateMapper(dialect, converter)
-
     private val mappingContext = converter.mappingContext
-
     private val requiredEntity = mappingContext.getRequiredPersistentEntity(clazz.java)
-
     private val idColumnName = requiredEntity.requiredIdProperty.columnName
-    private val simpleIdColumnName = updateManager.toSql(idColumnName)
-    private val idProperty = clazz.memberProperties.find { columnName(it) == simpleIdColumnName } as? KProperty1<T, ID>
-        ?: throw RuntimeException("Can't find id column in ${clazz.simpleName}")
+    private val idProperty = idProperty<T, ID>(clazz)
 
     fun getId(entity: T): ID {
         return idProperty.get(entity)
@@ -100,7 +93,7 @@ class EntityManager<T : Any, ID : Any?>(
     }
 
     fun getIdColumnName(): String {
-        return simpleIdColumnName
+        return idColumnName.toString()
     }
 
     fun getRequiredEntity(): RelationalPersistentEntity<*> {

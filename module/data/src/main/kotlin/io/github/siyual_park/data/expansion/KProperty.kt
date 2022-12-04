@@ -33,6 +33,6 @@ fun <T> fieldName(property: KProperty<T>): String {
 fun <T : Any, ID : Any?> idProperty(clazz: KClass<T>): KProperty1<T, ID> {
     return (
         clazz.memberProperties.find { it.javaField?.annotations?.find { it is Id } != null }
-            ?: throw RuntimeException()
+            ?: throw RuntimeException("Can't find id column in ${clazz.simpleName}")
         ) as KProperty1<T, ID>
 }
