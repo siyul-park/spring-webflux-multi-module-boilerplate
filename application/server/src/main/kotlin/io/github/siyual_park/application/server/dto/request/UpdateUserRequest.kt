@@ -2,9 +2,9 @@ package io.github.siyual_park.application.server.dto.request
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.github.siyual_park.ulid.ULID
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.Size
 import java.util.Optional
-import javax.validation.constraints.Email
-import javax.validation.constraints.Size
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class UpdateUserRequest(

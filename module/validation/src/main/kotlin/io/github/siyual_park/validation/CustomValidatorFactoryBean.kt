@@ -1,11 +1,11 @@
 package io.github.siyual_park.validation
 
+import jakarta.validation.ClockProvider
+import jakarta.validation.Configuration
+import jakarta.validation.ConstraintValidator
 import org.hibernate.validator.HibernateValidatorConfiguration
 import org.hibernate.validator.internal.engine.DefaultClockProvider
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
-import javax.validation.ClockProvider
-import javax.validation.Configuration
-import javax.validation.ConstraintValidator
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")

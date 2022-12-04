@@ -261,7 +261,7 @@ class SimpleR2DBCRepository<T : Any, ID : Any>(
         )
             .subscribeOn(Schedulers.parallel())
             .awaitSingle()
-        if (updateCount == 0) {
+        if (updateCount == 0L) {
             return null
         }
 

@@ -1,13 +1,13 @@
 package io.github.siyual_park.validation.validator
 
 import io.github.siyual_park.validation.annotation.ValidateMapping
+import jakarta.validation.ConstraintValidator
+import jakarta.validation.ConstraintValidatorContext
+import jakarta.validation.constraints.Size
 import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl
 import org.hibernate.validator.internal.metadata.descriptor.ConstraintDescriptorImpl
 import org.springframework.stereotype.Component
 import java.net.URL
-import javax.validation.ConstraintValidator
-import javax.validation.ConstraintValidatorContext
-import javax.validation.constraints.Size
 
 @Suppress("UNCHECKED_CAST", "NAME_SHADOWING")
 @Component

@@ -1,6 +1,7 @@
 package io.github.siyual_park.application.server.handler
 
 import io.github.siyual_park.presentation.exception.InvalidRequestException
+import jakarta.validation.ValidationException
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
@@ -8,7 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.bind.support.WebExchangeBindException
 import org.springframework.web.server.ResponseStatusException
-import javax.validation.ValidationException
 
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
