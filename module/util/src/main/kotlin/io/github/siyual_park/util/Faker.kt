@@ -1,8 +1,8 @@
 package io.github.siyual_park.util
 
-import net.datafaker.Internet
-import net.datafaker.Lorem
-import net.datafaker.Name
+import net.datafaker.providers.base.Internet
+import net.datafaker.providers.base.Lorem
+import net.datafaker.providers.base.Name
 import java.net.URL
 
 fun Name.username(size: Int? = null): String {
