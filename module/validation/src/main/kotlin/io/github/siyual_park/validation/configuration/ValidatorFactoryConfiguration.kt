@@ -2,10 +2,10 @@ package io.github.siyual_park.validation.configuration
 
 import io.github.siyual_park.validation.CustomValidatorFactoryBean
 import io.github.siyual_park.validation.annotation.ValidateMapping
+import jakarta.validation.ConstraintValidator
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import javax.validation.ConstraintValidator
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")

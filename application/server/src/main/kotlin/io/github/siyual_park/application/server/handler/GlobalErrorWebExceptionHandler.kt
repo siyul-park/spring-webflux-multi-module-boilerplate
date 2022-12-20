@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.ServerWebExchange
@@ -44,9 +45,9 @@ class GlobalErrorWebExceptionHandler(
         }
     }
 
-    private fun getStatus(ex: Throwable): HttpStatus? {
+    private fun getStatus(ex: Throwable): HttpStatusCode? {
         return if (ex is ResponseStatusException) {
-            ex.status
+            ex.statusCode
         } else {
             ex.cause?.let { getStatus(it) }
         }

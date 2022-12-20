@@ -1,7 +1,7 @@
 package io.github.siyual_park.data.patch
 
+import jakarta.validation.ValidationException
 import java.util.Optional
-import javax.validation.ValidationException
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1

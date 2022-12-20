@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.github.siyual_park.ulid.ULID
 import io.swagger.v3.oas.annotations.media.Schema
-import javax.validation.constraints.Size
+import jakarta.validation.constraints.Size
 
 @Schema(
     type = "object",

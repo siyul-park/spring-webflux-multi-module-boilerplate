@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.fge.jsonpatch.JsonPatch
 import io.github.siyual_park.data.patch.Patch
-import javax.validation.ValidationException
+import jakarta.validation.ValidationException
 
 class JsonPatch<T : Any>(
     node: JsonNode,

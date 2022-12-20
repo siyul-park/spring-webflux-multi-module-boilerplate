@@ -1,8 +1,8 @@
 package io.github.siyual_park.application.server.dto.request
 
 import io.github.siyual_park.client.entity.ClientType
+import jakarta.validation.constraints.Size
 import java.net.URL
-import javax.validation.constraints.Size
 
 data class CreateClientRequest(
     @field:Size(min = 3, max = 64)
