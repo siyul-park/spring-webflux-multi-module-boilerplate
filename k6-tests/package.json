@@ -24,7 +24,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.31.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
-    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-import": "^2.27.2",
     "sort-package-json": "^2.1.0",
     "typescript": "4.9.4",
     "webpack": "5.75.0",
