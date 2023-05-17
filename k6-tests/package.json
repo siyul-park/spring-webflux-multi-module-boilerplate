@@ -32,6 +32,6 @@
     "webpack-glob-entries": "^1.0.1"
   },
   "dependencies": {
-    "json-diff": "^1.0.3"
+    "json-diff": "^1.0.6"
   }
 }
