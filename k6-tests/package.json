@@ -16,7 +16,7 @@
     "@babel/preset-env": "7.22.10",
     "@babel/preset-typescript": "7.22.5",
     "@types/k6": "~0.44.2",
-    "@types/webpack": "5.28.1",
+    "@types/webpack": "5.28.2",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "babel-loader": "9.1.3",
