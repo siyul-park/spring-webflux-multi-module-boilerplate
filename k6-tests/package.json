@@ -25,7 +25,7 @@
     "eslint": "^8.50.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
     "eslint-plugin-import": "^2.28.1",
-    "sort-package-json": "^2.5.1",
+    "sort-package-json": "^2.6.0",
     "typescript": "5.2.2",
     "webpack": "5.88.2",
     "webpack-cli": "5.1.4",
