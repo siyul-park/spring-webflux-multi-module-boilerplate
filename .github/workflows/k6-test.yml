@@ -8,6 +8,7 @@ on:
       - master
       - release
       - develop
+      - feature/benchmark
     types:
       - completed
 
