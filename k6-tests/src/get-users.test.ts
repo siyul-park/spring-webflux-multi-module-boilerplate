@@ -4,6 +4,7 @@ import { UserGateway } from './gateway';
 
 import client from './client';
 import matrixType from './matrix-type';
+import { dummyCreateUserRequest } from "./dummy";
 export { default as handleSummary } from './handle-summary';
 
 export const options: Options = {
@@ -18,6 +19,13 @@ const userGateway = new UserGateway({
   clientId: client.id,
   clientSecret: client.secret,
 });
+
+export function setup() {
+  for (let i = 0; i < 100; i++) {
+    userGateway.create(dummyCreateUserRequest());
+  }
+  return;
+}
 
 export default () => {
   userGateway.readAll();

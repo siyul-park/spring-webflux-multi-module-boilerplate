@@ -100,18 +100,17 @@ We’ve conducted performance benchmarks in standalone mode using GitHub Actions
 
 We tested a range of critical functionalities, including token issuance, user retrieval, and client management. Here’s a summary of the average response times and transactions per second (TPS) categorized by HTTP method:
 
-| HTTP Method | Request URL               | Response Time (Median) | Concurrent Users | TPS   | Notes                          |
-|-------------|---------------------------|-------------------------|------------------|-------|--------------------------------|
-| POST        | /token                    | 253.74ms                | 200              | 255.04| Client credentials              |
-| POST        | /token                    | 217.83ms                | 200              | 301.87| Password                       |
-| POST        | /token                    | 330.96ms                | 200              | 191.13| Refresh token                  |
-| GET         | /self                     | 50.95ms                 | 200              | 484.31| Token information retrieval      |
-| GET         | /clients/{client-id}      | 88.24ms                 | 200              | 721.44| Client information retrieval     |
-| DELETE      | /clients/{client-id}      | 418.38ms                | 200              | 125.80| Client deletion                |
-| PATCH       | /clients/{client-id}      | 311.07ms                | 200              | 270.01| Client information update        |
-| GET         | /users/{user-id}          | 48.59ms                 | 200              | 364.39| User information retrieval       |
-| DELETE      | /users/{user-id}          | 281.28ms                | 200              | 242.68| User deletion                  |
-| PATCH       | /users/{user-id}          | 208.94ms                | 200              | 275.63| User information update         |
+| Method | Endpoint                   | TPS     | Avgage   | p(50)   | p(90)   | p(95)   |
+|--------|-----------------------------|---------|----------|---------|---------|---------|
+| GET    | /self                        | 1041.11 | 85.56 ms | 36.04 ms| 225.25 ms| 362.71 ms|
+| GET    | /clients                     | 83.47   | 1.34 s   | 1.01 s  | 3.02 s   | 4.07 s  |
+| GET    | /clients/{client_id}         | 1968.06 | 85.39 ms | 82.09 ms| 129.72 ms| 148.91 ms|
+| PATCH  | /clients/{client_id}         | 245.22  | 403.8 ms | 333.37 ms| 646.13 ms| 775.07 ms|
+| DELETE | /clients/{client_id}         | 250.99  | 238.43 ms| 234.29 ms| 331.15 ms| 371.51 ms|
+| GET    | /users                       | 125.94  | 760.71 ms| 663.44 ms| 1.28 s   | 1.41 s  |
+| GET    | /users/{user-id}             | 526.45  | 115.62 ms| 76.62 ms| 143.79 ms| 424.72 ms|
+| PATCH  | /users/{user-id}             | 263.72  | 369.67 ms| 300.79 ms| 527.33 ms| 1.16 s  |
+| DELETE | /users/{user-id}             | 174.78  | 559.84 ms| 430.17 ms| 674.69 ms| 1.31 s  |
 
 ## 📚 Contributing
 
